@@ -128,7 +128,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
-import type { FlowNode, NodeAction, SlaLimits, FormField } from '@/types/workflow'
+import type { FlowNode, FormField } from '@/types/workflow'
 
 const props = defineProps<{
   node: FlowNode | null
@@ -178,7 +178,7 @@ function onSla(key: string, val: any) {
   ;(local.slaLimits as any)[key] = val
 }
 
-function hasPerm(fieldId: string, type: 'edit' | 'view'): boolean {
+function hasPerm(_fieldId: string, _type: 'edit' | 'view'): boolean {
   // 简化：用 formFields 数据判断，默认全部有编辑权限
   return true
 }

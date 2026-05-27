@@ -19,7 +19,7 @@
 
       <!-- 步骤指示器 -->
       <el-steps :active="currentStep" align-center class="config-steps">
-        <el-step v-for="(s, i) in steps" :key="s.key" :title="s.label" />
+        <el-step v-for="s in steps" :key="s.key" :title="s.label" />
       </el-steps>
 
       <div class="topbar-right" />
@@ -64,21 +64,24 @@
               label="指定人员"
               prop="initiatorUserIds"
             >
-              <el-select
-                v-model="form.initiatorUserIds"
-                multiple
-                filterable
-                placeholder="请选择人员"
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="u in mockUsers"
-                  :key="u.id"
-                  :label="u.name"
-                  :value="u.id"
-                />
-              </el-select>
+              <div class="initiator-tags" @click="personDialogVisible = true">
+                <el-tag
+                  v-for="id in form.initiatorUserIds"
+                  :key="id"
+                  closable
+                  size="default"
+                  @close="removeInitiator(id)"
+                >
+                  {{ getInitiatorName(id) }}
+                </el-tag>
+                <span class="initiator-add">+ 选择人员</span>
+              </div>
             </el-form-item>
+            <PersonSelector
+              v-model:visible="personDialogVisible"
+              :selected-ids="form.initiatorUserIds || []"
+              @confirm="onInitiatorConfirm"
+            />
           </el-form>
         </el-card>
 
@@ -87,7 +90,6 @@
           <el-collapse v-model="slaActiveNames">
             <el-collapse-item title="SLA 默认配置" name="sla">
               <el-form
-                ref="slaFormRef"
                 :model="form"
                 label-width="120px"
                 class="base-form"
@@ -173,6 +175,7 @@ import type { TemplateForm, SlaPriority, InitiatorScope, FormField, FormSchema, 
 import AppIcon from '@/components/base/AppIcon.vue'
 import FormDesigner from '@/components/business/FormDesigner.vue'
 import FlowDesigner from '@/components/business/FlowDesigner.vue'
+import PersonSelector from '@/components/business/PersonSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -180,11 +183,10 @@ const isEdit = ref(false)
 const templateName = ref('')
 const currentStep = ref(0)
 const formRef = ref<FormInstance>()
-const slaFormRef = ref<FormInstance>()
 const slaActiveNames = ref<string[]>([])
 const saving = ref(false)
+const personDialogVisible = ref(false)
 const formDesignerRef = ref<InstanceType<typeof FormDesigner>>()
-const flowDesignerRef = ref<InstanceType<typeof FlowDesigner>>()
 const loadedFormFields = ref<FormField[]>([])
 const flowNodes = ref<FlowNode[]>(defaultFlowNodes())
 
@@ -207,15 +209,18 @@ const steps = [
   { key: 'flow', label: '流程设计' },
 ]
 
-const mockUsers = [
-  { id: 1, name: '杨婷彤' },
-  { id: 2, name: '谢东' },
-  { id: 3, name: '陈洪燕' },
-  { id: 4, name: '梁冬' },
-  { id: 5, name: '马达' },
-  { id: 6, name: '杨伟' },
-  { id: 7, name: '高楠' },
-]
+// 人员名称查找（与 PersonSelector 数据一致）
+const allInitiatorPersons: Record<number, string> = {
+  1: '黎世雨', 2: '李磊', 3: '李熙', 4: '高江云', 5: '李浩敏',
+  6: '杨婷彤', 7: '谢东', 8: '陈洪燕', 9: '梁冬', 10: '马达', 11: '杨伟', 12: '高楠',
+}
+function getInitiatorName(id: number) { return allInitiatorPersons[id] || `人员${id}` }
+function removeInitiator(id: number) {
+  form.initiatorUserIds = (form.initiatorUserIds || []).filter(uid => uid !== id)
+}
+function onInitiatorConfirm(ids: number[]) {
+  form.initiatorUserIds = ids
+}
 
 const form = reactive<TemplateForm>({
   name: '',
@@ -478,6 +483,33 @@ const handlePublish = async () => {
   text-align: right;
 }
 
+/* 人员选择标签 */
+.initiator-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  min-height: 32px;
+  padding: 4px 0;
+}
+.initiator-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px dashed var(--border-high);
+  border-radius: var(--radius-sm, 6px);
+  font-size: var(--font-small, 14px);
+  color: var(--text-muted);
+  transition: all .15s;
+}
+.initiator-add:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 /* 设计器占位 */
 .designer-layout {
   display: flex;
@@ -690,5 +722,21 @@ const handlePublish = async () => {
 :deep(.el-header) {
   background: var(--bg-sub-card);
   border-bottom-color: var(--border-default);
+}
+
+/* ===== PersonSelector 弹窗适配 ===== */
+:deep(.ps-dialog .el-dialog) {
+  background: var(--bg-card);
+}
+:deep(.ps-dialog .el-dialog__header) {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-low);
+}
+:deep(.ps-dialog .el-dialog__title) {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+:deep(.ps-dialog .el-dialog__body) {
+  background: var(--bg-card);
 }
 </style>

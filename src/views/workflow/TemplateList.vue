@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useWorkflowStore } from '@/stores/workflow'
 import type { TemplateItem } from '@/types/workflow'
 import StatusTag from '@/components/business/StatusTag.vue'
