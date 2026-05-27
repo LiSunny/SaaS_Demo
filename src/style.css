@@ -1,0 +1,270 @@
+/* === 设计令牌：人工智能公共安全管理平台 === */
+
+/* ========== Light 主题 ========== */
+:root {
+  /* 主色 */
+  --accent-primary: #3678E3;
+  --accent-primary10: rgba(54, 120, 227, 0.1);
+  --accent-dark: #204785;
+
+  /* 语义色 */
+  --success: #059669;
+  --success-bg: rgba(5, 150, 105, 0.1);
+  --warning: #D97706;
+  --warning-bg: rgba(217, 119, 6, 0.1);
+  --danger: #DC2626;
+  --danger-bg: rgba(220, 38, 38, 0.1);
+  --info: #3678E3;
+  --info-bg: rgba(54, 120, 227, 0.1);
+  --notice: #CA8A04;
+  --notice-bg: rgba(202, 138, 4, 0.1);
+  --normal: #364153;
+  --normal-bg: #F3F4F6;
+  --normal-border: #ACBCD5;
+
+  /* 背景 */
+  --bg-main: #F0F1F6;
+  --bg-card: #FFFFFF;
+  --bg-sub-card: #FBFBFB;
+
+  /* 文字 */
+  --text-primary: #101010;
+  --text-secondary: #2E2E2E;
+  --text-muted: #5E5E5E;
+  --text-placeholder: #D9D9D9;
+
+  /* 边框 */
+  --border-high: #D3D3D3;
+  --border-default: #E9E9E9;
+  --border-low: #F3F3F3;
+  --border-input: #DFE1E9;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --spacing-xxl: 24px;
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  /* 字号 */
+  --font-h1: 24px;
+  --font-h2: 20px;
+  --font-h3: 18px;
+  --font-h4: 16px;
+  --font-body: 16px;
+  --font-small: 14px;
+  --font-xs: 12px;
+
+  /* 字体 */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* 组件色 */
+  --table-header-bg: #EBF4FF;
+  --table-header-text: #303133;
+  --table-row-hover: #F5F7FA;
+  --pagi-text: #71747B;
+  --pagi-bg: #F0F1F6;
+  /* 按钮 */
+  --btn-height: 37px;
+  --btn-radius: var(--radius-md);
+  --btn-padding-x: var(--spacing-lg);
+  --btn-padding-y: var(--spacing-md);
+  --btn-font-size: var(--font-small);
+  --btn-font-weight: 400;
+  --btn-gap: var(--spacing-md);
+  --btn-primary-bg: var(--accent-primary);
+  --btn-primary-hover-bg: var(--accent-dark);
+  --btn-primary-color: #fff;
+  --btn-danger-bg: var(--danger);
+  --btn-danger-color: #fff;
+  --btn-default-border: var(--border-default);
+  --btn-default-color: var(--text-secondary);
+  --btn-default-hover-color: var(--accent-primary);
+  --btn-default-hover-border: var(--accent-primary);
+
+  --tag-running-bg: #DCFCE7;
+  --tag-running-text: #008236;
+  --tag-pending-bg: #DDEDFF;
+  --tag-pending-text: #4A79EE;
+  --tag-stopped-bg: #FCF9DC;
+  --tag-stopped-text: #825200;
+  --tag-expired-bg: #F3F4F6;
+  --tag-expired-text: #364153;
+}
+
+/* ========== Dark 主题 ========== */
+html.dark {
+  --accent-primary: #3DD1E2;
+  --accent-primary10: rgba(61, 209, 226, 0.1);
+  --accent-dark: #0091EA;
+
+  --success: #4CAF50;
+  --success-bg: rgba(76, 175, 80, 0.13);
+  --warning: #FF9800;
+  --warning-bg: rgba(255, 152, 0, 0.13);
+  --danger: #F44336;
+  --danger-bg: rgba(244, 67, 54, 0.13);
+  --info: #3DD1E2;
+  --info-bg: rgba(61, 209, 226, 0.13);
+  --notice: #FFD600;
+  --notice-bg: rgba(255, 214, 0, 0.13);
+  --normal: #B9B9B9;
+  --normal-bg: rgba(185, 185, 185, 0.15);
+  --normal-border: rgba(185, 185, 185, 0.25);
+
+  --bg-main: #002B59;
+  --bg-card: #00336A;
+  --bg-sub-card: #003670;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #C5C5C5;
+  --text-muted: #8892B0;
+  --text-placeholder: #FFFFFF;
+
+  --border-high: #004E7E;
+  --border-default: #00426B;
+  --border-low: rgba(0, 67, 109, 0.69);
+  --border-input: #00426B;
+
+  --table-header-bg: rgba(61, 209, 226, 0.1);
+  --table-header-text: #FFFFFF;
+  --table-row-hover: rgba(61, 209, 226, 0.06);
+  --pagi-text: #8892B0;
+  --pagi-bg: #00336A;
+
+  /* 按钮 */
+  --btn-primary-bg: var(--accent-primary);
+  --btn-primary-hover-bg: var(--accent-dark);
+  --btn-primary-color: #000;
+  --btn-danger-bg: var(--danger);
+  --btn-danger-color: #fff;
+  --btn-default-border: var(--border-default);
+  --btn-default-color: var(--text-secondary);
+  --btn-default-hover-color: var(--accent-primary);
+  --btn-default-hover-border: var(--accent-primary);
+
+  --tag-running-bg: rgba(76, 175, 80, 0.15);
+  --tag-running-text: #4CAF50;
+  --tag-pending-bg: rgba(61, 209, 226, 0.13);
+  --tag-pending-text: #3DD1E2;
+  --tag-stopped-bg: rgba(255, 152, 0, 0.13);
+  --tag-stopped-text: #FF9800;
+  --tag-expired-bg: rgba(185, 185, 185, 0.15);
+  --tag-expired-text: #B9B9B9;
+}
+
+/* ========== Element Plus teleport 组件暗色适配 ========== */
+.el-select-dropdown {
+  background-color: var(--bg-card) !important;
+}
+.el-select-dropdown__item {
+  color: var(--text-primary) !important;
+}
+.el-select-dropdown__item:hover {
+  background-color: var(--accent-primary10) !important;
+}
+.el-select-dropdown__item.is-selected {
+  color: var(--accent-primary) !important;
+}
+.el-popper__arrow::before {
+  background: var(--bg-card) !important;
+  border-color: var(--border-default) !important;
+}
+
+/* ========== 基础 UI：按钮（全局类，禁止页面重复定义） ========== */
+.btn-primary,
+.btn-danger,
+.btn-default,
+.btn-link {
+  height: var(--btn-height);
+  border-radius: var(--btn-radius);
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--btn-gap);
+  transition: background .2s, color .2s, border-color .2s;
+}
+
+/* primary 填充 */
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  border: none;
+}
+.btn-primary:hover { background: var(--btn-primary-hover-bg); }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+/* danger 填充 */
+.btn-danger {
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-color);
+  border: none;
+}
+.btn-danger:hover { filter: brightness(0.9); }
+.btn-danger:disabled { opacity: .6; cursor: not-allowed; }
+
+/* default 线框 */
+.btn-default {
+  background: transparent;
+  color: var(--btn-default-color);
+  border: 1px solid var(--btn-default-border);
+}
+.btn-default:hover {
+  color: var(--btn-default-hover-color);
+  border-color: var(--btn-default-hover-border);
+}
+
+/* link 文字 */
+.btn-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0; height: auto;
+  font-size: var(--font-small);
+}
+.btn-link:hover { color: var(--accent-primary); }
+.btn-link-icon { flex-shrink: 0; }
+
+/* ========== 基础 UI：操作列按钮 ========== */
+.act-btn {
+  background: none; border: none; cursor: pointer;
+  width: 26px; height: 26px; display: flex;
+  align-items: center; justify-content: center;
+  padding: 2px; border-radius: 4px;
+  color: var(--text-secondary);
+  transition: background .15s, color .15s;
+}
+.act-btn:hover { background: var(--accent-primary10); }
+
+/* 语义色 */
+.act-edit  { color: var(--accent-primary); }
+.act-delete { color: var(--danger); }
+.act-copy   { color: var(--accent-primary); }
+.act-preview { color: var(--accent-primary); }
+
+.act-icon { width: 100%; height: 100%; }
+
+/* ========== 全局 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .3s, color .3s;
+}
+
+#app { width: 100%; min-height: 100vh; }
