@@ -1,4 +1,3 @@
-import request from '@/utils/request'
 import type { MaintenancePlan, PlanQuery, PaginatedData } from '@/types/maintenance'
 
 // --- Mock 数据（无后端时使用）---
