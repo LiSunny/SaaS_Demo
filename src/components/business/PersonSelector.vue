@@ -1,20 +1,22 @@
 <template>
   <el-dialog
-    :model-value="visible"
-    @update:model-value="$emit('update:visible', $event)"
+    v-model="dialogVisible"
     title="选择人员"
     width="600px"
     :close-on-click-modal="false"
+    :close-on-press-escape="false"
     class="ps-dialog"
+    @close="onClosed"
   >
     <!-- ===== 顶部 Tab ===== -->
     <div class="ps-tabs">
       <button
         v-for="tab in tabs"
         :key="tab.key"
+        type="button"
         class="ps-tab"
         :class="{ active: activeTab === tab.key }"
-        @click="activeTab = tab.key"
+        @click.stop="activeTab = tab.key"
       >
         {{ tab.label }}
         <span v-if="activeTab === tab.key" class="ps-tab-line" />
@@ -40,15 +42,14 @@
     <!-- ===== 列表 ===== -->
     <div class="ps-list">
       <!-- 按人员 -->
-      <template v-if="activeTab === 'person'">
-        <div
+      <div v-show="activeTab === 'person'">
+        <label
           v-for="p in filteredPersons"
           :key="p.id"
           class="ps-item"
           :class="{ checked: isChecked(p.id) }"
-          @click="togglePerson(p.id)"
         >
-          <input type="checkbox" :checked="isChecked(p.id)" class="ps-checkbox" />
+          <input type="checkbox" :checked="isChecked(p.id)" class="ps-checkbox" @change="togglePerson(p.id)" />
           <div class="ps-avatar">{{ p.name[0] }}</div>
           <div class="ps-info">
             <p class="ps-name">{{ p.name }}</p>
@@ -57,52 +58,50 @@
               <span class="ps-meta-item">💼 {{ getPosName(p.posId) }}</span>
             </div>
           </div>
-        </div>
+        </label>
         <div v-if="filteredPersons.length === 0" class="ps-empty">无匹配人员</div>
-      </template>
+      </div>
 
       <!-- 按部门 -->
-      <template v-if="activeTab === 'dept'">
-        <div
+      <div v-show="activeTab === 'dept'">
+        <label
           v-for="d in filteredDepts"
           :key="d.id"
           class="ps-item"
           :class="{ checked: isDeptChecked(d.id) }"
-          @click="toggleDept(d.id)"
         >
-          <input type="checkbox" :checked="isDeptChecked(d.id)" class="ps-checkbox" />
+          <input type="checkbox" :checked="isDeptChecked(d.id)" class="ps-checkbox" @change="toggleDept(d.id)" />
           <div class="ps-info">
             <p class="ps-name">{{ d.name }}</p>
             <p class="ps-meta-item">{{ getDeptPersonCount(d.id) }} 人</p>
           </div>
-        </div>
+        </label>
         <div v-if="filteredDepts.length === 0" class="ps-empty">无匹配部门</div>
-      </template>
+      </div>
 
       <!-- 按岗位 -->
-      <template v-if="activeTab === 'position'">
-        <div
+      <div v-show="activeTab === 'position'">
+        <label
           v-for="pos in filteredPositions"
           :key="pos.id"
           class="ps-item"
           :class="{ checked: isPosChecked(pos.id) }"
-          @click="togglePos(pos.id)"
         >
-          <input type="checkbox" :checked="isPosChecked(pos.id)" class="ps-checkbox" />
+          <input type="checkbox" :checked="isPosChecked(pos.id)" class="ps-checkbox" @change="togglePos(pos.id)" />
           <div class="ps-info">
             <p class="ps-name">{{ pos.name }}</p>
             <p class="ps-meta-item">{{ getDeptName(pos.deptId) }}</p>
           </div>
-        </div>
+        </label>
         <div v-if="filteredPositions.length === 0" class="ps-empty">无匹配岗位</div>
-      </template>
+      </div>
     </div>
 
     <!-- ===== 底部 ===== -->
     <div class="ps-footer">
-      <span class="ps-selected-count">已选 {{ selectedIds.length }} 人</span>
+      <span class="ps-selected-count">已选 {{ checkedIds.size }} 人</span>
       <div class="ps-footer-btns">
-        <button class="btn-default" @click="$emit('update:visible', false)">取消</button>
+        <button class="btn-default" @click="emit('close')">取消</button>
         <button class="btn-primary" @click="confirm">确定</button>
       </div>
     </div>
@@ -113,14 +112,16 @@
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
-  visible: boolean
   selectedIds: number[]
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:visible', v: boolean): void
+  (e: 'close'): void
   (e: 'confirm', ids: number[]): void
 }>()
+
+// ===== 弹窗可见性：组件挂载即显示 =====
+const dialogVisible = ref(true)
 
 // ===== Mock 数据 =====
 const departments = [
@@ -253,7 +254,11 @@ function toggleAll() {
 
 function confirm() {
   emit('confirm', [...checkedIds.value])
-  emit('update:visible', false)
+  emit('close')
+}
+
+function onClosed() {
+  emit('close')
 }
 </script>
 

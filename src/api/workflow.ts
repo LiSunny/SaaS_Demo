@@ -164,6 +164,21 @@ export function validateFlowDefinition(def: FlowDefinition): Promise<{ valid: bo
     }
   })
 
+  // assign / confirm 节点指派校验
+  const assignableNodes = def.nodes.filter(n => n.type === 'assign' || n.type === 'confirm')
+  assignableNodes.forEach(n => {
+    const source = n.assignSource || 'static'
+    if (source === 'static') {
+      if (!n.assignConfig || !n.assignConfig.targetIds || n.assignConfig.targetIds.length === 0) {
+        errors.push(`节点"${n.name}"指派来源为静态，必须指定指派目标`)
+      }
+    } else {
+      if (!n.dynamicAssignFieldId) {
+        errors.push(`节点"${n.name}"指派来源为动态，必须绑定表单字段`)
+      }
+    }
+  })
+
   // 条件节点必须配置条件表达式
   const conditionNodes = def.nodes.filter(n => n.type === 'condition')
   conditionNodes.forEach(n => {

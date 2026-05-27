@@ -1,34 +1,40 @@
 <template>
   <div class="config-page">
-    <!-- ===== 顶部栏：面包屑 + 模板名称 ===== -->
-    <div class="config-topbar">
-      <div class="topbar-left">
-        <button class="btn-link" @click="handleBack">
-          <AppIcon name="arrow-left" class="btn-link-icon" />
-          返回列表
-        </button>
-        <el-breadcrumb separator="/">
-          <el-breadcrumb-item :to="{ path: '/workflow/template' }">工作流管理</el-breadcrumb-item>
-          <el-breadcrumb-item :to="{ path: '/workflow/template' }">流程模板</el-breadcrumb-item>
-          <el-breadcrumb-item>
-            {{ isEdit ? templateName : '新建模板' }}
-          </el-breadcrumb-item>
-        </el-breadcrumb>
-        <span v-if="isEdit && templateName" class="topbar-template-name">{{ templateName }}</span>
-      </div>
-
-      <!-- 步骤指示器 -->
-      <el-steps :active="currentStep" align-center class="config-steps">
-        <el-step v-for="s in steps" :key="s.key" :title="s.label" />
-      </el-steps>
-
-      <div class="topbar-right" />
+    <!-- ===== 面包屑行 ===== -->
+    <div class="config-breadcrumb">
+      <button class="btn-link" @click="handleBack">
+        <AppIcon name="arrow-left" class="btn-link-icon" />
+        返回列表
+      </button>
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/workflow/template' }">工作流管理</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/workflow/template' }">流程模板</el-breadcrumb-item>
+        <el-breadcrumb-item>
+          {{ isEdit ? templateName : '新建模板' }}
+        </el-breadcrumb-item>
+      </el-breadcrumb>
+      <span v-if="isEdit && templateName" class="breadcrumb-name">{{ templateName }}</span>
     </div>
 
-    <!-- ===== 步骤内容 ===== -->
+    <!-- ===== 工具栏卡片：步骤 + 操作 ===== -->
+    <div class="config-toolbar-card">
+      <el-steps :active="currentStep" align-center class="toolbar-steps">
+        <el-step v-for="s in steps" :key="s.key" :title="s.label" />
+      </el-steps>
+      <div class="toolbar-actions">
+        <button class="btn-default" @click="handleCancel">取消</button>
+        <button class="btn-default" @click="handleSaveDraft">保存草稿</button>
+        <button v-if="currentStep > 0" class="btn-default" @click="currentStep--">上一步</button>
+        <button v-if="currentStep < 2" class="btn-primary" @click="handleNext">下一步</button>
+        <button v-if="currentStep === 2" class="btn-primary" @click="handlePublish">发布</button>
+      </div>
+    </div>
+
+    <!-- ===== 工作区 ===== -->
     <div class="config-body">
-      <!-- 步骤 1：基础设置 -->
-      <div v-show="currentStep === 0" class="step-content">
+      <div class="config-work-card">
+        <!-- 步骤 1：基础设置 -->
+        <div v-show="currentStep === 0" class="step-content">
         <el-card shadow="never" class="step-card">
           <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="base-form">
             <!-- 模板名称 -->
@@ -78,9 +84,10 @@
               </div>
             </el-form-item>
             <PersonSelector
-              v-model:visible="personDialogVisible"
+              v-if="personDialogVisible"
               :selected-ids="form.initiatorUserIds || []"
               @confirm="onInitiatorConfirm"
+              @close="personDialogVisible = false"
             />
           </el-form>
         </el-card>
@@ -152,16 +159,8 @@
           :template-sla="templateSlaDefaults"
         />
       </div>
-    </div>
-
-    <!-- ===== 底部操作栏 ===== -->
-    <div class="config-footer">
-      <button class="btn-default" @click="handleCancel">取消</button>
-      <button class="btn-default" @click="handleSaveDraft">保存草稿</button>
-      <button v-if="currentStep > 0" class="btn-default" @click="currentStep--">上一步</button>
-      <button v-if="currentStep < 2" class="btn-primary" @click="handleNext">下一步</button>
-      <button v-if="currentStep === 2" class="btn-primary" @click="handlePublish">发布</button>
-    </div>
+      </div><!-- /config-work-card -->
+    </div><!-- /config-body -->
   </div>
 </template>
 
@@ -223,7 +222,7 @@ function onInitiatorConfirm(ids: number[]) {
 }
 
 const form = reactive<TemplateForm>({
-  name: '',
+  name: '隐患督办',
   code: '',
   description: '',
   initiatorScope: 'all' as InitiatorScope,
@@ -382,50 +381,60 @@ const handlePublish = async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md, 8px);
+  padding: var(--spacing-md, 8px);
 }
 
-/* ===== 顶部栏 ===== */
-.config-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-lg, 12px) var(--spacing-xl, 16px);
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-default);
-  flex-shrink: 0;
-  gap: var(--spacing-xxl, 24px);
-}
-
-.topbar-left {
+/* ===== 面包屑行 ===== */
+.config-breadcrumb {
   display: flex;
   align-items: center;
   gap: var(--spacing-lg, 12px);
   flex-shrink: 0;
+  padding: 0 4px;
 }
-
-.topbar-template-name {
+.breadcrumb-name {
   font-size: var(--font-h3, 18px);
   font-weight: 500;
   color: var(--text-primary);
   margin-left: var(--spacing-md, 8px);
 }
 
-.topbar-right {
+/* ===== 工具栏卡片 ===== */
+.config-toolbar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 10px);
   flex-shrink: 0;
+  gap: var(--spacing-xxl, 24px);
 }
-
-/* 步骤指示器 */
-.config-steps {
+.toolbar-steps {
   flex: 1;
   max-width: 480px;
   min-width: 320px;
 }
+.toolbar-actions {
+  display: flex;
+  gap: var(--spacing-md, 8px);
+  flex-shrink: 0;
+}
 
-/* ===== 内容区 ===== */
+/* ===== 工作区 ===== */
 .config-body {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
+}
+.config-work-card {
+  height: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 10px);
   padding: var(--spacing-xl, 16px);
+  overflow: auto;
 }
 
 .step-content {
@@ -433,7 +442,7 @@ const handlePublish = async () => {
 }
 
 .step-card {
-  background: var(--bg-card);
+  background: var(--bg-sub-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg, 10px);
 }
@@ -569,17 +578,6 @@ const handlePublish = async () => {
   color: var(--text-placeholder);
 }
 
-/* ===== 底部操作栏 ===== */
-.config-footer {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-md, 8px);
-  padding: var(--spacing-lg, 12px) var(--spacing-xl, 16px);
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-default);
-  flex-shrink: 0;
-}
-
 /* ===== Element Plus 深色适配 ===== */
 :deep(.el-breadcrumb__inner) {
   color: var(--text-muted);
@@ -591,14 +589,29 @@ const handlePublish = async () => {
   font-weight: 500;
 }
 
+/* 步骤条：数字与标题颜色一致 */
+:deep(.el-step__head.is-wait) {
+  color: var(--text-muted);
+  border-color: var(--text-muted);
+}
+:deep(.el-step__head.is-process) {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+:deep(.el-step__head.is-finish) {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
 :deep(.el-step__title) {
   font-size: var(--font-small, 14px);
   color: var(--text-muted);
 }
-
 :deep(.el-step__title.is-process) {
   color: var(--accent-primary);
   font-weight: 500;
+}
+:deep(.el-step__title.is-finish) {
+  color: var(--accent-primary);
 }
 
 :deep(.el-card__body) {

@@ -6,6 +6,7 @@ export type InitiatorScope = 'all' | 'specified'
 export type NodeType = 'start' | 'assign' | 'execute' | 'confirm' | 'close' | 'condition'
 export type AssignStrategy = 'position' | 'user' | 'role' | 'dept' | 'external'
 export type AssignMultipleMode = 'anyone' | 'each'
+export type AssignSource = 'static' | 'dynamic'
 export type FieldSource = 'manual' | 'auto' | 'inherited' | 'callback'
 
 // ===== 列表相关 =====
@@ -90,11 +91,14 @@ export interface FlowNode {
   id: string
   type: NodeType
   name: string
-  assignConfig?: AssignConfig
+  // 指派策略（assign / confirm 节点共用）
+  assignSource?: AssignSource               // 指派来源，默认 static
+  assignConfig?: AssignConfig               // 静态指派配置（assignSource='static' 时生效）
+  dynamicAssignFieldId?: string             // 动态指派绑定的表单字段ID（assignSource='dynamic' 时生效）
   slaLimits?: SlaLimits
-  actions?: NodeAction[] // confirm 节点操作按钮
-  conditionExpression?: string // condition 节点表达式
-  formFields?: string[] // 关联的表单字段 ID
+  actions?: NodeAction[]                    // confirm 节点操作按钮
+  conditionExpression?: string              // condition 节点表达式
+  formFields?: string[]                     // 关联的表单字段 ID
 }
 
 export interface FlowEdge {

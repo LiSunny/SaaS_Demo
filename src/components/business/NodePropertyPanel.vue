@@ -15,32 +15,63 @@
       </div>
     </div>
 
-    <!-- assign 节点：指派策略 -->
-    <div v-if="node.type === 'assign'" class="prop-section">
-      <p class="prop-section-title">指派策略</p>
-      <div class="prop-field">
-        <label class="prop-label">策略</label>
-        <el-select :model-value="local.assignConfig?.strategy || 'user'" @update:model-value="onAssign('strategy', $event)" style="width:100%">
-          <el-option label="指定人员" value="user" />
-          <el-option label="指定职位" value="position" />
-          <el-option label="指定角色" value="role" />
-          <el-option label="指定部门" value="dept" />
-          <el-option label="外部人员" value="external" />
-        </el-select>
-      </div>
-      <div class="prop-field">
-        <label class="prop-label">目标</label>
-        <el-select :model-value="local.assignConfig?.targetIds || []" @update:model-value="onAssign('targetIds', $event)" multiple filterable placeholder="请选择" style="width:100%">
-          <el-option v-for="u in mockUsers" :key="u.id" :label="u.name" :value="u.id" />
-        </el-select>
-      </div>
-      <div class="prop-field">
-        <label class="prop-label">多人模式</label>
-        <el-select :model-value="local.assignConfig?.multipleMode || 'anyone'" @update:model-value="onAssign('multipleMode', $event)" style="width:100%">
-          <el-option label="任一人接单" value="anyone" />
-          <el-option label="每人处理" value="each" />
-        </el-select>
-      </div>
+    <!-- assign / confirm 节点：指派策略 -->
+    <div v-if="node.type === 'assign' || node.type === 'confirm'" class="prop-section">
+      <p class="prop-section-title">
+        指派策略
+        <el-tooltip placement="top" effect="dark" raw-content>
+          <template #content>
+            <div style="max-width:260px;line-height:1.6">
+              <p style="margin:0 0 6px;font-weight:500">静态指定</p>
+              <p style="margin:0 0 10px;font-size:12px;color:#bbb">模板配置时选定处理人，运行时自动指派。适用于企业内流程，审核人固定。</p>
+              <p style="margin:0 0 6px;font-weight:500">动态表单字段</p>
+              <p style="margin:0;font-size:12px;color:#bbb">运行时从表单字段取值解析处理人。适用于跨企业流程，接收方自行指派。</p>
+            </div>
+          </template>
+          <span class="prop-help-icon">?</span>
+        </el-tooltip>
+      </p>
+      <el-radio-group :model-value="local.assignSource || 'static'" @update:model-value="onChange('assignSource', $event)" style="margin-bottom:12px">
+        <el-radio value="static">静态指定</el-radio>
+        <el-radio value="dynamic">动态表单字段</el-radio>
+      </el-radio-group>
+      <!-- 静态模式 -->
+      <template v-if="(local.assignSource || 'static') === 'static'">
+        <div class="prop-field">
+          <label class="prop-label">指派人员</label>
+          <div class="assign-target-tags" @click="personDialogVisible = true">
+            <el-tag
+              v-for="id in (local.assignConfig?.targetIds || [])"
+              :key="id"
+              closable
+              size="default"
+              @close="removeTarget(id)"
+            >
+              {{ getPersonName(id) }}
+            </el-tag>
+            <span class="assign-target-add">+ 选择人员</span>
+          </div>
+        </div>
+        <div class="prop-field">
+          <label class="prop-label">多人模式</label>
+          <el-select :model-value="local.assignConfig?.multipleMode || 'anyone'" @update:model-value="onAssign('multipleMode', $event)" style="width:100%">
+            <el-option label="任一人接单" value="anyone" />
+            <el-option label="每人处理" value="each" />
+          </el-select>
+          <p class="prop-hint" v-if="(local.assignConfig?.multipleMode || 'anyone') === 'anyone'">任务进入公共池，群内通知，先接先得</p>
+          <p class="prop-hint" v-else>每人生成独立任务，各自处理</p>
+        </div>
+      </template>
+      <!-- 动态模式 -->
+      <template v-else>
+        <div class="prop-field">
+          <label class="prop-label">表单字段</label>
+          <el-select :model-value="local.dynamicAssignFieldId || ''" @update:model-value="onChange('dynamicAssignFieldId', $event)" placeholder="请选择表单字段" style="width:100%">
+            <el-option v-for="f in formFields" :key="f.id" :label="f.label" :value="f.id" />
+          </el-select>
+        </div>
+        <p class="prop-hint">运行时将从该字段取值，自动指派给对应人员</p>
+      </template>
     </div>
 
     <!-- confirm 节点：操作按钮 -->
@@ -124,11 +155,20 @@
   <div v-else class="prop-panel prop-empty-state">
     <p class="prop-empty">点击左侧节点卡片进行配置</p>
   </div>
+
+  <!-- 人员选择弹窗 -->
+  <PersonSelector
+    v-if="personDialogVisible && node"
+    :selected-ids="local.assignConfig?.targetIds || []"
+    @confirm="onPersonConfirm"
+    @close="personDialogVisible = false"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
 import type { FlowNode, FormField } from '@/types/workflow'
+import PersonSelector from './PersonSelector.vue'
 
 const props = defineProps<{
   node: FlowNode | null
@@ -144,11 +184,24 @@ const emit = defineEmits<{
 const local = reactive<FlowNode>({ id: '', type: 'start', name: '' })
 const useTemplateSla = ref(true)
 const notifyNext = ref(true)
+const personDialogVisible = ref(false)
 
-const mockUsers = [
-  { id: 1, name: '杨婷彤' }, { id: 2, name: '谢东' }, { id: 3, name: '陈洪燕' },
-  { id: 4, name: '梁冬' }, { id: 5, name: '马达' }, { id: 6, name: '杨伟' }, { id: 7, name: '高楠' },
-]
+// 人员名称查找（与 PersonSelector 数据一致）
+const allPersons: Record<number, string> = {
+  1: '黎世雨', 2: '李磊', 3: '李熙', 4: '高江云', 5: '李浩敏',
+  6: '杨婷彤', 7: '谢东', 8: '陈洪燕', 9: '梁冬', 10: '马达', 11: '杨伟', 12: '高楠',
+}
+function getPersonName(id: number) { return allPersons[id] || `人员${id}` }
+function removeTarget(id: number) {
+  if (!local.assignConfig) return
+  local.assignConfig.targetIds = local.assignConfig.targetIds.filter(uid => uid !== id)
+}
+function onPersonConfirm(ids: number[]) {
+  if (!local.assignConfig) {
+    local.assignConfig = { strategy: 'user', targetIds: [], multipleMode: 'anyone' }
+  }
+  local.assignConfig.targetIds = ids
+}
 
 watch(() => props.node, (n) => {
   if (n) {
@@ -211,11 +264,37 @@ function emitUpdate() {
 }
 .prop-section {
   margin-bottom: 18px;
+  margin-top: 6px;
 }
 .prop-section-title {
   font-size: var(--font-body, 16px);
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--text-primary);
   margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent-primary);
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.prop-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: help;
+  flex-shrink: 0;
+}
+.prop-help-icon:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 .prop-field {
   margin-bottom: 8px;
@@ -249,8 +328,36 @@ function emitUpdate() {
   display: flex; align-items: center; gap: 6px;
   font-size: var(--font-body, 16px); color: var(--text-secondary); cursor: pointer;
 }
+.prop-hint { color: var(--text-muted); font-size: var(--font-xs, 12px); margin-top: 4px; }
 .prop-empty { color: var(--text-muted); font-size: var(--font-small, 14px); text-align: center; padding: 24px 0; }
 .prop-empty-state { justify-content: center; align-items: center; }
 .slider-row { display: flex; align-items: center; gap: 12px; }
 .slider-val { font-size: var(--font-small, 14px); color: var(--text-muted); min-width: 40px; text-align: right; }
+
+/* 人员选择触发区 */
+.assign-target-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  min-height: 32px;
+  padding: 4px 0;
+}
+.assign-target-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px dashed var(--border-high);
+  border-radius: var(--radius-sm, 6px);
+  font-size: var(--font-small, 14px);
+  color: var(--text-muted);
+  transition: all .15s;
+}
+.assign-target-add:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
 </style>

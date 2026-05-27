@@ -34,6 +34,7 @@ declare module 'vue' {
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     FlowDesigner: typeof import('./src/components/business/FlowDesigner.vue')['default']
     FormDesigner: typeof import('./src/components/business/FormDesigner.vue')['default']
     NodePropertyPanel: typeof import('./src/components/business/NodePropertyPanel.vue')['default']

@@ -157,6 +157,13 @@ function insertNode(type: string) {
     type: type as FlowNode['type'],
     name: typeLabel(type),
   }
+  // confirm 节点预填默认操作按钮
+  if (type === 'confirm') {
+    newNode.actions = [
+      { name: '通过', targetNodeId: '' },
+      { name: '驳回', targetNodeId: '' },
+    ]
+  }
   nodes.value.splice(insertIndex.value + 1, 0, newNode)
   dialogVisible.value = false
   selectedId.value = newNode.id
