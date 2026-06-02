@@ -178,6 +178,150 @@ html.dark {
   border-color: var(--border-default) !important;
 }
 
+/* ElMessageBox 暗色适配 */
+.el-message-box {
+  background: var(--bg-card);
+}
+.el-message-box__header {
+  background: var(--bg-card);
+}
+.el-message-box__title {
+  color: var(--text-primary);
+}
+.el-message-box__message {
+  color: var(--text-secondary);
+}
+.el-message-box__close {
+  color: var(--text-muted);
+}
+
+/* el-dialog 暗色适配 */
+.el-dialog {
+  background: var(--bg-card);
+}
+.el-dialog__header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-low);
+}
+.el-dialog__title {
+  color: var(--text-primary);
+}
+
+/* ========== DatePicker 面板 Teleport 暗色适配 ========== */
+html.dark .el-picker-panel { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
+html.dark .el-date-table th { color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
+html.dark .el-date-table td.available { color: var(--text-primary) !important; }
+html.dark .el-date-table td.current { background: var(--accent-primary) !important; color: #000 !important; }
+html.dark .el-date-table td.today { color: var(--accent-primary) !important; }
+html.dark .el-date-table td.disabled { color: var(--text-muted) !important; }
+html.dark .el-date-table td.available:hover { background: var(--accent-primary10) !important; }
+html.dark .el-picker-panel__header button { color: var(--text-secondary) !important; }
+html.dark .el-picker-panel__header button:hover { color: var(--accent-primary) !important; }
+html.dark .el-picker-panel__icon-btn { color: var(--text-secondary) !important; }
+
+/* ========== 过滤栏 ========== */
+.filter-bar { display: flex; align-items: center; justify-content: space-between; }
+.filter-left { display: flex; align-items: stretch; gap: var(--spacing-lg, 12px); flex: 1; min-width: 0; flex-wrap: wrap; row-gap: var(--spacing-sm, 6px); }
+.filter-left > * { min-width: 0; }
+.filter-right { display: flex; gap: var(--spacing-md, 8px); align-items: center; }
+
+/* ========== 搜索输入框 ========== */
+.search-input-wrap { position: relative; width: 208px; display: flex; }
+.fi-input {
+  width: 100%; flex: 1; box-sizing: border-box; border: 1px solid var(--border-high);
+  border-radius: var(--radius-md, 8px); padding: var(--spacing-md, 8px) var(--spacing-xxl, 24px) var(--spacing-md, 8px) var(--spacing-xl, 16px);
+  font-size: var(--font-small, 14px); color: var(--text-primary); background: var(--bg-card); outline: none;
+}
+.fi-input::placeholder { color: var(--text-placeholder); }
+.fi-input:focus { border-color: var(--accent-primary); }
+.fi-icon {
+  position: absolute; right: var(--spacing-lg, 12px); top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; opacity: .4; pointer-events: none; color: var(--text-muted);
+}
+.fi-clear {
+  position: absolute; right: calc(var(--spacing-xxl, 24px) + var(--spacing-sm, 6px)); top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; width: var(--spacing-xl, 16px); height: var(--spacing-xl, 16px);
+  display: flex; align-items: center; justify-content: center; padding: 0; color: var(--text-muted);
+}
+
+/* ========== 下拉选择 ========== */
+.fi-select-wrap { width: 193px; display: flex; }
+.fi-select-wrap .el-select { width: 100%; height: 100%; display: flex; }
+.fi-select-wrap .el-select__wrapper {
+  border: 1px solid var(--border-high) !important; border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-md, 8px) var(--spacing-xl, 16px); box-shadow: none !important;
+  background: var(--bg-card) !important; flex: 1; min-height: 0; box-sizing: border-box;
+}
+.fi-select-wrap .el-select__wrapper:hover,
+.fi-select-wrap .el-select__wrapper.is-focus { border-color: var(--accent-primary) !important; box-shadow: none !important; }
+.fi-select-wrap .el-select__placeholder { color: var(--text-placeholder); }
+.fi-select-wrap .el-select__caret { color: var(--text-placeholder); }
+.fi-select-wrap .el-select__input { color: var(--text-primary) !important; }
+.fi-select-wrap .el-select__selected-item { color: var(--text-primary); }
+
+/* ========== 日期范围选择器 ========== */
+.fi-date-range-wrap { width: 380px; display: flex; }
+.fi-date-range-wrap .el-date-editor {
+  width: 100%; min-width: 0; height: 100% !important; flex: 1; box-sizing: border-box;
+  border: 1px solid var(--border-high) !important;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: none !important;
+  background: var(--bg-card);
+}
+.fi-date-range-wrap .el-date-editor:hover,
+.fi-date-range-wrap .el-date-editor.is-active { border-color: var(--accent-primary) !important; }
+.fi-date-range-wrap .el-range-input {
+  font-size: var(--font-small, 14px); color: var(--text-primary);
+  background: var(--bg-card);
+}
+.fi-date-range-wrap .el-range-input::placeholder { color: var(--text-placeholder); }
+.fi-date-range-wrap .el-range-separator {
+  color: var(--text-muted); font-size: var(--font-small, 14px);
+}
+
+/* ========== 表格 ========== */
+.table-wrap { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
+.fi-table { width: 100%; border-collapse: collapse; table-layout: auto; }
+.fi-thead-tr { background: var(--table-header-bg); }
+.fi-th {
+  border-bottom: 1px solid var(--border-low); padding: var(--spacing-lg, 12px);
+  font-size: var(--font-h4, 16px); font-weight: 400; color: var(--table-header-text); text-align: center; white-space: nowrap;
+}
+.fi-th-sort { cursor: pointer; user-select: none; }
+.fi-th-sort span { vertical-align: middle; }
+.th-sort-icon { width: 18px; height: 18px; margin-left: var(--spacing-xs, 4px); vertical-align: middle; opacity: .5; color: var(--table-header-text); }
+.fi-tbody-tr { border-bottom: 1px solid var(--border-low); }
+.fi-tbody-tr:nth-child(even) { background: var(--bg-sub-card); }
+.fi-tbody-tr:hover { background: var(--table-row-hover); }
+.fi-td { padding: var(--spacing-lg, 12px); font-size: var(--font-body, 16px); color: var(--text-primary); white-space: nowrap; text-align: center; }
+
+/* ========== 分页 ========== */
+.pagination-wrap { display: flex; align-items: center; justify-content: space-between; }
+.pagi-total { color: var(--pagi-text); font-size: var(--font-small, 14px); }
+
+/* ========== 操作列 ========== */
+.action-cell { display: flex; align-items: center; gap: var(--spacing-lg, 12px); }
+.btn-add-icon { width: 20px; height: 20px; }
+
+/* ========== EL 组件通用 Dark 适配 ========== */
+.el-loading-mask { background-color: var(--bg-card); }
+.el-loading-mask .path { stroke: var(--accent-primary); }
+.el-switch__core { background-color: var(--border-high); }
+.el-switch.is-checked .el-switch__core { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+
+/* ========== 标签添加触发区（人员选择 / 指派目标） ========== */
+.tags-add-area {
+  display: flex; flex-wrap: wrap; gap: var(--spacing-md, 8px); align-items: center;
+  cursor: pointer; min-height: 32px; padding: var(--spacing-xs, 4px) 0;
+}
+.tags-add-btn {
+  display: inline-flex; align-items: center; justify-content: center; height: 28px;
+  padding: 0 var(--spacing-lg, 12px); border: 1px dashed var(--border-high);
+  border-radius: var(--radius-sm, 6px); font-size: var(--font-small, 14px);
+  color: var(--text-muted); transition: all .15s;
+}
+.tags-add-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
 /* ========== 基础 UI：按钮（全局类，禁止页面重复定义） ========== */
 .btn-primary,
 .btn-danger,

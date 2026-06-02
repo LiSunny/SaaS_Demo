@@ -68,6 +68,10 @@ function formFieldToFcRule(f: FormField): Record<string, any> {
     rule.props._source = f.source
   }
 
+  if (f.options && f.options.length > 0) {
+    rule.props.options = f.options
+  }
+
   if (f.validationRules && Object.keys(f.validationRules).length > 0) {
     const rules = f.validationRules
     rule.validate = rule.validate || []
@@ -90,6 +94,10 @@ function fcRuleToFormField(r: Record<string, any>): FormField {
 
   if (r.props?.defaultValue !== undefined) {
     field.defaultValue = r.props.defaultValue
+  }
+
+  if (r.props?.options) {
+    field.options = r.props.options
   }
 
   if (r.col?.span !== undefined) {
@@ -121,9 +129,13 @@ function getFields(): FormField[] {
 
 function setFields(fields: FormField[]) {
   if (!designerRef.value) return
-  designerRef.value.clear()
-  const rules = fields.map(formFieldToFcRule)
-  designerRef.value.setRule(rules)
+  try {
+    designerRef.value.setRule([])
+    const rules = fields.map(formFieldToFcRule)
+    designerRef.value.setRule(rules)
+  } catch (e) {
+    console.error('[FormDesigner] setFields error:', e)
+  }
 }
 
 onMounted(() => {

@@ -58,6 +58,7 @@ export interface FormField {
   required: boolean
   source: FieldSource
   defaultValue?: any
+  options?: { value: string; label: string }[]
   validationRules?: Record<string, any>
   span?: number
 }
@@ -91,14 +92,20 @@ export interface FlowNode {
   id: string
   type: NodeType
   name: string
-  // 指派策略（assign / confirm 节点共用）
-  assignSource?: AssignSource               // 指派来源，默认 static
-  assignConfig?: AssignConfig               // 静态指派配置（assignSource='static' 时生效）
-  dynamicAssignFieldId?: string             // 动态指派绑定的表单字段ID（assignSource='dynamic' 时生效）
+  assignSource?: AssignSource
+  assignConfig?: AssignConfig
+  dynamicAssignFieldId?: string
   slaLimits?: SlaLimits
-  actions?: NodeAction[]                    // confirm 节点操作按钮
-  conditionExpression?: string              // condition 节点表达式
-  formFields?: string[]                     // 关联的表单字段 ID
+  actions?: NodeAction[]
+  conditionExpression?: string
+  formFields?: FieldPermission[]
+}
+}
+
+export interface FieldPermission {
+  fieldId: string
+  edit?: boolean
+  view?: boolean
 }
 
 export interface FlowEdge {

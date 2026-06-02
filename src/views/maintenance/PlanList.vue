@@ -307,72 +307,9 @@ onMounted(() => { store.fetchList() })
   gap: var(--spacing-xxl, 24px);
 }
 
-/* ===== 筛选栏 ===== */
-.filter-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.filter-left {
-  display: flex;
-  align-items: center;
-  gap: 26px;
-}
-
-/* -- 搜索输入框 -- */
-.search-input-wrap {
-  position: relative;
-  width: 208px;
-}
-.fi-input {
-  width: 100%;
-  height: 36px;
-  border: 1px solid var(--border-high);
-  border-radius: var(--radius-md, 8px);
-  padding: 8px 32px 8px var(--spacing-xl, 16px);
-  font-size: var(--font-small, 14px);
-  font-weight: 400;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  outline: none;
-}
-.fi-input::placeholder { color: var(--text-placeholder); }
-.fi-input:focus { border-color: var(--accent-primary); }
-.fi-icon {
-  position: absolute; right: 12px; top: 50%;
-  transform: translateY(-50%);
-  width: 18px; height: 18px; opacity: .4;
-  pointer-events: none; color: var(--text-muted);
-}
-.fi-clear {
-  position: absolute; right: 30px; top: 50%;
-  transform: translateY(-50%);
-  background: none; border: none; cursor: pointer;
-  width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
-  padding: 0; color: var(--text-muted);
-}
-
-/* -- 下拉选择 -- */
-.fi-select-wrap { width: 193px; }
-.fi-select-wrap :deep(.el-select) { width: 100%; }
-.fi-select-wrap :deep(.el-select__wrapper) {
-  border: 1px solid var(--border-high) !important;
-  border-radius: var(--radius-md, 8px);
-  padding: 8px var(--spacing-xl, 16px);
-  box-shadow: none !important;
-  background: var(--bg-card) !important;
-  height: 36px;
-}
-.fi-select-wrap :deep(.el-select__wrapper:hover),
-.fi-select-wrap :deep(.el-select__wrapper.is-focus) {
-  border-color: var(--accent-primary) !important; box-shadow: none !important;
-}
-.fi-select-wrap :deep(.el-select__placeholder) { color: var(--text-placeholder); }
-.fi-select-wrap :deep(.el-select__caret) { color: var(--text-placeholder); }
-
-/* -- 新增按钮（PlanList 特有，含图标） -- */
+/* -- 新增按钮（PlanList 特有） -- */
 .btn-add {
-  height: 37px;
+  height: var(--btn-height, 37px);
   background: var(--accent-primary10);
   color: var(--accent-primary);
   border: 1px solid var(--accent-primary);
@@ -383,109 +320,32 @@ onMounted(() => { store.fetchList() })
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-lg, 12px);
   white-space: nowrap;
 }
 .btn-add:hover { filter: brightness(0.95); }
-.btn-add-icon { width: 20px; height: 20px; }
 
-/* ===== 表格 ===== */
-.table-wrap { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
-.fi-table { width: 100%; border-collapse: collapse; table-layout: auto; }
-
-/* 列宽基线 */
-.col-status { width: 125px; min-width: 100px; }
-.col-name { min-width: 140px; }
 .col-count { width: 120px; }
 .col-items { width: 120px; }
 .col-type { width: 120px; }
 .col-executor { width: 110px; }
+.col-status { width: 125px; min-width: 100px; }
+.col-name { min-width: 140px; }
 .col-time { width: 180px; }
 .col-actions { width: 200px; min-width: 180px; white-space: nowrap; }
 
-/* ===== 响应式列隐藏 ===== */
-
-/* ≤1550px 隐藏设备总数、执行人 */
-@media (max-width: 1550px) {
-  .col-count, .col-executor { display: none !important; }
-}
-/* ≤1250px 隐藏保养项目 */
-@media (max-width: 1250px) {
-  .col-items { display: none !important; }
-}
-/* ≤1050px 隐藏下次生成时间，操作列缩小 */
+@media (max-width: 1550px) { .col-count, .col-executor { display: none !important; } }
+@media (max-width: 1250px) { .col-items { display: none !important; } }
 @media (max-width: 1050px) {
   .col-time { display: none !important; }
   .col-actions { width: 160px; min-width: 160px; }
-  .action-cell { gap: 6px; }
+  .action-cell { gap: var(--spacing-sm, 6px); }
 }
+@media (max-width: 1280px) { .filter-left { gap: var(--spacing-xl, 16px); flex-wrap: wrap; } }
+@media (max-width: 800px) { .filter-bar { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: stretch; } .filter-left { flex-wrap: wrap; } .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; } }
 
-/* 内容卡片响应式 */
-@media (max-width: 1280px) {
-  .content-card { gap: var(--spacing-xl, 16px); }
-  .filter-left { gap: var(--spacing-xl, 16px); flex-wrap: wrap; }
-}
-@media (max-width: 800px) {
-  .filter-bar { flex-direction: column; gap: 12px; align-items: stretch; }
-  .filter-left { flex-wrap: wrap; }
-  .pagination-wrap { flex-direction: column; gap: 12px; align-items: flex-start; }
-}
-
-/* 表头 */
-.fi-thead-tr { background: var(--table-header-bg); }
-.fi-th {
-  border-bottom: 1px solid var(--border-low);
-  padding: 10px;
-  font-size: var(--font-h4, 16px);
-  font-weight: 400;
-  color: var(--table-header-text);
-  text-align: center;
-  white-space: nowrap;
-}
-.fi-th-sort {
-  display: table-cell;
-  cursor: pointer;
-  user-select: none;
-}
-.fi-th-sort span { vertical-align: middle; }
-.th-sort-icon {
-  width: 18px; height: 18px;
-  margin-left: 2px;
-  vertical-align: middle;
-  opacity: .5;
-  color: var(--table-header-text);
-}
-
-/* 表体 */
-.fi-tbody-tr { border-bottom: 1px solid var(--border-low); }
-.fi-tbody-tr:nth-child(even) { background: var(--bg-sub-card); }
-.fi-tbody-tr:hover { background: var(--table-row-hover); }
-.fi-td {
-  padding: 10px;
-  font-size: var(--font-body, 16px);
-  font-weight: 400;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
-/* 保养类型链接 */
 .type-link { color: var(--accent-primary); cursor: pointer; font-size: var(--font-body, 16px); }
-
-/* 操作列 */
-.action-cell { display: flex; align-items: center; gap: 10px; }
-/* 分页 */
-.pagination-wrap {
-  display: flex; align-items: center; justify-content: space-between;
-}
-.pagi-total { color: var(--pagi-text); font-size: var(--font-small, 14px); }
-
-/* ===== Element Plus 组件 Dark 适配 ===== */
-/* loading 遮罩 */
-:deep(.el-loading-mask) {
-  background-color: var(--bg-card); color: var(--accent-primary);
-}
 :deep(.el-loading-mask .el-loading-text) { color: var(--text-secondary); }
-:deep(.el-loading-mask .path) { stroke: var(--accent-primary); }
 
 /* switch 开关 */
 :deep(.el-switch__core) { background-color: var(--border-high); }

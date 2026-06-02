@@ -22,16 +22,16 @@
         <el-tooltip placement="top" effect="dark" raw-content>
           <template #content>
             <div style="max-width:260px;line-height:1.6">
-              <p style="margin:0 0 6px;font-weight:500">静态指定</p>
-              <p style="margin:0 0 10px;font-size:12px;color:#bbb">模板配置时选定处理人，运行时自动指派。适用于企业内流程，审核人固定。</p>
-              <p style="margin:0 0 6px;font-weight:500">动态表单字段</p>
-              <p style="margin:0;font-size:12px;color:#bbb">运行时从表单字段取值解析处理人。适用于跨企业流程，接收方自行指派。</p>
+              <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">静态指定</p>
+              <p style="margin:0 0 var(--spacing-lg, 12px);font-size:var(--font-xs, 12px);color:var(--text-muted)">模板配置时选定处理人，运行时自动指派。适用于企业内流程，审核人固定。</p>
+              <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">动态表单字段</p>
+              <p style="margin:0;font-size:var(--font-xs, 12px);color:var(--text-muted)">运行时从表单字段取值解析处理人。适用于跨企业流程，接收方自行指派。</p>
             </div>
           </template>
           <span class="prop-help-icon">?</span>
         </el-tooltip>
       </p>
-      <el-radio-group :model-value="local.assignSource || 'static'" @update:model-value="onChange('assignSource', $event)" style="margin-bottom:12px">
+      <el-radio-group :model-value="local.assignSource || 'static'" @update:model-value="onChange('assignSource', $event)" style="margin-bottom:var(--spacing-lg, 12px)">
         <el-radio value="static">静态指定</el-radio>
         <el-radio value="dynamic">动态表单字段</el-radio>
       </el-radio-group>
@@ -39,7 +39,7 @@
       <template v-if="(local.assignSource || 'static') === 'static'">
         <div class="prop-field">
           <label class="prop-label">指派人员</label>
-          <div class="assign-target-tags" @click="personDialogVisible = true">
+          <div class="tags-add-area" @click="personDialogVisible = true">
             <el-tag
               v-for="id in (local.assignConfig?.targetIds || [])"
               :key="id"
@@ -49,7 +49,7 @@
             >
               {{ getPersonName(id) }}
             </el-tag>
-            <span class="assign-target-add">+ 选择人员</span>
+            <span class="tags-add-btn">+ 选择人员</span>
           </div>
         </div>
         <div class="prop-field">
@@ -231,11 +231,24 @@ function onSla(key: string, val: any) {
   ;(local.slaLimits as any)[key] = val
 }
 
-function hasPerm(_fieldId: string, _type: 'edit' | 'view'): boolean {
-  // 简化：用 formFields 数据判断，默认全部有编辑权限
-  return true
+function hasPerm(fieldId: string, type: 'edit' | 'view'): boolean {
+  const perms = local.formFields
+  if (!perms || perms.length === 0) return true
+  const perm = perms.find(p => p.fieldId === fieldId)
+  if (!perm) return false
+  return perm[type] !== false
 }
-function togglePerm(_fieldId: string, _type: 'edit' | 'view') { /* 占位 */ }
+function togglePerm(fieldId: string, type: 'edit' | 'view') {
+  const perms = local.formFields || []
+  const idx = perms.findIndex(p => p.fieldId === fieldId)
+  const current = idx > -1 ? perms[idx] : { fieldId, edit: true, view: true }
+  const updated = { ...current, [type]: !current[type] }
+  if (idx > -1) {
+    local.formFields = [...perms.slice(0, idx), updated, ...perms.slice(idx + 1)]
+  } else {
+    local.formFields = [...perms, updated]
+  }
+}
 
 function emitUpdate() {
   const result: FlowNode = JSON.parse(JSON.stringify(local))
@@ -249,7 +262,7 @@ function emitUpdate() {
   background: var(--bg-sub-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg, 10px);
-  padding: 18px;
+  padding: var(--spacing-xl, 16px);
   height: 100%;
   overflow: auto;
   display: flex;
@@ -260,34 +273,34 @@ function emitUpdate() {
   font-size: var(--font-h3, 18px);
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-lg, 12px);
 }
 .prop-section {
-  margin-bottom: 18px;
-  margin-top: 6px;
+  margin-bottom: var(--spacing-xl, 16px);
+  margin-top: var(--spacing-sm, 6px);
 }
 .prop-section-title {
   font-size: var(--font-body, 16px);
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 12px;
-  padding-left: 10px;
+  margin-bottom: var(--spacing-lg, 12px);
+  padding-left: var(--spacing-lg, 12px);
   border-left: 3px solid var(--accent-primary);
   line-height: 1.3;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-sm, 6px);
 }
 .prop-help-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--spacing-xl, 16px);
+  height: var(--spacing-xl, 16px);
   border-radius: 50%;
   border: 1px solid var(--text-muted);
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--font-xs, 12px);
   font-weight: 600;
   cursor: help;
   flex-shrink: 0;
@@ -297,67 +310,41 @@ function emitUpdate() {
   color: var(--accent-primary);
 }
 .prop-field {
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-md, 8px);
 }
 .prop-label {
-  font-size: var(--font-body, 16px);
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  font-size: var(--font-small, 14px);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs, 4px);
   display: block;
 }
 .required { color: var(--danger); }
 .prop-input {
   width: 100%;
-  height: 37px;
+  height: var(--btn-height, 37px);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md, 8px);
-  padding: 0 12px;
+  padding: 0 var(--spacing-lg, 12px);
   font-size: var(--font-body, 16px);
   background: var(--bg-card);
   color: var(--text-primary);
 }
 .prop-input::placeholder { color: var(--text-placeholder); }
-.prop-action-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.prop-action-row { display: flex; gap: var(--spacing-md, 8px); margin-bottom: var(--spacing-md, 8px); align-items: center; }
 .prop-perm-row {
-  display: flex; align-items: center; gap: 16px;
-  padding: 6px 0; border-bottom: 1px solid var(--border-low);
+  display: flex; align-items: center; gap: var(--spacing-xl, 16px);
+  padding: var(--spacing-sm, 6px) 0; border-bottom: 1px solid var(--border-low);
   justify-content: space-between;
 }
 .prop-perm-label { flex: 1; font-size: var(--font-body, 16px); color: var(--text-primary); }
 .prop-check {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: var(--spacing-sm, 6px);
   font-size: var(--font-body, 16px); color: var(--text-secondary); cursor: pointer;
 }
-.prop-hint { color: var(--text-muted); font-size: var(--font-xs, 12px); margin-top: 4px; }
-.prop-empty { color: var(--text-muted); font-size: var(--font-small, 14px); text-align: center; padding: 24px 0; }
+.prop-hint { color: var(--text-muted); font-size: var(--font-xs, 12px); margin-top: var(--spacing-xs, 4px); }
+.prop-empty { color: var(--text-muted); font-size: var(--font-small, 14px); text-align: center; padding: var(--spacing-xxl, 24px) 0; }
 .prop-empty-state { justify-content: center; align-items: center; }
-.slider-row { display: flex; align-items: center; gap: 12px; }
+.slider-row { display: flex; align-items: center; gap: var(--spacing-lg, 12px); }
 .slider-val { font-size: var(--font-small, 14px); color: var(--text-muted); min-width: 40px; text-align: right; }
 
-/* 人员选择触发区 */
-.assign-target-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  cursor: pointer;
-  min-height: 32px;
-  padding: 4px 0;
-}
-.assign-target-add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 28px;
-  padding: 0 10px;
-  border: 1px dashed var(--border-high);
-  border-radius: var(--radius-sm, 6px);
-  font-size: var(--font-small, 14px);
-  color: var(--text-muted);
-  transition: all .15s;
-}
-.assign-target-add:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 </style>

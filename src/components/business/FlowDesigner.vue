@@ -191,7 +191,7 @@ function onPropUpdate(updated: FlowNode) {
 <style scoped>
 .fd-wrap {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-xl, 16px);
   height: 100%;
 }
 
@@ -200,7 +200,7 @@ function onPropUpdate(updated: FlowNode) {
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: 18px;
+  padding: var(--spacing-xl, 16px);
   overflow: auto;
 }
 
@@ -219,8 +219,8 @@ function onPropUpdate(updated: FlowNode) {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--spacing-lg, 12px);
+  padding: var(--spacing-lg, 12px);
   background: var(--bg-card);
   border: 1px solid var(--border-low);
   border-radius: var(--radius-md, 8px);
@@ -238,8 +238,8 @@ function onPropUpdate(updated: FlowNode) {
 
 .fd-node-del {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: calc(-1 * var(--spacing-md, 8px));
+  right: calc(-1 * var(--spacing-md, 8px));
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -247,7 +247,7 @@ function onPropUpdate(updated: FlowNode) {
   background: var(--bg-card);
   color: var(--danger);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-small, 14px);
   line-height: 1;
   display: flex;
   align-items: center;
@@ -255,7 +255,7 @@ function onPropUpdate(updated: FlowNode) {
 }
 .fd-node-del:hover {
   background: var(--danger);
-  color: #fff;
+  color: var(--bg-card);
 }
 
 .fd-node-icon {
@@ -269,7 +269,7 @@ function onPropUpdate(updated: FlowNode) {
 }
 
 .fd-node-icon-text {
-  font-size: 22px;
+  font-size: var(--font-h1, 24px);
   line-height: 1;
 }
 
@@ -287,7 +287,7 @@ function onPropUpdate(updated: FlowNode) {
 .fd-node-desc {
   font-size: var(--font-small, 14px);
   color: var(--text-secondary);
-  margin-top: 4px;
+  margin-top: var(--spacing-xs, 4px);
 }
 
 /* 连接器区域 */
@@ -295,13 +295,12 @@ function onPropUpdate(updated: FlowNode) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 0;
-  gap: 2px;
+  padding: var(--spacing-xs, 4px) 0;
 }
 
 .fd-arrow {
   width: 2px;
-  height: 24px;
+  height: var(--spacing-xxl, 24px);
   background: var(--border-default);
   position: relative;
 }
@@ -309,11 +308,11 @@ function onPropUpdate(updated: FlowNode) {
 .fd-arrow::after {
   content: '';
   position: absolute;
-  bottom: -4px;
-  left: -4px;
+  bottom: calc(-1 * var(--spacing-xs, 4px));
+  left: calc(-1 * var(--spacing-xs, 4px));
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 6px solid var(--border-default);
+  border-top: var(--spacing-sm, 6px) solid var(--border-default);
 }
 
 .fd-add-btn {
@@ -323,7 +322,7 @@ function onPropUpdate(updated: FlowNode) {
   border: 1px dashed var(--border-high);
   background: var(--bg-sub-card);
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: var(--font-h3, 18px);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -341,10 +340,10 @@ function onPropUpdate(updated: FlowNode) {
   background: var(--bg-main);
   color: var(--text-primary);
   font-size: var(--font-body, 16px);
-  padding: 6px 16px;
-  border-radius: 18px;
+  padding: var(--spacing-sm, 6px) var(--spacing-xl, 16px);
+  border-radius: var(--radius-xl, 14px);
   text-align: center;
-  margin-top: 8px;
+  margin-top: var(--spacing-md, 8px);
 }
 
 /* ===== 右侧属性面板 ===== */
@@ -357,14 +356,14 @@ function onPropUpdate(updated: FlowNode) {
 .fd-dialog-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--spacing-lg, 12px);
 }
 
 .fd-dialog-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--spacing-lg, 12px);
+  padding: var(--spacing-lg, 12px);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md, 8px);
   cursor: pointer;
@@ -389,4 +388,15 @@ function onPropUpdate(updated: FlowNode) {
   flex: 1;
   min-width: 0;
 }
+
+/* Dark 模式：el-dialog 节点选择弹窗 */
+:deep(.el-dialog) { background: var(--bg-card); }
+:deep(.el-dialog__header) { background: var(--bg-card); }
+:deep(.el-dialog__title) { color: var(--text-primary); }
+:deep(.el-dialog__body) { background: var(--bg-card); }
+:deep(.el-select-dropdown) { background: var(--bg-card); }
+:deep(.el-select-dropdown__item) { color: var(--text-primary); }
+:deep(.el-select-dropdown__item.hover),
+:deep(.el-select-dropdown__item:hover) { background: var(--accent-primary10); }
+:deep(.el-tooltip__content) { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-default); }
 </style>

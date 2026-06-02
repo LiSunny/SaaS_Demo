@@ -13,20 +13,32 @@
           {{ isEdit ? templateName : '新建模板' }}
         </el-breadcrumb-item>
       </el-breadcrumb>
-      <span v-if="isEdit && templateName" class="breadcrumb-name">{{ templateName }}</span>
     </div>
 
-    <!-- ===== 工具栏卡片：步骤 + 操作 ===== -->
+    <!-- ===== 工具栏卡片：左(名称+说明) 中(步骤) 右(操作) ===== -->
     <div class="config-toolbar-card">
+      <div class="toolbar-info">
+        <span class="toolbar-tpl-name">{{ isEdit ? templateName : '新建模板' }}</span>
+        <p v-if="isEdit && form.description" class="toolbar-tpl-desc">{{ form.description }}</p>
+      </div>
+
       <el-steps :active="currentStep" align-center class="toolbar-steps">
         <el-step v-for="s in steps" :key="s.key" :title="s.label" />
       </el-steps>
+
       <div class="toolbar-actions">
-        <button class="btn-default" @click="handleCancel">取消</button>
-        <button class="btn-default" @click="handleSaveDraft">保存草稿</button>
-        <button v-if="currentStep > 0" class="btn-default" @click="currentStep--">上一步</button>
-        <button v-if="currentStep < 2" class="btn-primary" @click="handleNext">下一步</button>
-        <button v-if="currentStep === 2" class="btn-primary" @click="handlePublish">发布</button>
+        <template v-if="isViewMode">
+          <button class="btn-default" @click="handleBack">返回</button>
+          <button v-if="currentStep > 0" class="btn-default" @click="currentStep--">上一步</button>
+          <button v-if="currentStep < 2" class="btn-primary" @click="currentStep++">下一步</button>
+        </template>
+        <template v-else>
+          <button class="btn-default" @click="handleCancel">取消</button>
+          <button class="btn-default" @click="handleSaveDraft">保存草稿</button>
+          <button v-if="currentStep > 0" class="btn-default" @click="currentStep--">上一步</button>
+          <button v-if="currentStep < 2" class="btn-primary" @click="handleNext">下一步</button>
+          <button v-if="currentStep === 2" class="btn-primary" @click="handlePublish">发布</button>
+        </template>
       </div>
     </div>
 
@@ -36,7 +48,7 @@
         <!-- 步骤 1：基础设置 -->
         <div v-show="currentStep === 0" class="step-content">
         <el-card shadow="never" class="step-card">
-          <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="base-form">
+          <el-form ref="formRef" :model="form" :rules="rules" :disabled="isViewMode" label-width="120px" class="base-form">
             <!-- 模板名称 -->
             <el-form-item label="模板名称" prop="name">
               <el-input v-model="form.name" placeholder="请输入模板名称" maxlength="50" />
@@ -70,7 +82,7 @@
               label="指定人员"
               prop="initiatorUserIds"
             >
-              <div class="initiator-tags" @click="personDialogVisible = true">
+              <div class="tags-add-area" @click="personDialogVisible = true">
                 <el-tag
                   v-for="id in form.initiatorUserIds"
                   :key="id"
@@ -80,7 +92,7 @@
                 >
                   {{ getInitiatorName(id) }}
                 </el-tag>
-                <span class="initiator-add">+ 选择人员</span>
+                <span class="tags-add-btn">+ 选择人员</span>
               </div>
             </el-form-item>
             <PersonSelector
@@ -179,6 +191,7 @@ import PersonSelector from '@/components/business/PersonSelector.vue'
 const route = useRoute()
 const router = useRouter()
 const isEdit = ref(false)
+const isViewMode = computed(() => route.query.mode === 'view')
 const templateName = ref('')
 const currentStep = ref(0)
 const formRef = ref<FormInstance>()
@@ -274,7 +287,6 @@ onMounted(async () => {
       if (nodeIds.length > 0) {
         loadedFormFields.value = detail.formSchema[nodeIds[0]].fields || []
       }
-      // 加载流程定义
       if (detail.flowDefinition?.nodes?.length > 0) {
         flowNodes.value = detail.flowDefinition.nodes
       }
@@ -391,21 +403,14 @@ const handlePublish = async () => {
   align-items: center;
   gap: var(--spacing-lg, 12px);
   flex-shrink: 0;
-  padding: 0 4px;
+  padding: 0 var(--spacing-xs, 4px);
 }
-.breadcrumb-name {
-  font-size: var(--font-h3, 18px);
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-left: var(--spacing-md, 8px);
-}
-
 /* ===== 工具栏卡片 ===== */
 .config-toolbar-card {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
+  padding: var(--spacing-lg, 12px) var(--spacing-xxl, 24px);
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg, 10px);
@@ -414,13 +419,33 @@ const handlePublish = async () => {
 }
 .toolbar-steps {
   flex: 1;
-  max-width: 480px;
-  min-width: 320px;
+}
+.toolbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 4px);
+  flex-shrink: 0;
+  max-width: 320px;
+  min-width: 0;
+}
+.toolbar-tpl-name {
+  font-size: var(--font-h3, 18px);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.toolbar-tpl-desc {
+  font-size: var(--font-small, 14px);
+  color: var(--text-secondary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .toolbar-actions {
   display: flex;
   gap: var(--spacing-md, 8px);
   flex-shrink: 0;
+  align-items: center;
 }
 
 /* ===== 工作区 ===== */
@@ -492,32 +517,6 @@ const handlePublish = async () => {
   text-align: right;
 }
 
-/* 人员选择标签 */
-.initiator-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  cursor: pointer;
-  min-height: 32px;
-  padding: 4px 0;
-}
-.initiator-add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 28px;
-  padding: 0 10px;
-  border: 1px dashed var(--border-high);
-  border-radius: var(--radius-sm, 6px);
-  font-size: var(--font-small, 14px);
-  color: var(--text-muted);
-  transition: all .15s;
-}
-.initiator-add:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* 设计器占位 */
 .designer-layout {
@@ -738,7 +737,7 @@ const handlePublish = async () => {
 }
 
 /* ===== PersonSelector 弹窗适配 ===== */
-:deep(.ps-dialog .el-dialog) {
+:deep(.ps-dialog) {
   background: var(--bg-card);
 }
 :deep(.ps-dialog .el-dialog__header) {

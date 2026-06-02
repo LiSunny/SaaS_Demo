@@ -266,7 +266,7 @@ function onClosed() {
 /* ===== Tab ===== */
 .ps-tabs {
   display: flex;
-  gap: 6px;
+  gap: var(--spacing-sm, 6px);
   padding-bottom: 0;
 }
 .ps-tab {
@@ -274,8 +274,8 @@ function onClosed() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 12px 0 0;
+  gap: var(--spacing-md, 8px);
+  padding: var(--spacing-lg, 12px) 0 0;
   font-size: var(--font-body, 16px);
   color: var(--text-primary);
   background: none;
@@ -289,8 +289,8 @@ function onClosed() {
 }
 .ps-tab-line {
   width: 56px;
-  height: 4px;
-  border-radius: 2px;
+  height: var(--spacing-xs, 4px);
+  border-radius: var(--radius-sm, 6px);
   background: var(--accent-primary);
 }
 
@@ -299,13 +299,13 @@ function onClosed() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
-  gap: 12px;
+  padding: var(--spacing-lg, 12px) 0;
+  gap: var(--spacing-lg, 12px);
 }
 .ps-check-all {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-sm, 6px);
   font-size: var(--font-body, 16px);
   color: var(--text-secondary);
   cursor: pointer;
@@ -320,18 +320,18 @@ function onClosed() {
   height: 32px;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md, 8px);
-  padding: 0 36px 0 18px;
-  font-size: 15px;
+  padding: 0 var(--spacing-xxl, 24px) 0 var(--spacing-xl, 16px);
+  font-size: var(--font-body, 16px);
   background: var(--bg-card);
   color: var(--text-primary);
 }
 .ps-search-input::placeholder { color: var(--text-placeholder); }
 .ps-search-icon {
   position: absolute;
-  right: 10px;
+  right: var(--spacing-lg, 12px);
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
+  font-size: var(--font-small, 14px);
   pointer-events: none;
 }
 
@@ -341,13 +341,13 @@ function onClosed() {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-xs, 4px);
 }
 .ps-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
+  gap: var(--spacing-lg, 12px);
+  padding: var(--spacing-md, 8px);
   border-radius: var(--radius-sm, 6px);
   cursor: pointer;
   transition: background .15s;
@@ -356,8 +356,8 @@ function onClosed() {
 .ps-item.checked { background: var(--info-bg); }
 
 .ps-checkbox {
-  width: 16px;
-  height: 16px;
+  width: var(--spacing-xl, 16px);
+  height: var(--spacing-xl, 16px);
   accent-color: var(--accent-primary);
   flex-shrink: 0;
 }
@@ -367,11 +367,11 @@ function onClosed() {
   height: 62px;
   border-radius: 50%;
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--bg-card);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--font-h1, 24px);
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -381,24 +381,24 @@ function onClosed() {
   min-width: 0;
 }
 .ps-name {
-  font-size: 16px;
+  font-size: var(--font-body, 16px);
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-sm, 6px);
 }
 .ps-meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-xs, 4px);
 }
 .ps-meta-item {
-  font-size: 14px;
-  color: #818181;
+  font-size: var(--font-small, 14px);
+  color: var(--text-muted);
 }
 
 .ps-empty {
   text-align: center;
-  padding: 40px 0;
+  padding: var(--spacing-xxl, 24px) 0;
   color: var(--text-muted);
   font-size: var(--font-small, 14px);
 }
@@ -408,9 +408,9 @@ function onClosed() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
+  padding-top: var(--spacing-lg, 12px);
   border-top: 1px solid var(--border-low);
-  margin-top: 8px;
+  margin-top: var(--spacing-md, 8px);
 }
 .ps-selected-count {
   font-size: var(--font-small, 14px);
@@ -418,6 +418,6 @@ function onClosed() {
 }
 .ps-footer-btns {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-md, 8px);
 }
 </style>

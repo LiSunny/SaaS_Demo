@@ -114,7 +114,7 @@ const { query } = store
 const handleSearch = () => { query.page = 1; store.fetchList() }
 const handleReset = () => { query.keyword = ''; query.status = ''; handleSearch() }
 const handleAdd = () => { router.push('/workflow/template/config') }
-const handleView = (row: TemplateItem) => { router.push(`/workflow/template/config/${row.id}`) }
+const handleView = (row: TemplateItem) => { router.push(`/workflow/template/config/${row.id}?mode=view`) }
 const handleEdit = (row: TemplateItem) => { router.push(`/workflow/template/config/${row.id}`) }
 const handleDelete = async (row: TemplateItem) => {
   await ElMessageBox.confirm(`确认删除模板「${row.name}」？`, '提示', { type: 'warning' })
@@ -166,36 +166,9 @@ onMounted(() => store.fetchList())
   border-radius: var(--radius-md, 8px);
 }
 .help-right { flex: 1; min-width: 0; }
-.help-title { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
-.help-desc { font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px; }
+.help-title { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); margin-bottom: var(--spacing-sm, 6px); }
+.help-desc { font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--spacing-lg, 12px); }
 
-/* ===== 筛选栏 ===== */
-.filter-bar { display: flex; align-items: center; justify-content: space-between; }
-.filter-left { display: flex; align-items: center; gap: 26px; }
-.search-input-wrap { position: relative; width: 208px; }
-.fi-input {
-  width: 100%; height: 36px; border: 1px solid var(--border-high);
-  border-radius: var(--radius-md, 8px); padding: 8px 32px 8px var(--spacing-xl, 16px);
-  font-size: var(--font-small, 14px); color: var(--text-primary); background: var(--bg-card); outline: none;
-}
-.fi-input::placeholder { color: var(--text-placeholder); }
-.fi-input:focus { border-color: var(--accent-primary); }
-.fi-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; opacity: .4; pointer-events: none; color: var(--text-muted); }
-.fi-clear { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0; color: var(--text-muted); }
-.fi-select-wrap { width: 193px; }
-.fi-select-wrap :deep(.el-select) { width: 100%; }
-.fi-select-wrap :deep(.el-select__wrapper) { border: 1px solid var(--border-high) !important; border-radius: var(--radius-md, 8px); padding: 8px var(--spacing-xl, 16px); box-shadow: none !important; background: var(--bg-card) !important; height: 36px; }
-.fi-select-wrap :deep(.el-select__wrapper:hover), .fi-select-wrap :deep(.el-select__wrapper.is-focus) { border-color: var(--accent-primary) !important; box-shadow: none !important; }
-.fi-select-wrap :deep(.el-select__placeholder) { color: var(--text-placeholder); }
-.fi-select-wrap :deep(.el-select__caret) { color: var(--text-placeholder); }
-
-.filter-right { display: flex; gap: var(--spacing-md, 8px); align-items: center; }
-
-.btn-add-icon { width: 20px; height: 20px; }
-
-/* 表格 + 分页 */
-.table-wrap { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
-.fi-table { width: 100%; border-collapse: collapse; table-layout: auto; }
 .col-check { width: 50px; }
 .col-status { width: 125px; min-width: 100px; }
 .col-name { min-width: 140px; }
@@ -204,34 +177,15 @@ onMounted(() => store.fetchList())
 .col-creator { width: 100px; }
 .col-time { width: 180px; }
 .col-actions { width: 210px; min-width: 190px; white-space: nowrap; }
+.progress-num { font-weight: 500; color: var(--accent-primary); }
 
 @media (max-width: 1550px) { .col-creator { display: none !important; } }
 @media (max-width: 1250px) { .col-code { display: none !important; } }
 @media (max-width: 1050px) { .col-time { display: none !important; } }
-@media (max-width: 800px) { .filter-bar { flex-direction: column; gap: 12px; align-items: stretch; } .filter-left { flex-wrap: wrap; } .pagination-wrap { flex-direction: column; gap: 12px; align-items: flex-start; } }
+@media (max-width: 800px) { .filter-bar { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: stretch; } .filter-left { flex-wrap: wrap; } .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; } }
 
-.fi-thead-tr { background: var(--table-header-bg); }
-.fi-th { border-bottom: 1px solid var(--border-low); padding: 10px; font-size: var(--font-h4, 16px); font-weight: 400; color: var(--table-header-text); text-align: center; white-space: nowrap; }
-.fi-th-sort { cursor: pointer; user-select: none; }
-.fi-th-sort span { vertical-align: middle; }
-.th-sort-icon { width: 18px; height: 18px; margin-left: 2px; vertical-align: middle; opacity: .5; color: var(--table-header-text); }
-.fi-tbody-tr { border-bottom: 1px solid var(--border-low); }
-.fi-tbody-tr:nth-child(even) { background: var(--bg-sub-card); }
-.fi-tbody-tr:hover { background: var(--table-row-hover); }
-.fi-td { padding: 10px; font-size: var(--font-body, 16px); color: var(--text-primary); white-space: nowrap; text-align: center; }
-.progress-num { font-weight: 500; color: var(--accent-primary); }
-.action-cell { display: flex; align-items: center; gap: 10px; }
-
-.pagination-wrap { display: flex; align-items: center; justify-content: space-between; }
-.pagi-total { color: var(--pagi-text); font-size: var(--font-small, 14px); }
-
-/* EL 组件 Dark 适配 */
-:deep(.el-loading-mask) { background-color: var(--bg-card); }
-:deep(.el-loading-mask .path) { stroke: var(--accent-primary); }
-:deep(.el-switch__core) { background-color: var(--border-high); }
-:deep(.el-switch.is-checked .el-switch__core) { background-color: var(--accent-primary); border-color: var(--accent-primary); }
 :deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); }
-:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; }
+:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: var(--bg-card); }
 :deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; }
 :deep(.el-pagination .el-select .el-select__wrapper) { background-color: var(--bg-card) !important; color: var(--text-secondary); border: 1px solid var(--border-high) !important; box-shadow: none !important; }
 :deep(.el-pagination .el-pagination__jump .el-input__wrapper) { background-color: var(--bg-card) !important; border: 1px solid var(--border-high) !important; box-shadow: none !important; }

@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -91,19 +91,72 @@ import AppIcon from '@/components/base/AppIcon.vue'
 const router = useRouter()
 
 const activeMenu = ref('device')
-const activeSideMenu = ref('maintenance-plan')
-const expandedKeys = ref<string[]>(['maintenance'])
+const activeSideMenu = ref('')
+const expandedKeys = ref<string[]>([])
 const sidebarCollapsed = ref(false)
 
+// ===== 路由 → 菜单映射表（路由隔离核心） =====
+// 精确路由路径 → 侧边栏菜单 key
+const routeToSideMenu: Record<string, string> = {
+  '/maintenance/plans': 'maintenance-plan',
+  '/workflow/template': 'workflow-template',
+  '/workflow/monitor': 'workflow-monitor',
+}
+
+// 侧边栏菜单 key → 实际路由路径
 const menuRoutes: Record<string, string> = {
   'maintenance-plan': '/maintenance/plans',
   'workflow-template': '/workflow/template',
-  'workflow-config': '/workflow/template',
+  'workflow-config': '/workflow/monitor',
+  'workflow-monitor': '/workflow/monitor',
 }
 
+// 顶部菜单 key → 默认侧边栏菜单 key
+// 每个顶部菜单都应有默认侧边栏，确保点击"空菜单"时也能导航
 const defaultSideMenus: Record<string, string> = {
   device: 'maintenance-plan',
+  inspect: 'maintenance-plan',
+  remote: 'maintenance-plan',
+  maintain: 'maintenance-plan',
+  risk: 'maintenance-plan',
+  platform: 'maintenance-plan',
+  training: 'maintenance-plan',
   system: 'workflow-template',
+}
+
+/** 根据当前路由同步菜单状态（路由 → 菜单，路由隔离核心） */
+function syncMenuFromRoute() {
+  const route = router.currentRoute.value
+  const path = route.path
+  const metaTopMenu = (route.meta?.topMenu as string) || ''
+
+  // 1. 同步顶部菜单：仅当路由所属分组与当前不同时才切换
+  //    避免用户点击同组其他顶部菜单（如"巡查检查"）后被覆盖回默认
+  if (metaTopMenu) {
+    const currentGroup = sideMenuGroups[activeMenu.value]
+    const routeGroup = sideMenuGroups[metaTopMenu]
+    if (currentGroup !== routeGroup) {
+      activeMenu.value = metaTopMenu
+    }
+  }
+
+  // 2. 同步侧边栏菜单 active + 展开父级分组
+  let sideKey = routeToSideMenu[path]
+  if (!sideKey) {
+    for (const [routePath, key] of Object.entries(routeToSideMenu)) {
+      if (path.startsWith(routePath)) {
+        sideKey = key
+        break
+      }
+    }
+  }
+  if (sideKey) {
+    activeSideMenu.value = sideKey
+    const parent = allSideMenus.find(s =>
+      (s.children || []).some(c => c.key === sideKey)
+    )
+    if (parent) expandedKeys.value = [parent.key]
+  }
 }
 
 function onSideClick(key: string) {
@@ -183,12 +236,13 @@ const allSideMenus = [
   ]},
   { key: 'system', label: '系统管理', group: 'system', children: [
     { key: 'workflow-template', label: '流程模板' },
-    { key: 'workflow-config', label: '流程配置' },
+    { key: 'workflow-config', label: '工单监控' },
   ]},
 ]
 
 const sideMenuGroups: Record<string, string> = {
-  device: 'device', inspect: 'device', remote: 'device', maintain: 'device',
+  device: 'device', inspect: 'device', remote: 'device',
+  maintain: 'device',
   risk: 'device', platform: 'device', training: 'device',
   system: 'system',
 }
@@ -196,6 +250,10 @@ const visibleSideMenus = computed(() => {
   const g = sideMenuGroups[activeMenu.value] || 'device'
   return allSideMenus.filter(s => s.group === g)
 })
+
+// 路由变化时自动同步菜单（含首次加载）
+// 注意：必须在 allSideMenus 定义之后调用，避免 TDZ 错误
+watch(() => router.currentRoute.value.path, () => syncMenuFromRoute(), { immediate: true })
 
 </script>
 

@@ -1,21 +1,124 @@
 import type { TemplateItem, TemplateQuery, TemplateForm, TemplateDetail, FlowDefinition } from '@/types/workflow'
 
 const mockData: TemplateItem[] = [
-  { id: 1, name: '设备报修流程', status: 1, nodeCount: 4, fieldCount: 8, code: 'WF-001', creator: '杨婷彤', createdAt: '2025-10-09 09:40', updatedAt: '2025-12-09 09:40' },
-  { id: 2, name: '安全巡检流程', status: 1, nodeCount: 3, fieldCount: 5, code: 'WF-002', creator: '谢东', createdAt: '2025-10-09 09:40', updatedAt: '2025-12-09 09:40' },
-  { id: 3, name: '隐患上报流程', status: 0, nodeCount: 5, fieldCount: 12, code: 'WF-003', creator: '陈洪燕', createdAt: '2025-11-15 14:20', updatedAt: '2025-12-01 10:00' },
-  { id: 4, name: '设备报废流程', status: 2, nodeCount: 6, fieldCount: 15, code: 'WF-004', creator: '梁冬', createdAt: '2025-08-20 08:00', updatedAt: '2025-11-20 08:00' },
-  { id: 5, name: '应急响应流程', status: 3, nodeCount: 8, fieldCount: 20, code: 'WF-005', creator: '马达', createdAt: '2025-06-01 10:00', updatedAt: '2025-09-01 10:00' },
-  { id: 6, name: '常规检查流程', status: 1, nodeCount: 2, fieldCount: 3, code: 'WF-006', creator: '杨伟', createdAt: '2025-12-01 09:00', updatedAt: '2025-12-15 09:00' },
-  { id: 7, name: '物料申领流程', status: 0, nodeCount: 3, fieldCount: 6, code: 'WF-007', creator: '高楠', createdAt: '2026-01-05 11:00', updatedAt: '2026-01-05 11:00' },
-  { id: 8, name: '设备调拨流程', status: 1, nodeCount: 4, fieldCount: 10, code: 'WF-008', creator: '杨婷彤', createdAt: '2026-01-10 08:30', updatedAt: '2026-02-10 08:30' },
+  { id: 1, name: '示例模版：安全生产督办流程（监管方）', status: 1, nodeCount: 4, fieldCount: 10, code: 'WF-SP-001', creator: '张监管', createdAt: '2026-05-15 09:00', updatedAt: '2026-05-30 14:30' },
+  { id: 2, name: '示例模版：督办整改执行流程（被监管方）', status: 1, nodeCount: 4, fieldCount: 8, code: 'WF-SP-002', creator: '李整改', createdAt: '2026-05-15 09:00', updatedAt: '2026-05-28 10:00' },
 ]
 
 let dataStore = [...mockData]
-let nextId = 9
+let nextId = 3
 
 // 草稿存储（内存）
 const draftStore = new Map<number, TemplateDetail>()
+
+// ===== 督办示意流程演示数据 =====
+
+const supervisorDetail: TemplateDetail = {
+  id: 1,
+  baseInfo: {
+    name: '安全生产督办流程（监管方）',
+    code: 'WF-SP-001',
+    description: '监管方发起督办任务，跨企业下发至被监管方，审核整改结果后归档',
+    initiatorScope: 'specified',
+    slaPriority: 'urgent',
+    defaultTtrMinutes: 120,
+    defaultTtsMinutes: 2880,
+    amberThreshold: 80,
+  },
+  formSchema: {
+    start_1: {
+      fields: [
+        { id: 'f1',  type: 'input',    label: '督办标题',     required: true,  source: 'manual', span: 24 },
+        { id: 'f2',  type: 'textarea', label: '督办事项描述', required: true,  source: 'manual', span: 24 },
+        { id: 'f3',  type: 'textarea', label: '整改标准',     required: true,  source: 'manual', span: 24 },
+        { id: 'f4',  type: 'input',    label: '整改期限',     required: true,  source: 'manual', span: 12 },
+        { id: 'f5',  type: 'input',    label: '督办类型',     required: true,  source: 'manual', span: 12 },
+        { id: 'f6',  type: 'input',    label: '被监管企业',   required: true,  source: 'manual', span: 12 },
+        { id: 'f7',  type: 'input',    label: '紧急程度',     required: true,  source: 'manual', span: 12 },
+        { id: 'f8',  type: 'input',    label: '督办依据',     required: false, source: 'manual', span: 12 },
+        { id: 'f9',  type: 'input',    label: '抄送人',       required: false, source: 'auto',    span: 12 },
+        { id: 'f10', type: 'input',    label: '附件',         required: false, source: 'manual', span: 24 },
+      ],
+    },
+  },
+  flowDefinition: {
+    nodes: [
+      { id: 'start_1',    type: 'start',    name: '发起督办' },
+      { id: 'external_1', type: 'external', name: '下发至被监管企业' },
+      {
+        id: 'confirm_1',
+        type: 'confirm',
+        name: '审核整改结果',
+        assignSource: 'static',
+        assignConfig: { strategy: 'user', targetIds: [1], multipleMode: 'anyone' },
+        actions: [
+          { name: '审核通过', targetNodeId: 'close_1' },
+          { name: '驳回整改', targetNodeId: 'external_1' },
+        ],
+        slaLimits: { ttrMinutes: 120, amberThreshold: 80 },
+      },
+      { id: 'close_1', type: 'close', name: '关闭归档' },
+    ],
+    edges: [
+      { from: 'start_1',    to: 'external_1' },
+      { from: 'external_1', to: 'confirm_1' },
+      { from: 'confirm_1',  to: 'close_1' },
+    ],
+  },
+}
+
+const regulatedDetail: TemplateDetail = {
+  id: 2,
+  baseInfo: {
+    name: '督办整改执行流程（被监管方）',
+    code: 'WF-SP-002',
+    description: '接收监管方督办任务，内部指派整改人，执行整改后提交结果',
+    initiatorScope: 'specified',
+    slaPriority: 'normal',
+    defaultTtrMinutes: 480,
+    defaultTtsMinutes: 4320,
+    amberThreshold: 80,
+  },
+  formSchema: {
+    start_1: {
+      fields: [
+        { id: 'f1', type: 'input',    label: '督办标题',     required: true,  source: 'inherited', span: 24 },
+        { id: 'f2', type: 'textarea', label: '督办事项描述', required: true,  source: 'inherited', span: 24 },
+        { id: 'f3', type: 'textarea', label: '整改标准',     required: true,  source: 'inherited', span: 24 },
+        { id: 'f4', type: 'input',    label: '整改期限',     required: true,  source: 'inherited', span: 12 },
+        { id: 'f5', type: 'textarea', label: '整改计划',     required: true,  source: 'manual',    span: 24 },
+        { id: 'f6', type: 'textarea', label: '整改结果描述', required: true,  source: 'manual',    span: 24 },
+        { id: 'f7', type: 'input',    label: '整改照片',     required: true,  source: 'manual',    span: 24 },
+        { id: 'f8', type: 'input',    label: '处理人签名',   required: false, source: 'manual',    span: 12 },
+      ],
+    },
+  },
+  flowDefinition: {
+    nodes: [
+      { id: 'start_1',   type: 'start',   name: '接收督办' },
+      {
+        id: 'assign_1',
+        type: 'assign',
+        name: '指派整改人',
+        assignSource: 'static',
+        assignConfig: { strategy: 'user', targetIds: [2, 3, 4], multipleMode: 'anyone' },
+        slaLimits: { ttrMinutes: 240, amberThreshold: 80 },
+      },
+      {
+        id: 'execute_1',
+        type: 'execute',
+        name: '执行整改',
+        slaLimits: { ttsMinutes: 2880, amberThreshold: 80 },
+      },
+      { id: 'close_1', type: 'close', name: '提交结果' },
+    ],
+    edges: [
+      { from: 'start_1',   to: 'assign_1' },
+      { from: 'assign_1',  to: 'execute_1' },
+      { from: 'execute_1', to: 'close_1' },
+    ],
+  },
+}
 
 // ===== 列表 & 基础 CRUD =====
 
@@ -73,9 +176,10 @@ export function updateTemplateStatus(id: number, status: number) {
 export function getTemplateDetail(id: number): Promise<TemplateDetail | undefined> {
   const cached = draftStore.get(id)
   if (cached) return Promise.resolve(cached)
-  // 无草稿时返回空 detail
   const item = dataStore.find(i => i.id === id)
   if (!item) return Promise.resolve(undefined)
+  if (id === 1) return Promise.resolve(supervisorDetail)
+  if (id === 2) return Promise.resolve(regulatedDetail)
   return Promise.resolve({
     id: item.id,
     baseInfo: {
