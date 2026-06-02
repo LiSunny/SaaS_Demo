@@ -100,7 +100,6 @@ export interface FlowNode {
   conditionExpression?: string
   formFields?: FieldPermission[]
 }
-}
 
 export interface FieldPermission {
   fieldId: string
