@@ -86,6 +86,33 @@
 | Design Token 缺失 | `.claude/skills/md-figma-to-vue3/references/design-tokens.md` |
 | 代码模板不对 | `.claude/skills/md-figma-to-vue3/references/code-templates.md` |
 
+## 业务设计
+> 最后更新：2026-06-02
+
+| 层级 | 文档 | 说明 |
+|------|------|------|
+| 平台总览 | [biz-design.md](docs/design/biz-design.md) | 8 个业务域 + 用户角色 |
+| 工单管理 | [工单管理/biz-design.md](docs/design/工单管理/biz-design.md) | 流程编排 + 工单全生命周期 |
+| 维保管理 | [维保管理/biz-design.md](docs/design/维保管理/biz-design.md) | 维保计划→任务→报告全链路 |
+
+> 新增业务域：创建 `docs/design/{业务域}/` 目录，`/biz-design` 产出 `biz-design.md` 放入该目录，更新 `biz-design.md` 和本索引。
+
+## 模块清单
+> 最后更新：2026-06-02
+
+### 工单管理
+| 模块 | 优先级 | 状态 |
+|------|--------|------|
+| M0 模板配置 | P0 | ✅ 已完成 |
+| M1 工单监控 | P0 | ✅ 已完成 |
+| M2 工单发起 | P0 | 待实现 |
+| M3 移动端处置 | P0 | 待实现 |
+| M4 工单归档 | P1 | 待实现 |
+| M5 统计看板 | P1 | 待实现 |
+| M6 消息通知 | P2 | 待实现 |
+
+详见 [工单管理/module-plan.md](docs/design/工单管理/module-plan.md)
+
 ### Skill 源仓库
 
 `.claude/skills/` 下的所有 skill 从 `../`（父目录 `skill维护/`）复制而来。修改应先在这里验证，确认有效后再同步回源仓库。

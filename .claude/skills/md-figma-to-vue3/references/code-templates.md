@@ -440,6 +440,27 @@ list-page (height:100%)                     ← 只做高度占位
 
 - **硬性约束**：筛选栏最多两行，整个页面禁止横向滚动条
 
+#### 筛选操作区布局范式（不可变）
+
+`filter-bar` 内部始终左右分布：
+
+```
+.filter-bar
+├── .filter-left（flex: 1，居左）
+│   ├── 筛选控件（搜索框 + 下拉 + 日期选择器）
+│   ├── [查询]（btn-primary）
+│   └── [重置]（btn-default）
+└── .filter-right（flex-shrink: 0，居右）
+    └── 操作按钮（如 [发起工单] [新建模板]）
+```
+
+- 查询/重置按钮**必须在** `.filter-left` 内，紧跟筛选控件
+- 操作按钮（发起/新建/批量删除）**必须在** `.filter-right` 内
+- 禁止在 `.filter-left` 和 `.filter-right` 之外创建独立操作栏行
+- 设计文档中筛选区和操作按钮区描述为同行左右布局，代码生成时直接映射到 `.filter-left` + `.filter-right`
+
+#### 代码模板
+
 ```vue
 <template>
   <div class="list-page">
@@ -466,6 +487,7 @@ list-page (height:100%)                     ← 只做高度占位
           </div>
 
           <button class="btn-primary" @click="search">查询</button>
+          <button class="btn-default" @click="handleReset">重置</button>
         </div>
 
         <div class="filter-right">

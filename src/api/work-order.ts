@@ -260,7 +260,7 @@ function buildDetail(id: number): WorkOrderDetail {
   for (let n = 0; n < 5; n++) {
     if (item.status === 'closed') {
       nodeTimes.push(new Date(base + (n + 1) * 3600000 * (2 + Math.random() * 3)).toISOString().replace('T', ' ').slice(0, 19))
-    } else if (n <= map.nodeIdx) {
+    } else if (n <= nowIdx) {
       nodeTimes.push(new Date(base + (n + 1) * 3600000 * (1.5 + Math.random() * 3)).toISOString().replace('T', ' ').slice(0, 19))
     } else {
       nodeTimes.push(null)

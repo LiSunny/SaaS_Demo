@@ -51,11 +51,12 @@
           <div class="fi-date-range-wrap">
             <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" :teleported="false" popper-class="fi-popper" :shortcuts="dateShortcuts" @change="onDateChange" />
           </div>
+          <button class="btn-primary" @click="store.search()">查询</button>
+          <button class="btn-default" @click="handleReset">重置</button>
         </div>
 
         <div class="filter-right">
-          <button class="btn-primary" @click="store.search()">查询</button>
-          <button class="btn-default" @click="store.reset()">重置</button>
+          <button class="btn-primary" @click="router.push('/workflow/template')">发起工单</button>
         </div>
       </div>
 
@@ -339,7 +340,13 @@ const dateShortcuts = [
   { text: '近30天', value: () => { const d = new Date(); const s = new Date(d.getTime() - 30 * 86400000); return [s, d] as [Date, Date] } },
 ]
 
-const dateRange = ref<[Date, Date] | null>(null)
+// 默认近30天
+function last30Days(): [Date, Date] {
+  const d = new Date()
+  const s = new Date(d.getTime() - 30 * 86400000)
+  return [s, d]
+}
+const dateRange = ref<[Date, Date] | null>(last30Days())
 function onDateChange(v: [Date, Date] | null) {
   if (v) {
     query.startDate = v[0].toISOString().slice(0, 10)
@@ -347,6 +354,16 @@ function onDateChange(v: [Date, Date] | null) {
   } else {
     query.startDate = ''
     query.endDate = ''
+  }
+  store.search()
+}
+
+function handleReset() {
+  dateRange.value = last30Days()
+  store.reset()
+  if (dateRange.value) {
+    query.startDate = dateRange.value[0].toISOString().slice(0, 10)
+    query.endDate = dateRange.value[1].toISOString().slice(0, 10)
   }
   store.search()
 }
@@ -488,6 +505,11 @@ async function handleReassign() {
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
+  // 初始化默认近30天
+  if (dateRange.value) {
+    query.startDate = dateRange.value[0].toISOString().slice(0, 10)
+    query.endDate = dateRange.value[1].toISOString().slice(0, 10)
+  }
   store.fetchList()
   refreshTimer = setInterval(() => { store.fetchList() }, 30000)
 })
