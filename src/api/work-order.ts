@@ -269,7 +269,7 @@ function buildDetail(id: number): WorkOrderDetail {
 
   function ns(n: number): NodeStatus {
     if (nowIdx >= n) return 'completed'
-    if (nowIdx === n - 1 && item.status !== 'draft') return 'in_progress'
+    if (nowIdx === n - 1 && item!.status !== 'draft') return 'in_progress'
     return 'pending'
   }
 
@@ -364,7 +364,7 @@ export async function getWorkOrderDetail(id: number): Promise<WorkOrderDetail> {
   return buildDetail(id)
 }
 
-export async function cancelWorkOrder(id: number, reason: string): Promise<{ id: number; orderNo: string; status: string; closedAt: string; closedBy: string }> {
+export async function cancelWorkOrder(id: number, _reason: string): Promise<{ id: number; orderNo: string; status: string; closedAt: string; closedBy: string }> {
   await new Promise(r => setTimeout(r, 200))
   const item = mockList.find(w => w.id === id)
   if (!item) throw new Error('工单不存在')

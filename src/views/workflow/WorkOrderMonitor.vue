@@ -273,7 +273,7 @@
       <div class="reassign-content">
         <el-form label-width="100px">
           <el-form-item label="目标处理人" required>
-            <PersonSelector v-model="reassignTargetId" placeholder="请选择处理人" />
+            <PersonSelector :selected-ids="reassignTargetId ? [reassignTargetId] : []" placeholder="请选择处理人" @confirm="reassignTargetId = $event[0] || 0" />
           </el-form-item>
           <el-form-item label="改派原因" required>
             <el-input

@@ -65,15 +65,6 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     search()
   }
 
-  function toggleStatFilter(status: string) {
-    if (query.status === status) {
-      query.status = ''
-    } else {
-      query.status = status
-    }
-    search()
-  }
-
   // 详情
   async function openDetail(id: number) {
     detailVisible.value = true
@@ -111,6 +102,7 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     list, loading, query, total, stats,
     detailVisible, detailLoading, detail,
     fetchList, fetchStats, search, reset, toggleStatFilter,
+    activeStatFilter,
     openDetail, closeDetail, cancel, reassign,
   }
 })

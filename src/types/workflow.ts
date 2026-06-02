@@ -3,7 +3,7 @@ export type TemplateStatus = 0 | 1 | 2 | 3 // 待生效 | 执行中 | 已停用 
 
 export type SlaPriority = 'urgent' | 'normal' | 'low'
 export type InitiatorScope = 'all' | 'specified'
-export type NodeType = 'start' | 'assign' | 'execute' | 'confirm' | 'close' | 'condition'
+export type NodeType = 'start' | 'assign' | 'execute' | 'confirm' | 'close' | 'condition' | 'external'
 export type AssignStrategy = 'position' | 'user' | 'role' | 'dept' | 'external'
 export type AssignMultipleMode = 'anyone' | 'each'
 export type AssignSource = 'static' | 'dynamic'
