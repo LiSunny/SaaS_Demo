@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
+import { ElMessage } from 'element-plus'
 import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats } from '@/types/work-order'
-import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder } from '@/api/work-order'
+import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, createWorkOrder } from '@/api/work-order'
 
 export const useWorkOrderStore = defineStore('workOrder', () => {
   const list = ref<WorkOrderItem[]>([])
@@ -98,11 +99,17 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     return res
   }
 
+  async function createOrder(data: { templateId: number; templateName: string; templateVersion: number; priority: string; creatorName: string }) {
+    const res = await createWorkOrder(data)
+    ElMessage.success(`工单 ${res.orderNo} 已创建`)
+    return res
+  }
+
   return {
     list, loading, query, total, stats,
     detailVisible, detailLoading, detail,
     fetchList, fetchStats, search, reset, toggleStatFilter,
     activeStatFilter,
-    openDetail, closeDetail, cancel, reassign,
+    openDetail, closeDetail, cancel, reassign, createOrder,
   }
 })

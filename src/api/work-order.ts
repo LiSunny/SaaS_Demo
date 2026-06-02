@@ -359,6 +359,52 @@ export async function getWorkOrderList(query: WorkOrderQuery): Promise<Paginated
   return { list, total, stats: getStats(filtered) }
 }
 
+export async function createWorkOrder(data: { templateId: number; templateName: string; templateVersion: number; priority: string; creatorName: string }): Promise<WorkOrderItem> {
+  await new Promise(r => setTimeout(r, 300))
+  const now = new Date()
+  const createdAt = now.toISOString().replace('T', ' ').slice(0, 19)
+  const id = mockList.length + 1
+  const orderNo = `WO${createdAt.slice(0, 10).replace(/-/g, '')}-${String(id).padStart(3, '0')}`
+  const item: WorkOrderItem = {
+    id, orderNo,
+    templateId: data.templateId,
+    templateName: data.templateName,
+    templateVersion: data.templateVersion,
+    status: 'draft',
+    priority: data.priority as WorkOrderItem['priority'],
+    currentNodeId: 101,
+    currentNodeName: '发起节点',
+    currentNodeIndex: 1,
+    totalNodes: 5,
+    currentNodeType: 'start',
+    currentAssigneeId: null,
+    currentAssigneeName: null,
+    creatorId: 10,
+    creatorName: data.creatorName,
+    creatorOrgId: 1001,
+    creatorOrgName: 'xxx物业管理有限公司',
+    parentOrderId: null,
+    createdAt,
+    updatedAt: createdAt,
+    closedAt: null,
+    closedBy: null,
+    sla: {
+      ttrMinutes: null,
+      ttsMinutes: 1440,
+      ttrStartedAt: null,
+      ttrEndedAt: null,
+      ttsStartedAt: new Date(now.getTime() + 300000).toISOString().replace('T', ' ').slice(0, 19),
+      ttsPausedAt: null,
+      yellowThreshold: 0.8,
+      ttrProgress: null,
+      ttsProgress: 0,
+      slaStatus: 'normal',
+    },
+  }
+  mockList.unshift(item)
+  return item
+}
+
 export async function getWorkOrderDetail(id: number): Promise<WorkOrderDetail> {
   await new Promise(r => setTimeout(r, 200))
   return buildDetail(id)

@@ -56,7 +56,7 @@
         </div>
 
         <div class="filter-right">
-          <button class="btn-primary" @click="router.push('/workflow/template')">发起工单</button>
+          <button class="btn-primary" @click="createDialogVisible = true">发起工单</button>
         </div>
       </div>
 
@@ -294,11 +294,51 @@
         </button>
       </template>
     </el-dialog>
+
+    <!-- ===== 发起工单弹窗 ===== -->
+    <el-dialog v-model="createDialogVisible" title="发起工单" width="560px" :close-on-click-modal="false">
+      <div class="create-content">
+        <p class="create-step-label">选择模板</p>
+        <div class="template-grid">
+          <div
+            v-for="tpl in createTemplateOptions"
+            :key="tpl.value"
+            :class="['template-card', { selected: createForm.templateId === tpl.value }]"
+            @click="selectTemplate(tpl)"
+          >
+            <span class="tpl-name">{{ tpl.label }}</span>
+            <span class="tpl-meta">v{{ tpl.version }} · {{ tpl.nodes }} 节点</span>
+          </div>
+        </div>
+
+        <template v-if="createForm.templateId">
+          <p class="create-step-label">工单信息</p>
+          <el-form label-width="80px">
+            <el-form-item label="优先级">
+              <el-radio-group v-model="createForm.priority">
+                <el-radio value="normal">普通</el-radio>
+                <el-radio value="urgent">紧急</el-radio>
+                <el-radio value="low">低优</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="工单描述">
+              <el-input v-model="createForm.description" type="textarea" :rows="3" maxlength="200" show-word-limit placeholder="请简要描述工单内容" />
+            </el-form-item>
+          </el-form>
+        </template>
+      </div>
+      <template #footer>
+        <button class="btn-default" @click="createDialogVisible = false">取消</button>
+        <button class="btn-primary" :disabled="!createForm.templateId || createSubmitting" @click="handleCreate">
+          {{ createSubmitting ? '提交中...' : '确认发起' }}
+        </button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
@@ -332,6 +372,53 @@ const templateOptions = [
   { label: '日常巡检工单模板', value: 3 },
   { label: '故障报修流程', value: 4 },
 ]
+
+// ===== 发起工单 =====
+const createDialogVisible = ref(false)
+const createSubmitting = ref(false)
+const createForm = reactive({ templateId: 0, templateName: '', templateVersion: 0, priority: 'normal', description: '' })
+
+const createTemplateOptions = [
+  { label: '设备维修工单模板', value: 1, version: 3, nodes: 5 },
+  { label: '隐患整改工单模板', value: 2, version: 2, nodes: 5 },
+  { label: '安全生产督办流程', value: 3, version: 1, nodes: 5 },
+  { label: '故障报修流程', value: 4, version: 1, nodes: 5 },
+]
+
+function selectTemplate(tpl: typeof createTemplateOptions[number]) {
+  if (createForm.templateId === tpl.value) {
+    createForm.templateId = 0
+    createForm.templateName = ''
+    createForm.templateVersion = 0
+  } else {
+    createForm.templateId = tpl.value
+    createForm.templateName = tpl.label
+    createForm.templateVersion = tpl.version
+  }
+}
+
+async function handleCreate() {
+  if (!createForm.templateId) return
+  createSubmitting.value = true
+  try {
+    await store.createOrder({
+      templateId: createForm.templateId,
+      templateName: createForm.templateName,
+      templateVersion: createForm.templateVersion,
+      priority: createForm.priority,
+      creatorName: '张三',
+    })
+    createDialogVisible.value = false
+    createForm.templateId = 0
+    createForm.description = ''
+    createForm.priority = 'normal'
+    store.fetchList()
+  } catch {
+    ElMessage.error('创建失败，请重试')
+  } finally {
+    createSubmitting.value = false
+  }
+}
 
 const dateShortcuts = [
   { text: '今天', value: () => { const d = new Date(); return [d, d] as [Date, Date] } },
@@ -886,4 +973,21 @@ onUnmounted(() => {
   background-color: var(--bg-card);
 }
 :deep(.el-loading-mask .el-loading-text) { color: var(--text-secondary); }
+
+/* 发起工单 */
+.create-step-label { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); margin: 0 0 var(--spacing-md, 8px); }
+.create-step-label:not(:first-child) { margin-top: var(--spacing-xl, 16px); }
+.template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md, 8px); }
+.template-card {
+  padding: var(--spacing-lg, 12px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  display: flex; flex-direction: column; gap: var(--spacing-xs, 4px);
+}
+.template-card:hover { border-color: var(--accent-primary); background: var(--accent-primary10); }
+.template-card.selected { border-color: var(--accent-primary); background: var(--accent-primary10); box-shadow: 0 0 0 1px var(--accent-primary) inset; }
+.tpl-name { font-size: var(--font-body, 16px); font-weight: 500; color: var(--text-primary); }
+.tpl-meta { font-size: var(--font-small, 14px); color: var(--text-muted); }
 </style>
