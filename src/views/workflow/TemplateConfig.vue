@@ -7,8 +7,8 @@
         返回列表
       </button>
       <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/workflow/template' }">工作流管理</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/workflow/template' }">流程模板</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/system/template' }">工作流管理</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/system/template' }">流程模板</el-breadcrumb-item>
         <el-breadcrumb-item>
           {{ isEdit ? templateName : '新建模板' }}
         </el-breadcrumb-item>
@@ -54,7 +54,7 @@
               <el-input v-model="form.name" placeholder="请输入模板名称" maxlength="50" />
             </el-form-item>
 
-            <!-- 模板编号 -->
+            <!-- 模板编号 查看时展示 -->
             <el-form-item label="模板编号" prop="code">
               <el-input v-model="form.code" placeholder="不填则自动生成（如 GD-20260527-0001）" maxlength="20" />
             </el-form-item>
@@ -159,7 +159,7 @@
 
       <!-- 步骤 2：表单设计 -->
       <div v-show="currentStep === 1" class="step-content">
-        <FormDesigner ref="formDesignerRef" :initialFields="loadedFormFields" />
+        <FormDesigner ref="formDesignerRef" :initialFields="loadedFormFields" :readonly="isViewMode" />
       </div>
 
       <!-- 步骤 3：流程设计 -->
@@ -169,6 +169,7 @@
           v-model="flowNodes"
           :form-fields="formDesignerRef?.getFields() || []"
           :template-sla="templateSlaDefaults"
+          :readonly="isViewMode"
         />
       </div>
       </div><!-- /config-work-card -->
@@ -181,7 +182,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getTemplate, getTemplateDetail, saveTemplateDraft, publishTemplate } from '@/api/workflow'
+import { getTemplate, getTemplateDetail, saveTemplateDraft, publishTemplate, validateFlowDefinition } from '@/api/workflow'
 import type { TemplateForm, SlaPriority, InitiatorScope, FormField, FormSchema, FlowNode, FlowDefinition } from '@/types/workflow'
 import AppIcon from '@/components/base/AppIcon.vue'
 import FormDesigner from '@/components/business/FormDesigner.vue'
@@ -317,6 +318,21 @@ const handleNext = async () => {
   if (currentStep.value === 0) {
     const ok = await validateStep0()
     if (!ok) return
+  } else if (currentStep.value === 1) {
+    // 步骤 2：表单设计 — 至少需 1 个组件
+    const fields = formDesignerRef.value?.getFields() || []
+    if (fields.length < 1) {
+      ElMessage.warning('请至少添加一个表单字段')
+      return
+    }
+  } else if (currentStep.value === 2) {
+    // 步骤 3：流程设计 — 校验流程完整性
+    const flow = buildFlowDef()
+    const result = await validateFlowDefinition(flow)
+    if (!result.valid) {
+      ElMessage.warning(result.errors.join('；'))
+      return
+    }
   }
   currentStep.value++
 }
@@ -332,7 +348,7 @@ const handleCancel = async () => {
       cancelButtonText: '继续编辑',
       type: 'warning',
     })
-    router.push('/workflow/template')
+    router.push('/system/template')
   } catch {
     // 用户取消
   }
@@ -356,7 +372,7 @@ const handleSaveDraft = async () => {
     if (!isEdit.value) {
       isEdit.value = true
       templateName.value = form.name
-      router.replace(`/workflow/template/config/${result.id}`)
+      router.replace(`/system/template/config/${result.id}`)
     }
     ElMessage.success('已保存草稿')
   } finally {
@@ -365,26 +381,49 @@ const handleSaveDraft = async () => {
 }
 
 const handlePublish = async () => {
-  let publishId = id
+  // 1. 校验基础设置
+  const formOk = await validateStep0()
+  if (!formOk) {
+    currentStep.value = 0
+    return
+  }
+
+  // 2. 校验表单设计（至少 1 个字段）
   const fields = formDesignerRef.value?.getFields() || []
+  if (fields.length < 1) {
+    ElMessage.warning('请至少添加一个表单字段')
+    currentStep.value = 1
+    return
+  }
+
+  // 3. 校验流程完整性
+  const flowDefinition = buildFlowDef()
+  const flowResult = await validateFlowDefinition(flowDefinition)
+  if (!flowResult.valid) {
+    ElMessage.warning('流程定义不完整：' + flowResult.errors.join('；'))
+    currentStep.value = 2
+    return
+  }
+
+  // 4. 先保存当前状态为草稿，再发布
   const formSchema: FormSchema = fields.length > 0
     ? { start: { fields } }
     : {}
-  const flowDefinition = buildFlowDef()
-  if (!publishId) {
-    const result = await saveTemplateDraft({
-      baseInfo: { ...form },
-      formSchema,
-      flowDefinition,
-    })
-    publishId = result.id
+  const saveResult = await saveTemplateDraft({
+    id: isEdit.value ? id : undefined,
+    baseInfo: { ...form },
+    formSchema,
+    flowDefinition,
+  })
+  const publishId = saveResult.id
+  if (!isEdit.value) {
     isEdit.value = true
     templateName.value = form.name
-    router.replace(`/workflow/template/config/${publishId}`)
+    router.replace(`/system/template/config/${publishId}`)
   }
   await publishTemplate(publishId)
   ElMessage.success('模板已发布')
-  router.push('/workflow/template')
+  router.push('/system/template')
 }
 </script>
 
@@ -630,10 +669,6 @@ const handlePublish = async () => {
 }
 
 :deep(.el-form-item__label) {
-  color: var(--text-primary);
-}
-
-:deep(.el-radio) {
   color: var(--text-primary);
 }
 

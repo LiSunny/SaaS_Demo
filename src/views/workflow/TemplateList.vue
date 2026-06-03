@@ -56,7 +56,7 @@
               <th class="fi-th col-check"><input type="checkbox" :checked="allChecked" @change="toggleAll" /></th>
               <th class="fi-th col-status"><span>状态</span></th>
               <th class="fi-th col-name"><span>模板名称</span></th>
-              <th class="fi-th fi-th-sort col-progress"><span>配置进度</span></th>
+              <th class="fi-th fi-th-sort col-progress"><span>模版概览</span></th>
               <th class="fi-th col-code"><span>模板编号</span></th>
               <th class="fi-th col-creator"><span>创建人</span></th>
               <th class="fi-th fi-th-sort col-time"><span>最近更新时间</span><AppIcon name="sort" class="th-sort-icon" /></th>
@@ -113,9 +113,9 @@ const { query } = store
 
 const handleSearch = () => { query.page = 1; store.fetchList() }
 const handleReset = () => { query.keyword = ''; query.status = ''; handleSearch() }
-const handleAdd = () => { router.push('/workflow/template/config') }
-const handleView = (row: TemplateItem) => { router.push(`/workflow/template/config/${row.id}?mode=view`) }
-const handleEdit = (row: TemplateItem) => { router.push(`/workflow/template/config/${row.id}`) }
+const handleAdd = () => { router.push('/system/template/config') }
+const handleView = (row: TemplateItem) => { router.push(`/system/template/config/${row.id}?mode=view`) }
+const handleEdit = (row: TemplateItem) => { router.push(`/system/template/config/${row.id}`) }
 const handleDelete = async (row: TemplateItem) => {
   await ElMessageBox.confirm(`确认删除模板「${row.name}」？`, '提示', { type: 'warning' })
   store.remove(row.id)

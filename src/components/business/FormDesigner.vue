@@ -1,6 +1,6 @@
 <template>
   <div class="form-designer-wrap">
-    <fc-designer ref="designerRef" :config="designerConfig" class="form-designer" />
+    <fc-designer ref="designerRef" :config="designerConfig" class="form-designer" :disabled="readonly" />
   </div>
 </template>
 
@@ -10,6 +10,7 @@ import type { FormField, FieldSource } from '@/types/workflow'
 
 const props = defineProps<{
   initialFields?: FormField[]
+  readonly?: boolean
 }>()
 
 const designerRef = ref()

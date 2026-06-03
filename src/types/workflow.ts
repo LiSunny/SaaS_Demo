@@ -103,8 +103,7 @@ export interface FlowNode {
 
 export interface FieldPermission {
   fieldId: string
-  edit?: boolean
-  view?: boolean
+  mode?: string // 'hidden' | 'readonly' | 'editable'，默认 'readonly'
 }
 
 export interface FlowEdge {

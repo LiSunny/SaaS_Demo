@@ -195,16 +195,21 @@ html.dark {
   color: var(--text-muted);
 }
 
-/* el-dialog 暗色适配 */
+/* el-dialog */
 .el-dialog {
-  background: var(--bg-card);
+  background: var(--bg-card) !important;
 }
 .el-dialog__header {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-low);
+  background: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border-low) !important;
 }
 .el-dialog__title {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
+}
+.el-dialog__footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: var(--spacing-lg) !important;
 }
 
 /* ========== DatePicker 面板 Teleport 暗色适配 ========== */
@@ -218,6 +223,18 @@ html.dark .el-date-table td.available:hover { background: var(--accent-primary10
 html.dark .el-picker-panel__header button { color: var(--text-secondary) !important; }
 html.dark .el-picker-panel__header button:hover { color: var(--accent-primary) !important; }
 html.dark .el-picker-panel__icon-btn { color: var(--text-secondary) !important; }
+html.dark .el-radio__inner,
+html.dark .el-checkbox__inner { background: var(--bg-card) !important; border-color: var(--border-high) !important; }
+html.dark .el-radio__label,
+html.dark .el-checkbox__label { color: var(--text-primary) !important; }
+html.dark .el-dialog { background: var(--bg-card) !important; }
+html.dark .el-dialog__header { border-bottom-color: var(--border-low) !important; }
+html.dark .el-dialog__title { color: var(--text-primary) !important; }
+html.dark .el-form-item__label { color: var(--text-secondary) !important; }
+html.dark .el-textarea__inner { background: var(--bg-card) !important; border-color: var(--border-input) !important; color: var(--text-primary) !important; }
+html.dark .el-textarea__inner::placeholder { color: var(--text-muted) !important; }
+html.dark .el-textarea__inner:focus { border-color: var(--accent-primary) !important; box-shadow: 0 0 0 1px var(--accent-primary10) !important; }
+html.dark .el-input__count { color: var(--text-muted) !important; }
 
 /* ========== 过滤栏 ========== */
 .filter-bar { display: flex; align-items: center; justify-content: space-between; }
@@ -303,11 +320,57 @@ html.dark .el-picker-panel__icon-btn { color: var(--text-secondary) !important; 
 .action-cell { display: flex; align-items: center; gap: var(--spacing-lg, 12px); }
 .btn-add-icon { width: 20px; height: 20px; }
 
-/* ========== EL 组件通用 Dark 适配 ========== */
+/* ========== EL 组件通用适配 ========== */
 .el-loading-mask { background-color: var(--bg-card); }
 .el-loading-mask .path { stroke: var(--accent-primary); }
+
+/* Textarea */
+.el-textarea__inner {
+  background: var(--bg-card) !important;
+  border-color: var(--border-input) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-body, 16px) !important;
+}
+.el-textarea__inner::placeholder { color: var(--text-placeholder) !important; }
+.el-textarea__inner:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 1px var(--accent-primary10) !important;
+}
+.el-input__count {
+  color: var(--text-placeholder) !important;
+  background: transparent !important;
+  font-size: var(--font-xs) !important;
+}
+
+/* ========== EL 组件通用 Dark 适配 ========== */
 .el-switch__core { background-color: var(--border-high); }
 .el-switch.is-checked .el-switch__core { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+
+/* ========== Radio / Checkbox ========== */
+.el-radio__inner,
+.el-checkbox__inner {
+  background: var(--bg-card) !important;
+  border-color: var(--border-high) !important;
+}
+.el-radio.is-checked .el-radio__inner,
+.el-checkbox.is-checked .el-checkbox__inner {
+  background-color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+.el-radio__label,
+.el-checkbox__label {
+  color: var(--text-primary) !important;
+  font-size: var(--font-body, 16px);
+}
+.el-radio.is-disabled .el-radio__inner,
+.el-checkbox.is-disabled .el-checkbox__inner {
+  background: var(--border-low) !important;
+  border-color: var(--border-default) !important;
+}
+.el-radio.is-disabled .el-radio__label,
+.el-checkbox.is-disabled .el-checkbox__label {
+  color: var(--text-placeholder) !important;
+}
 
 /* ========== 标签添加触发区（人员选择 / 指派目标） ========== */
 .tags-add-area {

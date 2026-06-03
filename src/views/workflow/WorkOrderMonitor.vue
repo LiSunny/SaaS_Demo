@@ -84,7 +84,7 @@
               class="fi-tbody-tr"
             >
               <td class="fi-td col-order">
-                <button class="btn-link" @click="store.openDetail(row.id)">{{ row.orderNo }}</button>
+                <button class="btn-link" @click="router.push(`/system/order/${row.id}`)">{{ row.orderNo }}</button>
               </td>
               <td class="fi-td col-tpl">{{ row.templateName }}</td>
               <td class="fi-td col-progress">
@@ -117,7 +117,7 @@
               <td class="fi-td col-time">{{ row.createdAt }}</td>
               <td class="fi-td col-actions">
                 <div class="action-cell">
-                  <button class="btn-link" @click="store.openDetail(row.id)">详情</button>
+                  <button class="btn-link" @click="router.push(`/system/order/${row.id}`)">详情</button>
                 </div>
               </td>
             </tr>
@@ -140,112 +140,6 @@
       </div>
 
     </div>
-
-    <!-- ===== 详情抽屉 ===== -->
-    <el-drawer
-      v-model="store.detailVisible"
-      size="720px"
-      direction="rtl"
-      :before-close="store.closeDetail"
-    >
-      <template #title>
-        <div class="drawer-title">
-          <StatusTag v-if="store.detail" :status="store.detail.status" :label="statusLabel(store.detail.status)" />
-          <span class="drawer-title-text">工单详情 — {{ store.detail?.orderNo || '' }}</span>
-        </div>
-      </template>
-
-      <div v-loading="store.detailLoading" class="drawer-body">
-        <template v-if="store.detail">
-          <!-- 基本信息 — 左右两列 -->
-          <div class="drawer-section drawer-section-info">
-
-            <h4 class="section-title">基本信息</h4>
-
-            <div class="info-grid info-grid-2col">
-              <div class="info-col">
-                <div class="info-row"><span class="info-label">工单编号</span><span class="info-value">{{ store.detail.orderNo }}</span></div>
-                <div class="info-row"><span class="info-label">模板名称</span><span class="info-value">{{ store.detail.templateName }} v{{ store.detail.templateVersion }}</span></div>
-                <div class="info-row"><span class="info-label">优先级</span><span class="info-value"><StatusTag :status="store.detail.priority" :label="priorityLabel(store.detail.priority)" /></span></div>
-                <div class="info-row"><span class="info-label">实例状态</span><span class="info-value"><StatusTag :status="store.detail.status" :label="statusLabel(store.detail.status)" /></span></div>
-                <div class="info-row"><span class="info-label">SLA状态</span><span class="info-value"><span :class="['sla-dot', `sla-${store.detail.sla.slaStatus}`]" />{{ slaLabel(store.detail.sla.slaStatus) }}<span class="field-note">{{ slaRemain(store.detail) }}</span></span></div>
-              </div>
-              <div class="info-col">
-                <div class="info-row"><span class="info-label">发起人</span><span class="info-value">{{ store.detail.creatorName }}</span></div>
-                <div class="info-row"><span class="info-label">创建时间</span><span class="info-value">{{ store.detail.createdAt }}</span></div>
-                <div class="info-row"><span class="info-label">当前进度</span><span class="info-value">{{ store.detail.currentNodeIndex }}/{{ store.detail.totalNodes }}（{{ store.detail.currentNodeName || '—' }}）</span></div>
-                <div class="info-row"><span class="info-label">当前处理人</span><span class="info-value">{{ store.detail.currentAssigneeName || '—' }}</span></div>
-              </div>
-            </div>
-          </div>
-            <button v-if="store.detail.status === 'closed'" class="btn-link" style="margin-top:8px" @click="router.push('/workflow/order/' + store.detail!.id)">查看完整工单 →</button>
-
-          <!-- SLA 工单指标分析（仅已关闭工单） -->
-          <div v-if="store.detail.status === 'closed'" class="drawer-section">
-            <h4 class="section-title">工单指标分析</h4>
-            <div class="sla-metrics">
-              <div class="sla-metric-card">
-                <span class="sla-metric-label">TTR 响应</span>
-                <span class="sla-metric-value">{{ slaMetrics.ttrText }}</span>
-                <span :class="['sla-metric-badge', slaMetrics.ttrOk ? 'sla-badge-ok' : 'sla-badge-over']">{{ slaMetrics.ttrOk ? '✓ 达标' : '✗ 超时' }}</span>
-              </div>
-              <div class="sla-metric-card">
-                <span class="sla-metric-label">TTS 解决</span>
-                <span class="sla-metric-value">{{ slaMetrics.ttsText }}</span>
-                <span :class="['sla-metric-badge', slaMetrics.ttsOk ? 'sla-badge-ok' : 'sla-badge-over']">{{ slaMetrics.ttsOk ? '✓ 达标' : '✗ 超时' }}</span>
-              </div>
-              <div class="sla-metric-card">
-                <span class="sla-metric-label">总耗时</span>
-                <span class="sla-metric-value">{{ slaMetrics.totalText }}</span>
-                <span class="sla-metric-badge sla-badge-info">实际</span>
-              </div>
-              <div class="sla-metric-footer">
-                <span>TTR 时限 {{ slaMetrics.ttrLimit }}min</span>
-                <span class="sla-metric-sep">|</span>
-                <span>TTS 时限 {{ slaMetrics.ttsLimit }}min</span>
-                <span class="sla-metric-sep">|</span>
-                <span>黄灯阈值 {{ slaMetrics.yellowPercent }}%</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 流转时间线 -->
-          <div class="drawer-section drawer-section-timeline">
-            <h4 class="section-title">流转时间线</h4>
-            <div class="timeline-list">
-              <div v-for="step in fusedTimeline" :key="step.key"
-                :class="['timeline-item', `tl-${step.nodeStatus}`]">
-                <div class="timeline-node" @click="step.records.length && step.nodeStatus !== 'pending' && toggleExpand(step.key)">
-                  <StatusTag :status="step.nodeStatus === 'pending' ? 'node_pending' : step.nodeStatus" :label="step.nodeStatusText" size="small" />
-                  <span class="tl-node-name">{{ step.nodeName }}</span>
-                  <span v-if="step.assigneeName" class="tl-assignee">{{ step.assigneeName }}</span>
-                  <span class="tl-time">
-                    <template v-if="step.nodeStatus === 'completed'">{{ step.completedAt }}</template>
-                    <template v-else-if="step.nodeStatus === 'in_progress'">进行中</template>
-                  </span>
-                </div>
-                <div v-if="expandedNodes.has(step.key) && step.nodeStatus !== 'pending'" class="timeline-records">
-                  <div v-for="rec in step.records" :key="rec.id" class="tl-record">
-                    <span class="tl-rec-operator">{{ rec.operatorName }} {{ rec.action }}</span>
-                    <span class="tl-rec-time">{{ rec.createdAt }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 操作按钮（已关闭隐藏） -->
-          <div v-if="store.detail.status !== 'closed'" class="drawer-actions">
-            <button class="btn-danger" @click="cancelDialogVisible = true">取消工单</button>
-            <button
-              v-if="store.detail.status === 'pending_accept' || store.detail.status === 'processing'"
-              class="btn-default"
-              @click="reassignDialogVisible = true"
-            >强制改派</button>
-          </div>
-        </template>
-      </div>
-    </el-drawer>
 
     <!-- ===== 取消确认弹窗 ===== -->
     <el-dialog v-model="cancelDialogVisible" title="取消工单" width="480px" :close-on-click-modal="false">
@@ -295,50 +189,13 @@
       </template>
     </el-dialog>
 
-    <!-- ===== 发起工单弹窗 ===== -->
-    <el-dialog v-model="createDialogVisible" title="发起工单" width="560px" :close-on-click-modal="false">
-      <div class="create-content">
-        <p class="create-step-label">选择模板</p>
-        <div class="template-grid">
-          <div
-            v-for="tpl in createTemplateOptions"
-            :key="tpl.value"
-            :class="['template-card', { selected: createForm.templateId === tpl.value }]"
-            @click="selectTemplate(tpl)"
-          >
-            <span class="tpl-name">{{ tpl.label }}</span>
-            <span class="tpl-meta">v{{ tpl.version }} · {{ tpl.nodes }} 节点</span>
-          </div>
-        </div>
-
-        <template v-if="createForm.templateId">
-          <p class="create-step-label">工单信息</p>
-          <el-form label-width="80px">
-            <el-form-item label="优先级">
-              <el-radio-group v-model="createForm.priority">
-                <el-radio value="normal">普通</el-radio>
-                <el-radio value="urgent">紧急</el-radio>
-                <el-radio value="low">低优</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="工单描述">
-              <el-input v-model="createForm.description" type="textarea" :rows="3" maxlength="200" show-word-limit placeholder="请简要描述工单内容" />
-            </el-form-item>
-          </el-form>
-        </template>
-      </div>
-      <template #footer>
-        <button class="btn-default" @click="createDialogVisible = false">取消</button>
-        <button class="btn-primary" :disabled="!createForm.templateId || createSubmitting" @click="handleCreate">
-          {{ createSubmitting ? '提交中...' : '确认发起' }}
-        </button>
-      </template>
-    </el-dialog>
+    <!-- ===== 发起工单弹窗（共用组件）===== -->
+    <CreateOrderDialog v-model:visible="createDialogVisible" @created="store.fetchList()" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
@@ -346,6 +203,7 @@ import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'
 import PersonSelector from '@/components/business/PersonSelector.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import CreateOrderDialog from '@/components/business/CreateOrderDialog.vue'
 
 const store = useWorkOrderStore()
 const router = useRouter()
@@ -375,50 +233,6 @@ const templateOptions = [
 
 // ===== 发起工单 =====
 const createDialogVisible = ref(false)
-const createSubmitting = ref(false)
-const createForm = reactive({ templateId: 0, templateName: '', templateVersion: 0, priority: 'normal', description: '' })
-
-const createTemplateOptions = [
-  { label: '设备维修工单模板', value: 1, version: 3, nodes: 5 },
-  { label: '隐患整改工单模板', value: 2, version: 2, nodes: 5 },
-  { label: '安全生产督办流程', value: 3, version: 1, nodes: 5 },
-  { label: '故障报修流程', value: 4, version: 1, nodes: 5 },
-]
-
-function selectTemplate(tpl: typeof createTemplateOptions[number]) {
-  if (createForm.templateId === tpl.value) {
-    createForm.templateId = 0
-    createForm.templateName = ''
-    createForm.templateVersion = 0
-  } else {
-    createForm.templateId = tpl.value
-    createForm.templateName = tpl.label
-    createForm.templateVersion = tpl.version
-  }
-}
-
-async function handleCreate() {
-  if (!createForm.templateId) return
-  createSubmitting.value = true
-  try {
-    await store.createOrder({
-      templateId: createForm.templateId,
-      templateName: createForm.templateName,
-      templateVersion: createForm.templateVersion,
-      priority: createForm.priority,
-      creatorName: '张三',
-    })
-    createDialogVisible.value = false
-    createForm.templateId = 0
-    createForm.description = ''
-    createForm.priority = 'normal'
-    store.fetchList()
-  } catch {
-    ElMessage.error('创建失败，请重试')
-  } finally {
-    createSubmitting.value = false
-  }
-}
 
 const dateShortcuts = [
   { text: '今天', value: () => { const d = new Date(); return [d, d] as [Date, Date] } },
@@ -461,18 +275,8 @@ const STATUS_LABEL_MAP: Record<InstanceStatus, string> = {
   processing: '处置中', verifying: '验收中', closed: '已关闭',
 }
 const PRIORITY_LABEL_MAP: Record<Priority, string> = { urgent: '紧急', normal: '普通', low: '低优' }
-const NODE_STATUS_TEXT: Record<string, string> = { completed: '已完成', in_progress: '进行中', pending: '待处理' }
-const SLA_LABEL_MAP: Record<string, string> = { normal: '正常', warning: '预警', timeout: '超时' }
-
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL_MAP[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL_MAP[p] || p }
-function slaLabel(s: string) { return SLA_LABEL_MAP[s] || s }
-
-function formatMinutes(m: number): string {
-  if (m >= 1440) return `${Math.round(m / 1440)}天`
-  if (m >= 60) return `${Math.round(m / 60)}h${m % 60}m`
-  return `${m}分钟`
-}
 
 function slaRemain(row: { sla: { ttsMinutes: number; ttsProgress: number; slaStatus: SlaStatus } }) {
   const { ttsMinutes, ttsProgress, slaStatus } = row.sla
@@ -486,63 +290,6 @@ function slaRemain(row: { sla: { ttsMinutes: number; ttsProgress: number; slaSta
   if (remain >= 60) return `剩余 ${Math.round(remain / 60)}h${remain % 60}m`
   return `剩余 ${remain}m`
 }
-
-// ===== 融合时间线（完整节点 + 操作记录关联） =====
-const expandedNodes = ref(new Set<string>())
-
-function toggleExpand(key: string) {
-  if (expandedNodes.value.has(key)) {
-    expandedNodes.value.delete(key)
-  } else {
-    expandedNodes.value.add(key)
-  }
-}
-
-const fusedTimeline = computed(() => {
-  if (!store.detail) return []
-  const { nodes, records } = store.detail
-
-  return nodes
-    .filter(n => n.type !== 'condition' && n.type !== 'external')
-    .map((node, i) => {
-      // 按节点 index 分配操作记录（后续可改为记录带 nodeId 真实关联）
-      const recordsPerNode = Math.ceil(records.length / nodes.filter(n => n.type !== 'condition' && n.type !== 'external').length)
-      const start = i * recordsPerNode
-      const end = start + recordsPerNode
-      const nodeRecords = records.filter((_, j) => j >= start && j < end)
-      return {
-        key: `node-${node.id}`,
-        nodeOrder: node.order,
-        nodeName: node.name,
-        nodeStatus: node.status as string,
-        nodeStatusText: NODE_STATUS_TEXT[node.status] || node.status,
-        assigneeName: node.assigneeName,
-        completedAt: node.completedAt || '',
-        records: nodeRecords,
-      }
-    })
-})
-
-// ===== SLA 指标分析（已关闭工单） =====
-const slaMetrics = computed(() => {
-  const sla = store.detail?.sla
-  if (!sla) return { ttrText: '—', ttsText: '—', totalText: '—', ttrOk: true, ttsOk: true, ttrLimit: 0, ttsLimit: 0, yellowPercent: 0 }
-  const ttrMinutes = sla.ttrMinutes || 0
-  const ttsMinutes = sla.ttsMinutes || 0
-  const ttrUsed = Math.round(ttrMinutes * sla.ttsProgress)
-  const ttsUsed = Math.round(ttsMinutes * (sla.ttsProgress || 1))
-  const total = ttrUsed + ttsUsed
-  return {
-    ttrText: formatMinutes(Math.max(ttrUsed, 0)),
-    ttsText: formatMinutes(Math.max(ttsUsed, 0)),
-    totalText: formatMinutes(Math.max(total, 0)),
-    ttrOk: sla.slaStatus !== 'timeout',
-    ttsOk: sla.slaStatus !== 'timeout',
-    ttrLimit: ttrMinutes,
-    ttsLimit: ttsMinutes,
-    yellowPercent: Math.round((sla.yellowThreshold || 0) * 100),
-  }
-})
 
 // ===== 取消工单 =====
 const cancelDialogVisible = ref(false)

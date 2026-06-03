@@ -2,14 +2,18 @@
 
 ## 设计文档
 - [平台总体设计](design/biz-design.md)
+- [仪表盘框架](design/仪表盘框架/框架设计.md)
+- [工作台](design/工作台/biz-design.md)
 - [维保管理](design/维保管理/biz-design.md)
 - [工单管理](design/工单管理/biz-design.md)
 
 ## 模块规划
+- [工作台模块计划](design/工作台/module-plan.md)
 - [工单管理模块计划](design/工单管理/module-plan.md)
 - [维保管理模块计划](design/维保管理/module-plan.md)
 
 ## PRD
+- [工作台](prd/工作台.md)
 - [工单管理](prd/工单管理.md)
 
 ## 接口设计

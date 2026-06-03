@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats } from '@/types/work-order'
+import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats, CreateOrderParams } from '@/types/work-order'
+import type { TemplateDetail } from '@/types/workflow'
 import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, createWorkOrder } from '@/api/work-order'
+import { getTemplateDetail } from '@/api/workflow'
 
 export const useWorkOrderStore = defineStore('workOrder', () => {
   const list = ref<WorkOrderItem[]>([])
@@ -18,6 +20,7 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
   const detailVisible = ref(false)
   const detailLoading = ref(false)
   const detail = ref<WorkOrderDetail | null>(null)
+  const templateDetail = ref<TemplateDetail | null>(null)  // 关联的模板详情（formSchema/flowDefinition）
 
   async function fetchList() {
     loading.value = true
@@ -66,12 +69,21 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     search()
   }
 
-  // 详情
+  // 详情（含模板表单配置）
   async function openDetail(id: number) {
     detailVisible.value = true
     detailLoading.value = true
     try {
-      detail.value = await getWorkOrderDetail(id)
+      const wo = await getWorkOrderDetail(id)
+      detail.value = wo
+      // 关联加载模板详情（获取 formSchema/flowDefinition）
+      if (wo.templateId) {
+        getTemplateDetail(wo.templateId).then(td => {
+          templateDetail.value = td || null
+        }).catch(() => {
+          templateDetail.value = null
+        })
+      }
     } finally {
       detailLoading.value = false
     }
@@ -80,6 +92,7 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
   function closeDetail() {
     detailVisible.value = false
     detail.value = null
+    templateDetail.value = null
   }
 
   // 操作
@@ -99,7 +112,7 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     return res
   }
 
-  async function createOrder(data: { templateId: number; templateName: string; templateVersion: number; priority: string; creatorName: string }) {
+  async function createOrder(data: CreateOrderParams) {
     const res = await createWorkOrder(data)
     ElMessage.success(`工单 ${res.orderNo} 已创建`)
     return res
@@ -107,7 +120,7 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
 
   return {
     list, loading, query, total, stats,
-    detailVisible, detailLoading, detail,
+    detailVisible, detailLoading, detail, templateDetail,
     fetchList, fetchStats, search, reset, toggleStatFilter,
     activeStatFilter,
     openDetail, closeDetail, cancel, reassign, createOrder,

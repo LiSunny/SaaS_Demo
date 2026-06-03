@@ -12,9 +12,9 @@
             @mouseenter="hoveredId = node.id"
             @mouseleave="hoveredId = null"
           >
-            <!-- 删除按钮 -->
+            <!-- 删除按钮：开始/结束节点不可删除 -->
             <button
-              v-if="hoveredId === node.id && nodes.length > 2"
+              v-if="!readonly && hoveredId === node.id && node.type !== 'start' && node.type !== 'close'"
               class="fd-node-del"
               @click.stop="removeNode(i)"
               title="删除节点"
@@ -32,7 +32,7 @@
           <!-- 节点间：箭头 + + 按钮（最后一项后面不显示） -->
           <div v-if="i < nodes.length - 1" class="fd-connector">
             <div class="fd-arrow"></div>
-            <button class="fd-add-btn" @click="openDialog(i)" title="插入节点">+</button>
+            <button v-if="!readonly" class="fd-add-btn" @click="openDialog(i)" title="插入节点">+</button>
             <div class="fd-arrow"></div>
           </div>
         </template>
@@ -49,6 +49,7 @@
         :form-fields="formFields"
         :template-sla="templateSla"
         :all-node-names="allNodeNames"
+        :readonly="readonly"
         @update="onPropUpdate"
       />
     </div>
@@ -76,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import type { FlowNode, FormField } from '@/types/workflow'
 import NodePropertyPanel from './NodePropertyPanel.vue'
 
@@ -84,6 +85,7 @@ const props = defineProps<{
   modelValue: FlowNode[]
   formFields: FormField[]
   templateSla: { amberThreshold: number; ttrMinutes?: number; ttsMinutes?: number }
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -106,6 +108,13 @@ watch(() => props.modelValue, (val) => {
 function sync() {
   emit('update:modelValue', [...nodes.value])
 }
+
+// 进入页面默认选中第一个节点
+onMounted(() => {
+  if (nodes.value.length > 0) {
+    selectedId.value = nodes.value[0].id
+  }
+})
 
 // ===== 选中节点 =====
 const selectedNode = computed(() => nodes.value.find(n => n.id === selectedId.value) || null)
@@ -170,10 +179,11 @@ function insertNode(type: string) {
   sync()
 }
 
-// ===== 删除节点 =====
+// ===== 删除节点（开始/结束节点不可删除） =====
 function removeNode(idx: number) {
-  if (nodes.value.length <= 2) return
-  if (selectedId.value === nodes.value[idx].id) selectedId.value = null
+  const node = nodes.value[idx]
+  if (!node || node.type === 'start' || node.type === 'close') return
+  if (selectedId.value === node.id) selectedId.value = null
   nodes.value.splice(idx, 1)
   sync()
 }

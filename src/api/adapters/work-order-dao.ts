@@ -1,0 +1,316 @@
+/**
+ * work-order-dao.ts — 工单 DAO 适配器
+ *
+ * 从当前 work-order.ts 迁移而来，新增 formData 支持。
+ */
+
+import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats, SlaStatus, NodeStatus } from '@/types/work-order'
+import type { CreateOrderParams } from '@/types/work-order'
+
+// ===== 角色 =====
+const ORGS = {
+  property:  { id: 1001, name: 'xxx物业管理有限公司' },
+  fireSvc:   { id: 1002, name: 'yyy消防技术服务公司' },
+  safetyMgr: { id: 1003, name: 'zzz安全管理中心（监管方）' },
+}
+const PERSONS: Record<string, { id: number; org: string }> = {
+  张三: { id: 10, org: 'property'  },
+  李四: { id: 11, org: 'property'  },
+  王五: { id: 12, org: 'fireSvc'   },
+  赵六: { id: 13, org: 'safetyMgr' },
+  陈七: { id: 14, org: 'fireSvc'   },
+  杨八: { id: 15, org: 'safetyMgr' },
+  刘九: { id: 16, org: 'property'  },
+  系统: { id: 0,  org: '' },
+}
+
+interface OrderDef {
+  templateName: string
+  templateVersion: number
+  priority: WorkOrderItem['priority']
+  status: WorkOrderItem['status']
+  orderNo: string
+  creator: string
+  assignee: string
+  createdAt: string
+  closedAt?: string
+  ttrMinutes: number | null
+  ttsMinutes: number
+  slaStatus: SlaStatus
+}
+function p(name: string) {
+  const person = PERSONS[name]
+  if (!person) return { id: 0, name, orgId: 0, orgName: '' }
+  const org = ORGS[person.org as keyof typeof ORGS]
+  return { id: person.id, name, orgId: org?.id ?? 0, orgName: org?.name ?? '' }
+}
+
+const orders: OrderDef[] = [
+  { templateName: '设备维修工单模板', templateVersion: 3, priority: 'urgent', status: 'processing', orderNo: 'WO20260508-001', creator: '张三', assignee: '王五', createdAt: '2026-05-08 09:15:00', ttrMinutes: 30, ttsMinutes: 240, slaStatus: 'warning' },
+  { templateName: '隐患整改工单模板', templateVersion: 2, priority: 'urgent', status: 'pending_accept', orderNo: 'WO20260515-002', creator: '李四', assignee: '陈七', createdAt: '2026-05-15 14:30:00', ttrMinutes: 60, ttsMinutes: 480, slaStatus: 'normal' },
+  { templateName: '安全生产督办流程', templateVersion: 1, priority: 'normal', status: 'closed', orderNo: 'WO20260501-003', creator: '赵六', assignee: '', createdAt: '2026-05-01 08:00:00', closedAt: '2026-05-22 17:30:00', ttrMinutes: 120, ttsMinutes: 2880, slaStatus: 'normal' },
+  { templateName: '故障报修流程', templateVersion: 1, priority: 'urgent', status: 'verifying', orderNo: 'WO20260520-004', creator: '张三', assignee: '王五', createdAt: '2026-05-20 06:45:00', ttrMinutes: 15, ttsMinutes: 120, slaStatus: 'timeout' },
+  { templateName: '设备维修工单模板', templateVersion: 3, priority: 'normal', status: 'pending_assign', orderNo: 'WO20260525-005', creator: '李四', assignee: '', createdAt: '2026-05-25 10:00:00', ttrMinutes: 60, ttsMinutes: 720, slaStatus: 'normal' },
+  { templateName: '隐患整改工单模板', templateVersion: 2, priority: 'urgent', status: 'draft', orderNo: 'WO20260528-006', creator: '张三', assignee: '', createdAt: '2026-05-28 16:20:00', ttrMinutes: null, ttsMinutes: 1440, slaStatus: 'normal' },
+  { templateName: '安全生产督办流程', templateVersion: 1, priority: 'normal', status: 'verifying', orderNo: 'WO20260510-007', creator: '杨八', assignee: '刘九', createdAt: '2026-05-10 08:30:00', ttrMinutes: 120, ttsMinutes: 1440, slaStatus: 'warning' },
+  { templateName: '故障报修流程', templateVersion: 1, priority: 'urgent', status: 'closed', orderNo: 'WO20260503-008', creator: '刘九', assignee: '', createdAt: '2026-05-03 11:10:00', closedAt: '2026-05-03 14:50:00', ttrMinutes: 10, ttsMinutes: 180, slaStatus: 'normal' },
+  { templateName: '设备维修工单模板', templateVersion: 3, priority: 'normal', status: 'pending_accept', orderNo: 'WO20260518-009', creator: '李四', assignee: '陈七', createdAt: '2026-05-18 13:00:00', ttrMinutes: 60, ttsMinutes: 360, slaStatus: 'normal' },
+  { templateName: '隐患整改工单模板', templateVersion: 2, priority: 'low', status: 'closed', orderNo: 'WO20260428-010', creator: '张三', assignee: '', createdAt: '2026-04-28 09:00:00', closedAt: '2026-05-05 16:00:00', ttrMinutes: null, ttsMinutes: 10080, slaStatus: 'normal' },
+]
+
+const NODE_NAMES: Record<string, string[]> = {
+  '设备维修工单模板': ['发起节点', '指派工程师', '现场维修', '验收确认', '关闭节点'],
+  '隐患整改工单模板': ['发起节点', '指派整改人', '整改执行', '复查验收', '关闭节点'],
+  '安全生产督办流程':   ['发起节点', '下发督办', '整改落实', '核查确认', '关闭节点'],
+  '故障报修流程':       ['发起节点', '派单调度', '故障排查', '修复确认', '关闭节点'],
+}
+const NODE_TYPES = ['start', 'assign', 'execute', 'confirm', 'close']
+const STATUS_NODE_MAP: Record<string, { nodeIdx: number }> = {
+  draft: { nodeIdx: 0 }, pending_assign: { nodeIdx: 0 }, pending_accept: { nodeIdx: 1 },
+  processing: { nodeIdx: 2 }, verifying: { nodeIdx: 3 }, closed: { nodeIdx: 4 },
+}
+
+// ===== 构建列表 =====
+function buildMockList(): WorkOrderItem[] {
+  return orders.map((def, i) => {
+    const id = i + 1
+    const creator = p(def.creator)
+    const assigneeName = def.assignee || null
+    const map = STATUS_NODE_MAP[def.status]
+    const nodeNames = NODE_NAMES[def.templateName]
+    const ttsMinutes = def.ttsMinutes
+    const ttrMinutes = def.ttrMinutes
+    const createdAt = def.createdAt
+    const ttsStartedAt = new Date(new Date(createdAt).getTime() + (ttrMinutes ? (ttrMinutes + 5) * 60000 : 5 * 60000))
+      .toISOString().replace('T', ' ').slice(0, 19)
+    let ttsProgress = 0
+    let slaStatus: SlaStatus = 'normal'
+    if (def.status === 'closed') {
+      const closedMs = def.closedAt ? new Date(def.closedAt).getTime() : Date.now()
+      const startMs = new Date(ttsStartedAt).getTime()
+      const elapsed = Math.max(1, (closedMs - startMs) / 60000)
+      ttsProgress = Math.round(elapsed / ttsMinutes * 100) / 100
+      if (ttsProgress >= 1) slaStatus = 'timeout'
+      else if (ttsProgress >= 0.8) slaStatus = 'warning'
+      else slaStatus = 'normal'
+    } else if (def.status === 'draft') {
+      slaStatus = 'normal'
+    } else {
+      const elapsed = Math.max(0, (Date.now() - new Date(ttsStartedAt).getTime()) / 60000)
+      ttsProgress = Math.round(Math.min(elapsed / ttsMinutes, 2) * 100) / 100
+      if (ttsProgress >= 1) slaStatus = 'timeout'
+      else if (ttsProgress >= 0.8) slaStatus = 'warning'
+      else slaStatus = 'normal'
+    }
+    const assigneePerson = assigneeName ? p(assigneeName) : null
+    return {
+      id,
+      orderNo: def.orderNo,
+      templateId: id,
+      templateName: def.templateName,
+      templateVersion: def.templateVersion,
+      status: def.status,
+      priority: def.priority,
+      currentNodeId: def.status === 'closed' ? null : 100 + map.nodeIdx + 1,
+      currentNodeName: def.status === 'closed' ? null : nodeNames[map.nodeIdx],
+      currentNodeIndex: map.nodeIdx + 1,
+      totalNodes: 5,
+      currentNodeType: def.status === 'closed' ? null : NODE_TYPES[map.nodeIdx],
+      currentAssigneeId: assigneePerson?.id ?? null,
+      currentAssigneeName: assigneeName,
+      creatorId: creator.id,
+      creatorName: creator.name,
+      creatorOrgId: creator.orgId,
+      creatorOrgName: creator.orgName,
+      parentOrderId: null,
+      createdAt,
+      updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      closedAt: def.closedAt || null,
+      closedBy: def.closedAt ? '系统' : null,
+      sla: {
+        ttrMinutes,
+        ttsMinutes,
+        ttrStartedAt: ttrMinutes ? new Date(new Date(createdAt).getTime() + 300000).toISOString().replace('T', ' ').slice(0, 19) : null,
+        ttrEndedAt: ttrMinutes && def.status !== 'draft' ? new Date(new Date(createdAt).getTime() + (ttrMinutes + 7) * 60000).toISOString().replace('T', ' ').slice(0, 19) : null,
+        ttsStartedAt,
+        ttsPausedAt: null,
+        yellowThreshold: 0.8,
+        ttrProgress: null,
+        ttsProgress,
+        slaStatus,
+      },
+    }
+  })
+}
+
+const mockList = buildMockList()
+
+// ===== 构建详情 =====
+function buildDetail(id: number): WorkOrderDetail {
+  const item = mockList.find(w => w.id === id)!
+  if (!item) throw new Error(`工单 ${id} 不存在`)
+  const map = STATUS_NODE_MAP[item.status]
+  const nowIdx = map.nodeIdx
+  const nodeNames = NODE_NAMES[item.templateName]
+  const base = new Date(item.createdAt).getTime()
+  const nodeTimes: (string | null)[] = []
+  for (let n = 0; n < 5; n++) {
+    if (item.status === 'closed') {
+      nodeTimes.push(new Date(base + (n + 1) * 3600000 * (2 + Math.random() * 3)).toISOString().replace('T', ' ').slice(0, 19))
+    } else if (n <= nowIdx) {
+      nodeTimes.push(new Date(base + (n + 1) * 3600000 * (1.5 + Math.random() * 3)).toISOString().replace('T', ' ').slice(0, 19))
+    } else {
+      nodeTimes.push(null)
+    }
+  }
+  function ns(n: number): NodeStatus {
+    if (nowIdx >= n) return 'completed'
+    if (nowIdx === n - 1 && item.status !== 'draft') return 'in_progress'
+    return 'pending'
+  }
+  // startedAt: 第一个节点从创建时间开始，后续节点从前一节点的完成时间开始
+  const nodeStartedAt = (i: number): string | null => {
+    if (i === 0) return item.createdAt
+    if (nowIdx >= i - 1) return nodeTimes[i - 1]
+    return null
+  }
+  const nodes = [
+    { id: 101, name: nodeNames[0], type: NODE_TYPES[0], status: 'completed' as const, assigneeName: item.creatorName, startedAt: nodeStartedAt(0), completedAt: nodeTimes[0], order: 1 },
+    { id: 102, name: nodeNames[1], type: NODE_TYPES[1], status: ns(1), assigneeName: '系统', startedAt: nodeStartedAt(1), completedAt: nowIdx >= 1 ? nodeTimes[1] : null, order: 2 },
+    { id: 103, name: nodeNames[2], type: NODE_TYPES[2], status: ns(2), assigneeName: item.currentAssigneeName, startedAt: nodeStartedAt(2), completedAt: nowIdx >= 2 ? nodeTimes[2] : null, order: 3 },
+    { id: 104, name: nodeNames[3], type: NODE_TYPES[3], status: ns(3), assigneeName: item.creatorName, startedAt: nodeStartedAt(3), completedAt: nowIdx >= 3 ? nodeTimes[3] : null, order: 4 },
+    { id: 105, name: nodeNames[4], type: NODE_TYPES[4], status: ns(4), assigneeName: null, startedAt: nodeStartedAt(4), completedAt: item.closedAt || null, order: 5 },
+  ]
+  const records: WorkOrderDetail['records'] = []
+  let rid = 301
+  const r = (op: string, operator: string, org: string | null, content: string, time: string) => {
+    records.push({ id: rid++, action: op, operatorName: operator, operatorOrgName: org, content, createdAt: time })
+  }
+  r('创建工单', item.creatorName, item.creatorOrgName, `提交${item.templateName}，优先级：${item.priority === 'urgent' ? '紧急' : item.priority === 'normal' ? '普通' : '低优'}`, item.createdAt)
+  if (nodes[1].status !== 'pending') r('系统指派', '系统', null, `根据模板规则自动分配处理人至"${nodeNames[2]}"节点`, nodes[1].completedAt || new Date(base + 7200000).toISOString().replace('T', ' ').slice(0, 19))
+  if (nodes[2].status === 'completed') r('提交处理结果', item.currentAssigneeName || '—', ORGS.fireSvc.name, `${nodeNames[2]}完成，提交验收`, nodes[2].completedAt!)
+  if (nodes[2].status === 'in_progress') r('接单处理', item.currentAssigneeName || '—', ORGS.fireSvc.name, `接单开始处理"${nodeNames[2]}"`, new Date(base + 3600000 * 3).toISOString().replace('T', ' ').slice(0, 19))
+  if (nodes[3].status === 'completed') r('验收通过', item.creatorName, item.creatorOrgName, `${nodeNames[3]}审核通过，确认问题已解决`, nodes[3].completedAt!)
+  if (nodes[3].status === 'in_progress') r('开始验收', item.creatorName, item.creatorOrgName, `开始对"${nodeNames[2]}"结果进行验收`, new Date(base + 3600000 * 10).toISOString().replace('T', ' ').slice(0, 19))
+  if (nodes[4].status === 'completed') r('工单关闭', item.closedBy || '系统', null, '所有节点已完成，工单自动关闭归档', item.closedAt || new Date().toISOString().replace('T', ' ').slice(0, 19))
+  return { ...item, nodes, records }
+}
+
+// ===== API =====
+export async function getWorkOrderList(query: WorkOrderQuery): Promise<import('@/types/work-order').PaginatedData<WorkOrderItem>> {
+  let filtered = [...mockList]
+  if (query.keyword) {
+    const kw = query.keyword.toLowerCase()
+    filtered = filtered.filter(w => w.orderNo.toLowerCase().includes(kw) || w.creatorName.includes(kw) || w.templateName.includes(kw))
+  }
+  if (query.status) {
+    const statuses = query.status.split(',').filter(Boolean)
+    if (statuses.length) filtered = filtered.filter(w => statuses.includes(w.status))
+  }
+  if (query.templateId) filtered = filtered.filter(w => w.templateId === query.templateId)
+  if (query.priority) filtered = filtered.filter(w => w.priority === query.priority)
+  if (query.slaStatus) filtered = filtered.filter(w => w.sla.slaStatus === query.slaStatus)
+  if (query.startDate) filtered = filtered.filter(w => w.createdAt >= query.startDate!)
+  if (query.endDate) filtered = filtered.filter(w => w.createdAt <= query.endDate! + ' 23:59:59')
+  filtered.sort((a, b) => {
+    if (a.sla.slaStatus === 'timeout' && b.sla.slaStatus !== 'timeout') return -1
+    if (a.sla.slaStatus !== 'timeout' && b.sla.slaStatus === 'timeout') return 1
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+  const total = filtered.length
+  const start = (query.page - 1) * query.size
+  const list = filtered.slice(start, start + query.size)
+  await new Promise(r => setTimeout(r, 300))
+  return { list, total, stats: getStats(filtered) }
+}
+
+export async function createWorkOrder(data: CreateOrderParams): Promise<WorkOrderItem> {
+  await new Promise(r => setTimeout(r, 300))
+  const now = new Date()
+  const createdAt = now.toISOString().replace('T', ' ').slice(0, 19)
+  const id = mockList.length + 1
+  const orderNo = `WO${createdAt.slice(0, 10).replace(/-/g, '')}-${String(id).padStart(3, '0')}`
+  const item: WorkOrderItem = {
+    id, orderNo,
+    templateId: data.templateId,
+    templateName: data.templateName,
+    templateVersion: data.templateVersion,
+    status: 'draft',
+    priority: data.priority as WorkOrderItem['priority'],
+    currentNodeId: 101,
+    currentNodeName: '发起节点',
+    currentNodeIndex: 1,
+    totalNodes: data.totalNodes || 5,
+    currentNodeType: 'start',
+    currentAssigneeId: null,
+    currentAssigneeName: null,
+    creatorId: 10,
+    creatorName: data.creatorName,
+    creatorOrgId: 1001,
+    creatorOrgName: 'xxx物业管理有限公司',
+    parentOrderId: null,
+    createdAt,
+    updatedAt: createdAt,
+    closedAt: null,
+    closedBy: null,
+    formData: data.formData || {},
+    sla: {
+      ttrMinutes: data.ttrMinutes ?? null,
+      ttsMinutes: data.ttsMinutes || 1440,
+      ttrStartedAt: null,
+      ttrEndedAt: null,
+      ttsStartedAt: new Date(now.getTime() + 300000).toISOString().replace('T', ' ').slice(0, 19),
+      ttsPausedAt: null,
+      yellowThreshold: 0.8,
+      ttrProgress: null,
+      ttsProgress: 0,
+      slaStatus: 'normal',
+    },
+  }
+  mockList.unshift(item)
+  return item
+}
+
+export async function getWorkOrderDetail(id: number): Promise<WorkOrderDetail> {
+  await new Promise(r => setTimeout(r, 200))
+  return buildDetail(id)
+}
+
+export async function cancelWorkOrder(id: number, _reason: string): Promise<{ id: number; orderNo: string; status: string; closedAt: string; closedBy: string }> {
+  await new Promise(r => setTimeout(r, 200))
+  const item = mockList.find(w => w.id === id)
+  if (!item) throw new Error('工单不存在')
+  if (item.status === 'closed') throw new Error('工单已关闭')
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
+  ;(item as any).status = 'closed'
+  ;(item as any).closedAt = now
+  ;(item as any).closedBy = '平台管理员'
+  return { id, orderNo: item.orderNo, status: 'closed', closedAt: now, closedBy: '平台管理员' }
+}
+
+export async function reassignWorkOrder(id: number, targetUserId: number, _reason: string): Promise<{ id: number; orderNo: string; previousAssigneeName: string; currentAssigneeName: string }> {
+  await new Promise(r => setTimeout(r, 200))
+  const item = mockList.find(w => w.id === id)
+  if (!item) throw new Error('工单不存在')
+  if (item.status === 'closed') throw new Error('工单已关闭')
+  const prev = item.currentAssigneeName || '未分配'
+  ;(item as any).currentAssigneeId = targetUserId
+  ;(item as any).currentAssigneeName = ['王五', '赵六', '陈七'][targetUserId % 3]
+  return { id, orderNo: item.orderNo, previousAssigneeName: prev, currentAssigneeName: item.currentAssigneeName! }
+}
+
+export async function getWorkOrderStats(): Promise<WorkOrderStats> {
+  await new Promise(r => setTimeout(r, 100))
+  return getStats(mockList)
+}
+
+function getStats(list: WorkOrderItem[]): WorkOrderStats {
+  return {
+    all: list.length, draft: list.filter(w => w.status === 'draft').length,
+    pendingAssign: list.filter(w => w.status === 'pending_assign').length,
+    pendingAccept: list.filter(w => w.status === 'pending_accept').length,
+    processing: list.filter(w => w.status === 'processing').length,
+    verifying: list.filter(w => w.status === 'verifying').length,
+    closed: list.filter(w => w.status === 'closed').length,
+  }
+}

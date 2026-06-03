@@ -98,22 +98,26 @@ const sidebarCollapsed = ref(false)
 // ===== 路由 → 菜单映射表（路由隔离核心） =====
 // 精确路由路径 → 侧边栏菜单 key
 const routeToSideMenu: Record<string, string> = {
+  '/workbench': 'workbench-overview',
+  '/system/dashboard': 'system-dashboard',
+  '/system/template': 'workflow-template',
+  '/system/monitor': 'workflow-monitor',
   '/maintenance/plans': 'maintenance-plan',
-  '/workflow/template': 'workflow-template',
-  '/workflow/monitor': 'workflow-monitor',
 }
 
 // 侧边栏菜单 key → 实际路由路径
 const menuRoutes: Record<string, string> = {
+  'workbench-overview': '/workbench',
+  'system-dashboard': '/system/dashboard',
+  'workflow-template': '/system/template',
+  'workflow-monitor': '/system/monitor',
   'maintenance-plan': '/maintenance/plans',
-  'workflow-template': '/workflow/template',
-  'workflow-config': '/workflow/monitor',
-  'workflow-monitor': '/workflow/monitor',
 }
 
 // 顶部菜单 key → 默认侧边栏菜单 key
 // 每个顶部菜单都应有默认侧边栏，确保点击"空菜单"时也能导航
 const defaultSideMenus: Record<string, string> = {
+  workbench: 'workbench-overview',
   device: 'maintenance-plan',
   inspect: 'maintenance-plan',
   remote: 'maintenance-plan',
@@ -121,7 +125,7 @@ const defaultSideMenus: Record<string, string> = {
   risk: 'maintenance-plan',
   platform: 'maintenance-plan',
   training: 'maintenance-plan',
-  system: 'workflow-template',
+  system: 'system-dashboard',
 }
 
 /** 根据当前路由同步菜单状态（路由 → 菜单，路由隔离核心） */
@@ -193,6 +197,7 @@ if (typeof window !== 'undefined') {
 }
 
 const topMenus = [
+  { key: 'workbench', label: '工作台' },
   { key: 'device', label: '设备管理' },
   { key: 'inspect', label: '巡查检查' },
   { key: 'remote', label: '远程值守' },
@@ -204,6 +209,11 @@ const topMenus = [
 ]
 
 const allSideMenus = [
+  // ===== 工作台 =====
+  { key: 'workbench', label: '概览', group: 'workbench' },
+  // { key: 'messages', label: '消息中心', group: 'workbench' }, // 预留
+
+  // ===== 设备管理 =====
   { key: 'home', label: '首页', group: 'device' },
   { key: 'equipment', label: '设备设施台账', group: 'device' },
   { key: 'monitor', label: '运行监控', group: 'device', children: [
@@ -234,13 +244,17 @@ const allSideMenus = [
   { key: 'push', label: '消息推送', group: 'device', children: [
     { key: 'push-alarm', label: '告警推送' },
   ]},
-  { key: 'system', label: '系统管理', group: 'system', children: [
+
+  // ===== 系统管理 =====
+  { key: 'system', label: '流程管理', group: 'system', children: [
+    { key: 'system-dashboard', label: '数据看板' },
     { key: 'workflow-template', label: '流程模板' },
-    { key: 'workflow-config', label: '工单监控' },
+    { key: 'workflow-monitor', label: '工单监控' },
   ]},
 ]
 
 const sideMenuGroups: Record<string, string> = {
+  workbench: 'workbench',
   device: 'device', inspect: 'device', remote: 'device',
   maintain: 'device',
   risk: 'device', platform: 'device', training: 'device',
@@ -263,7 +277,7 @@ watch(() => router.currentRoute.value.path, () => syncMenuFromRoute(), { immedia
 /* ===== Top Header (82px) ===== */
 .top-header {
   display: flex; align-items: center; gap: 16px;
-  height: 82px; background: var(--bg-card);
+  height: 64px; background: var(--bg-card);
   border-bottom: 1px solid var(--border-high);
   padding: 0; flex-shrink: 0;
 }
