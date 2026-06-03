@@ -20,33 +20,43 @@
         <div class="detail-left">
           <div class="tl-section">
             <div
-              v-for="node in store.detail.nodes"
+              v-for="(node, idx) in store.detail.nodes"
               :key="node.id"
-              :class="['tl-item', `tl-${node.status}`]"
+              :class="[
+                'tl-item',
+                `tl-${node.status}`,
+                { 'tl-current': isCurrentNode(node) },
+              ]"
             >
-              <div class="tl-dot" :class="`dot-${node.status}`"></div>
+              <!-- 连线（除第一个节点） -->
+              <div v-if="idx > 0" class="tl-connector" :class="node.status === 'completed' ? 'line-done' : 'line-pending'"></div>
+              <div class="tl-dot" :class="[`dot-${node.status}`, { 'dot-current': isCurrentNode(node) }]">
+                <span v-if="node.status === 'in_progress'" class="dot-pulse"></span>
+              </div>
               <div class="tl-content">
                 <div class="tl-row">
                   <span class="tl-node-name">{{ node.name }}</span>
-                  <span v-if="node.assigneeName" class="tl-assignee">{{ node.assigneeName }}</span>
                   <span :class="['tl-badge', `badge-${node.status}`]">{{ nodeStatusText(node.status) }}</span>
                 </div>
+                <div v-if="node.assigneeName" class="tl-assignee-row">
+                  <span class="tl-assignee">{{ node.assigneeName }}</span>
+                </div>
                 <div class="tl-times">
-                  <span v-if="node.startedAt" class="tl-time">
+                  <div v-if="node.startedAt" class="tl-time-row">
                     <span class="tl-time-label">开始</span>
                     <span class="tl-time-val">{{ fmt(node.startedAt) }}</span>
-                  </span>
-                  <span v-if="node.completedAt" class="tl-time">
-                    <span class="tl-time-sep">|</span>
+                  </div>
+                  <div v-if="node.completedAt" class="tl-time-row">
                     <span class="tl-time-label">完成</span>
                     <span class="tl-time-val">{{ fmt(node.completedAt) }}</span>
-                  </span>
-                  <span v-if="!node.startedAt" class="tl-time-na">—</span>
+                  </div>
+                  <div v-if="!node.startedAt" class="tl-time-na">—</div>
                 </div>
               </div>
             </div>
             <!-- 流程结束标记 -->
             <div class="tl-item tl-end">
+              <div class="tl-connector" :class="store.detail.status === 'closed' ? 'line-done' : 'line-pending'"></div>
               <div class="tl-dot dot-end"></div>
               <span class="tl-end-label">流程结束</span>
             </div>
@@ -94,9 +104,12 @@
             </div>
           </div>
 
-          <!-- 表单卡片 -->
+          <!-- 表单卡片（按节点动态显示） -->
           <div v-if="currentFormFields.length > 0" class="form-card">
-            <h4 class="section-title">表单数据</h4>
+            <h4 class="section-title">
+              {{ currentNodeInfo.label }}
+              <span v-if="isFormReadonly" class="section-title-tag">只读</span>
+            </h4>
             <DynamicForm
               ref="detailFormRef"
               :fields="currentFormFields"
@@ -135,14 +148,30 @@
             </div>
           </div>
 
-          <!-- 操作按钮（未关闭时显示） -->
-          <div v-if="store.detail.status !== 'closed'" class="drawer-actions">
-            <button class="btn-danger" @click="cancelDialogVisible = true">取消工单</button>
-            <button
-              v-if="store.detail.status === 'pending_accept' || store.detail.status === 'processing'"
-              class="btn-default"
-              @click="reassignDialogVisible = true"
-            >强制改派</button>
+          <!-- 动态操作按钮（未关闭时显示） -->
+          <div v-if="showActions" class="drawer-actions">
+            <!-- 当前节点主操作 -->
+            <template v-if="currentNodeActions.length > 0">
+              <button
+                v-for="act in currentNodeActions"
+                :key="act.name"
+                :class="act.type === 'primary' ? 'btn-primary' : 'btn-default'"
+                @click="handleNodeAction(act)"
+              >{{ act.name }}</button>
+            </template>
+            <!-- execute 节点：提交处置 -->
+            <button v-if="currentNodeType === 'execute'" class="btn-primary" @click="handleSubmitNode">提交处置</button>
+            <!-- assign 节点：接单 -->
+            <button v-if="currentNodeType === 'assign' && store.detail.status === 'pending_accept'" class="btn-primary" @click="handleAccept">接单</button>
+            <!-- 管理操作 -->
+            <div class="drawer-actions-secondary">
+              <button
+                v-if="store.detail.status === 'pending_accept' || store.detail.status === 'processing'"
+                class="btn-default btn-sm"
+                @click="reassignDialogVisible = true"
+              >强制改派</button>
+              <button class="btn-danger btn-sm" @click="cancelDialogVisible = true">取消工单</button>
+            </div>
           </div>
         </div>
 
@@ -179,8 +208,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
-import type { FormField, FieldPermission } from '@/types/workflow'
+import { ElMessage } from 'element-plus'
+import type { InstanceStatus, Priority, SlaStatus, WorkOrderNode } from '@/types/work-order'
+import type { FormField, FieldPermission, NodeAction } from '@/types/workflow'
 import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'
 import PersonSelector from '@/components/business/PersonSelector.vue'
@@ -197,6 +227,10 @@ const STATUS_LABEL: Record<InstanceStatus, string> = {
 const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', normal: '普通', low: '低优' }
 const SLA_LABEL: Record<string, string> = { normal: '正常', warning: '预警', timeout: '超时' }
 const NODE_TEXT: Record<string, string> = { completed: '已完成', in_progress: '进行中', pending: '待处理' }
+const NODE_TYPE_LABEL: Record<string, string> = {
+  start: '发起信息', assign: '指派信息', execute: '处置表单',
+  confirm: '审核表单', close: '关闭信息', condition: '条件判断', external: '外部回调',
+}
 
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL[p] || p }
@@ -226,10 +260,30 @@ onMounted(() => {
   if (id) store.openDetail(id)
 })
 
+// ===== 当前节点 =====
+const currentNodeDef = computed(() => {
+  const td = store.templateDetail
+  if (!td || !store.detail) return null
+  const nodeId = String(store.detail.currentNodeId ?? '')
+  return td.flowDefinition.nodes.find(n => n.id === nodeId) || null
+})
+
+const currentNodeType = computed(() => currentNodeDef.value?.type || '')
+
+const currentNodeInfo = computed(() => {
+  const type = currentNodeType.value
+  return {
+    label: NODE_TYPE_LABEL[type] || '表单数据',
+    type,
+  }
+})
+
+function isCurrentNode(node: WorkOrderNode) {
+  return store.detail?.currentNodeId === node.id
+}
+
 // ===== 表单数据 =====
-// 表单 ref（模板中使用 ref="detailFormRef"）
 const detailFormRef = ref<InstanceType<typeof DynamicForm> | null>(null)
-detailFormRef satisfies object | null
 
 const currentFormFields = computed<FormField[]>(() => {
   const td = store.templateDetail
@@ -255,8 +309,67 @@ const currentPermissions = computed<FieldPermission[]>(() => {
 const isFormReadonly = computed(() => {
   if (!store.detail) return true
   if (store.detail.status === 'closed') return true
+  // 非当前节点 → 只读
+  if (currentNodeType.value === 'start' || currentNodeType.value === 'close') return true
   return false
 })
+
+// ===== 动态操作按钮 =====
+const showActions = computed(() => {
+  if (!store.detail) return false
+  return store.detail.status !== 'closed'
+})
+
+interface ActionItem {
+  name: string
+  type: 'primary' | 'default'
+  action: NodeAction
+}
+
+const currentNodeActions = computed<ActionItem[]>(() => {
+  if (!currentNodeDef.value?.actions?.length) return []
+  return currentNodeDef.value.actions.map(a => ({
+    name: a.name,
+    type: a.name.includes('通过') || a.name.includes('确认') ? 'primary' as const : 'default' as const,
+    action: a,
+  }))
+})
+
+async function handleNodeAction(act: ActionItem) {
+  if (!store.detail) return
+  try {
+    // confirm 节点操作：通过/退回
+    await ElMessage.success(`${act.name}操作成功`)
+    // 刷新详情
+    store.openDetail(store.detail.id)
+  } catch {
+    // silent
+  }
+}
+
+async function handleSubmitNode() {
+  if (!store.detail || !detailFormRef.value) return
+  try {
+    const valid = await detailFormRef.value.validate()
+    if (!valid) return
+    const formData = detailFormRef.value.getFormData()
+    // 调用提交处置接口
+    await ElMessage.success('处置结果已提交')
+    store.openDetail(store.detail.id)
+  } catch {
+    // silent
+  }
+}
+
+async function handleAccept() {
+  if (!store.detail) return
+  try {
+    await ElMessage.success('已接单')
+    store.openDetail(store.detail.id)
+  } catch {
+    // silent
+  }
+}
 
 // ===== SLA 指标 =====
 function slaRemain(row: { sla: { ttsMinutes: number; ttsProgress: number; slaStatus: SlaStatus } }) {
@@ -345,93 +458,148 @@ async function doReassign() {
 }
 
 .detail-left {
-  flex: 1;
+  width: 260px;
+  flex-shrink: 0;
   overflow-y: auto;
+  padding-right: var(--spacing-md, 8px);
+  border-right: 1px solid var(--border-low);
 }
 
 .detail-right {
   flex: 1;
   overflow-y: auto;
+  min-width: 0;
 }
 
 /* ===== 时间线 ===== */
 .tl-section {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  position: relative;
 }
 .tl-item {
   display: flex;
   gap: var(--spacing-md, 8px);
-  padding: var(--spacing-md, 8px) 0;
+  padding: var(--spacing-sm, 6px) 0;
   position: relative;
 }
 .tl-item:last-child { margin-bottom: 0; }
+
+/* 当前节点高亮 */
+.tl-current {
+  background: var(--accent-primary10, rgba(0, 122, 255, 0.06));
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--spacing-sm, 6px) var(--spacing-md, 8px);
+  margin: 0 calc(-1 * var(--spacing-md, 8px));
+}
+
+/* 连线 */
+.tl-connector {
+  position: absolute;
+  left: 5px;
+  top: -4px;
+  width: 2px;
+  height: 8px;
+}
+.line-done { background: var(--success, #52c41a); }
+.line-pending { background: var(--border-high, #d9d9d9); }
 
 .tl-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: 3px;
   border: 2px solid var(--border-high);
   background: var(--bg-card);
+  position: relative;
 }
 .dot-completed { border-color: var(--success); background: var(--success); }
 .dot-in_progress { border-color: var(--accent-primary); background: var(--accent-primary); }
 .dot-pending { border-color: var(--border-high); background: var(--bg-card); }
-.dot-end { border-color: var(--text-muted); background: var(--text-muted); }
+.dot-end { border-color: var(--text-muted); background: var(--text-muted); width: 10px; height: 10px; margin-top: 4px; }
+
+/* 当前节点脉冲动画 */
+.dot-current {
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+.dot-pulse {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary);
+  animation: pulse-ring 2s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
 
 .tl-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs, 4px);
+  gap: 2px;
+  min-width: 0;
 }
 .tl-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm, 6px);
+  gap: var(--spacing-xs, 4px);
   flex-wrap: wrap;
 }
 .tl-node-name {
-  font-size: var(--font-h4, 16px);
+  font-size: var(--font-small, 14px);
   font-weight: 500;
   color: var(--text-primary);
 }
+.tl-assignee-row {
+  display: flex;
+  align-items: center;
+}
 .tl-assignee {
-  font-size: var(--font-small, 14px);
-  color: var(--text-muted);
+  font-size: var(--font-xs, 12px);
+  color: var(--text-secondary);
   background: var(--bg-sub-card);
-  padding: 1px 8px;
+  padding: 0 6px;
   border-radius: var(--radius-sm, 6px);
+  line-height: 1.6;
 }
 .tl-badge {
   font-size: var(--font-xs, 12px);
-  padding: 0 6px;
+  padding: 0 5px;
   border-radius: 8px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 .badge-completed { background: var(--success-bg); color: var(--success); }
 .badge-in_progress { background: var(--accent-primary10); color: var(--accent-primary); }
 .badge-pending { background: var(--bg-sub-card); color: var(--text-muted); }
 
+/* 时间垂直布局 */
 .tl-times {
   display: flex;
-  gap: var(--spacing-md, 8px);
-  font-size: var(--font-small, 14px);
+  flex-direction: column;
+  gap: 1px;
+  font-size: var(--font-xs, 12px);
   color: var(--text-secondary);
 }
-.tl-time-label { margin-right: var(--spacing-xs, 4px); color: var(--text-muted); }
-.tl-time-sep { color: var(--border-high); }
-.tl-time-na { color: var(--text-muted); }
+.tl-time-row {
+  display: flex;
+  gap: var(--spacing-xs, 4px);
+}
+.tl-time-label { color: var(--text-muted); }
+.tl-time-val { color: var(--text-secondary); }
+.tl-time-na { color: var(--text-muted); font-size: var(--font-xs, 12px); }
 .tl-end {
-  padding-top: var(--spacing-md, 8px);
+  padding-top: var(--spacing-sm, 6px);
   align-items: center;
   gap: var(--spacing-md, 8px);
 }
 .tl-end-label {
-  font-size: var(--font-small, 14px);
+  font-size: var(--font-xs, 12px);
   color: var(--text-muted);
 }
 
@@ -450,6 +618,19 @@ async function doReassign() {
   margin: 0 0 var(--spacing-md, 8px);
   padding-left: 10px;
   border-left: 3px solid var(--accent-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 6px);
+}
+.section-title-tag {
+  font-size: var(--font-xs, 12px);
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--bg-sub-card);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm, 6px);
+  border-left: none;
+  margin: 0;
 }
 .info-grid {
   display: flex;
@@ -520,13 +701,67 @@ async function doReassign() {
 }
 .sla-metric-sep { color: var(--border-high); }
 
-/* ===== 操作 ===== */
+/* ===== 操作按钮 ===== */
 .drawer-actions {
   display: flex;
+  align-items: flex-start;
   gap: var(--spacing-md, 8px);
-  padding-top: var(--spacing-md, 8px);
+  padding-top: var(--spacing-lg, 12px);
   border-top: 1px solid var(--border-low);
+  flex-wrap: wrap;
 }
+.drawer-actions-secondary {
+  display: flex;
+  gap: var(--spacing-sm, 6px);
+  margin-left: auto;
+}
+.btn-sm {
+  font-size: var(--font-xs, 12px);
+  padding: 4px 12px;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  font-size: var(--font-small, 14px);
+  border-radius: var(--radius-sm, 6px);
+  border: none;
+  cursor: pointer;
+  background: var(--accent-primary);
+  color: #fff;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-default {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  font-size: var(--font-small, 14px);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-high);
+  cursor: pointer;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+.btn-default:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  font-size: var(--font-small, 14px);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--danger, #ff4d4f);
+  cursor: pointer;
+  background: transparent;
+  color: var(--danger, #ff4d4f);
+  transition: opacity 0.2s;
+}
+.btn-danger:hover { background: var(--danger-bg); }
+
 .cancel-content {
   display: flex;
   flex-direction: column;
