@@ -204,10 +204,8 @@ const statCards = computed(() => {
 
 // ===== 筛选 =====
 const templateOptions = [
-  { label: '设备维修工单模板', value: 1 },
-  { label: '安全生产督办流程', value: 2 },
-  { label: '日常巡检工单模板', value: 3 },
-  { label: '故障报修流程', value: 4 },
+  { label: '示例模版：故障报修', value: 4 },
+  { label: '示例模版：警情处置督办', value: 5 }
 ]
 
 // ===== 发起工单 =====

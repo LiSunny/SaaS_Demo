@@ -18,6 +18,7 @@ import type {
 // ===== 种子数据 =====
 const SEED_TEMPLATES: TemplateItem[] = [
   { id: 4, name: '示例模版：故障报修', status: 1, nodeCount: 4, fieldCount: 5, code: 'GD-20260603-3144', creator: '系统', createdAt: '2026-06-03 00:00', updatedAt: '2026-06-03 00:00' },
+  { id: 5, name: '示例模版：警情处置督办', status: 1, nodeCount: 4, fieldCount: 5, code: 'JQ-20260605-5108', creator: '系统', createdAt: '2026-06-05 00:00', updatedAt: '2026-06-05 00:00' },
 ]
 
 // ===== 持久化 Store =====
@@ -343,6 +344,156 @@ export const BUILTIN_DETAILS: Record<number, TemplateDetail> = {
         ]
     }
 },
+    // 模板 5（警情处置督办）— 发起 → 指派 → 执行 → 结束
+    5: {
+        "id": 5,
+        "baseInfo": {
+            "name": "示例模版：警情处置督办",
+            "code": "JQ-20260605-5108",
+            "description": "警情处置督办公单",
+            "initiatorScope": "all",
+            "initiatorUserIds": [],
+            "slaPriority": "normal",
+            "amberThreshold": 80
+        },
+        "formSchema": {
+            "start": {
+                "fields": [
+                    {
+                        "id": "Fjq1npz8abc1def",
+                        "type": "input",
+                        "label": "警情描述",
+                        "source": "manual",
+                        "required": false
+                    },
+                    {
+                        "id": "Fjq2npz8abc2def",
+                        "type": "upload",
+                        "label": "现场图片",
+                        "source": "manual",
+                        "required": false
+                    },
+                    {
+                        "id": "Fjq3npz8abc3def",
+                        "type": "select",
+                        "label": "处置人员",
+                        "source": "manual",
+                        "required": false,
+                        "options": [
+                            { "value": "zhao_police", "label": "赵警官" },
+                            { "value": "qian_police", "label": "钱警官" },
+                            { "value": "sun_police", "label": "孙警官" },
+                            { "value": "li_police", "label": "李警官" },
+                            { "value": "zhou_police", "label": "周警官" }
+                        ]
+                    },
+                    {
+                        "id": "Fjq4npz8abc4def",
+                        "type": "radio",
+                        "label": "处置结果",
+                        "source": "manual",
+                        "required": true,
+                        "options": [
+                            { "value": "resolved", "label": "已处置" },
+                            { "value": "unresolved", "label": "未处置" },
+                            { "value": "partial", "label": "部分处置" }
+                        ]
+                    },
+                    {
+                        "id": "Fjq5npz8abc5def",
+                        "type": "upload",
+                        "label": "处置后图片",
+                        "source": "manual",
+                        "required": false
+                    }
+                ]
+            }
+        },
+        "flowDefinition": {
+            "nodes": [
+                {
+                    "id": "start",
+                    "type": "start",
+                    "name": "发起警情",
+                    "formFields": [
+                        {
+                            "fieldId": "Fjq3npz8abc3def",
+                            "mode": "hidden"
+                        },
+                        {
+                            "fieldId": "Fjq4npz8abc4def",
+                            "mode": "hidden"
+                        },
+                        {
+                            "fieldId": "Fjq5npz8abc5def",
+                            "mode": "hidden"
+                        }
+                    ]
+                },
+                {
+                    "id": "assign_1780600123456",
+                    "type": "assign",
+                    "name": "指派人员",
+                    "formFields": [
+                        {
+                            "fieldId": "Fjq3npz8abc3def",
+                            "mode": "editable"
+                        },
+                        {
+                            "fieldId": "Fjq4npz8abc4def",
+                            "mode": "hidden"
+                        },
+                        {
+                            "fieldId": "Fjq5npz8abc5def",
+                            "mode": "hidden"
+                        }
+                    ],
+                    "assignSource": "dynamic",
+                    "dynamicAssignFieldId": "Fjq3npz8abc3def"
+                },
+                {
+                    "id": "execute_1780600234567",
+                    "type": "execute",
+                    "name": "现场处置",
+                    "formFields": [
+                        {
+                            "fieldId": "Fjq3npz8abc3def",
+                            "mode": "readonly"
+                        },
+                        {
+                            "fieldId": "Fjq4npz8abc4def",
+                            "mode": "editable"
+                        },
+                        {
+                            "fieldId": "Fjq5npz8abc5def",
+                            "mode": "editable"
+                        }
+                    ],
+                    "assignSource": "dynamic",
+                    "dynamicAssignFieldId": "Fjq3npz8abc3def"
+                },
+                {
+                    "id": "close",
+                    "type": "close",
+                    "name": "结束"
+                }
+            ],
+            "edges": [
+                {
+                    "from": "start",
+                    "to": "assign_1780600123456"
+                },
+                {
+                    "from": "assign_1780600123456",
+                    "to": "execute_1780600234567"
+                },
+                {
+                    "from": "execute_1780600234567",
+                    "to": "close"
+                }
+            ]
+        }
+    },
 }
 
 // ===== API 函数 =====

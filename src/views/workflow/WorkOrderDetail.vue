@@ -106,21 +106,14 @@
           :key="node.id"
           class="node-section"
         >
-          <div
-            class="node-header"
-            :class="{ 'node-header--collapsible': node.type === 'start' || node.type === 'assign' || node.type === 'execute' || node.type === 'confirm' }"
-            @click="toggleNodeCollapse(node)"
-          >
-            <span
-              v-if="node.type === 'start' || node.type === 'assign' || node.type === 'execute' || node.type === 'confirm'"
-              :class="['node-toggle-icon', collapsedNodes.has(String(node.id)) ? 'node-toggle-icon--collapsed' : 'node-toggle-icon--expanded']"
-            >&#8250;</span>
+          <div class="node-header">
             <span :class="['node-dot', `dot-${node.status}`]" />
             <span class="node-name">{{ node.name }}</span>
             <span class="node-time" >{{ node.completedAt || '—' }}</span>
+            <!-- <StatusTag :status="node.status" /> -->
             <span v-if="node.assigneeName && node.type !== 'start'" class="node-assignee-tag">{{ node.assigneeName }}</span>
           </div>
-          <div v-if="node.type === 'start' || node.type === 'assign' || node.type === 'execute' || node.type === 'confirm'" v-show="!collapsedNodes.has(String(node.id))" class="node-body">
+          <div v-if="node.type === 'start' || node.type === 'assign' || node.type === 'execute' || node.type === 'confirm'" class="node-body">
             <DynamicForm
               :fields="getNodeFormFields(node)"
               :permissions="getNodePermissions(node)"
@@ -323,10 +316,12 @@ const STATUS_LABEL: Record<InstanceStatus, string> = {
   draft: '草稿', pending_assign: '待指派', pending_accept: '待接单',
   processing: '处置中', verifying: '验收中', closed: '已关闭',
 }
-const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', high: '高优', normal: '普通', low: '低优' }
+const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', normal: '普通', low: '低优' }
+const SLA_LABEL: Record<string, string> = { normal: '正常', warning: '预警', timeout: '超时' }
 
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL[p] || p }
+function slaLabel(s: string) { return SLA_LABEL[s] || s }
 
 // ===== 导航 =====
 function goBack() {
@@ -356,21 +351,6 @@ onMounted(() => {
   const id = Number(route.params.id)
   if (id) store.openDetail(id)
 })
-
-// ===== 节点展开/折叠（已关闭状态） =====
-const collapsedNodes = ref(new Set<string>())
-
-function toggleNodeCollapse(node: WorkOrderNode) {
-  const nodeId = String(node.id)
-  const set = collapsedNodes.value
-  if (set.has(nodeId)) {
-    set.delete(nodeId)
-  } else {
-    set.add(nodeId)
-  }
-  // 触发响应式更新
-  collapsedNodes.value = new Set(set)
-}
 
 // ===== 当前节点 =====
 const currentNode = computed(() =>
@@ -768,7 +748,7 @@ async function doReassign() {
 }
 
 .header-title {
-  font-size: var(--font-body, 16px);
+  font-size: var(--font-h4, 16px);
   font-weight: 500;
   color: var(--text-primary, #101010);
 }
@@ -1038,30 +1018,6 @@ async function doReassign() {
   align-items: center;
   gap: var(--spacing-sm, 8px);
   padding: var(--spacing-md, 12px) var(--spacing-lg, 16px);
-}
-
-.node-header--collapsible {
-  cursor: pointer;
-  user-select: none;
-}
-.node-header--collapsible:hover {
-  background: var(--bg-sub-card, #fbfbfb);
-}
-
-.node-toggle-icon {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--text-muted, #5e5e5e);
-  transition: transform 0.2s ease;
-  display: inline-block;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.node-toggle-icon--expanded {
-  transform: rotate(90deg);
-}
-.node-toggle-icon--collapsed {
-  transform: rotate(0deg);
 }
 
 .node-dot {
