@@ -230,7 +230,7 @@ const orders: OrderDef[] = [
   },
 ]
 
-const NODE_TYPES = ['start', 'assign', 'execute', 'confirm', 'close', 'custom', 'condition', 'external']
+const _NODE_TYPES = ['start', 'assign', 'execute', 'confirm', 'close', 'custom', 'condition', 'external']
 // 状态 → 当前活跃节点类型（按类型查找，兼容不同模板的节点排列）
 const STATUS_NODE_TYPE: Record<string, string | null> = {
   draft: 'start', pending_assign: 'assign', pending_accept: 'execute',
@@ -776,7 +776,6 @@ export async function submitDraft(id: number): Promise<WorkOrderDetail> {
 
   const now = fmtNow()
   const tmplId = detail.templateId
-  const useNodes = getTemplateNodes(tmplId)
   const nodes = detail.nodes.map(n => ({ ...n }))
 
   // 将 start 节点标记为 completed

@@ -42,6 +42,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getWorkOrderList } from '@/api/work-order'
+import type { Priority } from '@/types/work-order'
 
 defineProps<{
   widgetId: string
@@ -59,7 +60,7 @@ interface TaskItem {
   module: string
   type: string
   title: string
-  priority: 'urgent' | 'normal' | 'low'
+  priority: Priority
   link: string
 }
 

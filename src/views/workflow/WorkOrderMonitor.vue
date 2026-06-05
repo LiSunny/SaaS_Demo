@@ -172,7 +172,7 @@ async function handleSubmitDraft(id: number) {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(_id: number) {
   try {
     await ElMessageBox.confirm('确认删除该草稿工单？', '删除确认', {
       confirmButtonText: '确定',

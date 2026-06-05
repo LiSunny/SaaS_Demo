@@ -323,12 +323,11 @@ const STATUS_LABEL: Record<InstanceStatus, string> = {
   draft: '草稿', pending_assign: '待指派', pending_accept: '待接单',
   processing: '处置中', verifying: '验收中', closed: '已关闭',
 }
-const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', normal: '普通', low: '低优' }
+const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', high: '高优', normal: '普通', low: '低优' }
 const SLA_LABEL: Record<string, string> = { normal: '正常', warning: '预警', timeout: '超时' }
 
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL[p] || p }
-function slaLabel(s: string) { return SLA_LABEL[s] || s }
 
 // ===== 导航 =====
 function goBack() {

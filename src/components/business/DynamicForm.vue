@@ -118,7 +118,7 @@
 import { ref, reactive, computed, watch, shallowRef, onMounted } from 'vue'
 import type { UploadFile, UploadFiles } from 'element-plus'
 import type { ElForm } from 'element-plus'
-import type { FormField, FieldPermission, CallbackConfig } from '@/types/workflow'
+import type { FormField, FieldPermission } from '@/types/workflow'
 import { resolveCallbackOptions } from '@/utils/org-data'
 
 const props = withDefaults(defineProps<{
@@ -226,7 +226,7 @@ function initUploadLists() {
     if (f.type === 'upload') {
       // 从 formData 恢复已有的文件信息（编辑/回显场景）
       const stored = formData[f.id]
-      map[f.id] = Array.isArray(stored) ? stored : (stored ? [{ name: String(stored), url: String(stored), uid: f.id + '-0' } as UploadFile] : [])
+      map[f.id] = Array.isArray(stored) ? stored : (stored ? [{ name: String(stored), url: String(stored), uid: f.id + '-0', status: 'success' as const } as UploadFile] : [])
     }
   }
   uploadFileLists.value = map

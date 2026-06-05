@@ -113,7 +113,6 @@ import { ref, computed } from 'vue'
 import {
   DEPARTMENTS, POSITIONS, PERSONS,
   getDeptName, getPosName,
-  type OrgPerson, type OrgDepartment, type OrgPosition,
 } from '@/utils/org-data'
 
 const props = defineProps<{
