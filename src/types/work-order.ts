@@ -1,8 +1,8 @@
 // ===== 枚举 =====
 export type InstanceStatus = 'draft' | 'pending_assign' | 'pending_accept' | 'processing' | 'verifying' | 'closed'
-export type Priority = 'urgent' | 'normal' | 'low'
+export type Priority = 'urgent' | 'high' | 'normal' | 'low'
 export type SlaStatus = 'normal' | 'warning' | 'timeout'
-export type NodeStatus = 'completed' | 'in_progress' | 'pending'
+export type NodeStatus = 'completed' | 'in_progress' | 'pending' | 'skipped'
 
 // ===== SLA 子对象 =====
 export interface SlaInfo {
@@ -27,10 +27,12 @@ export interface WorkOrderItem {
   templateVersion: number
   status: InstanceStatus
   priority: Priority
-  currentNodeId: number | null
+  currentNodeId: string | number | null
   currentNodeName: string | null
   currentNodeIndex: number
   totalNodes: number
+  activePathNodeCount?: number   // 实际执行路径上的节点数（排除 skipped / condition / external）
+  activePathIndex?: number       // 在实际执行路径上的位置（1-based）
   currentNodeType: string | null
   currentAssigneeId: number | null
   currentAssigneeName: string | null
@@ -44,6 +46,8 @@ export interface WorkOrderItem {
   closedAt: string | null
   closedBy: string | null
   sla: SlaInfo
+  title?: string                   // 工单标题（用户输入）
+  remark?: string                  // 备注
   formData?: FormData              // 发起时提交的表单数据
 }
 
@@ -57,6 +61,8 @@ export interface WorkOrderQuery {
   endDate?: string
   page: number
   size: number
+  sortField?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 // ===== 统计 =====
@@ -72,7 +78,7 @@ export interface WorkOrderStats {
 
 // ===== 详情相关 =====
 export interface WorkOrderNode {
-  id: number
+  id: string | number
   name: string
   type: string
   status: NodeStatus
@@ -94,7 +100,8 @@ export interface WorkOrderRecord {
 export interface WorkOrderDetail extends WorkOrderItem {
   nodes: WorkOrderNode[]
   records: WorkOrderRecord[]
-  nodeRecords?: NodeFormRecord[]   // 各节点提交的表单记录
+  nodeRecords?: NodeFormRecord[]       // 各节点提交的表单记录
+  branchDecisions?: BranchDecision[]   // 条件节点的分支选择记录
 }
 
 // ===== 分页 =====
@@ -120,15 +127,30 @@ export interface NodeFormRecord {
   data: FormData
 }
 
+/** 条件分支决策记录 */
+export interface BranchDecision {
+  conditionNodeId: string
+  evaluatedExpression: string
+  result: boolean
+  takenEdgeId: string
+  resolvedAt: string
+}
+
+/** 操作记录动作类型 */
+export type RecordAction = 'create' | 'accept' | 'submit_form' | 'approve' | 'reject' | 'reassign' | 'cancel'
+
 /** 创建工单参数 */
 export interface CreateOrderParams {
   templateId: number
   templateName: string
   templateVersion: number
+  title: string                    // 工单标题
   priority: string
+  remark?: string                  // 备注
   creatorName: string
-  formData: Record<string, any>  // 用户填写的表单数据
-  totalNodes: number             // 来自 flowDefinition.nodes.length
-  ttrMinutes: number | null      // 来自模板 baseInfo.defaultTtrMinutes
-  ttsMinutes: number             // 来自模板 baseInfo.defaultTtsMinutes
+  formData: Record<string, any>    // 用户填写的表单数据
+  totalNodes: number               // 来自 flowDefinition.nodes.length
+  ttrMinutes: number | null        // 来自模板 baseInfo.defaultTtrMinutes
+  ttsMinutes: number               // 来自模板 baseInfo.defaultTtsMinutes
+  status?: InstanceStatus          // 初始状态：草稿或发起后流转
 }

@@ -110,6 +110,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import {
+  DEPARTMENTS, POSITIONS, PERSONS,
+  getDeptName, getPosName,
+  type OrgPerson, type OrgDepartment, type OrgPosition,
+} from '@/utils/org-data'
 
 const props = defineProps<{
   selectedIds: number[]
@@ -123,40 +128,10 @@ const emit = defineEmits<{
 // ===== 弹窗可见性：组件挂载即显示 =====
 const dialogVisible = ref(true)
 
-// ===== Mock 数据 =====
-const departments = [
-  { id: 1, name: '产品开发部' },
-  { id: 2, name: '设计部' },
-  { id: 3, name: '运维部' },
-  { id: 4, name: '市场部' },
-  { id: 5, name: '质量管理部' },
-]
-
-const positions = [
-  { id: 1, name: '产品经理', deptId: 1 },
-  { id: 2, name: 'iOS工程师', deptId: 1 },
-  { id: 3, name: '前端工程师', deptId: 1 },
-  { id: 4, name: 'UI设计师', deptId: 2 },
-  { id: 5, name: '交互设计师', deptId: 2 },
-  { id: 6, name: '运维工程师', deptId: 3 },
-  { id: 7, name: '市场专员', deptId: 4 },
-  { id: 8, name: '测试工程师', deptId: 5 },
-]
-
-const persons = [
-  { id: 1, name: '黎世雨', deptId: 1, posId: 1 },
-  { id: 2, name: '李磊', deptId: 1, posId: 2 },
-  { id: 3, name: '李熙', deptId: 1, posId: 3 },
-  { id: 4, name: '高江云', deptId: 1, posId: 2 },
-  { id: 5, name: '李浩敏', deptId: 1, posId: 2 },
-  { id: 6, name: '杨婷彤', deptId: 2, posId: 4 },
-  { id: 7, name: '谢东', deptId: 3, posId: 6 },
-  { id: 8, name: '陈洪燕', deptId: 4, posId: 7 },
-  { id: 9, name: '梁冬', deptId: 5, posId: 8 },
-  { id: 10, name: '马达', deptId: 3, posId: 6 },
-  { id: 11, name: '杨伟', deptId: 2, posId: 5 },
-  { id: 12, name: '高楠', deptId: 4, posId: 7 },
-]
+// 使用共享数据源
+const departments = DEPARTMENTS
+const positions = POSITIONS
+const persons = PERSONS
 
 // ===== 状态 =====
 const activeTab = ref<'person' | 'dept' | 'position'>('person')
@@ -196,12 +171,10 @@ const isAllChecked = computed(() => {
   return filteredPositions.value.length > 0 && filteredPositions.value.every(p => isPosChecked(p.id))
 })
 
-// ===== 辅助方法 =====
-function getDeptName(id: number) { return departments.find(d => d.id === id)?.name || '暂未划分' }
-function getPosName(id: number) { return positions.find(p => p.id === id)?.name || '暂未划分' }
-function getDeptPersonCount(deptId: number) { return persons.filter(p => p.deptId === deptId).length }
-function getDeptPersonIds(deptId: number) { return persons.filter(p => p.deptId === deptId).map(p => p.id) }
-function getPosPersonIds(posId: number) { return persons.filter(p => p.posId === posId).map(p => p.id) }
+// ===== 辅助方法（直接使用共享工具函数） =====
+function getDeptPersonCount(deptId: number) { return PERSONS.filter(p => p.deptId === deptId).length }
+function getDeptPersonIds(deptId: number) { return PERSONS.filter(p => p.deptId === deptId).map(p => p.id) }
+function getPosPersonIds(posId: number) { return PERSONS.filter(p => p.posId === posId).map(p => p.id) }
 
 function isChecked(id: number) { return checkedIds.value.has(id) }
 

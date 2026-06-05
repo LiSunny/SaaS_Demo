@@ -102,7 +102,9 @@ const routeToSideMenu: Record<string, string> = {
   '/system/dashboard': 'system-dashboard',
   '/system/template': 'workflow-template',
   '/system/monitor': 'workflow-monitor',
+  '/system/order': 'workflow-monitor',      // 工单详情页 → 工单监控侧边菜单
   '/maintenance/plans': 'maintenance-plan',
+  '/maintenance/plans/detail': 'maintenance-plan',
 }
 
 // 侧边栏菜单 key → 实际路由路径

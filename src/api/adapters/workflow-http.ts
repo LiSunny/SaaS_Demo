@@ -78,6 +78,19 @@ export async function publishTemplate(id: number): Promise<TemplateItem> {
   return res as unknown as TemplateItem
 }
 
+export async function saveAsSeed(id: number): Promise<void> {
+  await request.post(`/workflow/templates/${id}/seed`)
+}
+
+export async function updateSeed(id: number, detail: TemplateDetail): Promise<void> {
+  await request.put(`/workflow/templates/${id}/seed`, detail)
+}
+
+export async function isSeedTemplate(id: number): Promise<boolean> {
+  const res = await request.get(`/workflow/templates/${id}/seed`)
+  return !!(res as unknown as { exists: boolean })?.exists
+}
+
 export async function validateFlowDefinition(def: FlowDefinition): Promise<{ valid: boolean; errors: string[] }> {
   const res = await request.post('/workflow/validate', def)
   return res as unknown as { valid: boolean; errors: string[] }

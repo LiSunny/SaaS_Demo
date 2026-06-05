@@ -15,8 +15,12 @@ const adapter = mode === 'real' ? http : dao
 export const {
   getWorkOrderList,
   createWorkOrder,
+  submitDraft,
   getWorkOrderDetail,
   cancelWorkOrder,
   reassignWorkOrder,
+  acceptWorkOrder,
+  submitNodeForm,
+  performNodeAction,
   getWorkOrderStats,
 } = adapter

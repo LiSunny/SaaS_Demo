@@ -34,6 +34,9 @@ export const {
   getTemplateDetail,
   saveTemplateDraft,
   publishTemplate,
+  saveAsSeed,
+  updateSeed,
+  isSeedTemplate,
   validateFlowDefinition,
   uploadFile,
 } = adapter

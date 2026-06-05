@@ -38,3 +38,23 @@ export async function getWorkOrderStats(): Promise<WorkOrderStats> {
   const res = await request.get('/work-order/stats')
   return res as unknown as WorkOrderStats
 }
+
+export async function acceptWorkOrder(id: number): Promise<WorkOrderDetail> {
+  const res = await request.post(`/work-order/${id}/accept`)
+  return res as unknown as WorkOrderDetail
+}
+
+export async function submitNodeForm(id: number, formData: Record<string, any>): Promise<WorkOrderDetail> {
+  const res = await request.post(`/work-order/${id}/submit`, formData)
+  return res as unknown as WorkOrderDetail
+}
+
+export async function performNodeAction(id: number, action: { name: string; targetNodeId: string; conditionExpression?: string }): Promise<WorkOrderDetail> {
+  const res = await request.post(`/work-order/${id}/action`, action)
+  return res as unknown as WorkOrderDetail
+}
+
+export async function submitDraft(id: number): Promise<WorkOrderDetail> {
+  const res = await request.post(`/work-order/${id}/submit-draft`)
+  return res as unknown as WorkOrderDetail
+}

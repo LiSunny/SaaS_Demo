@@ -3,7 +3,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats, CreateOrderParams } from '@/types/work-order'
 import type { TemplateDetail } from '@/types/workflow'
-import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, createWorkOrder } from '@/api/work-order'
+import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, acceptWorkOrder, submitNodeForm, performNodeAction, createWorkOrder, submitDraft as submitDraftOrder } from '@/api/work-order'
 import { getTemplateDetail } from '@/api/workflow'
 
 export const useWorkOrderStore = defineStore('workOrder', () => {
@@ -76,13 +76,14 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     try {
       const wo = await getWorkOrderDetail(id)
       detail.value = wo
-      // 关联加载模板详情（获取 formSchema/flowDefinition）
+      // 同步加载模板详情（确保表单数据在 loading 结束前就位）
       if (wo.templateId) {
-        getTemplateDetail(wo.templateId).then(td => {
+        try {
+          const td = await getTemplateDetail(wo.templateId)
           templateDetail.value = td || null
-        }).catch(() => {
+        } catch {
           templateDetail.value = null
-        })
+        }
       }
     } finally {
       detailLoading.value = false
@@ -98,7 +99,8 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
   // 操作
   async function cancel(id: number, reason: string) {
     await cancelWorkOrder(id, reason)
-    closeDetail()
+    detail.value = null
+    templateDetail.value = null
     fetchList()
   }
 
@@ -118,11 +120,48 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     return res
   }
 
+  /** 发起草稿状态的工单 */
+  async function submitDraft(id: number) {
+    const res = await submitDraftOrder(id)
+    detail.value = res
+    ElMessage.success('工单已发起，进入流转')
+    fetchList()
+    return res
+  }
+
+  // ===== 详情交互操作 =====
+
+  async function acceptOrder(id: number) {
+    const res = await acceptWorkOrder(id)
+    detail.value = res
+    ElMessage.success('已接单')
+  }
+
+  async function submitForm(id: number, formData: Record<string, any>) {
+    const res = await submitNodeForm(id, formData)
+    detail.value = res
+    ElMessage.success('处置结果已提交')
+  }
+
+  async function executeNodeAction(id: number, action: { name: string; targetNodeId: string; conditionExpression?: string }) {
+    const res = await performNodeAction(id, action)
+    detail.value = res
+    // 刷新关联的模板详情（当前节点可能变了，需要新的表单 schema）
+    try {
+      const td = await getTemplateDetail(res.templateId)
+      templateDetail.value = td || null
+    } catch {
+      templateDetail.value = null
+    }
+    ElMessage.success(`${action.name}操作成功`)
+  }
+
   return {
     list, loading, query, total, stats,
     detailVisible, detailLoading, detail, templateDetail,
     fetchList, fetchStats, search, reset, toggleStatFilter,
     activeStatFilter,
-    openDetail, closeDetail, cancel, reassign, createOrder,
+    openDetail, closeDetail, cancel, reassign, createOrder, submitDraft,
+    acceptOrder, submitForm, executeNodeAction,
   }
 })

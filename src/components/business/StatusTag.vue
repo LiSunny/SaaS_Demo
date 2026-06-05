@@ -27,12 +27,14 @@ const MAP: Record<string, { label: string; cls: string }> = {
   closed: { label: '已关闭', cls: 'normal' },
   // 优先级
   urgent: { label: '紧急', cls: 'danger' },
+  high: { label: '高', cls: 'warning' },
   normal: { label: '普通', cls: 'warning' },
-  low: { label: '低优', cls: 'info' },
+  low: { label: '低', cls: 'info' },
   // 时间线节点状态
   completed: { label: '已完成', cls: 'success' },
   in_progress: { label: '进行中', cls: 'info' },
   node_pending: { label: '待处理', cls: 'normal' },
+  skipped: { label: '已跳过', cls: 'normal' },
 }
 
 const entry = computed(() => MAP[String(props.status)] || { label: props.status, cls: '' })

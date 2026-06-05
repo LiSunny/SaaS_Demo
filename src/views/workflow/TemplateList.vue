@@ -69,7 +69,10 @@
               <td class="fi-td col-status">
                 <StatusTag :status="row.status" />
               </td>
-              <td class="fi-td col-name">{{ row.name }}</td>
+              <td class="fi-td col-name">
+                {{ row.name }}
+                <span v-if="isSeed(row)" class="seed-badge" title="种子模版">⭐</span>
+              </td>
               <td class="fi-td col-progress">
                 <span class="progress-num">{{ row.nodeCount }}</span> 节点 · <span class="progress-num">{{ row.fieldCount }}</span> 字段
               </td>
@@ -82,6 +85,8 @@
                   <button class="act-btn act-edit" @click="handleEdit(row)" title="编辑"><AppIcon name="edit" class="act-icon" /></button>
                   <button class="act-btn act-delete" @click="handleDelete(row)" title="删除"><AppIcon name="delete" class="act-icon" /></button>
                   <el-switch :model-value="row.status === 1" :disabled="row.status === 3" @change="handleToggle(row)" />
+                  <button v-if="!isSeed(row)" class="act-btn act-seed" @click="handleWriteSeedFromList(row)" title="写入种子">📌</button>
+                  <button v-if="isSeed(row)" class="act-btn act-seed" @click="handleUpdateSeedFromList(row)" title="更新种子">🔄</button>
                 </div>
               </td>
             </tr>
@@ -99,11 +104,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { useWorkflowStore } from '@/stores/workflow'
 import type { TemplateItem } from '@/types/workflow'
+import { isSeedTemplate, saveAsSeed } from '@/api/workflow'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
@@ -111,7 +117,21 @@ const router = useRouter()
 const store = useWorkflowStore()
 const { query } = store
 
-const handleSearch = () => { query.page = 1; store.fetchList() }
+/** 种子模板状态映射 id → boolean */
+const seedMap = reactive<Record<number, boolean>>({})
+
+/** 拉取列表并注入种子标记 */
+const fetchListWithSeed = async () => {
+  await store.fetchList()
+  for (const item of store.list) {
+    seedMap[item.id] = await isSeedTemplate(item.id)
+  }
+}
+
+/** 判断某行是否为种子模板 */
+const isSeed = (row: TemplateItem) => seedMap[row.id] ?? false
+
+const handleSearch = () => { query.page = 1; fetchListWithSeed() }
 const handleReset = () => { query.keyword = ''; query.status = ''; handleSearch() }
 const handleAdd = () => { router.push('/system/template/config') }
 const handleView = (row: TemplateItem) => { router.push(`/system/template/config/${row.id}?mode=view`) }
@@ -143,7 +163,26 @@ const toggleAll = () => {
   else store.selected = [...store.list]
 }
 
-onMounted(() => store.fetchList())
+const handleWriteSeedFromList = async (row: TemplateItem) => {
+  try {
+    await saveAsSeed(row.id)
+    seedMap[row.id] = true
+    ElMessage.success(`「${row.name}」已保存为种子模版`)
+  } catch (e: any) {
+    ElMessage.error(e?.message || '写入种子失败')
+  }
+}
+
+const handleUpdateSeedFromList = async (row: TemplateItem) => {
+  try {
+    await saveAsSeed(row.id)
+    ElMessage.success(`「${row.name}」种子已更新`)
+  } catch (e: any) {
+    ElMessage.error(e?.message || '更新种子失败')
+  }
+}
+
+onMounted(() => fetchListWithSeed())
 </script>
 
 <style scoped>

@@ -17,9 +17,7 @@ import type {
 
 // ===== 种子数据 =====
 const SEED_TEMPLATES: TemplateItem[] = [
-  { id: 1, name: '示例模版：安全生产督办流程（监管方）', status: 1, nodeCount: 4, fieldCount: 10, code: 'WF-SP-001', creator: '张监管', createdAt: '2026-05-15 09:00', updatedAt: '2026-05-30 14:30' },
-  { id: 2, name: '示例模版：督办整改执行流程（被监管方）', status: 1, nodeCount: 4, fieldCount: 8, code: 'WF-SP-002', creator: '李整改', createdAt: '2026-05-15 09:00', updatedAt: '2026-05-28 10:00' },
-  { id: 3, name: '示例模版：故障维修流程', status: 1, nodeCount: 5, fieldCount: 6, code: 'WF-SP-003', creator: '系统', createdAt: '2026-05-20 10:00', updatedAt: '2026-06-01 14:00' },
+  { id: 4, name: '示例模版：故障报修', status: 1, nodeCount: 4, fieldCount: 5, code: 'GD-20260603-3144', creator: '系统', createdAt: '2026-06-03 00:00', updatedAt: '2026-06-03 00:00' },
 ]
 
 // ===== 持久化 Store =====
@@ -91,173 +89,260 @@ function saveConfig(id: number, detail: TemplateDetail): void {
   }
 }
 
-// ===== 预置模板详情（只读，不持久化） =====
-const BUILTIN_DETAILS: Record<number, TemplateDetail> = {
-  1: {
-    id: 1,
-    baseInfo: {
-      name: '安全生产督办流程（监管方）',
-      code: 'WF-SP-001',
-      description: '监管方发起督办任务，跨企业下发至被监管方，审核整改结果后归档',
-      initiatorScope: 'specified',
-      slaPriority: 'urgent',
-      defaultTtrMinutes: 120,
-      defaultTtsMinutes: 2880,
-      amberThreshold: 80,
+function removeConfig(id: number): void {
+  localStorage.removeItem(`${CONFIG_PREFIX}${id}`)
+}
+
+// ===== 种子数据持久化（用户手动固化的模板快照，作为默认回退） =====
+const SEED_PREFIX = 'db:workflow:seed:'
+
+function loadSeed(id: number): TemplateDetail | undefined {
+  try {
+    const raw = localStorage.getItem(`${SEED_PREFIX}${id}`)
+    return raw ? JSON.parse(raw) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function saveSeed(id: number, detail: TemplateDetail): void {
+  try {
+    localStorage.setItem(`${SEED_PREFIX}${id}`, JSON.stringify(detail))
+  } catch (e) {
+    console.warn(`[workflow-dao] 种子持久化失败 (id=${id}):`, e)
+  }
+}
+
+function removeSeed(id: number): void {
+  localStorage.removeItem(`${SEED_PREFIX}${id}`)
+}
+
+function hasSeed(id: number): boolean {
+  return localStorage.getItem(`${SEED_PREFIX}${id}`) !== null
+}
+
+// ===== 预置模板详情（出厂默认值，不可变，仅作为最终兜底） =====
+export const BUILTIN_DETAILS: Record<number, TemplateDetail> = {
+  // 模板 4（故障报修）— 用户自建模板，已固化至 BUILTIN_DETAILS 作为出厂兜底
+  // 运行时仍走 localStorage 持久化路径（草稿 → 已发布配置 → 种子 → 此处兜底）
+  4: {
+    "id": 4,
+    "baseInfo": {
+        "name": "示例模版：故障报修",
+        "code": "GD-20260603-3144",
+        "description": "故障报修工单",
+        "initiatorScope": "all",
+        "initiatorUserIds": [],
+        "slaPriority": "normal",
+        "amberThreshold": 80
     },
-    formSchema: {
-      start_1: {
-        fields: [
-          { id: 'f1',  type: 'input',    label: '督办标题',     required: true,  source: 'manual', span: 24 },
-          { id: 'f2',  type: 'textarea', label: '督办事项描述', required: true,  source: 'manual', span: 24 },
-          { id: 'f3',  type: 'textarea', label: '整改标准',     required: true,  source: 'manual', span: 24 },
-          { id: 'f4',  type: 'input',    label: '整改期限',     required: true,  source: 'manual', span: 12 },
-          { id: 'f5',  type: 'input',    label: '督办类型',     required: true,  source: 'manual', span: 12 },
-          { id: 'f6',  type: 'input',    label: '被监管企业',   required: true,  source: 'manual', span: 12 },
-          { id: 'f7',  type: 'input',    label: '紧急程度',     required: true,  source: 'manual', span: 12 },
-          { id: 'f8',  type: 'input',    label: '督办依据',     required: false, source: 'manual', span: 12 },
-          { id: 'f9',  type: 'input',    label: '抄送人',       required: false, source: 'auto',    span: 12 },
-          { id: 'f10', type: 'input',    label: '附件',         required: false, source: 'manual', span: 24 },
+    "formSchema": {
+        "start": {
+            "fields": [
+                {
+                    "id": "Feqcmpz7ldykabc",
+                    "type": "input",
+                    "label": "故障描述",
+                    "source": "manual",
+                    "required": false
+                },
+                {
+                    "id": "F4pumpz7ll1uaec",
+                    "type": "upload",
+                    "label": "现场图片",
+                    "source": "manual",
+                    "required": false
+                },
+                {
+                    "id": "F75ompz7lvqjakc",
+                    "type": "select",
+                    "label": "维修人员",
+                    "source": "manual",
+                    "required": false,
+                    "options": [
+                        { "value": "zhangsan", "label": "张三" },
+                        { "value": "lisi", "label": "李四" },
+                        { "value": "wangwu", "label": "王五" },
+                        { "value": "zhaoliu", "label": "赵六" },
+                        { "value": "sunqi", "label": "孙七" }
+                    ]
+                },
+                {
+                    "id": "Fskkmpz7m3jjanc",
+                    "type": "radio",
+                    "label": "维修结果",
+                    "source": "manual",
+                    "required": true,
+                    "options": [
+                        { "value": "repaired", "label": "已修复" },
+                        { "value": "unrepaired", "label": "未修复" },
+                        { "value": "partial", "label": "部分修复" }
+                    ]
+                },
+                {
+                    "id": "F9ltmpz7mn57aqc",
+                    "type": "upload",
+                    "label": "维修后图片",
+                    "source": "manual",
+                    "required": false
+                },
+                {
+                    "id": "Foewmpz7mv4catc",
+                    "type": "radio",
+                    "label": "验收审核",
+                    "source": "manual",
+                    "required": true,
+                    "options": [
+                        { "value": "approved", "label": "通过" },
+                        { "value": "rejected", "label": "驳回" }
+                    ]
+                }
+            ]
+        }
+    },
+    "flowDefinition": {
+        "nodes": [
+            {
+                "id": "start",
+                "type": "start",
+                "name": "发起工单",
+                "formFields": [
+                    {
+                        "fieldId": "F75ompz7lvqjakc",
+                        "mode": "hidden"
+                    },
+                    {
+                        "fieldId": "Fskkmpz7m3jjanc",
+                        "mode": "hidden"
+                    },
+                    {
+                        "fieldId": "F9ltmpz7mn57aqc",
+                        "mode": "hidden"
+                    },
+                    {
+                        "fieldId": "Foewmpz7mv4catc",
+                        "mode": "hidden"
+                    }
+                ]
+            },
+            {
+                "id": "assign_1780560343559",
+                "type": "assign",
+                "name": "指派人员",
+                "formFields": [
+                    {
+                        "fieldId": "F75ompz7lvqjakc",
+                        "mode": "editable"
+                    },
+                    {
+                        "fieldId": "Fskkmpz7m3jjanc",
+                        "mode": "hidden"
+                    },
+                    {
+                        "fieldId": "F9ltmpz7mn57aqc",
+                        "mode": "hidden"
+                    },
+                    {
+                        "fieldId": "Foewmpz7mv4catc",
+                        "mode": "hidden"
+                    }
+                ],
+                "assignSource": "dynamic",
+                "dynamicAssignFieldId": "F75ompz7lvqjakc"
+            },
+            {
+                "id": "execute_1780560370108",
+                "type": "execute",
+                "name": "现场维修",
+                "formFields": [
+                    {
+                        "fieldId": "F75ompz7lvqjakc",
+                        "mode": "hidden"
+                    },
+                    {
+                        "fieldId": "Fskkmpz7m3jjanc",
+                        "mode": "editable"
+                    },
+                    {
+                        "fieldId": "F9ltmpz7mn57aqc",
+                        "mode": "editable"
+                    },
+                    {
+                        "fieldId": "Foewmpz7mv4catc",
+                        "mode": "hidden"
+                    }
+                ],
+                "assignSource": "dynamic",
+                "dynamicAssignFieldId": "F75ompz7lvqjakc"
+            },
+            {
+                "id": "confirm_1780560387291",
+                "type": "confirm",
+                "name": "验收审核",
+                "formFields": [
+                    {
+                        "fieldId": "F75ompz7lvqjakc",
+                        "mode": "readonly"
+                    },
+                    {
+                        "fieldId": "Fskkmpz7m3jjanc",
+                        "mode": "readonly"
+                    },
+                    {
+                        "fieldId": "F9ltmpz7mn57aqc",
+                        "mode": "readonly"
+                    },
+                    {
+                        "fieldId": "Foewmpz7mv4catc",
+                        "mode": "editable"
+                    }
+                ],
+                "assignSource": "static",
+                "dynamicAssignFieldId": "F75ompz7lvqjakc",
+                "actions": [
+                    {
+                        "name": "通过",
+                        "targetNodeId": "close"
+                    },
+                    {
+                        "name": "驳回",
+                        "targetNodeId": "execute_1780560370108"
+                    }
+                ],
+                "assignConfig": {
+                    "strategy": "user",
+                    "targetIds": [
+                        1
+                    ],
+                    "multipleMode": "anyone"
+                }
+            },
+            {
+                "id": "close",
+                "type": "close",
+                "name": "结束"
+            }
         ],
-      },
-    },
-    flowDefinition: {
-      nodes: [
-        { id: 'start_1',    type: 'start',    name: '发起督办' },
-        { id: 'external_1', type: 'external', name: '下发至被监管企业' },
-        {
-          id: 'confirm_1',
-          type: 'confirm',
-          name: '审核整改结果',
-          assignSource: 'static',
-          assignConfig: { strategy: 'user', targetIds: [1], multipleMode: 'anyone' },
-          actions: [
-            { name: '审核通过', targetNodeId: 'close_1' },
-            { name: '驳回整改', targetNodeId: 'external_1' },
-          ],
-          slaLimits: { ttrMinutes: 120, amberThreshold: 80 },
-        },
-        { id: 'close_1', type: 'close', name: '关闭归档' },
-      ],
-      edges: [
-        { from: 'start_1',    to: 'external_1' },
-        { from: 'external_1', to: 'confirm_1' },
-        { from: 'confirm_1',  to: 'close_1' },
-      ],
-    },
-  },
-  2: {
-    id: 2,
-    baseInfo: {
-      name: '督办整改执行流程（被监管方）',
-      code: 'WF-SP-002',
-      description: '接收监管方督办任务，内部指派整改人，执行整改后提交结果',
-      initiatorScope: 'specified',
-      slaPriority: 'normal',
-      defaultTtrMinutes: 480,
-      defaultTtsMinutes: 4320,
-      amberThreshold: 80,
-    },
-    formSchema: {
-      start_1: {
-        fields: [
-          { id: 'f1', type: 'input',    label: '督办标题',     required: true,  source: 'inherited', span: 24 },
-          { id: 'f2', type: 'textarea', label: '督办事项描述', required: true,  source: 'inherited', span: 24 },
-          { id: 'f3', type: 'textarea', label: '整改标准',     required: true,  source: 'inherited', span: 24 },
-          { id: 'f4', type: 'input',    label: '整改期限',     required: true,  source: 'inherited', span: 12 },
-          { id: 'f5', type: 'textarea', label: '整改计划',     required: true,  source: 'manual',    span: 24 },
-          { id: 'f6', type: 'textarea', label: '整改结果描述', required: true,  source: 'manual',    span: 24 },
-          { id: 'f7', type: 'input',    label: '整改照片',     required: true,  source: 'manual',    span: 24 },
-          { id: 'f8', type: 'input',    label: '处理人签名',   required: false, source: 'manual',    span: 12 },
-        ],
-      },
-    },
-    flowDefinition: {
-      nodes: [
-        { id: 'start_1',   type: 'start',   name: '接收督办' },
-        {
-          id: 'assign_1',
-          type: 'assign',
-          name: '指派整改人',
-          assignSource: 'static',
-          assignConfig: { strategy: 'user', targetIds: [2, 3, 4], multipleMode: 'anyone' },
-          slaLimits: { ttrMinutes: 240, amberThreshold: 80 },
-        },
-        {
-          id: 'execute_1',
-          type: 'execute',
-          name: '执行整改',
-          slaLimits: { ttsMinutes: 2880, amberThreshold: 80 },
-        },
-        { id: 'close_1', type: 'close', name: '提交结果' },
-      ],
-      edges: [
-        { from: 'start_1',   to: 'assign_1' },
-        { from: 'assign_1',  to: 'execute_1' },
-        { from: 'execute_1', to: 'close_1' },
-      ],
-    },
-  },
-  3: {
-    id: 3,
-    baseInfo: {
-      name: '故障维修流程',
-      code: 'WF-SP-003',
-      description: '设备故障报修、派单维修、验收关闭的完整闭环流程',
-      initiatorScope: 'all',
-      slaPriority: 'urgent',
-      defaultTtrMinutes: 30,
-      defaultTtsMinutes: 480,
-      amberThreshold: 80,
-    },
-    formSchema: {
-      start_1: {
-        fields: [
-          { id: 'f1', type: 'input', label: '设备名称', required: true, source: 'manual', span: 12 },
-          { id: 'f2', type: 'input', label: '设备编号', required: true, source: 'manual', span: 12 },
-          { id: 'f3', type: 'select', label: '故障类型', required: true, source: 'manual', span: 12, options: [{ value: 'mechanical', label: '机械故障' }, { value: 'electrical', label: '电气故障' }, { value: 'leak', label: '渗漏' }, { value: 'other', label: '其他' }] },
-          { id: 'f4', type: 'textarea', label: '故障描述', required: true, source: 'manual', span: 24 },
-          { id: 'f5', type: 'upload', label: '现场照片', required: false, source: 'manual', span: 24 },
-          { id: 'f6', type: 'textarea', label: '维修结果', required: false, source: 'manual', span: 24 },
-        ],
-      },
-    },
-    flowDefinition: {
-      nodes: [
-        {
-          id: 'start_1', type: 'start', name: '发起报修',
-          formFields: [
-            { fieldId: 'f1', mode: 'editable' },
-            { fieldId: 'f2', mode: 'editable' },
-            { fieldId: 'f3', mode: 'editable' },
-            { fieldId: 'f4', mode: 'editable' },
-            { fieldId: 'f5', mode: 'editable' },
-            { fieldId: 'f6', mode: 'hidden' },
-          ],
-        },
-        { id: 'assign_1', type: 'assign', name: '派单调度', assignSource: 'static', assignConfig: { strategy: 'user', targetIds: [1, 2, 3], multipleMode: 'anyone' } },
-        {
-          id: 'execute_1', type: 'execute', name: '现场维修',
-          formFields: [
-            { fieldId: 'f1', mode: 'readonly' },
-            { fieldId: 'f2', mode: 'readonly' },
-            { fieldId: 'f3', mode: 'readonly' },
-            { fieldId: 'f4', mode: 'readonly' },
-            { fieldId: 'f5', mode: 'readonly' },
-            { fieldId: 'f6', mode: 'editable' },
-          ],
-        },
-        { id: 'confirm_1', type: 'confirm', name: '验收确认', assignSource: 'static', assignConfig: { strategy: 'user', targetIds: [1], multipleMode: 'anyone' }, actions: [{ name: '验收通过', targetNodeId: 'close_1' }, { name: '退回整改', targetNodeId: 'execute_1' }] },
-        { id: 'close_1', type: 'close', name: '关闭归档' },
-      ],
-      edges: [
-        { from: 'start_1', to: 'assign_1' },
-        { from: 'assign_1', to: 'execute_1' },
-        { from: 'execute_1', to: 'confirm_1' },
-        { from: 'confirm_1', to: 'close_1' },
-      ],
-    },
-  },
+        "edges": [
+            {
+                "from": "start",
+                "to": "assign_1780560343559"
+            },
+            {
+                "from": "assign_1780560343559",
+                "to": "execute_1780560370108"
+            },
+            {
+                "from": "execute_1780560370108",
+                "to": "confirm_1780560387291"
+            },
+            {
+                "from": "confirm_1780560387291",
+                "to": "close"
+            }
+        ]
+    }
+},
 }
 
 // ===== API 函数 =====
@@ -299,12 +384,18 @@ export async function updateTemplate(id: number, data: Partial<TemplateForm>): P
 export async function deleteTemplate(id: number): Promise<void> {
   dao.remove(id)
   removeDraft(id)
+  removeConfig(id)
+  removeSeed(id)
   return Promise.resolve()
 }
 
 export async function batchDeleteTemplates(ids: number[]): Promise<void> {
   dao.removeMany(ids)
-  ids.forEach(removeDraft)
+  ids.forEach(id => {
+    removeDraft(id)
+    removeConfig(id)
+    removeSeed(id)
+  })
   return Promise.resolve()
 }
 
@@ -316,6 +407,8 @@ export async function updateTemplateStatus(id: number, status: number): Promise<
 // ===== 配置页业务接口 =====
 
 export async function getTemplateDetail(id: number): Promise<TemplateDetail | undefined> {
+  // 统一回退链：草稿 → 已发布配置 → 种子数据 → 出厂默认值 → 空
+
   // 1. 草稿优先（编辑中未发布的内容）
   const cached = loadDraft(id)
   if (cached) return Promise.resolve(cached)
@@ -324,13 +417,19 @@ export async function getTemplateDetail(id: number): Promise<TemplateDetail | un
   const published = loadConfig(id)
   if (published) return Promise.resolve(published)
 
+  // 3. 种子数据（用户手动固化的快照）
+  const seed = loadSeed(id)
+  if (seed) return Promise.resolve(seed)
+
+  // 4. 出厂默认值（仅作为最终兜底，不变异原对象）
+  if (BUILTIN_DETAILS[id]) {
+    return Promise.resolve(JSON.parse(JSON.stringify(BUILTIN_DETAILS[id])))
+  }
+
   const item = dao.getById(id)
   if (!item) return Promise.resolve(undefined)
 
-  // 3. 预置模板有默认详情
-  if (BUILTIN_DETAILS[id]) return Promise.resolve(JSON.parse(JSON.stringify(BUILTIN_DETAILS[id])))
-
-  // 4. 全新模板返回空配置
+  // 5. 全新模板返回空配置
   return Promise.resolve({
     id: item.id,
     baseInfo: {
@@ -404,6 +503,31 @@ export async function publishTemplate(id: number): Promise<TemplateItem> {
   })
   const item = dao.getById(id)!
   return Promise.resolve(item)
+}
+
+// ===== 种子模版接口 =====
+
+/** 将已发布配置固化为种子数据 */
+export async function saveAsSeed(id: number): Promise<void> {
+  const config = loadConfig(id)
+  if (!config) {
+    // 如果没有已发布配置，尝试用草稿
+    const draft = loadDraft(id)
+    if (!draft) throw new Error(`模板 ${id} 没有可用的配置`)
+    saveSeed(id, draft)
+  } else {
+    saveSeed(id, config)
+  }
+}
+
+/** 直接写入指定数据到种子 */
+export async function updateSeed(id: number, detail: TemplateDetail): Promise<void> {
+  saveSeed(id, detail)
+}
+
+/** 检查模板是否有种子数据 */
+export async function isSeedTemplate(id: number): Promise<boolean> {
+  return hasSeed(id)
 }
 
 // ===== 工具接口 =====

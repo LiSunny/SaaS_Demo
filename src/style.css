@@ -14,6 +14,10 @@
   --warning-bg: rgba(217, 119, 6, 0.1);
   --danger: #DC2626;
   --danger-bg: rgba(220, 38, 38, 0.1);
+  --semantic-danger: #DC2626;
+  --semantic-danger-bg: rgba(220, 38, 38, 0.1);
+  --semantic-info: #3678E3;
+  --semantic-info-border: rgba(54, 120, 227, 0.2);
   --info: #3678E3;
   --info-bg: rgba(54, 120, 227, 0.1);
   --notice: #CA8A04;
@@ -30,6 +34,7 @@
   /* 文字 */
   --text-primary: #101010;
   --text-secondary: #2E2E2E;
+  --text-tertiary: #454545;
   --text-muted: #5E5E5E;
   --text-placeholder: #D9D9D9;
 
@@ -111,6 +116,10 @@ html.dark {
   --warning-bg: rgba(255, 152, 0, 0.13);
   --danger: #F44336;
   --danger-bg: rgba(244, 67, 54, 0.13);
+  --semantic-danger: #F44336;
+  --semantic-danger-bg: rgba(244, 67, 54, 0.13);
+  --semantic-info: #3DD1E2;
+  --semantic-info-border: rgba(61, 209, 226, 0.2);
   --info: #3DD1E2;
   --info-bg: rgba(61, 209, 226, 0.13);
   --notice: #FFD600;
@@ -125,6 +134,7 @@ html.dark {
 
   --text-primary: #FFFFFF;
   --text-secondary: #C5C5C5;
+  --text-tertiary: #8892B0;
   --text-muted: #8892B0;
   --text-placeholder: #FFFFFF;
 
@@ -431,6 +441,17 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .btn-default:hover {
   color: var(--btn-default-hover-color);
   border-color: var(--btn-default-hover-border);
+}
+
+/* 种子操作 */
+.btn-seed {
+  background: transparent;
+  color: var(--accent-success, #67c23a);
+  border: 1px solid var(--accent-success, #67c23a);
+}
+.btn-seed:hover {
+  background: var(--accent-success, #67c23a);
+  color: #fff;
 }
 
 /* link 文字 */

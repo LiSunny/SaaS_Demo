@@ -38,6 +38,8 @@
           <button v-if="currentStep > 0" class="btn-default" @click="currentStep--">上一步</button>
           <button v-if="currentStep < 2" class="btn-primary" @click="handleNext">下一步</button>
           <button v-if="currentStep === 2" class="btn-primary" @click="handlePublish">发布</button>
+          <button v-if="canWriteSeed" class="btn-seed" @click="handleWriteSeed">写入种子</button>
+          <button v-if="canUpdateSeed" class="btn-seed" @click="handleUpdateSeed">更新种子</button>
         </template>
       </div>
     </div>
@@ -182,7 +184,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getTemplate, getTemplateDetail, saveTemplateDraft, publishTemplate, validateFlowDefinition } from '@/api/workflow'
+import { getTemplate, getTemplateDetail, saveTemplateDraft, publishTemplate, validateFlowDefinition, isSeedTemplate, saveAsSeed, updateSeed } from '@/api/workflow'
 import type { TemplateForm, SlaPriority, InitiatorScope, FormField, FormSchema, FlowNode, FlowDefinition } from '@/types/workflow'
 import AppIcon from '@/components/base/AppIcon.vue'
 import FormDesigner from '@/components/business/FormDesigner.vue'
@@ -193,11 +195,14 @@ const route = useRoute()
 const router = useRouter()
 const isEdit = ref(false)
 const isViewMode = computed(() => route.query.mode === 'view')
+const canWriteSeed = computed(() => isEdit.value && !isViewMode.value && !hasSeed.value)
+const canUpdateSeed = computed(() => isEdit.value && !isViewMode.value && hasSeed.value)
 const templateName = ref('')
 const currentStep = ref(0)
 const formRef = ref<FormInstance>()
 const slaActiveNames = ref<string[]>([])
 const saving = ref(false)
+const hasSeed = ref(false)
 const personDialogVisible = ref(false)
 const formDesignerRef = ref<InstanceType<typeof FormDesigner>>()
 const loadedFormFields = ref<FormField[]>([])
@@ -205,8 +210,8 @@ const flowNodes = ref<FlowNode[]>(defaultFlowNodes())
 
 function defaultFlowNodes(): FlowNode[] {
   return [
-    { id: 'start_1', type: 'start', name: '开始' },
-    { id: 'close_1', type: 'close', name: '结束' },
+    { id: 'start', type: 'start', name: '开始' },
+    { id: 'close', type: 'close', name: '结束' },
   ]
 }
 
@@ -300,6 +305,9 @@ onMounted(async () => {
         form.code = data.code
       }
     }
+    
+    // 检查是否已存在种子数据
+    hasSeed.value = await isSeedTemplate(id)
   } else {
     form.code = generateCode()
   }
@@ -424,6 +432,39 @@ const handlePublish = async () => {
   await publishTemplate(publishId)
   ElMessage.success('模板已发布')
   router.push('/system/template')
+}
+
+const handleWriteSeed = async () => {
+  try {
+    await saveAsSeed(id)
+    hasSeed.value = true
+    ElMessage.success('已保存为种子模版')
+  } catch (e: any) {
+    ElMessage.error(e?.message || '保存种子失败')
+  }
+}
+
+const handleUpdateSeed = async () => {
+  if (saving.value) return
+  saving.value = true
+  try {
+    const fields = formDesignerRef.value?.getFields() || []
+    const formSchema: FormSchema = fields.length > 0
+      ? { start: { fields } }
+      : {}
+    const flowDefinition = buildFlowDef()
+    await updateSeed(id, {
+      id,
+      baseInfo: { ...form },
+      formSchema,
+      flowDefinition,
+    })
+    ElMessage.success('种子已更新')
+  } catch (e: any) {
+    ElMessage.error(e?.message || '更新种子失败')
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 

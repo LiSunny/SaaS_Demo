@@ -35,8 +35,9 @@
           <div class="fi-select-wrap">
             <el-select v-model="query.priority" placeholder="优先级" clearable class="fi-select" :teleported="false" popper-class="fi-popper" @change="store.search()">
               <el-option label="紧急" value="urgent" />
+              <el-option label="高" value="high" />
               <el-option label="普通" value="normal" />
-              <el-option label="低优" value="low" />
+              <el-option label="低" value="low" />
             </el-select>
           </div>
 
@@ -73,7 +74,7 @@
               <th class="fi-th col-sla"><span>SLA状态</span></th>
               <th class="fi-th col-assignee"><span>当前处理人</span></th>
               <th class="fi-th col-creator"><span>发起人</span></th>
-              <th class="fi-th col-time"><span>发起时间</span></th>
+              <th class="fi-th col-time sortable" @click="toggleSort"><span>发起时间 <span class="sort-arrow">{{ query.sortOrder === 'asc' ? '↑' : '↓' }}</span></span></th>
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
           </thead>
@@ -86,7 +87,7 @@
               <td class="fi-td col-order">
                 <button class="btn-link" @click="router.push(`/system/order/${row.id}`)">{{ row.orderNo }}</button>
               </td>
-              <td class="fi-td col-tpl">{{ row.templateName }}</td>
+              <td class="fi-td col-tpl">{{ row.title }}</td>
               <td class="fi-td col-progress">
                 <span class="progress-text">{{ row.currentNodeIndex }}/{{ row.totalNodes }}</span>
               </td>
@@ -118,6 +119,10 @@
               <td class="fi-td col-actions">
                 <div class="action-cell">
                   <button class="btn-link" @click="router.push(`/system/order/${row.id}`)">详情</button>
+                  <template v-if="row.status === 'draft'">
+                    <button class="btn-link btn-link-primary" @click="handleSubmitDraft(row.id)">发起</button>
+                    <button class="btn-link btn-link-danger" @click="handleDelete(row.id)">删除</button>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -141,71 +146,45 @@
 
     </div>
 
-    <!-- ===== 取消确认弹窗 ===== -->
-    <el-dialog v-model="cancelDialogVisible" title="取消工单" width="480px" :close-on-click-modal="false">
-      <div class="cancel-content">
-        <p class="cancel-hint">确认取消工单 <strong>{{ store.detail?.orderNo }}</strong>？取消后工单将进入已关闭状态，且不触发归档回调。</p>
-        <el-input
-          v-model="cancelReason"
-          type="textarea"
-          :rows="3"
-          maxlength="200"
-          show-word-limit
-          placeholder="请输入取消原因"
-        />
-      </div>
-      <template #footer>
-        <button class="btn-default" @click="cancelDialogVisible = false">取消</button>
-        <button class="btn-danger" :disabled="!cancelReason.trim() || cancelSubmitting" @click="handleCancel">
-          {{ cancelSubmitting ? '提交中...' : '确认取消' }}
-        </button>
-      </template>
-    </el-dialog>
-
-    <!-- ===== 改派弹窗 ===== -->
-    <el-dialog v-model="reassignDialogVisible" title="强制改派" width="520px" :close-on-click-modal="false">
-      <div class="reassign-content">
-        <el-form label-width="100px">
-          <el-form-item label="目标处理人" required>
-            <PersonSelector :selected-ids="reassignTargetId ? [reassignTargetId] : []" placeholder="请选择处理人" @confirm="reassignTargetId = $event[0] || 0" />
-          </el-form-item>
-          <el-form-item label="改派原因" required>
-            <el-input
-              v-model="reassignReason"
-              type="textarea"
-              :rows="3"
-              maxlength="200"
-              show-word-limit
-              placeholder="请输入改派原因"
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-      <template #footer>
-        <button class="btn-default" @click="reassignDialogVisible = false">取消</button>
-        <button class="btn-primary" :disabled="!canReassign || reassignSubmitting" @click="handleReassign">
-          {{ reassignSubmitting ? '提交中...' : '确认改派' }}
-        </button>
-      </template>
-    </el-dialog>
-
     <!-- ===== 发起工单弹窗（共用组件）===== -->
-    <CreateOrderDialog v-model:visible="createDialogVisible" @created="store.fetchList()" />
+    <CreateOrderDialog v-model:visible="createDialogVisible" @created="store.fetchList()" @draft-saved="store.fetchList()" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
 import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'
-import PersonSelector from '@/components/business/PersonSelector.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import CreateOrderDialog from '@/components/business/CreateOrderDialog.vue'
 
 const store = useWorkOrderStore()
+
+// ===== 草稿工单操作 =====
+async function handleSubmitDraft(id: number) {
+  try {
+    await store.submitDraft(id)
+  } catch (e: any) {
+    ElMessage.error(e.message || '发起失败')
+  }
+}
+
+async function handleDelete(id: number) {
+  try {
+    await ElMessageBox.confirm('确认删除该草稿工单？', '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    // TODO: 接入删除 API
+    ElMessage.success('已删除')
+  } catch {
+    // 用户取消
+  }
+}
 const router = useRouter()
 const query = store.query
 
@@ -259,6 +238,13 @@ function onDateChange(v: [Date, Date] | null) {
   store.search()
 }
 
+// ===== 排序 =====
+function toggleSort() {
+  query.sortField = 'createdAt'
+  query.sortOrder = query.sortOrder === 'asc' ? 'desc' : 'asc'
+  store.search()
+}
+
 function handleReset() {
   dateRange.value = last30Days()
   store.reset()
@@ -274,7 +260,7 @@ const STATUS_LABEL_MAP: Record<InstanceStatus, string> = {
   draft: '草稿', pending_assign: '待指派', pending_accept: '待接单',
   processing: '处置中', verifying: '验收中', closed: '已关闭',
 }
-const PRIORITY_LABEL_MAP: Record<Priority, string> = { urgent: '紧急', normal: '普通', low: '低优' }
+const PRIORITY_LABEL_MAP: Record<Priority, string> = { urgent: '紧急', high: '高', normal: '普通', low: '低' }
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL_MAP[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL_MAP[p] || p }
 
@@ -291,54 +277,15 @@ function slaRemain(row: { sla: { ttsMinutes: number; ttsProgress: number; slaSta
   return `剩余 ${remain}m`
 }
 
-// ===== 取消工单 =====
-const cancelDialogVisible = ref(false)
-const cancelReason = ref('')
-const cancelSubmitting = ref(false)
-
-async function handleCancel() {
-  if (!cancelReason.value.trim()) return
-  cancelSubmitting.value = true
-  try {
-    await store.cancel(store.detail!.id, cancelReason.value)
-    ElMessage.success('工单已取消')
-    cancelDialogVisible.value = false
-    cancelReason.value = ''
-  } catch {
-    ElMessage.error('取消失败')
-  } finally {
-    cancelSubmitting.value = false
-  }
-}
-
-// ===== 强制改派 =====
-const reassignDialogVisible = ref(false)
-const reassignTargetId = ref<number | null>(null)
-const reassignReason = ref('')
-const reassignSubmitting = ref(false)
-
-const canReassign = computed(() => reassignTargetId.value !== null && reassignReason.value.trim())
-
-async function handleReassign() {
-  if (!canReassign.value) return
-  reassignSubmitting.value = true
-  try {
-    const res = await store.reassign(store.detail!.id, reassignTargetId.value!, reassignReason.value)
-    ElMessage.success(`已改派给 ${res.currentAssigneeName}`)
-    reassignDialogVisible.value = false
-    reassignTargetId.value = null
-    reassignReason.value = ''
-  } catch {
-    ElMessage.error('改派失败')
-  } finally {
-    reassignSubmitting.value = false
-  }
-}
-
 // ===== 定时刷新 SLA =====
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
+  // 默认按发起时间倒序
+  if (!query.sortField) {
+    query.sortField = 'createdAt'
+    query.sortOrder = 'desc'
+  }
   // 初始化默认近30天
   if (dateRange.value) {
     query.startDate = dateRange.value[0].toISOString().slice(0, 10)
@@ -416,8 +363,8 @@ onUnmounted(() => {
 @media (max-width: 1050px) { .col-time { display: none !important; } }
 
 /* ===== 表格列宽 ===== */
-.col-order { min-width: 180px; }
-.col-tpl { min-width: 170px; }
+.col-order { min-width: 160px; }
+.col-tpl { min-width: 100px; }
 .col-progress { min-width: 130px; }
 .col-status { width: 100px; }
 .col-pri { width: 80px; }
@@ -425,7 +372,16 @@ onUnmounted(() => {
 .col-assignee { min-width: 100px; }
 .col-creator { min-width: 100px; }
 .col-time { min-width: 170px; }
-.col-actions { width: 80px; }
+.col-actions { width: 140px; }
+.btn-link-primary { color: var(--accent-primary); }
+.btn-link-primary:hover { color: var(--accent-primary); opacity: 0.8; }
+.btn-link-danger { color: var(--semantic-danger); }
+.btn-link-danger:hover { color: var(--semantic-danger); opacity: 0.8; }
+
+/* 排序列头 */
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--accent-primary); }
+.sort-arrow { font-size: var(--font-small, 14px); color: var(--accent-primary); }
 
 /* 工单进度列 */
 .progress-text {

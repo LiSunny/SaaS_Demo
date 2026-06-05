@@ -50,6 +50,11 @@ export interface TemplateBase {
 // 兼容旧版模板创建表单（逐步迁移到 TemplateBase）
 export interface TemplateForm extends TemplateBase {}
 
+// ===== 动态数据源配置 =====
+export interface CallbackConfig {
+  type: 'person' | 'department' | 'position'
+}
+
 // ===== 表单设计 =====
 export interface FormField {
   id: string
@@ -61,6 +66,8 @@ export interface FormField {
   options?: { value: string; label: string }[]
   validationRules?: Record<string, any>
   span?: number
+  /** 动态数据源配置（source === 'callback' 时生效） */
+  callbackConfig?: CallbackConfig
 }
 
 export interface FormSchema {
