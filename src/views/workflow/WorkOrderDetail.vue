@@ -324,7 +324,6 @@ const STATUS_LABEL: Record<InstanceStatus, string> = {
   processing: '处置中', verifying: '验收中', closed: '已关闭',
 }
 const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', high: '高优', normal: '普通', low: '低优' }
-const SLA_LABEL: Record<string, string> = { normal: '正常', warning: '预警', timeout: '超时' }
 
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL[p] || p }

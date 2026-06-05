@@ -226,7 +226,7 @@ function initUploadLists() {
     if (f.type === 'upload') {
       // 从 formData 恢复已有的文件信息（编辑/回显场景）
       const stored = formData[f.id]
-      map[f.id] = Array.isArray(stored) ? stored : (stored ? [{ name: String(stored), url: String(stored), uid: f.id + '-0', status: 'success' as const } as UploadFile] : [])
+      map[f.id] = Array.isArray(stored) ? stored : (stored ? [{ name: String(stored), url: String(stored), uid: Number(f.id.replace(/\D/g, '') || 0), status: 'success' as const }] : [])
     }
   }
   uploadFileLists.value = map
