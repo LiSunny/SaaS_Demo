@@ -243,11 +243,6 @@ function toInstanceStatus(raw: string): InstanceStatus {
   return 'active'
 }
 
-// 实例状态 → 当前活跃节点类型（草稿对应 start，已关闭无活跃节点，进行中按原状态推断）
-const ACTIVE_NODE_TYPE: Record<string, string | null> = {
-  draft: 'start', active: 'execute', closed: null,
-}
-
 // 模板名 → 真实模板 ID（当前仅模板 4「示例模版：故障报修」可用）
 const TEMPLATE_ID_MAP: Record<string, number> = {
   '示例模版：故障报修': 4,

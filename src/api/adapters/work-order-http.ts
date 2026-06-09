@@ -58,3 +58,8 @@ export async function submitDraft(id: number): Promise<WorkOrderDetail> {
   const res = await request.post(`/work-order/${id}/submit-draft`)
   return res as unknown as WorkOrderDetail
 }
+
+export async function updatePriority(id: number, priority: string): Promise<WorkOrderDetail> {
+  const res = await request.patch(`/work-order/${id}/priority`, { priority })
+  return res as unknown as WorkOrderDetail
+}

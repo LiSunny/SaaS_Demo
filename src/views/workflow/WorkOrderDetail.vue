@@ -22,7 +22,7 @@
                 <StatusTag :status="store.detail.priority" :label="priorityLabel(store.detail.priority)" />
                 <span v-if="store.detail.escalatedFrom" class="escalated-badge" :title="'原优先级：' + priorityLabel(store.detail.escalatedFrom)">↑ 已升级</span>
                 <button
-                  v-if="store.detail.status !== 'closed'"
+                  v-if="(store.detail.status as string) !== 'closed'"
                   class="priority-edit-btn"
                   title="修改优先级"
                   @click="openPriorityDialog"
@@ -274,7 +274,7 @@
             @click="reassignDialogVisible = true"
           >强制改派</button>
           <button
-            v-if="store.detail.status !== 'closed'"
+            v-if="(store.detail.status as string) !== 'closed'"
             class="btn-danger"
             @click="cancelDialogVisible = true"
           >取消工单</button>
