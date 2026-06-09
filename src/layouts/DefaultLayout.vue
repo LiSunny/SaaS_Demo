@@ -36,7 +36,7 @@
           :class="['workbench-item', { active: activeNavKey === WORKBENCH_ITEM.key }]"
           @click="onNodeClick(WORKBENCH_ITEM)"
         >
-          <span class="wb-star">⭐</span>
+          <AppIcon :name="WORKBENCH_ITEM.icon || 'menuicon'" class="side-icon" />
           <span class="side-label">工作台</span>
         </button>
 
@@ -55,7 +55,7 @@
                 :class="['side-item', { active: activeNavKey === item.key }]"
                 @click="onNodeClick(item)"
               >
-                <span class="side-dot" />
+                <AppIcon :name="item.icon || 'menuicon'" class="side-icon" />
                 <span class="side-label">{{ item.label }}</span>
                 <span class="pin-active" @click.stop="togglePin(item.key)">⭐</span>
               </button>
@@ -76,11 +76,10 @@
           :key="group.key"
           class="nav-group"
         >
-          <button class="section-header" @click="toggleGroup(group.key)">
+          <div class="section-header">
             <span class="section-label">{{ group.label }}</span>
-            <svg class="section-chevron" :class="{ rotated: expandedGroups.includes(group.key) }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-          </button>
-          <div v-show="expandedGroups.includes(group.key)" class="section-body">
+          </div>
+          <div class="section-body">
             <template v-for="node in group.children" :key="node.key">
               <!-- 展开节点（有 children，无 route） -->
               <div v-if="node.children && !node.route" class="side-group">
@@ -88,7 +87,7 @@
                   :class="['side-item', { open: expandedKeys.includes(node.key) }]"
                   @click="toggleExpand(node.key)"
                 >
-                  <span class="side-dot" />
+                  <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
                   <span class="side-label">{{ node.label }}</span>
                   <span
                     class="pin-icon"
@@ -114,7 +113,7 @@
                 :class="['side-item', { active: activeNavKey === node.key }]"
                 @click="onNodeClick(node)"
               >
-                <span class="side-dot" />
+                <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
                 <span class="side-label">{{ node.label }}</span>
                 <span
                   class="pin-icon"
@@ -126,7 +125,7 @@
 
               <!-- 纯占位（两者都无）— 不可点击 -->
               <div v-else class="side-item side-item-placeholder">
-                <span class="side-dot" />
+                <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
                 <span class="side-label">{{ node.label }}</span>
               </div>
             </template>
@@ -164,7 +163,6 @@ const router = useRouter()
 // ===== 状态 =====
 const activeNavKey = ref('')
 const expandedKeys = ref<string[]>([])
-const expandedGroups = ref<string[]>([])
 const sidebarCollapsed = ref(false)
 const searchQuery = ref('')
 const pinnedExpanded = ref(true)
@@ -254,19 +252,6 @@ const filteredGroups = computed(() => {
     .filter(g => g.children.length > 0)
 })
 
-// ===== 分组展开/折叠 =====
-
-function toggleGroup(key: string): void {
-  const idx = expandedGroups.value.indexOf(key)
-  if (idx > -1) {
-    expandedGroups.value.splice(idx, 1)
-  } else {
-    expandedGroups.value.push(key)
-  }
-  // 展开分组时取消侧栏收起
-  if (sidebarCollapsed.value) sidebarCollapsed.value = false
-}
-
 // ===== 节点展开/折叠 =====
 function toggleExpand(key: string): void {
   const idx = expandedKeys.value.indexOf(key)
@@ -309,13 +294,9 @@ function syncMenuFromRoute(): void {
 
   activeNavKey.value = navKey
 
-  // 2. 自动展开所在分组和父级
+  // 2. 自动展开父级
   const ancestors = findAncestors(navKey)
   if (ancestors) {
-    // 展开分组
-    if (!expandedGroups.value.includes(ancestors.groupKey)) {
-      expandedGroups.value.push(ancestors.groupKey)
-    }
     // 展开父节点
     for (const parentKey of ancestors.parentKeys) {
       if (!expandedKeys.value.includes(parentKey)) {
@@ -324,27 +305,6 @@ function syncMenuFromRoute(): void {
     }
   }
 }
-
-// ===== 初始化分组展开状态 =====
-function initGroupDefaults(): void {
-  expandedGroups.value = NAV_GROUPS
-    .filter(g => g.defaultOpen)
-    .map(g => g.key)
-}
-
-// ===== 搜索时展开所有分组 =====
-watch(searchQuery, (q) => {
-  if (q.trim()) {
-    // 搜索时全部展开
-    expandedGroups.value = NAV_GROUPS.map(g => g.key)
-  } else {
-    // 清空搜索时恢复默认
-    initGroupDefaults()
-  }
-})
-
-// ===== 启动 =====
-initGroupDefaults()
 
 // 路由变化时自动同步菜单
 watch(() => router.currentRoute.value.path, syncMenuFromRoute, { immediate: true })
@@ -427,7 +387,6 @@ if (typeof window !== 'undefined') {
 .left-sidebar.collapsed .search-icon,
 .left-sidebar.collapsed .sidebar-divider,
 .left-sidebar.collapsed .pinned-section,
-.left-sidebar.collapsed .wb-star + .side-label,
 .left-sidebar.collapsed .no-results,
 .left-sidebar.collapsed .pin-icon { display: none !important; }
 .left-sidebar.collapsed .sidebar-search { display: none; }
@@ -437,7 +396,6 @@ if (typeof window !== 'undefined') {
 .left-sidebar.collapsed .side-item {
   justify-content: center; padding: 0; gap: 0; height: 45px;
 }
-.left-sidebar.collapsed .side-dot { margin: 0; }
 
 /* ===== 搜索框 ===== */
 .sidebar-search {
@@ -468,7 +426,6 @@ if (typeof window !== 'undefined') {
 }
 .workbench-item:hover { background: var(--accent-primary); color: #fff; }
 .workbench-item.active { background: var(--accent-primary); color: #fff; }
-.wb-star { font-size: 16px; flex-shrink: 0; }
 
 /* ===== 分隔线 ===== */
 .sidebar-divider {
@@ -514,12 +471,9 @@ if (typeof window !== 'undefined') {
   cursor: default; opacity: 0.5;
 }
 
-.side-dot {
-  width: 22px; height: 22px; flex-shrink: 0;
-  border-radius: 6px; background: var(--border-default);
-}
-.side-item.active .side-dot { background: rgba(255,255,255,0.3); }
-.side-item:hover .side-dot { background: var(--accent-primary); }
+.side-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-muted); }
+.side-item.active .side-icon { color: #FFFFFF; }
+.side-item:hover .side-icon { color: var(--accent-primary); }
 .side-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .side-arrow { flex-shrink: 0; transition: transform .2s; }
@@ -588,7 +542,6 @@ if (typeof window !== 'undefined') {
   .left-sidebar .search-icon,
   .left-sidebar .sidebar-divider,
   .left-sidebar .pinned-section,
-  .left-sidebar .wb-star + .side-label,
   .left-sidebar .no-results,
   .left-sidebar .pin-icon { display: none !important; }
   .left-sidebar .sidebar-search { display: none; }
@@ -598,7 +551,6 @@ if (typeof window !== 'undefined') {
   .left-sidebar .side-item {
     justify-content: center; padding: 0; gap: 0; height: 45px;
   }
-  .left-sidebar .side-dot { margin: 0; }
   .left-sidebar.collapsed { width: 72px; }
   .logo-area { width: auto; }
 }

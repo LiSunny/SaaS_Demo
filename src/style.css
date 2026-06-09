@@ -263,7 +263,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 /* ========== 搜索输入框 ========== */
 .search-input-wrap { position: relative; width: 208px; display: flex; }
 .fi-input {
-  width: 100%; flex: 1; box-sizing: border-box; border: 1px solid var(--border-high);
+  width: 100%; flex: 1; box-sizing: border-box; border: 1px solid var(--border-default);
   border-radius: var(--radius-md, 8px); padding: var(--spacing-md, 8px) var(--spacing-xxl, 24px) var(--spacing-md, 8px) var(--spacing-xl, 16px);
   font-size: var(--font-small, 14px); color: var(--text-primary); background: var(--bg-card); outline: none;
 }
@@ -283,7 +283,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .fi-select-wrap { width: 193px; display: flex; }
 .fi-select-wrap .el-select { width: 100%; height: 100%; display: flex; }
 .fi-select-wrap .el-select__wrapper {
-  border: 1px solid var(--border-high) !important; border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default) !important; border-radius: var(--radius-md, 8px);
   padding: var(--spacing-md, 8px) var(--spacing-xl, 16px); box-shadow: none !important;
   background: var(--bg-card) !important; flex: 1; min-height: 0; box-sizing: border-box;
 }
@@ -298,7 +298,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .fi-date-range-wrap { width: 380px; display: flex; }
 .fi-date-range-wrap .el-date-editor {
   width: 100%; min-width: 0; height: 100% !important; flex: 1; box-sizing: border-box;
-  border: 1px solid var(--border-high) !important;
+  border: 1px solid var(--border-default) !important;
   border-radius: var(--radius-md, 8px);
   box-shadow: none !important;
   background: var(--bg-card);
@@ -361,14 +361,14 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 }
 
 /* ========== EL 组件通用 Dark 适配 ========== */
-.el-switch__core { background-color: var(--border-high); }
+.el-switch__core { background-color: var(--border-default); }
 .el-switch.is-checked .el-switch__core { background-color: var(--accent-primary); border-color: var(--accent-primary); }
 
 /* ========== Radio / Checkbox ========== */
 .el-radio__inner,
 .el-checkbox__inner {
   background: var(--bg-card) !important;
-  border-color: var(--border-high) !important;
+  border-color: var(--border-default) !important;
 }
 .el-radio.is-checked .el-radio__inner,
 .el-checkbox.is-checked .el-checkbox__inner {
@@ -397,7 +397,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 }
 .tags-add-btn {
   display: inline-flex; align-items: center; justify-content: center; height: 28px;
-  padding: 0 var(--spacing-lg, 12px); border: 1px dashed var(--border-high);
+  padding: 0 var(--spacing-lg, 12px); border: 1px dashed var(--border-default);
   border-radius: var(--radius-sm, 6px); font-size: var(--font-small, 14px);
   color: var(--text-muted); transition: all .15s;
 }
@@ -513,4 +513,4 @@ body {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--border-high); }
+::-webkit-scrollbar-thumb:hover { background: var(--border-default); }

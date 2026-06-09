@@ -315,7 +315,7 @@ onUnmounted(() => {
 /* ===== 统计卡片行 ===== */
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-md, 8px);
   flex-shrink: 0;
 }

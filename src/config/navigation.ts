@@ -32,7 +32,7 @@ export interface NavGroup {
 export const WORKBENCH_ITEM: NavNode = {
   key: 'workbench',
   label: '工作台',
-  icon: 'star',
+  icon: 'menuicon-53',
   route: '/workbench',
 }
 
@@ -57,6 +57,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'remote-duty',
         label: '远程值守',
+        icon: 'menuicon-48',
         children: [
           { key: 'duty-workbench', label: '工作台' },
           { key: 'duty-alarm', label: '告警中心' },
@@ -67,6 +68,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'data-visual',
         label: '数据可视化',
+        icon: 'menuicon-30',
         children: [
           { key: 'data-report', label: '智能报表' },
           { key: 'data-bigscreen', label: '可视化大屏' },
@@ -75,6 +77,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'order-mgmt',
         label: '工单管理',
+        icon: 'menuicon-2',
         children: [
           { key: 'order-monitor', label: '工单监控', route: '/system/monitor' },
           { key: 'order-dashboard', label: '数据看板', route: '/system/dashboard' },
@@ -90,11 +93,12 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: 'device',
     defaultOpen: false,
     children: [
-      { key: 'device', label: '设备管理', route: '/device' },
-      { key: 'iot', label: 'IOT', route: '/iot' },
+      { key: 'device', label: '设备管理', icon: 'menuicon-45', route: '/device' },
+      { key: 'iot', label: 'IOT', icon: 'menuicon-46', route: '/iot' },
       {
         key: 'maintain-app',
         label: '维保应用',
+        icon: 'menuicon-9',
         children: [
           { key: 'maintain-contract', label: '合同管理' },
           { key: 'maintenance-record', label: '维保记录', route: '/maintenance/plans' },
@@ -113,6 +117,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'patrol-inspect',
         label: '巡查检查',
+        icon: 'menuicon-25',
         children: [
           { key: 'patrol-plan', label: '巡查计划' },
           { key: 'patrol-task', label: '巡查任务' },
@@ -122,6 +127,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'hazard-mgmt',
         label: '隐患管理',
+        icon: 'menuicon-29',
         children: [
           { key: 'hazard-ledger', label: '隐患台账' },
           { key: 'hazard-self-report', label: '自查上报' },
@@ -130,6 +136,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'danger-work',
         label: '危险作业',
+        icon: 'menuicon-27',
         children: [
           { key: 'danger-register', label: '作业备案' },
           { key: 'danger-approve', label: '特殊作业审批' },
@@ -148,6 +155,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'gov-mgmt',
         label: '政务管理',
+        icon: 'menuicon-3',
         children: [
           { key: 'gov-whitelist', label: '白名单管理' },
           { key: 'gov-inspect', label: '检查记录' },
@@ -156,6 +164,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'project-mgmt',
         label: '项目管理',
+        icon: 'menuicon-28',
         children: [
           { key: 'project-list', label: '项目列表' },
           { key: 'project-task', label: '任务管理' },
@@ -164,6 +173,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'food-mgmt',
         label: '食品安全',
+        icon: 'menuicon-40',
         children: [
           { key: 'food-ledger', label: '数字台账' },
           { key: 'food-stock', label: '出入库管理' },
@@ -183,6 +193,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'training-drill',
         label: '培训与演练',
+        icon: 'menuicon-6',
         children: [
           { key: 'training-knowledge', label: '知识库' },
           { key: 'training-record', label: '培训记录' },
@@ -202,12 +213,13 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'process-mgmt',
         label: '流程管理',
+        icon: 'menuicon-42',
         children: [
           { key: 'flow-template', label: '流程模板', route: '/system/template' },
         ],
       },
-      { key: 'platform-config', label: '平台配置', route: '/platform' },
-      { key: 'admin-mgmt', label: '系统管理', route: '/admin' },
+      { key: 'platform-config', label: '平台配置', icon: 'menuicon-51', route: '/platform' },
+      { key: 'admin-mgmt', label: '系统管理', icon: 'menuicon-33', route: '/admin' },
     ],
   },
 ]
