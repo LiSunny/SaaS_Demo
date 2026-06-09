@@ -9,29 +9,35 @@ import type { CreateOrderParams } from '@/types/work-order'
 import { createPersistentStore } from '@/utils/db-adapter'
 import { BUILTIN_DETAILS } from './workflow-dao'
 
-// ===== 角色 =====
+// ===== 组织与人员（对齐 11 岗位体系） =====
+// @see src/config/positions.ts
 const ORGS = {
-  property:  { id: 1001, name: 'xxx物业管理有限公司' },
-  fireSvc:   { id: 1002, name: 'yyy消防技术服务公司' },
-  safetyMgr: { id: 1003, name: 'zzz安全管理中心（监管方）' },
+  property:  { id: 1, name: '阳光物业管理有限公司' },
+  fireSvc:   { id: 2, name: '蓝盾消防技术服务公司' },
+  safetyMgr: { id: 3, name: '应急管理局安全管理中心' },
 }
 const PERSONS: Record<string, { id: number; org: string }> = {
-  张三: { id: 10, org: 'property'  },
-  李四: { id: 11, org: 'property'  },
-  王五: { id: 12, org: 'fireSvc'   },
-  赵六: { id: 13, org: 'safetyMgr' },
-  孙七: { id: 14, org: 'fireSvc'   },
-  陈七: { id: 15, org: 'fireSvc'   },
-  杨八: { id: 16, org: 'safetyMgr' },
-  刘九: { id: 17, org: 'property'  },
-  系统: { id: 0,  org: '' },
+  张建国: { id: 2,  org: 'property'  },
+  李明辉: { id: 3,  org: 'property'  },
+  周志远: { id: 1,  org: 'property'  },
+  赵丽萍: { id: 4,  org: 'property'  },
+  王志强: { id: 7,  org: 'fireSvc'   },
+  刘建华: { id: 5,  org: 'fireSvc'   },
+  孙工:   { id: 6,  org: 'fireSvc'   },
+  郑晓峰: { id: 8,  org: 'fireSvc'   },
+  陈浩然: { id: 9,  org: 'safetyMgr' },
+  王蕾:   { id: 10, org: 'safetyMgr' },
+  赵启明: { id: 11, org: ''          },
+  系统:   { id: 0,  org: ''          },
 }
 
 interface OrderDef {
   templateName: string
   templateVersion: number
   priority: WorkOrderItem['priority']
-  status: WorkOrderItem['status']
+  status: string // 内部状态，buildMockList 时通过 toInstanceStatus 映射到 InstanceStatus
+  /** 明确指定当前活跃节点类型（用于 mock 数据区分 active 工单的具体阶段） */
+  activeNodeType?: string
   orderNo: string
   creator: string
   assignee: string
@@ -57,9 +63,9 @@ const orders: OrderDef[] = [
   // ─── 1. 草稿：消火栓泵异响 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'urgent', status: 'draft',
+    priority: 'urgent', status: 'draft', activeNodeType: 'start',
     orderNo: 'WO20260605-001',
-    creator: '张三', assignee: '',
+    creator: '张建国', assignee: '',
     createdAt: '2026-06-05 09:30:00',
     ttrMinutes: 15, ttsMinutes: 120,
     formData: {
@@ -69,21 +75,21 @@ const orders: OrderDef[] = [
   // ─── 2. 草稿：安全出口指示灯不亮 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'low', status: 'draft',
+    priority: 'low', status: 'draft', activeNodeType: 'start',
     orderNo: 'WO20260605-002',
-    creator: '李四', assignee: '',
+    creator: '李明辉', assignee: '',
     createdAt: '2026-06-05 10:15:00',
     ttrMinutes: 240, ttsMinutes: 2880,
     formData: {
       Feqcmpz7ldykabc: 'B栋3层东侧安全出口指示灯闪烁，断电后无法正常发光，疑似电源模块故障',
     },
   },
-  // ─── 3. 待指派：消防主机故障 ───
+  // ─── 3. 进行中（指派节点）：消防主机故障 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'urgent', status: 'pending_assign',
+    priority: 'urgent', status: 'active', activeNodeType: 'assign',
     orderNo: 'WO20260604-003',
-    creator: '张三', assignee: '',
+    creator: '张建国', assignee: '',
     createdAt: '2026-06-04 06:00:00',
     ttrMinutes: 15, ttsMinutes: 120,
     formData: {
@@ -91,12 +97,12 @@ const orders: OrderDef[] = [
       F4pumpz7ll1uaec: 'https://picsum.photos/seed/firepanel/400/300',
     },
   },
-  // ─── 4. 待指派：灭火器箱体锈蚀 ───
+  // ─── 4. 进行中（指派节点）：灭火器箱体锈蚀 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'normal', status: 'pending_assign',
+    priority: 'normal', status: 'active', activeNodeType: 'assign',
     orderNo: 'WO20260604-004',
-    creator: '刘九', assignee: '',
+    creator: '周志远', assignee: '',
     createdAt: '2026-06-04 08:00:00',
     ttrMinutes: 60, ttsMinutes: 720,
     formData: {
@@ -104,12 +110,12 @@ const orders: OrderDef[] = [
       F4pumpz7ll1uaec: 'https://picsum.photos/seed/firebox/400/300',
     },
   },
-  // ─── 5. 待接单：防火门闭门器漏油 ───
+  // ─── 5. 进行中（执行节点，待接单）：防火门闭门器漏油 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'normal', status: 'pending_accept',
+    priority: 'normal', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260603-005',
-    creator: '张三', assignee: '王五',
+    creator: '张建国', assignee: '王志强',
     createdAt: '2026-06-03 10:00:00',
     ttrMinutes: 60, ttsMinutes: 480,
     formData: {
@@ -117,12 +123,12 @@ const orders: OrderDef[] = [
       F4pumpz7ll1uaec: 'https://picsum.photos/seed/doorcloser/400/300',
     },
   },
-  // ─── 6. 待接单：疏散指示灯故障 ───
+  // ─── 6. 进行中（执行节点，待接单）：疏散指示灯故障 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'low', status: 'pending_accept',
+    priority: 'low', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260603-006',
-    creator: '李四', assignee: '赵六',
+    creator: '李明辉', assignee: '陈浩然',
     createdAt: '2026-06-03 14:00:00',
     ttrMinutes: 120, ttsMinutes: 1440,
     formData: {
@@ -130,12 +136,12 @@ const orders: OrderDef[] = [
       F4pumpz7ll1uaec: 'https://picsum.photos/seed/signfail/400/300',
     },
   },
-  // ─── 7. 处置中：喷淋头误喷水 ───
+  // ─── 7. 进行中（执行节点，处置中）：喷淋头误喷水 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'urgent', status: 'processing',
+    priority: 'urgent', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260605-007',
-    creator: '赵六', assignee: '孙七',
+    creator: '陈浩然', assignee: '刘建华',
     createdAt: '2026-06-05 08:00:00',
     ttrMinutes: 15, ttsMinutes: 240,
     formData: {
@@ -143,12 +149,12 @@ const orders: OrderDef[] = [
       F4pumpz7ll1uaec: 'https://picsum.photos/seed/sprinkler/400/300',
     },
   },
-  // ─── 8. 处置中：电气线路老化 ───
+  // ─── 8. 进行中（执行节点，处置中）：电气线路老化 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'high', status: 'processing',
+    priority: 'high', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260605-008',
-    creator: '张三', assignee: '王五',
+    creator: '张建国', assignee: '王志强',
     createdAt: '2026-06-05 09:00:00',
     ttrMinutes: 30, ttsMinutes: 360,
     formData: {
@@ -156,12 +162,12 @@ const orders: OrderDef[] = [
       F4pumpz7ll1uaec: 'https://picsum.photos/seed/cableold/400/300',
     },
   },
-  // ─── 9. 验收中：应急照明灯电池失效 ───
+  // ─── 9. 进行中（验收节点）：应急照明灯电池失效 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'normal', status: 'verifying',
+    priority: 'normal', status: 'active', activeNodeType: 'confirm',
     orderNo: 'WO20260530-009',
-    creator: '李四', assignee: '张三',
+    creator: '李明辉', assignee: '张建国',
     createdAt: '2026-05-30 11:00:00',
     ttrMinutes: 60, ttsMinutes: 480,
     formData: {
@@ -173,12 +179,12 @@ const orders: OrderDef[] = [
       F9ltmpz7mn57aqc: 'https://picsum.photos/seed/emlightdone/400/300',
     },
   },
-  // ─── 10. 验收中：消防水带破损 ───
+  // ─── 10. 进行中（验收节点）：消防水带破损 ───
   {
     templateName: '示例模版：故障报修', templateVersion: 1,
-    priority: 'low', status: 'verifying',
+    priority: 'low', status: 'active', activeNodeType: 'confirm',
     orderNo: 'WO20260528-010',
-    creator: '刘九', assignee: '赵六',
+    creator: '周志远', assignee: '陈浩然',
     createdAt: '2026-05-28 15:00:00',
     ttrMinutes: 120, ttsMinutes: 1440,
     formData: {
@@ -195,7 +201,7 @@ const orders: OrderDef[] = [
     templateName: '示例模版：故障报修', templateVersion: 1,
     priority: 'urgent', status: 'closed',
     orderNo: 'WO20260520-011',
-    creator: '张三', assignee: '王五',
+    creator: '张建国', assignee: '王志强',
     createdAt: '2026-05-20 06:45:00',
     closedAt: '2026-05-20 08:15:00',
     ttrMinutes: 15, ttsMinutes: 120,
@@ -214,7 +220,7 @@ const orders: OrderDef[] = [
     templateName: '示例模版：故障报修', templateVersion: 1,
     priority: 'normal', status: 'closed',
     orderNo: 'WO20260510-012',
-    creator: '赵六', assignee: '孙七',
+    creator: '陈浩然', assignee: '刘建华',
     createdAt: '2026-05-10 08:30:00',
     closedAt: '2026-05-11 16:00:00',
     ttrMinutes: 60, ttsMinutes: 720,
@@ -230,10 +236,16 @@ const orders: OrderDef[] = [
   },
 ]
 
-// 状态 → 当前活跃节点类型（按类型查找，兼容不同模板的节点排列）
-const STATUS_NODE_TYPE: Record<string, string | null> = {
-  draft: 'start', pending_assign: 'assign', pending_accept: 'execute',
-  processing: 'execute', verifying: 'confirm', closed: null,
+// 标准化实例状态为 3 状态枚举值
+function toInstanceStatus(raw: string): InstanceStatus {
+  if (raw === 'draft') return 'draft'
+  if (raw === 'closed') return 'closed'
+  return 'active'
+}
+
+// 实例状态 → 当前活跃节点类型（草稿对应 start，已关闭无活跃节点，进行中按原状态推断）
+const ACTIVE_NODE_TYPE: Record<string, string | null> = {
+  draft: 'start', active: 'execute', closed: null,
 }
 
 // 模板名 → 真实模板 ID（当前仅模板 4「示例模版：故障报修」可用）
@@ -291,6 +303,27 @@ function getTemplateNodes(templateId: number): TemplateNodeDef[] {
 }
 
 // ===== 工具函数 =====
+const PRIORITY_ORDER: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 }
+
+/** SLA 自动升级优先级规则：
+ *  - SLA 黄灯（warning, >=80%）→ normal/low 升级到 high
+ *  - SLA 超时（timeout, >=100%）→ high 及以下升级到 urgent
+ *  - urgent 已达上限，不再升级
+ *  返回 { effectivePriority, escalatedFrom }，escalatedFrom 为 null 表示未升级
+ */
+function escalatePriority(
+  priority: string,
+  slaStatus: string,
+): { effectivePriority: string; escalatedFrom: string | null } {
+  if (slaStatus === 'timeout') {
+    if (priority !== 'urgent') return { effectivePriority: 'urgent', escalatedFrom: priority }
+  }
+  if (slaStatus === 'warning') {
+    if (priority === 'normal' || priority === 'low') return { effectivePriority: 'high', escalatedFrom: priority }
+  }
+  return { effectivePriority: priority, escalatedFrom: null }
+}
+
 function fmtNow(): string {
   return new Date().toISOString().replace('T', ' ').slice(0, 19)
 }
@@ -301,18 +334,19 @@ function buildMockList(): WorkOrderItem[] {
     const id = i + 1
     const creator = p(def.creator)
     const assigneeName = def.assignee || null
-    const activeNodeType = STATUS_NODE_TYPE[def.status]
+    const instanceStatus = toInstanceStatus(def.status)
     const tmplId = TEMPLATE_ID_MAP[def.templateName] || 4
     const tmplNodes = getTemplateNodes(tmplId)
-    const activeNodeIdx = activeNodeType ? tmplNodes.findIndex(n => n.type === activeNodeType) : -1
-    // closed 时 currentNode 为 null；找不到对应类型节点时 fallback 到最后一个节点
+    // 草稿→start节点；已关闭→无节点；进行中→由 activeNodeType 明确指定
+    const lookupType = instanceStatus === 'draft' ? 'start' : (instanceStatus === 'closed' ? null : def.activeNodeType || null)
+    const activeNodeIdx = lookupType ? tmplNodes.findIndex(n => n.type === lookupType) : -1
     const currentNode = activeNodeIdx >= 0 ? tmplNodes[activeNodeIdx] : null
 
     // 计算实际路径节点数（排除 condition、external 类型）
     const activeNodes = tmplNodes.filter(n => n.type !== 'condition' && n.type !== 'external')
     const activePathNodeCount = activeNodes.length
     const activeNode = activeNodes.find(n => n.id === currentNode?.id)
-    const activePathIndex = activeNode ? activeNodes.indexOf(activeNode) + 1 : (def.status === 'closed' ? activePathNodeCount : 0)
+    const activePathIndex = activeNode ? activeNodes.indexOf(activeNode) + 1 : (instanceStatus === 'closed' ? activePathNodeCount : 0)
     const ttsMinutes = def.ttsMinutes
     const ttrMinutes = def.ttrMinutes
     const createdAt = def.createdAt
@@ -341,14 +375,17 @@ function buildMockList(): WorkOrderItem[] {
     // 从表单数据提取标题（故障描述前30字）
     const desc = def.formData?.Feqcmpz7ldykabc || ''
     const title = (desc as string).slice(0, 30) + ((desc as string).length > 30 ? '…' : '') || def.templateName
+    // SLA 自动升级优先级
+    const escalated = escalatePriority(def.priority, slaStatus)
     return {
       id,
       orderNo: def.orderNo,
       templateId: TEMPLATE_ID_MAP[def.templateName] || 4,
       templateName: def.templateName,
       templateVersion: def.templateVersion,
-      status: def.status,
-      priority: def.priority,
+      status: instanceStatus,
+      priority: escalated.effectivePriority as WorkOrderItem['priority'],
+      escalatedFrom: escalated.escalatedFrom as WorkOrderItem['priority'] | undefined,
       currentNodeId: currentNode?.id ?? null,
       currentNodeName: currentNode?.name ?? null,
       currentNodeIndex: activeNodeIdx >= 0 ? activeNodeIdx + 1 : tmplNodes.length,
@@ -401,6 +438,8 @@ const detailStore = createPersistentStore<WorkOrderDetail>('work-order-details',
 function syncListItemFromDetail(detail: WorkOrderDetail): void {
   store.update(detail.id, {
     status: detail.status,
+    priority: detail.priority,
+    escalatedFrom: detail.escalatedFrom,
     currentNodeId: detail.currentNodeId,
     currentNodeName: detail.currentNodeName,
     currentNodeIndex: detail.currentNodeIndex,
@@ -459,7 +498,7 @@ function appendNodeFormRecord(
 function buildDetail(id: number): WorkOrderDetail {
   const item = store.getById(id)!
   if (!item) throw new Error(`工单 ${id} 不存在`)
-  const activeNodeType = STATUS_NODE_TYPE[item.status]
+  const activeNodeType = (item.currentNodeType || null)
 
   // 从模板节点定义构建节点列表
   const useNodes = getTemplateNodes(item.templateId)
@@ -546,7 +585,7 @@ function buildDetail(id: number): WorkOrderDetail {
 
   // 处置节点记录（verifying / closed 状态下处置已完成）
   const executeNode = nodes.find(n => n.type === 'execute')
-  if (executeNode && (item.status === 'verifying' || item.status === 'closed')) {
+  if (executeNode && (executeNode && executeNode.status === 'completed')) {
     const assigneeOrg = p(item.currentAssigneeName || '').orgName || ''
     nodeRecords.push({
       id: nrid++, nodeId: String(executeNode.id), nodeName: executeNode.name,
@@ -594,7 +633,7 @@ function buildDetail(id: number): WorkOrderDetail {
   }
 
   // 3. processing / verifying / closed → 接单记录
-  if (['processing', 'verifying', 'closed'].includes(item.status)) {
+  if (['active', 'closed'].includes(item.status)) {
     const acceptedAt = new Date(base + 3600000 * 2).toISOString().replace('T', ' ').slice(0, 19)
     r('接单处理', item.currentAssigneeName || '—', p(item.currentAssigneeName || '').orgName,
       `接单开始处理"${nodes.find(n => n.type === 'execute')?.name || '处置节点'}"`, acceptedAt)
@@ -602,7 +641,7 @@ function buildDetail(id: number): WorkOrderDetail {
 
   // 4. verifying / closed → 提交处置结果记录
   const execNd = nodes.find(n => n.type === 'execute')
-  if (execNd && ['verifying', 'closed'].includes(item.status)) {
+  if (execNd && executeNode && executeNode.status === 'completed') {
     r('提交处理结果', item.currentAssigneeName || '—', p(item.currentAssigneeName || '').orgName,
       `"${execNd.name}"完成，提交验收`, execNd.completedAt || fmtNow())
   }
@@ -618,7 +657,7 @@ function buildDetail(id: number): WorkOrderDetail {
   }
 
   // 6. verifying → 开始验收记录
-  if (confirmNd && item.status === 'verifying') {
+  if (confirmNd && confirmNode && confirmNode.status === 'in_progress') {
     r('开始验收', item.creatorName, item.creatorOrgName,
       `开始对"${nodes.find(n => n.type === 'execute')?.name || '处置结果'}"进行验收`,
       confirmNd.startedAt || new Date(base + 3600000 * 8).toISOString().replace('T', ' ').slice(0, 19))
@@ -684,6 +723,8 @@ export async function getWorkOrderList(query: WorkOrderQuery): Promise<import('@
     let cmp = 0
     if (sortField === 'createdAt') {
       cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    } else if (sortField === 'priority') {
+      cmp = (PRIORITY_ORDER[b.priority] ?? 2) - (PRIORITY_ORDER[a.priority] ?? 2)
     }
     return sortOrder === 'desc' ? -cmp : cmp
   })
@@ -707,7 +748,7 @@ export async function createWorkOrder(data: CreateOrderParams): Promise<WorkOrde
   const initialStatus = data.status ?? 'draft' as InstanceStatus
   // 直接发起时（pending_assign），当前节点应为指派节点而非发起节点
   const assignNode = tmplNodes.find(n => n.type === 'assign')
-  const isDirectLaunch = initialStatus === 'pending_assign'
+  const isDirectLaunch = initialStatus === 'active'
   const activeNode = isDirectLaunch && assignNode ? assignNode : startNode
   const item: WorkOrderItem = {
     id: nextId, orderNo,
@@ -725,7 +766,7 @@ export async function createWorkOrder(data: CreateOrderParams): Promise<WorkOrde
     currentAssigneeName: null,
     creatorId: 10,
     creatorName: data.creatorName,
-    creatorOrgId: 1001,
+    creatorOrgId: 1,
     creatorOrgName: 'xxx物业管理有限公司',
     parentOrderId: null,
     createdAt,
@@ -738,13 +779,13 @@ export async function createWorkOrder(data: CreateOrderParams): Promise<WorkOrde
     sla: {
       ttrMinutes: data.ttrMinutes ?? null,
       ttsMinutes: data.ttsMinutes || 1440,
-      ttrStartedAt: initialStatus === 'pending_assign' ? createdAt : null,
-      ttrEndedAt: initialStatus === 'pending_assign' ? createdAt : null,
-      ttsStartedAt: initialStatus === 'pending_assign' ? createdAt : new Date(now.getTime() + 300000).toISOString().replace('T', ' ').slice(0, 19),
+      ttrStartedAt: initialStatus === 'active' ? createdAt : null,
+      ttrEndedAt: initialStatus === 'active' ? createdAt : null,
+      ttsStartedAt: initialStatus === 'active' ? createdAt : new Date(now.getTime() + 300000).toISOString().replace('T', ' ').slice(0, 19),
       ttsPausedAt: null,
       yellowThreshold: 0.8,
-      ttrProgress: initialStatus === 'pending_assign' ? 1 : null,
-      ttsProgress: initialStatus === 'pending_assign' ? 0 : 0,
+      ttrProgress: initialStatus === 'active' ? 1 : null,
+      ttsProgress: initialStatus === 'active' ? 0 : 0,
       slaStatus: 'normal',
     },
   }
@@ -825,7 +866,7 @@ export async function submitDraft(id: number): Promise<WorkOrderDetail> {
 
   const updated: WorkOrderDetail = {
     ...detail,
-    status: 'pending_assign',
+    status: 'active',
     currentNodeId: nextNode?.id ?? null,
     currentNodeName: nextNode?.name ?? null,
     currentNodeIndex: nextNode?.order ?? 1,
@@ -880,7 +921,7 @@ export async function reassignWorkOrder(id: number, targetUserId: number, reason
   if (item.status === 'closed') throw new Error('工单已关闭')
 
   const prev = item.currentAssigneeName || '未分配'
-  const newName = ['王五', '赵六', '陈七'][targetUserId % 3]
+  const newName = ['王志强', '陈浩然', '孙工'][targetUserId % 3]
 
   store.update(id, { currentAssigneeId: targetUserId, currentAssigneeName: newName } as Partial<WorkOrderItem>)
 
@@ -906,7 +947,7 @@ export async function acceptWorkOrder(id: number): Promise<WorkOrderDetail> {
   await new Promise(r => setTimeout(r, 200))
   const detail = detailStore.getById(id)
   if (!detail) throw new Error('工单不存在')
-  if (detail.status !== 'pending_accept') throw new Error('当前状态不允许接单')
+  if (detail.status !== 'active') throw new Error('当前状态不允许接单')
 
   const now = fmtNow()
   const nodes = detail.nodes.map(n => ({ ...n }))
@@ -926,7 +967,7 @@ export async function acceptWorkOrder(id: number): Promise<WorkOrderDetail> {
 
   const updated: WorkOrderDetail = {
     ...detail,
-    status: 'processing',
+    status: 'active',
     currentNodeId: executeNode.id,
     currentNodeName: executeNode.name,
     currentNodeIndex: executeNode.order,
@@ -948,15 +989,15 @@ export async function submitNodeForm(id: number, formData: Record<string, any>):
   const detail = detailStore.getById(id)
   if (!detail) throw new Error('工单不存在')
 
-  // 指派节点提交：pending_assign → pending_accept
-  if (detail.status === 'pending_assign') {
+  // 指派节点提交：status 为 active 且当前节点为 assign
+  if (detail.status === 'active' && detail.currentNodeType === 'assign') {
     const now = fmtNow()
     const nodes = detail.nodes.map(n => ({ ...n }))
     const assignNode = nodes.find(n => n.type === 'assign' && n.status === 'in_progress')
     if (!assignNode) throw new Error('节点配置异常')
 
     const assigneeId = formData.assigneeId as number
-    const assigneeName = ['王五', '赵六', '陈七'][assigneeId % 3] || '王五'
+    const assigneeName = ['王志强', '陈浩然', '孙工'][assigneeId % 3] || '王志强'
     assignNode.status = 'completed'
     assignNode.completedAt = now
     assignNode.assigneeName = assigneeName
@@ -989,7 +1030,7 @@ export async function submitNodeForm(id: number, formData: Record<string, any>):
 
     const updated: WorkOrderDetail = {
       ...detail,
-      status: 'pending_accept',
+      status: 'active',
       currentNodeId: nextNode?.id ?? null,
       currentNodeName: nextNode?.name ?? null,
       currentNodeIndex: nextNode?.order ?? detail.currentNodeIndex,
@@ -1007,7 +1048,7 @@ export async function submitNodeForm(id: number, formData: Record<string, any>):
     return updated
   }
 
-  if (detail.status !== 'processing') throw new Error('当前状态不允许提交处置')
+  if (detail.status !== 'active') throw new Error('当前状态不允许提交处置')
 
   const now = fmtNow()
   const nodes = detail.nodes.map(n => ({ ...n }))
@@ -1045,7 +1086,7 @@ export async function submitNodeForm(id: number, formData: Record<string, any>):
     formData,
   )
 
-  const nextStatus: InstanceStatus = confirmNode ? 'verifying' : 'closed'
+  const nextStatus: InstanceStatus = confirmNode ? 'active' : 'closed'
   const nextNode = confirmNode || nodes.find(n => n.type === 'close')
 
   const updated: WorkOrderDetail = {
@@ -1073,7 +1114,7 @@ export async function performNodeAction(id: number, action: { name: string; targ
   await new Promise(r => setTimeout(r, 200))
   const detail = detailStore.getById(id)
   if (!detail) throw new Error('工单不存在')
-  if (detail.status !== 'verifying') throw new Error('当前状态不允许此操作')
+  if (detail.status !== 'active') throw new Error('当前状态不允许此操作')
 
   const now = fmtNow()
   const nodes = detail.nodes.map(n => ({ ...n }))
@@ -1131,7 +1172,7 @@ export async function performNodeAction(id: number, action: { name: string; targ
 
     const updated: WorkOrderDetail = {
       ...detail,
-      status: 'processing',
+      status: 'active',
       currentNodeId: targetNode?.id ?? detail.currentNodeId,
       currentNodeName: targetNode?.name ?? detail.currentNodeName,
       currentNodeIndex: targetNode?.order ?? detail.currentNodeIndex,
@@ -1148,6 +1189,37 @@ export async function performNodeAction(id: number, action: { name: string; targ
   }
 }
 
+export async function updatePriority(id: number, newPriority: string, operatorName: string, reason: string): Promise<WorkOrderDetail> {
+  await new Promise(r => setTimeout(r, 200))
+  const item = store.getById(id)
+  if (!item) throw new Error('工单不存在')
+  if (item.status === 'closed') throw new Error('已关闭的工单不可修改优先级')
+
+  const oldPriority = item.priority
+  const PRIORITY_LABELS: Record<string, string> = { urgent: '紧急', high: '高', normal: '普通', low: '低' }
+  const oldLabel = PRIORITY_LABELS[oldPriority] || oldPriority
+  const newLabel = PRIORITY_LABELS[newPriority] || newPriority
+
+  // 更新列表 store
+  store.update(id, { priority: newPriority as WorkOrderItem['priority'], escalatedFrom: undefined } as Partial<WorkOrderItem>)
+
+  // 更新详情 store
+  const now = fmtNow()
+  const detail = detailStore.getById(id)
+  if (detail) {
+    const records = appendRecord(detail.records, 'reassign', operatorName, null, `修改优先级：${oldLabel} → ${newLabel}${reason ? `，原因：${reason}` : ''}`, now)
+    detailStore.update(id, {
+      ...detail,
+      priority: newPriority as WorkOrderItem['priority'],
+      escalatedFrom: undefined,
+      updatedAt: now,
+      records,
+    } as WorkOrderDetail)
+  }
+
+  return detailStore.getById(id)!
+}
+
 export async function getWorkOrderStats(): Promise<WorkOrderStats> {
   await new Promise(r => setTimeout(r, 100))
   return getStats(store.getAll())
@@ -1155,11 +1227,9 @@ export async function getWorkOrderStats(): Promise<WorkOrderStats> {
 
 function getStats(list: WorkOrderItem[]): WorkOrderStats {
   return {
-    all: list.length, draft: list.filter(w => w.status === 'draft').length,
-    pendingAssign: list.filter(w => w.status === 'pending_assign').length,
-    pendingAccept: list.filter(w => w.status === 'pending_accept').length,
-    processing: list.filter(w => w.status === 'processing').length,
-    verifying: list.filter(w => w.status === 'verifying').length,
+    all: list.length,
+    draft: list.filter(w => w.status === 'draft').length,
+    active: list.filter(w => w.status === 'active').length,
     closed: list.filter(w => w.status === 'closed').length,
   }
 }

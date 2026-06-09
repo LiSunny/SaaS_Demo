@@ -23,4 +23,5 @@ export const {
   submitNodeForm,
   performNodeAction,
   getWorkOrderStats,
+  updatePriority,
 } = adapter

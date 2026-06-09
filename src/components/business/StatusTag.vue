@@ -18,17 +18,14 @@ const MAP: Record<string, { label: string; cls: string }> = {
   '1': { label: '执行中', cls: 'success' },
   '2': { label: '已停用', cls: 'danger' },
   '3': { label: '已过期', cls: 'normal' },
-  // 工单实例状态
+  // 工单实例状态（3 状态标准化）
   draft: { label: '草稿', cls: 'info' },
-  pending_assign: { label: '待指派', cls: 'info' },
-  pending_accept: { label: '待接单', cls: 'warning' },
-  processing: { label: '处置中', cls: 'warning' },
-  verifying: { label: '验收中', cls: 'warning' },
+  active: { label: '进行中', cls: 'warning' },
   closed: { label: '已关闭', cls: 'normal' },
   // 优先级
   urgent: { label: '紧急', cls: 'danger' },
   high: { label: '高', cls: 'warning' },
-  normal: { label: '普通', cls: 'warning' },
+  normal: { label: '普通', cls: 'normal' },
   low: { label: '低', cls: 'info' },
   // 时间线节点状态
   completed: { label: '已完成', cls: 'success' },

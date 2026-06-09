@@ -198,7 +198,7 @@ async function handleSaveDraft() {
 }
 
 async function handleSubmit() {
-  await doCreate('pending_assign')
+  await doCreate('active')
 }
 
 async function doCreate(status: string) {
@@ -238,7 +238,7 @@ async function doCreate(status: string) {
       status: status as any,
     })
     emit('update:visible', false)
-    if (status === 'pending_assign') {
+    if (status === 'active') {
       emit('created')
     } else {
       emit('draft-saved')

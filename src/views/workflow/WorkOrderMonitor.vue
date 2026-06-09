@@ -55,10 +55,6 @@
           <button class="btn-primary" @click="store.search()">查询</button>
           <button class="btn-default" @click="handleReset">重置</button>
         </div>
-
-        <div class="filter-right">
-          <button class="btn-primary" @click="createDialogVisible = true">发起工单</button>
-        </div>
       </div>
 
       <!-- ===== 数据表格 ===== -->
@@ -70,7 +66,7 @@
               <th class="fi-th col-tpl"><span>工单名称</span></th>
               <th class="fi-th col-progress"><span>工单进度</span></th>
               <th class="fi-th col-status"><span>工单状态</span></th>
-              <th class="fi-th col-pri"><span>优先级</span></th>
+              <th class="fi-th col-pri sortable" @click="togglePrioritySort"><span>优先级 <span v-if="query.sortField === 'priority'" class="sort-arrow">{{ query.sortOrder === 'asc' ? '↑' : '↓' }}</span></span></th>
               <th class="fi-th col-sla"><span>SLA状态</span></th>
               <th class="fi-th col-assignee"><span>当前处理人</span></th>
               <th class="fi-th col-creator"><span>发起人</span></th>
@@ -146,8 +142,6 @@
 
     </div>
 
-    <!-- ===== 发起工单弹窗（共用组件）===== -->
-    <CreateOrderDialog v-model:visible="createDialogVisible" @created="store.fetchList()" @draft-saved="store.fetchList()" />
   </div>
 </template>
 
@@ -159,9 +153,10 @@ import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
 import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
-import CreateOrderDialog from '@/components/business/CreateOrderDialog.vue'
+import { useUserStore } from '@/stores/user'
 
 const store = useWorkOrderStore()
+const userStore = useUserStore()
 
 // ===== 草稿工单操作 =====
 async function handleSubmitDraft(id: number) {
@@ -194,10 +189,7 @@ const statCards = computed(() => {
   return [
     { key: 'all', label: '全部', value: s.all, statusValue: '' },
     { key: 'draft', label: '草稿', value: s.draft, statusValue: 'draft' },
-    { key: 'pending_assign', label: '待指派', value: s.pendingAssign, statusValue: 'pending_assign' },
-    { key: 'pending_accept', label: '待接单', value: s.pendingAccept, statusValue: 'pending_accept' },
-    { key: 'processing', label: '处置中', value: s.processing, statusValue: 'processing' },
-    { key: 'verifying', label: '验收中', value: s.verifying, statusValue: 'verifying' },
+    { key: 'active', label: '进行中', value: s.active, statusValue: 'active' },
     { key: 'closed', label: '已关闭', value: s.closed, statusValue: 'closed' },
   ]
 })
@@ -207,9 +199,6 @@ const templateOptions = [
   { label: '示例模版：故障报修', value: 4 },
   { label: '示例模版：警情处置督办', value: 5 }
 ]
-
-// ===== 发起工单 =====
-const createDialogVisible = ref(false)
 
 const dateShortcuts = [
   { text: '今天', value: () => { const d = new Date(); return [d, d] as [Date, Date] } },
@@ -243,6 +232,16 @@ function toggleSort() {
   store.search()
 }
 
+function togglePrioritySort() {
+  if (query.sortField === 'priority') {
+    query.sortOrder = query.sortOrder === 'desc' ? 'asc' : 'desc'
+  } else {
+    query.sortField = 'priority'
+    query.sortOrder = 'desc' // 默认紧急优先
+  }
+  store.search()
+}
+
 function handleReset() {
   dateRange.value = last30Days()
   store.reset()
@@ -255,8 +254,7 @@ function handleReset() {
 
 // ===== 表格标签映射 =====
 const STATUS_LABEL_MAP: Record<InstanceStatus, string> = {
-  draft: '草稿', pending_assign: '待指派', pending_accept: '待接单',
-  processing: '处置中', verifying: '验收中', closed: '已关闭',
+  draft: '草稿', active: '进行中', closed: '已关闭',
 }
 const PRIORITY_LABEL_MAP: Record<Priority, string> = { urgent: '紧急', high: '高', normal: '普通', low: '低' }
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL_MAP[s] || s }
@@ -284,6 +282,8 @@ onMounted(() => {
     query.sortField = 'createdAt'
     query.sortOrder = 'desc'
   }
+  // 按岗位设置数据范围过滤
+  store.setDataScope(userStore.currentPosition.dataScope)
   // 初始化默认近30天
   if (dateRange.value) {
     query.startDate = dateRange.value[0].toISOString().slice(0, 10)

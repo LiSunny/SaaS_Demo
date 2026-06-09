@@ -1,5 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+/**
+ * 路由配置
+ *
+ * ⚠️ meta.topMenu 已弃用（侧栏主导航不再依赖顶部菜单过滤）。
+ * 保留字段仅为向后兼容，新路由无需设置。
+ *
+ * 路由路径兼容一览（新增域首页可放占位页，后续 /demo-scaffold 填充）：
+ *   /device     → 设备管理域首页（跳转式入口）
+ *   /iot        → IOT 域首页（跳转式入口）
+ *   /platform   → 平台配置域首页（跳转式入口）
+ *   /admin      → 系统管理域首页（跳转式入口）
+ */
+
 const DefaultLayout = () => import('@/layouts/DefaultLayout.vue')
 
 const router = createRouter({
@@ -12,17 +25,15 @@ const router = createRouter({
     {
       path: '/workbench',
       component: DefaultLayout,
-      meta: { topMenu: 'workbench' },
       children: [
         { path: '', name: 'Workbench', component: () => import('@/views/workbench/Workbench.vue') },
       ],
     },
 
-    // ===== 系统管理 =====
+    // ===== 流程管理/工单管理（原系统管理路由，路径不变） =====
     {
       path: '/system',
       component: DefaultLayout,
-      meta: { topMenu: 'system' },
       children: [
         { path: 'dashboard', name: 'SystemDashboard', component: () => import('@/views/system/Dashboard.vue') },
         { path: 'template', name: 'WorkflowTemplateList', component: () => import('@/views/workflow/TemplateList.vue') },
@@ -36,14 +47,43 @@ const router = createRouter({
     {
       path: '/maintenance',
       component: DefaultLayout,
-      meta: { topMenu: 'maintain' },
       children: [
         { path: 'plans', name: 'MaintenancePlanList', component: () => import('@/views/maintenance/PlanList.vue') },
         { path: 'plans/detail/:id', name: 'MaintenancePlanDetail', component: () => import('@/views/maintenance/PlanDetail.vue'), meta: { hidden: true } },
       ],
     },
 
-    // ===== 旧路径兼容（/workflow/* → /system/*）=====
+    // ===== 跳转式域首页（>10 模块的大域，占位页，后续填充） =====
+    {
+      path: '/device',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'DeviceOverview', component: () => import('@/views/device/Overview.vue') },
+      ],
+    },
+    {
+      path: '/iot',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'IotOverview', component: () => import('@/views/iot/Overview.vue') },
+      ],
+    },
+    {
+      path: '/platform',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'PlatformOverview', component: () => import('@/views/platform/Overview.vue') },
+      ],
+    },
+    {
+      path: '/admin',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'AdminOverview', component: () => import('@/views/admin/Overview.vue') },
+      ],
+    },
+
+    // ===== 兼容重定向（/workflow/* → /system/*） =====
     {
       path: '/workflow',
       redirect: '/system/template',

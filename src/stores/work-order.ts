@@ -3,8 +3,9 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats, CreateOrderParams } from '@/types/work-order'
 import type { TemplateDetail } from '@/types/workflow'
-import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, acceptWorkOrder, submitNodeForm, performNodeAction, createWorkOrder, submitDraft as submitDraftOrder } from '@/api/work-order'
+import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, acceptWorkOrder, submitNodeForm, performNodeAction, createWorkOrder, submitDraft as submitDraftOrder, updatePriority } from '@/api/work-order'
 import { getTemplateDetail } from '@/api/workflow'
+import type { DataScope } from '@/config/positions'
 
 export const useWorkOrderStore = defineStore('workOrder', () => {
   const list = ref<WorkOrderItem[]>([])
@@ -12,8 +13,7 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
   const query = reactive<WorkOrderQuery>({ page: 1, size: 20 })
   const total = ref(0)
   const stats = ref<WorkOrderStats>({
-    all: 0, draft: 0, pendingAssign: 0, pendingAccept: 0,
-    processing: 0, verifying: 0, closed: 0,
+    all: 0, draft: 0, active: 0, closed: 0,
   })
 
   // 详情抽屉状态
@@ -22,13 +22,56 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
   const detail = ref<WorkOrderDetail | null>(null)
   const templateDetail = ref<TemplateDetail | null>(null)  // 关联的模板详情（formSchema/flowDefinition）
 
+  /** 当前岗位数据范围过滤（由调用方设置） */
+  let dataScopeFilter: DataScope | null = null
+
+  function setDataScope(scope: DataScope | null) {
+    dataScopeFilter = scope
+  }
+
+  /** 按数据范围过滤列表 */
+  function applyScope(list: WorkOrderItem[], scope: DataScope | null): WorkOrderItem[] {
+    if (!scope) return list
+    switch (scope.type) {
+      case 'self':
+        return list.filter(w => w.creatorOrgId === scope.orgId)
+      case 'assigned':
+        // 维保工程师：只看分配给自己或自己创建的
+        return list.filter(w =>
+          w.currentAssigneeName === (scope as any)._userName ||
+          w.creatorName === (scope as any)._userName,
+        )
+      case 'service':
+        // 服务商：查看本服务商相关工单
+        return list.filter(w =>
+          w.currentAssigneeName && ['王志强', '刘建华', '孙工', '郑晓峰'].includes(w.currentAssigneeName),
+        )
+      case 'all':
+      case 'platform':
+      default:
+        return list
+    }
+  }
+
   async function fetchList() {
     loading.value = true
     try {
       const res = await getWorkOrderList({ ...query })
-      list.value = res.list
-      total.value = res.total
-      if (res.stats) stats.value = res.stats
+      const filtered = applyScope(res.list, dataScopeFilter)
+      list.value = filtered
+      total.value = filtered.length
+      if (res.stats) {
+        // stats 也按 scope 重新计算
+        const allFiltered = applyScope(res.list, dataScopeFilter)
+        stats.value = {
+          all: allFiltered.length,
+          draft: allFiltered.filter(w => w.status === 'draft').length,
+          active: allFiltered.filter(w => w.status === 'active').length,
+          closed: allFiltered.filter(w => w.status === 'closed').length,
+        }
+      } else {
+        stats.value = res.stats || { all: 0, draft: 0, active: 0, closed: 0 }
+      }
     } finally {
       loading.value = false
     }
@@ -156,12 +199,19 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
     ElMessage.success(`${action.name}操作成功`)
   }
 
+  async function changePriority(id: number, newPriority: string, operatorName: string, reason: string) {
+    const res = await updatePriority(id, newPriority, operatorName, reason)
+    detail.value = res
+    ElMessage.success('优先级已更新')
+    fetchList()
+  }
+
   return {
     list, loading, query, total, stats,
     detailVisible, detailLoading, detail, templateDetail,
-    fetchList, fetchStats, search, reset, toggleStatFilter,
+    fetchList, fetchStats, setDataScope, search, reset, toggleStatFilter,
     activeStatFilter,
     openDetail, closeDetail, cancel, reassign, createOrder, submitDraft,
-    acceptOrder, submitForm, executeNodeAction,
+    acceptOrder, submitForm, executeNodeAction, changePriority,
   }
 })

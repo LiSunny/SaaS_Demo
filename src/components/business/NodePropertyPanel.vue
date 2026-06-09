@@ -20,10 +20,12 @@
             <el-tooltip placement="top" effect="dark" raw-content>
               <template #content>
                 <div style="max-width:260px;line-height:1.6">
-                  <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">静态指定</p>
-                  <p style="margin:0 0 var(--spacing-lg, 12px);font-size:var(--font-xs, 12px);color:var(--text-muted)">模板配置时选定处理人，运行时自动指派。</p>
+                  <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">静态指派</p>
+                  <p style="margin:0 0 var(--spacing-lg, 12px);font-size:var(--font-xs, 12px);color:var(--text-secondary)">模板配置时选定处理人，运行时自动指派。</p>
                   <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">动态表单字段</p>
-                  <p style="margin:0;font-size:var(--font-xs, 12px);color:var(--text-muted)">运行时从表单字段取值解析处理人。</p>
+                  <p style="margin:0 0 var(--spacing-lg, 12px);font-size:var(--font-xs, 12px);color:var(--text-secondary)">运行时从表单字段取值解析处理人。</p>
+                  <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">指派给发起人</p>
+                  <p style="margin:0;font-size:var(--font-xs, 12px);color:var(--text-secondary)">运行时自动将任务指派给流程发起人。</p>
                 </div>
               </template>
               <span class="prop-help-icon">?</span>
@@ -31,9 +33,11 @@
           </p>
           <el-radio-group :model-value="local.assignSource || 'static'" :disabled="readonly"
             @update:model-value="onChange('assignSource', $event)" style="margin-bottom:var(--spacing-lg, 12px)">
-            <el-radio value="static">静态指定</el-radio>
+            <el-radio value="static">静态指派</el-radio>
             <el-radio value="dynamic">动态表单字段</el-radio>
+            <el-radio value="initiator">指派给发起人</el-radio>
           </el-radio-group>
+
           <template v-if="(local.assignSource || 'static') === 'static'">
             <div class="prop-field">
               <label class="prop-label">指派人员</label>
@@ -52,7 +56,7 @@
               </el-select>
             </div>
           </template>
-          <template v-else>
+          <template v-else-if="(local.assignSource || 'static') === 'dynamic'">
             <div class="prop-field">
               <label class="prop-label">表单字段</label>
               <el-select :model-value="local.dynamicAssignFieldId || ''" :disabled="readonly"
@@ -60,6 +64,9 @@
                 <el-option v-for="f in formFields" :key="f.id" :label="f.label" :value="f.id" />
               </el-select>
             </div>
+          </template>
+          <template v-else>
+            <p class="prop-hint" style="margin:0">运行时自动将任务指派给流程发起人，无需额外配置。</p>
           </template>
         </div>
 
@@ -90,22 +97,36 @@
           </div>
         </div>
 
-        <!-- SLA 覆盖 -->
-        <div v-if="node.type !== 'close'" class="prop-section">
-          <p class="prop-section-title">SLA 覆盖</p>
+        <!-- SLA 覆盖（仅产生任务的节点） -->
+        <div v-if="['assign', 'execute', 'confirm', 'external'].includes(node.type)" class="prop-section">
+          <p class="prop-section-title">SLA 覆盖
+            <el-tooltip placement="top" effect="dark" raw-content>
+              <template #content>
+                <div style="max-width:260px;line-height:1.6">
+                  <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">响应时限（TTR）</p>
+                  <p style="margin:0 0 var(--spacing-lg, 12px);font-size:var(--font-xs, 12px);color:var(--text-secondary)">任务到达 → 接单，衡量响应速度。无指派节点时不适用。</p>
+                  <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">解决时限（TTS）</p>
+                  <p style="margin:0 0 var(--spacing-lg, 12px);font-size:var(--font-xs, 12px);color:var(--text-secondary)">接单 → 工单关闭，衡量端到端解决时效。无指派节点时起点为执行节点到达。</p>
+                  <p style="margin:0 0 var(--spacing-sm, 6px);font-weight:500">黄灯阈值</p>
+                  <p style="margin:0;font-size:var(--font-xs, 12px);color:var(--text-secondary)">达到时限的该百分比时，SLA 状态变为"预警"。默认 80%，可下调以更早预警。</p>
+                </div>
+              </template>
+              <span class="prop-help-icon">?</span>
+            </el-tooltip>
+          </p>
           <label class="prop-check" style="margin-bottom:8px">
-            <input type="checkbox" :disabled="readonly" :checked="!useTemplateSla" @change="useTemplateSla = !useTemplateSla" /> 使用模板默认值
+            <input type="checkbox" :disabled="readonly" :checked="useTemplateSla" @change="useTemplateSla = !useTemplateSla" /> 使用模板默认值
           </label>
           <template v-if="!useTemplateSla">
             <div class="prop-field">
               <label class="prop-label">TTR（分钟）</label>
               <el-input-number :model-value="local.slaLimits?.ttrMinutes" :disabled="readonly"
-                @update:model-value="onSla('ttrMinutes', $event)" :min="1" :max="10080" style="width:100%" />
+                @update:model-value="onSla('ttrMinutes', $event)" :min="1" :max="10080" style="width:100%" placeholder="例：30" />
             </div>
             <div class="prop-field">
               <label class="prop-label">TTS（分钟）</label>
               <el-input-number :model-value="local.slaLimits?.ttsMinutes" :disabled="readonly"
-                @update:model-value="onSla('ttsMinutes', $event)" :min="1" :max="10080" style="width:100%" />
+                @update:model-value="onSla('ttsMinutes', $event)" :min="1" :max="10080" style="width:100%" placeholder="例：480" />
             </div>
             <div class="prop-field">
               <label class="prop-label">黄灯阈值</label>
@@ -119,11 +140,101 @@
         </div>
 
         <!-- 消息通知 -->
-        <div v-if="node.type !== 'close'" class="prop-section">
+        <div class="prop-section">
           <p class="prop-section-title">消息通知</p>
-          <label class="prop-check">
-            <input type="checkbox" :disabled="readonly" :checked="notifyNext" @change="notifyNext = !notifyNext" /> 节点完成通知下一节点
+
+          <!-- 节点完成通知 -->
+          <label class="prop-check" style="margin-bottom: var(--spacing-lg, 12px)">
+            <input type="checkbox" :disabled="readonly" :checked="notifyNext" @change="notifyNext = !notifyNext" /> 节点完成时通知下一节点处理人
           </label>
+
+          <!-- SLA 超时通知 -->
+          <div class="prop-subsection">
+            <p class="prop-subsection-title">SLA 超时通知
+              <el-tooltip placement="top" effect="dark" raw-content>
+                <template #content>
+                  <div style="max-width:240px;line-height:1.6">
+                    <p style="margin:0;font-size:var(--font-xs, 12px);color:var(--text-secondary)">当前节点 SLA 超时（黄灯或红灯）时，按所选渠道通知抄送岗位的人员。运行时按实例所属企业组织树匹配岗位名称。</p>
+                  </div>
+                </template>
+                <span class="prop-help-icon">?</span>
+              </el-tooltip>
+            </p>
+            <label class="prop-check" style="margin-bottom:12px">
+              <input type="checkbox" :disabled="readonly" :checked="slaNotifyEnabled" @change="slaNotifyEnabled = !slaNotifyEnabled" /> 启用超时通知
+            </label>
+
+            <template v-if="slaNotifyEnabled">
+              <!-- 推送方式 -->
+              <div class="prop-field">
+                <label class="prop-label">推送方式</label>
+                <div class="channel-check-row">
+                  <label class="prop-check" v-for="ch in (['in_app','sms','voice'] as const)" :key="ch">
+                    <input type="checkbox" :disabled="readonly"
+                      :checked="slaNotifyChannels.has(ch)"
+                      @change="toggleSlaChannel(ch)" />
+                    {{ channelLabel(ch) }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- 抄送来源 -->
+              <div class="prop-field">
+                <label class="prop-label">抄送来源</label>
+                <el-radio-group :model-value="slaNotifyUseTemplate ? 'template' : 'custom'" :disabled="readonly"
+                  @update:model-value="slaNotifyUseTemplate = ($event === 'template')">
+                  <el-radio value="template">使用模板默认</el-radio>
+                  <el-radio value="custom">自定义</el-radio>
+                </el-radio-group>
+              </div>
+
+              <!-- 抄送岗位 -->
+              <div class="prop-field">
+                <label class="prop-label">{{ slaNotifyUseTemplate ? '模板抄送岗位（只读）' : '抄送岗位' }}</label>
+                <div class="cc-tags-wrap">
+                  <el-tag
+                    v-for="name in effectiveCcNames"
+                    :key="name"
+                    :closable="!readonly && !slaNotifyUseTemplate"
+                    size="default"
+                    @close="removeSlaCc(name)"
+                  >{{ name }}</el-tag>
+                  <span v-if="effectiveCcNames.length === 0" class="prop-hint" style="margin:0">（未配置）</span>
+
+                  <!-- 自定义模式下显示添加按钮 -->
+                  <template v-if="!readonly && !slaNotifyUseTemplate">
+                    <el-popover placement="bottom-start" :width="220" trigger="click">
+                      <template #reference>
+                        <button type="button" class="tags-add-btn">+ 添加岗位</button>
+                      </template>
+                      <div class="cc-popover">
+                        <p class="cc-popover-title">预设岗位</p>
+                        <div class="cc-presets">
+                          <el-tag
+                            v-for="preset in ccPresets"
+                            :key="preset"
+                            size="small"
+                            :type="slaNotifyCcNames.includes(preset) ? 'primary' : 'info'"
+                            class="cc-preset-tag"
+                            @click="addSlaCcPreset(preset)"
+                          >{{ preset }}</el-tag>
+                        </div>
+                        <el-divider style="margin: 8px 0" />
+                        <div class="cc-custom">
+                          <el-input
+                            v-model="slaCcCustomInput"
+                            placeholder="输入自定义岗位名称，回车添加"
+                            size="small"
+                            @keyup.enter="addSlaCcCustom"
+                          />
+                        </div>
+                      </div>
+                    </el-popover>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
         </div>
       </el-tab-pane>
 
@@ -168,7 +279,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive } from 'vue'
+import { ref, watch, reactive, computed } from 'vue'
 import type { FlowNode, FormField } from '@/types/workflow'
 import PersonSelector from './PersonSelector.vue'
 
@@ -176,6 +287,7 @@ const props = defineProps<{
   node: FlowNode | null
   formFields: FormField[]
   templateSla: { amberThreshold: number; ttrMinutes?: number; ttsMinutes?: number }
+  templateCcPositionNames: string[]
   allNodeNames: Array<{ id: string; name: string }>
   readonly?: boolean
 }>()
@@ -188,6 +300,11 @@ const activeTab = ref('settings')
 const local = reactive<FlowNode>({ id: '', type: 'start', name: '' })
 const useTemplateSla = ref(true)
 const notifyNext = ref(true)
+const slaNotifyEnabled = ref(false)
+const slaNotifyUseTemplate = ref(true)
+const slaNotifyChannels = ref<Set<'in_app' | 'sms' | 'voice'>>(new Set(['in_app', 'sms']))
+const slaNotifyCcNames = ref<string[]>([])
+const slaCcCustomInput = ref('')
 const personDialogVisible = ref(false)
 
 const allPersons: Record<number, string> = {
@@ -204,11 +321,52 @@ function onPersonConfirm(ids: number[]) {
   local.assignConfig.targetIds = ids
 }
 
+// ===== SLA 抄送岗位 =====
+const ccPresets = ['安全主管', '部门负责人', '值班经理', '区域经理', '项目负责人']
+function addSlaCcPreset(name: string) {
+  if (!slaNotifyCcNames.value.includes(name)) {
+    slaNotifyCcNames.value = [...slaNotifyCcNames.value, name]
+  }
+}
+function removeSlaCc(name: string) {
+  slaNotifyCcNames.value = slaNotifyCcNames.value.filter(n => n !== name)
+}
+function addSlaCcCustom() {
+  const name = slaCcCustomInput.value.trim()
+  if (!name) return
+  if (!slaNotifyCcNames.value.includes(name)) {
+    slaNotifyCcNames.value = [...slaNotifyCcNames.value, name]
+  }
+  slaCcCustomInput.value = ''
+}
+function toggleSlaChannel(ch: 'in_app' | 'sms' | 'voice') {
+  const next = new Set(slaNotifyChannels.value)
+  if (next.has(ch)) {
+    if (next.size <= 1) return // 至少保留一个渠道
+    next.delete(ch)
+  } else {
+    next.add(ch)
+  }
+  slaNotifyChannels.value = next
+}
+
 watch(() => props.node, (n) => {
   if (n) {
     Object.assign(local, JSON.parse(JSON.stringify(n)))
     useTemplateSla.value = !n.slaLimits
-    notifyNext.value = true
+    notifyNext.value = n.notifyOnComplete !== false
+    const sn = n.slaNotification
+    if (sn) {
+      slaNotifyEnabled.value = sn.enabled
+      slaNotifyUseTemplate.value = sn.ccSource === 'template'
+      slaNotifyChannels.value = new Set(sn.channels || ['in_app', 'sms'])
+      slaNotifyCcNames.value = sn.ccPositionNames || []
+    } else {
+      slaNotifyEnabled.value = false
+      slaNotifyUseTemplate.value = true
+      slaNotifyChannels.value = new Set(['in_app', 'sms'])
+      slaNotifyCcNames.value = []
+    }
   }
 }, { immediate: true })
 
@@ -227,6 +385,18 @@ function onSla(key: string, val: any) {
   local.slaLimits = local.slaLimits || {}
   ;(local.slaLimits as any)[key] = val
 }
+
+function channelLabel(ch: string) {
+  const map: Record<string, string> = { in_app: '站内消息', sms: '短信', voice: '语音' }
+  return map[ch] || ch
+}
+
+const effectiveCcNames = computed(() => {
+  if (slaNotifyUseTemplate.value) {
+    return props.templateCcPositionNames
+  }
+  return slaNotifyCcNames.value
+})
 
 // ===== 三态字段权限 =====
 function getFieldMode(fieldId: string): string {
@@ -258,6 +428,17 @@ function fieldDefault(_fieldId: string): string {
 function emitUpdate() {
   const result: FlowNode = JSON.parse(JSON.stringify(local))
   if (useTemplateSla.value) delete result.slaLimits
+  result.notifyOnComplete = notifyNext.value
+  if (slaNotifyEnabled.value) {
+    result.slaNotification = {
+      enabled: true,
+      channels: [...slaNotifyChannels.value] as ('in_app' | 'sms' | 'voice')[],
+      ccSource: slaNotifyUseTemplate.value ? 'template' : 'custom',
+      ccPositionNames: slaNotifyUseTemplate.value ? undefined : [...slaNotifyCcNames.value],
+    }
+  } else {
+    delete result.slaNotification
+  }
   emit('update', result)
 }
 </script>
@@ -346,4 +527,60 @@ function emitUpdate() {
 
 .slider-row { display: flex; align-items: center; gap: var(--spacing-lg, 12px); }
 .slider-val { font-size: var(--font-small, 14px); color: var(--text-muted); min-width: 40px; text-align: right; }
+
+/* 消息通知子区域 */
+.prop-subsection {
+  margin-top: var(--spacing-lg, 12px);
+  padding-top: var(--spacing-lg, 12px);
+  border-top: 1px solid var(--border-low);
+}
+.prop-subsection-title {
+  font-size: var(--font-small, 14px);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md, 8px);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 6px);
+}
+.channel-check-row {
+  display: flex;
+  gap: var(--spacing-xl, 16px);
+}
+.cc-tags-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 6px);
+}
+.tags-add-btn {
+  height: 32px;
+  padding: 0 var(--spacing-lg, 12px);
+  border: 1px dashed var(--border-high);
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-sub-card);
+  color: var(--text-muted);
+  font-size: var(--font-small, 14px);
+  cursor: pointer;
+}
+.tags-add-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.cc-popover-title {
+  font-size: var(--font-small, 14px);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm, 6px);
+}
+.cc-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cc-preset-tag {
+  cursor: pointer;
+}
+.cc-custom {
+  margin-top: var(--spacing-sm, 6px);
+}
 </style>

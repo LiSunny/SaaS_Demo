@@ -32,7 +32,7 @@
           <!-- 节点间：箭头 + + 按钮（最后一项后面不显示） -->
           <div v-if="i < nodes.length - 1" class="fd-connector">
             <div class="fd-arrow"></div>
-            <button v-if="!readonly" class="fd-add-btn" @click="openDialog(i)" title="插入节点">+</button>
+            <button type="button" v-if="!readonly" class="fd-add-btn" @click="openDialog(i)" title="插入节点">+</button>
             <div class="fd-arrow"></div>
           </div>
         </template>
@@ -48,6 +48,7 @@
         :node="selectedNode"
         :form-fields="formFields"
         :template-sla="templateSla"
+        :template-cc-position-names="templateSla.ccPositionNames || []"
         :all-node-names="allNodeNames"
         :readonly="readonly"
         @update="onPropUpdate"
@@ -84,7 +85,7 @@ import NodePropertyPanel from './NodePropertyPanel.vue'
 const props = defineProps<{
   modelValue: FlowNode[]
   formFields: FormField[]
-  templateSla: { amberThreshold: number; ttrMinutes?: number; ttsMinutes?: number }
+  templateSla: { amberThreshold: number; ttrMinutes?: number; ttsMinutes?: number; ccPositionNames?: string[] }
   readonly?: boolean
 }>()
 

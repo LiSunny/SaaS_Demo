@@ -161,11 +161,11 @@ export const BUILTIN_DETAILS: Record<number, TemplateDetail> = {
                     "source": "manual",
                     "required": false,
                     "options": [
-                        { "value": "zhangsan", "label": "张三" },
-                        { "value": "lisi", "label": "李四" },
-                        { "value": "wangwu", "label": "王五" },
-                        { "value": "zhaoliu", "label": "赵六" },
-                        { "value": "sunqi", "label": "孙七" }
+                        { "value": "zhangjianguo", "label": "张建国" },
+                        { "value": "liminghui", "label": "李明辉" },
+                        { "value": "wangzhiqiang", "label": "王志强" },
+                        { "value": "chenhaoran", "label": "陈浩然" },
+                        { "value": "liujianhua", "label": "刘建华" }
                     ]
                 },
                 {
@@ -716,9 +716,12 @@ export async function validateFlowDefinition(def: FlowDefinition): Promise<{ val
       if (!n.assignConfig?.targetIds?.length) {
         errors.push(`节点"${n.name}"指派来源为静态，必须指定指派目标`)
       }
-    } else if (!n.dynamicAssignFieldId) {
-      errors.push(`节点"${n.name}"指派来源为动态，必须绑定表单字段`)
+    } else if (source === 'dynamic') {
+      if (!n.dynamicAssignFieldId) {
+        errors.push(`节点"${n.name}"指派来源为动态，必须绑定表单字段`)
+      }
     }
+    // initiator 模式不需要额外验证
   })
 
   const conditionNodes = def.nodes.filter(n => n.type === 'condition')

@@ -31,35 +31,68 @@ export const dashboardPresets: Record<string, DashboardPreset> = {
       'order-overview', 'sla-overview', 'plan-status', 'placeholder',
     ],
     roleDefaults: {
-      // 物业管理员
-      property: [
-        { id: 'wb-1', type: 'app-shortcuts',  size: 1, order: 0 },
-        { id: 'wb-2', type: 'quick-actions',  size: 1, order: 1 },
-        { id: 'wb-3', type: 'my-tasks',       size: 1, order: 2 },
-        { id: 'wb-4', type: 'order-overview', size: 1, order: 3 },
-        { id: 'wb-5', type: 'notifications',  size: 1, order: 4 },
-        { id: 'wb-6', type: 'plan-status',    size: 1, order: 5 },
-        { id: 'wb-7', type: 'placeholder',    size: 1, order: 6, config: { moduleName: '隐患管理' } },
-        { id: 'wb-8', type: 'placeholder',    size: 1, order: 7, config: { moduleName: '设备管理' } },
-        { id: 'wb-9', type: 'placeholder',    size: 1, order: 8, config: { moduleName: '巡查检查' } },
+      // ===== 物业方 =====
+      'fire-safety-responsible': [
+        { id: 'wb-fsr-1', type: 'sla-overview',   size: 2, order: 0 },
+        { id: 'wb-fsr-2', type: 'order-overview', size: 1, order: 1 },
+        { id: 'wb-fsr-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '安全态势', icon: 'shield' } },
       ],
-      // 安全监管员
-      supervisor: [
-        { id: 'wb-s1', type: 'app-shortcuts',  size: 1, order: 0 },
-        { id: 'wb-s2', type: 'sla-overview',   size: 2, order: 1 },
-        { id: 'wb-s3', type: 'my-tasks',       size: 1, order: 2 },
-        { id: 'wb-s4', type: 'order-overview', size: 1, order: 3 },
-        { id: 'wb-s5', type: 'notifications',  size: 1, order: 4 },
-        { id: 'wb-s6', type: 'placeholder',    size: 1, order: 5, config: { moduleName: '隐患管理' } },
+      'fire-safety-manager': [
+        { id: 'wb-fsm-1', type: 'quick-actions',  size: 1, order: 0 },
+        { id: 'wb-fsm-2', type: 'my-tasks',       size: 1, order: 1 },
+        { id: 'wb-fsm-3', type: 'order-overview', size: 1, order: 2 },
+        { id: 'wb-fsm-4', type: 'plan-status',    size: 1, order: 3 },
       ],
-      // 消防服务工程师
-      engineer: [
-        { id: 'wb-e1', type: 'app-shortcuts',  size: 1, order: 0 },
-        { id: 'wb-e2', type: 'quick-actions',  size: 1, order: 1 },
-        { id: 'wb-e3', type: 'my-tasks',       size: 1, order: 2 },
-        { id: 'wb-e4', type: 'order-overview', size: 1, order: 3 },
-        { id: 'wb-e5', type: 'notifications',  size: 1, order: 4 },
-        { id: 'wb-e6', type: 'plan-status',    size: 1, order: 5 },
+      'duty-officer': [
+        { id: 'wb-do-1', type: 'quick-actions',   size: 1, order: 0 },
+        { id: 'wb-do-2', type: 'my-tasks',        size: 1, order: 1 },
+        { id: 'wb-do-3', type: 'placeholder',     size: 1, order: 2, config: { moduleName: '告警概览', icon: 'bell' } },
+      ],
+      'org-admin-property': [
+        { id: 'wb-oap-1', type: 'placeholder',    size: 1, order: 0, config: { moduleName: '用户管理', icon: 'user' } },
+        { id: 'wb-oap-2', type: 'order-overview', size: 1, order: 1 },
+        { id: 'wb-oap-3', type: 'plan-status',    size: 1, order: 2 },
+      ],
+
+      // ===== 服务方 =====
+      'project-lead': [
+        { id: 'wb-pl-1', type: 'sla-overview',    size: 2, order: 0 },
+        { id: 'wb-pl-2', type: 'order-overview',  size: 1, order: 1 },
+        { id: 'wb-pl-3', type: 'plan-status',     size: 1, order: 2 },
+      ],
+      'tech-lead': [
+        { id: 'wb-tl-1', type: 'my-tasks',        size: 1, order: 0 },
+        { id: 'wb-tl-2', type: 'order-overview',  size: 1, order: 1 },
+        { id: 'wb-tl-3', type: 'plan-status',     size: 1, order: 2 },
+      ],
+      'maintenance-engineer': [
+        { id: 'wb-me-1', type: 'my-tasks',        size: 1, order: 0 },
+        { id: 'wb-me-2', type: 'placeholder',     size: 1, order: 1, config: { moduleName: '今日任务', icon: 'calendar' } },
+      ],
+      'org-admin-service': [
+        { id: 'wb-oas-1', type: 'placeholder',    size: 1, order: 0, config: { moduleName: '用户管理', icon: 'user' } },
+        { id: 'wb-oas-2', type: 'order-overview', size: 1, order: 1 },
+        { id: 'wb-oas-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '资质管理', icon: 'certificate' } },
+      ],
+
+      // ===== 监管方 =====
+      'safety-supervisor': [
+        { id: 'wb-ss-1', type: 'sla-overview',    size: 2, order: 0 },
+        { id: 'wb-ss-2', type: 'order-overview',  size: 1, order: 1 },
+        { id: 'wb-ss-3', type: 'placeholder',     size: 1, order: 2, config: { moduleName: '隐患概览', icon: 'warning' } },
+        { id: 'wb-ss-4', type: 'placeholder',     size: 1, order: 3, config: { moduleName: '值守概览', icon: 'monitor' } },
+      ],
+      'org-admin-supervisor': [
+        { id: 'wb-oasu-1', type: 'placeholder',    size: 1, order: 0, config: { moduleName: '用户管理', icon: 'user' } },
+        { id: 'wb-oasu-2', type: 'order-overview', size: 1, order: 1 },
+        { id: 'wb-oasu-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '监管报告', icon: 'document' } },
+      ],
+
+      // ===== 平台方 =====
+      'platform-admin': [
+        { id: 'wb-pa-1', type: 'app-shortcuts',  size: 1, order: 0 },
+        { id: 'wb-pa-2', type: 'placeholder',    size: 1, order: 1, config: { moduleName: '租户管理', icon: 'building' } },
+        { id: 'wb-pa-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '系统概览', icon: 'dashboard' } },
       ],
     },
   },
@@ -72,16 +105,16 @@ export const dashboardPresets: Record<string, DashboardPreset> = {
     maxColumns: 3,
     availableWidgets: ['order-overview', 'sla-overview'],
     roleDefaults: {
-      supervisor: [
-        { id: 'sd-1', type: 'sla-overview', size: 2, order: 0 },
+      'safety-supervisor': [
+        { id: 'sd-1', type: 'sla-overview',   size: 2, order: 0 },
         { id: 'sd-2', type: 'order-overview', size: 1, order: 1 },
       ],
-      property: [
+      'fire-safety-manager': [
         { id: 'sd-1', type: 'order-overview', size: 2, order: 0 },
       ],
     },
   },
 }
 
-/** 默认角色 */
-export const DEFAULT_ROLE = 'property'
+/** 默认岗位 */
+export const DEFAULT_ROLE = 'fire-safety-manager'

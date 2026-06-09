@@ -1,5 +1,5 @@
 // ===== 枚举 =====
-export type InstanceStatus = 'draft' | 'pending_assign' | 'pending_accept' | 'processing' | 'verifying' | 'closed'
+export type InstanceStatus = 'draft' | 'active' | 'closed'
 export type Priority = 'urgent' | 'high' | 'normal' | 'low'
 export type SlaStatus = 'normal' | 'warning' | 'timeout'
 export type NodeStatus = 'completed' | 'in_progress' | 'pending' | 'skipped'
@@ -46,6 +46,7 @@ export interface WorkOrderItem {
   closedAt: string | null
   closedBy: string | null
   sla: SlaInfo
+  escalatedFrom?: Priority         // 原始优先级（自动升级前的值，如 SLA 超时从 high 升级到 urgent）
   title?: string                   // 工单标题（用户输入）
   remark?: string                  // 备注
   formData?: FormData              // 发起时提交的表单数据
@@ -69,10 +70,7 @@ export interface WorkOrderQuery {
 export interface WorkOrderStats {
   all: number
   draft: number
-  pendingAssign: number
-  pendingAccept: number
-  processing: number
-  verifying: number
+  active: number
   closed: number
 }
 

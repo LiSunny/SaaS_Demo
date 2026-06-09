@@ -18,7 +18,16 @@
           </div>
           <div class="header-info">
             <div class="header-title-row">
-              <StatusTag :status="store.detail.priority" :label="priorityLabel(store.detail.priority)" />
+              <div class="priority-display">
+                <StatusTag :status="store.detail.priority" :label="priorityLabel(store.detail.priority)" />
+                <span v-if="store.detail.escalatedFrom" class="escalated-badge" :title="'原优先级：' + priorityLabel(store.detail.escalatedFrom)">↑ 已升级</span>
+                <button
+                  v-if="store.detail.status !== 'closed'"
+                  class="priority-edit-btn"
+                  title="修改优先级"
+                  @click="openPriorityDialog"
+                >✎</button>
+              </div>
               <span class="header-title">{{ store.detail.title }}</span>
             </div>
             <p class="header-subtitle">
@@ -183,6 +192,12 @@
 
               <!-- 指派节点 -->
               <template v-if="currentNode.type === 'assign'">
+                <!-- 多人抢单：接单按钮 -->
+                <div v-if="showAccept" class="action-accept">
+                  <button class="btn-primary btn-accept" @click="handleAccept">接单</button>
+                  <p class="action-accept-hint">多人可接单，先接单者获得该任务</p>
+                </div>
+
                 <!-- 可编辑表单字段 -->
                 <div v-if="editableFormFields.length > 0" class="action-form">
                   <DynamicForm
@@ -251,19 +266,18 @@
           </div>
         </div>
 
-        <!-- 底部操作栏 -->
+        <!-- 底部操作栏（工单级操作） -->
         <div class="page-actions">
           <button
-            v-if="store.detail.status === 'pending_accept'"
-            class="btn-primary"
-            @click="handleAccept"
-          >接单</button>
-          <button
-            v-if="store.detail.status === 'pending_accept' || store.detail.status === 'processing'"
+            v-if="store.detail.status === 'active' && store.detail.currentAssigneeId != null"
             class="btn-default"
             @click="reassignDialogVisible = true"
           >强制改派</button>
-          <button class="btn-danger" @click="cancelDialogVisible = true">取消工单</button>
+          <button
+            v-if="store.detail.status !== 'closed'"
+            class="btn-danger"
+            @click="cancelDialogVisible = true"
+          >取消工单</button>
         </div>
       </template> 
     </template>
@@ -292,6 +306,29 @@
         <button class="btn-primary" :disabled="!reassignTargetId" @click="doReassign">确认改派</button>
       </template>
     </el-dialog>
+
+    <!-- ===== 修改优先级弹窗 ===== -->
+    <el-dialog v-model="priorityDialogVisible" title="修改优先级" width="480px" :close-on-click-modal="false">
+      <div class="dialog-content">
+        <p class="dialog-hint">修改工单 <strong>{{ store.detail?.orderNo }}</strong> 的优先级。</p>
+        <div class="priority-options-dialog">
+          <label
+            v-for="opt in priorityOptionList"
+            :key="opt.value"
+            :class="['priority-item-dialog', { active: newPriority === opt.value }]"
+            @click="newPriority = opt.value"
+          >
+            <span :class="['priority-radio-dialog', { checked: newPriority === opt.value }]" />
+            <span class="priority-text-dialog">{{ opt.label }}</span>
+          </label>
+        </div>
+        <el-input v-model="priorityReason" type="textarea" :rows="2" maxlength="200" show-word-limit placeholder="请输入修改原因" style="margin-top:12px" />
+      </div>
+      <template #footer>
+        <button class="btn-default" @click="priorityDialogVisible = false">关闭</button>
+        <button class="btn-primary" :disabled="!newPriority || newPriority === store.detail?.priority" @click="doChangePriority">确认修改</button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -313,10 +350,9 @@ const router = useRouter()
 const store = useWorkOrderStore()
 
 const STATUS_LABEL: Record<InstanceStatus, string> = {
-  draft: '草稿', pending_assign: '待指派', pending_accept: '待接单',
-  processing: '处置中', verifying: '验收中', closed: '已关闭',
+  draft: '草稿', active: '进行中', closed: '已关闭',
 }
-const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', high: '高优', normal: '普通', low: '低优' }
+const PRIORITY_LABEL: Record<Priority, string> = { urgent: '紧急', high: '高', normal: '普通', low: '低' }
 
 function statusLabel(s: InstanceStatus) { return STATUS_LABEL[s] || s }
 function priorityLabel(p: Priority) { return PRIORITY_LABEL[p] || p }
@@ -522,6 +558,17 @@ const hasNodeActions = computed(() => {
   return false
 })
 
+// ===== 接单按钮（节点级操作） =====
+// 仅指派节点 + 多人抢单模式 + 尚未被认领时显示
+const showAccept = computed(() => {
+  if (!currentNode.value || !store.detail) return false
+  if (currentNode.value.type !== 'assign') return false
+  const flowNode = currentFlowNode.value
+  if (!flowNode?.assignConfig) return false
+  return flowNode.assignConfig.multipleMode === 'anyone'
+    && store.detail.currentAssigneeId == null
+})
+
 // ===== 表单引用 =====
 const formRefs: Record<string, any> = {}
 
@@ -634,6 +681,35 @@ const cancelReason = ref('')
 const reassignDialogVisible = ref(false)
 const reassignReason = ref('')
 const reassignTargetId = ref(0)
+const priorityDialogVisible = ref(false)
+const newPriority = ref<Priority>('normal')
+const priorityReason = ref('')
+const priorityOptionList = [
+  { label: '紧急', value: 'urgent' as Priority },
+  { label: '高', value: 'high' as Priority },
+  { label: '普通', value: 'normal' as Priority },
+  { label: '低', value: 'low' as Priority },
+]
+
+function openPriorityDialog() {
+  if (store.detail) {
+    newPriority.value = store.detail.priority
+  }
+  priorityReason.value = ''
+  priorityDialogVisible.value = true
+}
+
+async function doChangePriority() {
+  if (!store.detail || !newPriority.value) return
+  if (newPriority.value === store.detail.priority) return
+  try {
+    await store.changePriority(store.detail.id, newPriority.value, '张三', priorityReason.value)
+    priorityDialogVisible.value = false
+    priorityReason.value = ''
+  } catch (e: any) {
+    ElMessage.error(e?.message || '修改优先级失败')
+  }
+}
 
 async function doCancel() {
   if (!store.detail) return
@@ -743,6 +819,80 @@ async function doReassign() {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* ===== 优先级显示区 ===== */
+.priority-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.escalated-badge {
+  font-size: var(--font-xs, 12px);
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--danger-bg, rgba(220,38,38,0.1));
+  color: var(--danger, #dc2626);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.priority-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border-default, #e9e9e9);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  color: var(--text-muted, #5e5e5e);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+  padding: 0;
+  line-height: 1;
+}
+.priority-edit-btn:hover {
+  color: var(--accent-primary, #3678e3);
+  border-color: var(--accent-primary, #3678e3);
+}
+
+/* ===== 优先级修改弹窗 ===== */
+.priority-options-dialog {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.priority-item-dialog {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.priority-radio-dialog {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--border-high, #d9d9d9);
+  background: var(--bg-sub-card, #fbfbfb);
+  flex-shrink: 0;
+  transition: border-color .15s, background .15s;
+}
+
+.priority-radio-dialog.checked {
+  border-color: var(--accent-primary, #3678e3);
+  background: var(--accent-primary, #3678e3);
+}
+
+.priority-text-dialog {
+  font-size: var(--font-body, 16px);
+  color: var(--text-secondary, #2e2e2e);
 }
 
 .header-title {
@@ -910,6 +1060,25 @@ async function doReassign() {
 }
 
 /* ===== 操作区 ===== */
+.action-accept {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+  padding: var(--spacing-lg, 16px) 0;
+}
+
+.btn-accept {
+  padding: 10px 32px;
+  font-size: var(--font-h4, 16px);
+}
+
+.action-accept-hint {
+  font-size: var(--font-xs, 12px);
+  color: var(--text-muted, #5e5e5e);
+  margin: 0;
+}
+
 .action-form {
   display: flex;
   flex-direction: column;

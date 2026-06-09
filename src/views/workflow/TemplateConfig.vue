@@ -118,8 +118,9 @@
                 <el-form-item label="优先级">
                   <el-radio-group v-model="form.slaPriority">
                     <el-radio value="urgent">紧急</el-radio>
+                    <el-radio value="high">高</el-radio>
                     <el-radio value="normal">普通</el-radio>
-                    <el-radio value="low">低优</el-radio>
+                    <el-radio value="low">低</el-radio>
                   </el-radio-group>
                 </el-form-item>
 
@@ -151,6 +152,50 @@
                       style="flex: 1"
                     />
                     <span class="slider-value">{{ form.amberThreshold }}%</span>
+                  </div>
+                </el-form-item>
+
+                <el-form-item label="默认抄送岗位">
+                  <div class="cc-tags-wrap">
+                    <el-tag
+                      v-for="name in (form.defaultCcPositionNames || [])"
+                      :key="name"
+                      closable
+                      size="default"
+                      @close="removeCcPosition(name)"
+                    >{{ name }}</el-tag>
+                    <el-popover
+                      v-if="!isViewMode"
+                      placement="bottom-start"
+                      :width="220"
+                      trigger="click"
+                    >
+                      <template #reference>
+                        <button type="button" class="tags-add-btn cc-add-btn">+ 添加岗位</button>
+                      </template>
+                      <div class="cc-popover">
+                        <p class="cc-popover-title">预设岗位</p>
+                        <div class="cc-presets">
+                          <el-tag
+                            v-for="preset in ccPresets"
+                            :key="preset"
+                            size="small"
+                            :type="(form.defaultCcPositionNames || []).includes(preset) ? 'primary' : 'info'"
+                            class="cc-preset-tag"
+                            @click="toggleCcPreset(preset)"
+                          >{{ preset }}</el-tag>
+                        </div>
+                        <el-divider style="margin: 8px 0" />
+                        <div class="cc-custom">
+                          <el-input
+                            v-model="ccCustomInput"
+                            placeholder="输入自定义岗位名称，回车添加"
+                            size="small"
+                            @keyup.enter="addCcCustom"
+                          />
+                        </div>
+                      </div>
+                    </el-popover>
                   </div>
                 </el-form-item>
               </el-form>
@@ -201,6 +246,30 @@ const templateName = ref('')
 const currentStep = ref(0)
 const formRef = ref<FormInstance>()
 const slaActiveNames = ref<string[]>([])
+
+// 抄送岗位
+const ccPresets = ['安全主管', '部门负责人', '值班经理', '区域经理', '项目负责人']
+const ccCustomInput = ref('')
+function removeCcPosition(name: string) {
+  form.defaultCcPositionNames = (form.defaultCcPositionNames || []).filter(n => n !== name)
+}
+function toggleCcPreset(name: string) {
+  const list = form.defaultCcPositionNames || []
+  if (list.includes(name)) {
+    form.defaultCcPositionNames = list.filter(n => n !== name)
+  } else {
+    form.defaultCcPositionNames = [...list, name]
+  }
+}
+function addCcCustom() {
+  const name = ccCustomInput.value.trim()
+  if (!name) return
+  const list = form.defaultCcPositionNames || []
+  if (!list.includes(name)) {
+    form.defaultCcPositionNames = [...list, name]
+  }
+  ccCustomInput.value = ''
+}
 const saving = ref(false)
 const hasSeed = ref(false)
 const personDialogVisible = ref(false)
@@ -219,6 +288,7 @@ const templateSlaDefaults = computed(() => ({
   amberThreshold: form.amberThreshold,
   ttrMinutes: form.defaultTtrMinutes,
   ttsMinutes: form.defaultTtsMinutes,
+  ccPositionNames: form.defaultCcPositionNames || [],
 }))
 
 const steps = [
@@ -250,6 +320,7 @@ const form = reactive<TemplateForm>({
   defaultTtrMinutes: undefined,
   defaultTtsMinutes: undefined,
   amberThreshold: 80,
+  defaultCcPositionNames: [],
 })
 
 const rules: FormRules = {
@@ -288,6 +359,7 @@ onMounted(async () => {
       form.defaultTtrMinutes = detail.baseInfo.defaultTtrMinutes
       form.defaultTtsMinutes = detail.baseInfo.defaultTtsMinutes
       form.amberThreshold = detail.baseInfo.amberThreshold
+      form.defaultCcPositionNames = detail.baseInfo.defaultCcPositionNames || []
       // 加载表单设计字段（取第一个节点的字段列表）
       const nodeIds = Object.keys(detail.formSchema)
       if (nodeIds.length > 0) {
@@ -595,6 +667,44 @@ const handleUpdateSeed = async () => {
   color: var(--text-muted);
   min-width: 40px;
   text-align: right;
+}
+
+/* 抄送岗位标签 */
+.cc-tags-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 6px);
+}
+.cc-add-btn {
+  height: 32px;
+  padding: 0 var(--spacing-lg, 12px);
+  border: 1px dashed var(--border-high);
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-sub-card);
+  color: var(--text-muted);
+  font-size: var(--font-small, 14px);
+  cursor: pointer;
+}
+.cc-add-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.cc-popover-title {
+  font-size: var(--font-small, 14px);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm, 6px);
+}
+.cc-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cc-preset-tag {
+  cursor: pointer;
+}
+.cc-custom {
+  margin-top: var(--spacing-sm, 6px);
 }
 
 

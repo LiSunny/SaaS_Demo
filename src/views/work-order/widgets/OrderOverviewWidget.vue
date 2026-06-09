@@ -13,16 +13,12 @@
     <template v-else>
       <div class="stats-row">
         <div class="stat-item">
-          <span class="stat-num">{{ data.stats.draft + data.stats.pendingAssign }}</span>
-          <span class="stat-label">待处理</span>
+          <span class="stat-num">{{ data.stats.draft }}</span>
+          <span class="stat-label">草稿</span>
         </div>
         <div class="stat-item">
-          <span class="stat-num">{{ data.stats.processing + data.stats.pendingAccept }}</span>
+          <span class="stat-num">{{ data.stats.active }}</span>
           <span class="stat-label">进行中</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num">{{ data.stats.verifying }}</span>
-          <span class="stat-label">待验收</span>
         </div>
         <div class="stat-item">
           <span class="stat-num">{{ data.stats.closed }}</span>
@@ -52,7 +48,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getWorkOrderList } from '@/api/work-order'
+import { useUserStore } from '@/stores/user'
 import type { WorkOrderItem, WorkOrderStats } from '@/types/work-order'
+import type { DataScope } from '@/config/positions'
 import StatusTag from '@/components/business/StatusTag.vue'
 
 defineProps<{
@@ -61,18 +59,44 @@ defineProps<{
 }>()
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(true)
 const error = ref(false)
 const data = ref<{ stats: WorkOrderStats; recentOrders: WorkOrderItem[] } | null>(null)
+
+/** 按岗位数据范围过滤工单列表 */
+function filterByScope(list: WorkOrderItem[], scope: DataScope): WorkOrderItem[] {
+  switch (scope.type) {
+    case 'self':
+      return list.filter(w => w.creatorOrgId === scope.orgId)
+    case 'assigned':
+      // 维保工程师：只看分配给自己的
+      return list.filter(w => w.currentAssigneeName === userStore.currentUser.name)
+    case 'service':
+      // 服务商项目负责人/技术负责人/企业管理员：看本服务商承接的工单
+      // 用 creatorOrgId 判断：物业方发单给服务商 = 服务商的项目
+      return list.filter(w => w.currentAssigneeName && ['王志强', '刘建华', '孙工', '郑晓峰'].includes(w.currentAssigneeName))
+    case 'all':
+    case 'platform':
+      return list
+  }
+}
 
 async function fetch() {
   loading.value = true
   error.value = false
   try {
-    const res = await getWorkOrderList({ page: 1, size: 5 })
+    const res = await getWorkOrderList({ page: 1, size: 100 }) // 拉全量再过滤
+    const filtered = filterByScope(res.list, userStore.currentPosition.dataScope)
+    const stats: WorkOrderStats = {
+      all: filtered.length,
+      draft: filtered.filter(w => w.status === 'draft').length,
+      active: filtered.filter(w => w.status === 'active').length,
+      closed: filtered.filter(w => w.status === 'closed').length,
+    }
     data.value = {
-      stats: res.stats || { all: 0, draft: 0, pendingAssign: 0, pendingAccept: 0, processing: 0, verifying: 0, closed: 0 },
-      recentOrders: res.list,
+      stats,
+      recentOrders: filtered.slice(0, 5),
     }
   } catch {
     error.value = true
@@ -83,8 +107,7 @@ async function fetch() {
 
 function statusLabel(status: string): string {
   const map: Record<string, string> = {
-    draft: '草稿', pending_assign: '待指派', pending_accept: '待接单',
-    processing: '处置中', verifying: '验收中', closed: '已关闭',
+    draft: '草稿', active: '进行中', closed: '已关闭',
   }
   return map[status] || status
 }
@@ -94,11 +117,11 @@ function formatTime(time: string): string {
 }
 
 function goDetail(id: number) {
-  router.push(`/workflow/order/${id}`)
+  router.push(`/system/order/${id}`)
 }
 
 function goList() {
-  router.push('/workflow/monitor')
+  router.push('/system/monitor')
 }
 
 onMounted(fetch)

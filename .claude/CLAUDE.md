@@ -14,7 +14,7 @@
 | 目录 | 用途 |
 |------|------|
 | `DESIGN.md` / `DESIGN_DETAIL.md` | md-template 格式的设计文档（直接喂给 md-figma-to-vue3） |
-| `docs/design/` | 业务设计文档（biz-design.md、module-plan.md、00-11 详细设计） |
+| `docs/design/` | 业务设计文档（biz-design.md、navigation-design.md、域级详细设计） |
 | `docs/prd/{模块}.md` | gen-prd 产出 |
 | `docs/api/{模块}.md` | gen-prd 产出（接口规格） |
 | `docs/ai-spec/{模块}/{页面}.md` | gen-ai-spec 产出 → md-figma-to-vue3 输入 |
@@ -28,7 +28,7 @@
 | `src/api/` | Mock API 层 |
 | `src/types/` | TypeScript 类型定义 |
 | `src/router/` | 路由配置 |
-| `src/config/` | 全局配置（Widget 注册表 / 仪表盘预设） |
+| `src/config/` | 全局配置（Widget 注册表 / 仪表盘预设） + **导航数据结构** |
 | `src/style.css` | 全局样式（Design Tokens + Light/Dark 变量） |
 
 ## 已生成的代码
@@ -107,12 +107,52 @@
 | Design Token 缺失 | `.claude/skills/md-figma-to-vue3/references/design-tokens.md` |
 | 代码模板不对 | `.claude/skills/md-figma-to-vue3/references/code-templates.md` |
 
+## 导航架构
+
+> 改造日期：2026-06-05。从「顶部 9 Tab + 侧栏过滤」改为「侧栏主导航」。
+
+### 一级导航（侧栏）
+
+| 分组 | 默认 | 画像 | 包含域 |
+|------|------|------|--------|
+| ⭐ 工作台 | 固定 | 全员 | 工作台 |
+| 🖥 监控与值守 | 展开 | 值班员 | 远程值守（12）· 数据可视化（7）· 工单管理（2） |
+| 🔧 设备与物联 | 折叠 | 维保/OEM | 设备管理→（18）· IOT→（14）· 维保应用（2） |
+| 🔍 巡查与隐患 | 展开 | 安全经理 | 巡查检查（8）· 隐患管理（2）· 危险作业（2） |
+| 📋 合规与管理 | 折叠 | 监管单位 | 政务管理（4）· 项目管理（6）· 食品安全（6） |
+| 🏫 培训与知识 | 折叠 | 全员 | 培训与演练（3） |
+| ⚙️ 平台管理 | 折叠 | 系统管理员 | 流程管理（1）· 平台配置→（22）· 系统管理→（17） |
+
+> **→** 标记表示该域模块数 > 10，侧栏只放入口，点击跳转至域首页概览页。
+> 交互机制详见 [navigation-design.md](docs/design/navigation-design.md)。
+
+### 路由 → 侧栏映射
+
+| 路由 | 侧栏菜单 key | 说明 |
+|------|-------------|------|
+| `/workbench` | `workbench` | 工作台 |
+| `/system/template` | `flow-template` | 流程模板（归属流程管理） |
+| `/system/template/config/:id?` | `flow-template` | 模板配置（子路由） |
+| `/system/monitor` | `order-monitor` | 工单监控（归属工单管理） |
+| `/system/order/:id` | `order-monitor` | 工单详情（子路由） |
+| `/system/dashboard` | `order-dashboard` | 工单数据看板（归属工单管理） |
+| `/maintenance/plans` | `maintenance-record` | 维保计划 |
+| `/maintenance/plans/detail/:id` | `maintenance-record` | 维保详情（子路由） |
+| `/device` | `device` | 设备管理域首页（跳转式入口） |
+| `/iot` | `iot` | IOT 域首页（跳转式入口） |
+| `/platform` | `platform` | 平台配置域首页（跳转式入口） |
+| `/admin` | `admin` | 系统管理域首页（跳转式入口） |
+
+导航数据定义在 `src/config/navigation.ts`（NavGroup / NavNode 类型 + 6 组常量 + 工具函数）。
+
 ## 业务设计
-> 最后更新：2026-06-03
+> 最后更新：2026-06-05
 
 | 层级 | 文档 | 说明 |
 |------|------|------|
-| 平台总览 | [biz-design.md](docs/design/biz-design.md) | 9 个业务域 + 用户角色 |
+| 平台总览 | [biz-design.md](docs/design/biz-design.md) | 14 个业务域 + 11 岗位 + 导航分组 |
+| 平台岗位 | [平台岗位设计.md](docs/design/平台岗位设计.md) | 11 岗位 × 四方协同 × 权限矩阵 × 数据范围（**后续功能设计依据**） |
+| 导航设计 | [navigation-design.md](docs/design/navigation-design.md) | 侧栏主导航：6 分组、搜索/钉选/收起、角色化路线图 |
 | 仪表盘框架 | [仪表盘框架/框架设计.md](docs/design/仪表盘框架/框架设计.md) | 通用仪表盘引擎 |
 | 工作台 | [工作台/biz-design.md](docs/design/工作台/biz-design.md) | 跨域聚合，角色化首页 |
 | 工单管理 | [工单管理/biz-design.md](docs/design/工单管理/biz-design.md) | 流程编排 + 工单全生命周期 |
@@ -121,7 +161,7 @@
 > 新增业务域：创建 `docs/design/{业务域}/` 目录，`/biz-design` 产出 `biz-design.md` 放入该目录，更新 `biz-design.md` 和本索引。
 
 ## 模块清单
-> 最后更新：2026-06-03
+> 最后更新：2026-06-05
 
 ### 仪表盘框架
 | 模块 | 优先级 | 状态 |
@@ -138,24 +178,37 @@
 | M5 隐患概览 Widget | P1 | 📝 设计完成，待编码 |
 | M6 发起工单 Widget | P0 | 📝 设计完成，待编码 |
 | M7 占位 Widget | P0 | 📝 设计完成，待编码 |
-| M8 系统管理·数据看板 | P1 | 📝 设计完成，待编码 |
+| M8 工单数据看板 | P1 | 📝 设计完成，待编码 |
 
 详见 [工作台/module-plan.md](docs/design/工作台/module-plan.md)
+
+### 流程管理
+| 模块 | 优先级 | 状态 |
+|------|--------|------|
+| M0 流程模板列表 | P0 | ✅ 已完成 |
+| M1 流程模板配置（表单设计+流程设计） | P0 | ✅ 已完成 |
+| 关键页面 | TemplateList + TemplateConfig | — |
+
+详见 [工单管理/biz-design.md](docs/design/工单管理/biz-design.md)
 
 ### 工单管理
 | 模块 | 优先级 | 状态 |
 |------|--------|------|
-| M0 模板配置 | P0 | ✅ 已完成 |
-| M-N 动态表单渲染 | P0 | 📝 设计完成 |
-| M1 工单监控 | P0 | ✅ 已完成（含工单发起弹窗） |
-| M2 工单发起（升级） | P0 | ⚠️ 需升级（嵌入 DynamicForm） |
-| M3 处置页面 + 移动端 | P0 | 待实现 |
-| M4 工单归档 | P1 | 待实现 |
-| M5 统计看板 | P1 | 待实现 |
-| M6 消息通知 | P2 | 待实现 |
+| M0 工单监控列表 | P0 | ✅ 已完成（含统计卡片+筛选+发起弹窗） |
+| M1 工单详情页 | P0 | ✅ 已完成 |
+| M2 工单数据看板 | P1 | 📝 设计完成，待编码 |
+| 待实现 | M3 动态表单渲染 / M4 移动端处置 / M5 归档 / M6 消息通知 | — |
 
-详见 [工单管理/module-plan.md](docs/design/工单管理/module-plan.md)
+详见 [工单管理/module-plan.md](docs/设计/工单管理/module-plan.md)
 设计：[00c-动态表单渲染设计](docs/design/工单管理/00c-动态表单渲染设计.md)
+
+### 域首页占位（跳转式入口，>10 模块的大域）
+| 页面 | 路由 | 状态 |
+|------|------|------|
+| 设备管理域首页 | `/device` | 📝 占位页 |
+| IOT 域首页 | `/iot` | 📝 占位页 |
+| 平台配置域首页 | `/platform` | 📝 占位页 |
+| 系统管理域首页 | `/admin` | 📝 占位页 |
 
 ### Skill 源仓库
 

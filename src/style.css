@@ -72,7 +72,7 @@
 
   /* 组件色 */
   --table-header-bg: #EBF4FF;
-  --table-header-text: #303133;
+  --table-header-text: #393a3d;
   --table-row-hover: #F5F7FA;
   --pagi-text: #71747B;
   --pagi-bg: #F0F1F6;
@@ -186,6 +186,14 @@ html.dark {
 .el-popper__arrow::before {
   background: var(--bg-card) !important;
   border-color: var(--border-default) !important;
+}
+
+/* el-tooltip dark 主题覆盖 —— 使用设计系统卡片背景替代 Element Plus 原生 #303133 */
+.el-tooltip.is-dark {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12) !important;
 }
 
 /* ElMessageBox 暗色适配 */
@@ -312,7 +320,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .fi-thead-tr { background: var(--table-header-bg); }
 .fi-th {
   border-bottom: 1px solid var(--border-low); padding: var(--spacing-lg, 12px);
-  font-size: var(--font-h4, 16px); font-weight: 400; color: var(--table-header-text); text-align: center; white-space: nowrap;
+  font-size: var(--font-small, 14px); font-weight: 500; color: var(--table-header-text); text-align: center; white-space: nowrap;
 }
 .fi-th-sort { cursor: pointer; user-select: none; }
 .fi-th-sort span { vertical-align: middle; }
@@ -496,3 +504,13 @@ body {
 }
 
 #app { width: 100%; min-height: 100vh; }
+
+/* ========== 全局滚动条样式（统一左侧菜单风格） ========== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-high); }
