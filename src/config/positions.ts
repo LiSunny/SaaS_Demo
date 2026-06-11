@@ -186,3 +186,70 @@ export function findPosition(key: PositionKey): PositionDef | undefined {
 
 /** 默认岗位 */
 export const DEFAULT_POSITION: PositionKey = 'fire-safety-manager'
+
+// ===== 平台通用岗位（所有企业适用，跨企业模板配置用） =====
+
+/** 平台通用岗位角色名称 */
+export const UNIVERSAL_POSITION_ROLES = [
+  '安全主管',
+  '消防责任人',
+  '部门负责人',
+  '值班经理',
+  '值班主管',
+  '企业管理员',
+] as const
+
+export type UniversalPositionRole = (typeof UNIVERSAL_POSITION_ROLES)[number]
+
+/** 企业 × 通用岗位 → 具体人员（Mock 数据，后续从企业配置中读取） */
+const ENTERPRISE_POSITION_MAP: Record<number, Record<string, { id: number; name: string }>> = {
+  // 阳光物业管理有限公司（orgId=1，值守中心 / 业主单位 A）
+  1: {
+    '安全主管': { id: 2, name: '张建国' },
+    '消防责任人': { id: 1, name: '周志远' },
+    '部门负责人': { id: 4, name: '赵丽萍' },
+    '值班经理': { id: 3, name: '李明辉' },
+    '值班主管': { id: 2, name: '张建国' },
+    '企业管理员': { id: 4, name: '赵丽萍' },
+  },
+  // 蓝盾消防技术服务公司（orgId=2，服务方 / 业主单位 B）
+  2: {
+    '安全主管': { id: 5, name: '刘建华' },
+    '消防责任人': { id: 6, name: '孙工' },
+    '部门负责人': { id: 5, name: '刘建华' },
+    '值班经理': { id: 7, name: '王志强' },
+    '值班主管': { id: 6, name: '孙工' },
+    '企业管理员': { id: 8, name: '郑晓峰' },
+  },
+  // 应急管理局安全管理中心（orgId=3，监管方）
+  3: {
+    '安全主管': { id: 9, name: '陈浩然' },
+    '消防责任人': { id: 10, name: '王蕾' },
+    '部门负责人': { id: 9, name: '陈浩然' },
+    '值班经理': { id: 10, name: '王蕾' },
+    '值班主管': { id: 9, name: '陈浩然' },
+    '企业管理员': { id: 10, name: '王蕾' },
+  },
+}
+
+/**
+ * 运行时：企业 ID + 通用岗位角色名称 → 具体人员
+ * @returns 人员信息，未匹配时返回 null
+ */
+export function resolvePositionAssignee(
+  enterpriseId: number,
+  roleName: string,
+): { id: number; name: string } | null {
+  const enterprise = ENTERPRISE_POSITION_MAP[enterpriseId]
+  if (!enterprise) return null
+  return enterprise[roleName] || null
+}
+
+/**
+ * 获取指定企业的所有通用岗位人员列表
+ */
+export function getEnterprisePositions(enterpriseId: number): { roleName: string; person: { id: number; name: string } }[] {
+  const enterprise = ENTERPRISE_POSITION_MAP[enterpriseId]
+  if (!enterprise) return []
+  return Object.entries(enterprise).map(([roleName, person]) => ({ roleName, person }))
+}

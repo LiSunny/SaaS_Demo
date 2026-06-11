@@ -107,6 +107,36 @@ export interface NodeAction {
   conditionExpression?: string
 }
 
+// ===== SLA 条件节点 =====
+
+/** SLA 条件节点的出口分支 */
+export interface SlaConditionBranch {
+  /** 阈值类型 */
+  threshold: 'normal' | 'yellow' | 'red'
+  /** 流向的目标节点 ID */
+  targetNodeId: string
+  /** 出口标签（如 "正常"、"黄灯预警"、"红灯超时"） */
+  label: string
+}
+
+/** SLA 条件节点配置 */
+export interface SlaConditionConfig {
+  /** 读取前置节点的哪个计时器 */
+  timer: 'ttr' | 'tts'
+  /** 启用的出口分支，配置几个就显示几个 */
+  branches: SlaConditionBranch[]
+  /** 每条分支通道内的子节点，key = threshold: 'normal'|'yellow'|'red' */
+  branchChildNodes?: Record<string, FlowNode[]>
+}
+
+// ===== 跨企业协同节点 =====
+
+/** 跨企业协同节点配置（零配置：目标企业由运行时上下文动态解析） */
+export interface CrossEnterpriseConfig {
+  /** 子流程节点（在协作方企业中执行的节点链） */
+  childNodes: FlowNode[]
+}
+
 export interface FlowNode {
   id: string
   type: NodeType
@@ -124,6 +154,10 @@ export interface FlowNode {
   notifyOnComplete?: boolean
   /** SLA 超时通知配置 */
   slaNotification?: SlaNotification
+  /** SLA 条件节点配置（type === 'condition' 时可用） */
+  slaConditionConfig?: SlaConditionConfig
+  /** 跨企业派发节点配置（type === 'external' 时可用） */
+  crossEnterpriseConfig?: CrossEnterpriseConfig
 }
 
 export interface FieldPermission {

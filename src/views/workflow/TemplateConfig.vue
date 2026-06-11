@@ -274,6 +274,7 @@ const saving = ref(false)
 const hasSeed = ref(false)
 const personDialogVisible = ref(false)
 const formDesignerRef = ref<InstanceType<typeof FormDesigner>>()
+const flowDesignerRef = ref<InstanceType<typeof FlowDesigner>>()
 const loadedFormFields = ref<FormField[]>([])
 const flowNodes = ref<FlowNode[]>(defaultFlowNodes())
 
@@ -328,12 +329,7 @@ const rules: FormRules = {
 }
 
 function buildFlowDef(): FlowDefinition {
-  const nodes = flowNodes.value
-  const edges = []
-  for (let i = 0; i < nodes.length - 1; i++) {
-    edges.push({ from: nodes[i].id, to: nodes[i + 1].id })
-  }
-  return { nodes, edges }
+  return flowDesignerRef.value?.buildFlowDef() ?? { nodes: flowNodes.value, edges: [] }
 }
 
 // 模板编号自动生成

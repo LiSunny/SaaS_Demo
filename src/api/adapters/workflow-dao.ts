@@ -19,6 +19,7 @@ import type {
 const SEED_TEMPLATES: TemplateItem[] = [
   { id: 4, name: '示例模版：故障报修', status: 1, nodeCount: 4, fieldCount: 5, code: 'GD-20260603-3144', creator: '系统', createdAt: '2026-06-03 00:00', updatedAt: '2026-06-03 00:00' },
   { id: 5, name: '示例模版：警情处置督办', status: 1, nodeCount: 4, fieldCount: 5, code: 'JQ-20260605-5108', creator: '系统', createdAt: '2026-06-05 00:00', updatedAt: '2026-06-05 00:00' },
+  { id: 6, name: '远程值守告警处置', status: 1, nodeCount: 5, fieldCount: 5, code: 'WF-RM-001', creator: '系统', createdAt: '2026-06-10 00:00', updatedAt: '2026-06-10 00:00' },
 ]
 
 // ===== 持久化 Store =====
@@ -491,6 +492,33 @@ export const BUILTIN_DETAILS: Record<number, TemplateDetail> = {
                     "from": "execute_1780600234567",
                     "to": "close"
                 }
+            ]
+        }
+    },
+    // ===== 模板 6：远程值守告警处置（含条件分支容器） =====
+    6: {
+        "baseInfo": { "name": "远程值守告警处置", "code": "WF-RM-001", "description": "值守中心告警自动派发→业主单位现场处置→SLA 超时判断→值守中心记录归档。支持 SLA 超时自动升级。", "initiatorScope": "all", "slaPriority": "normal", "defaultTtrMinutes": 30, "defaultTtsMinutes": 120, "amberThreshold": 80, "defaultCcPositionNames": ["值班经理", "安全主管"] },
+        "formSchema": {
+            "start": { "fields": [{ "id": "alarmDescription", "type": "textarea", "label": "告警描述", "required": true, "source": "auto", "span": 24 }, { "id": "alarmLevel", "type": "select", "label": "告警等级", "required": true, "source": "auto", "options": [{ "value": "critical", "label": "严重" }, { "value": "major", "label": "重要" }, { "value": "minor", "label": "一般" }], "span": 12 }, { "id": "targetEnterpriseId", "type": "select", "label": "目标业主单位", "required": true, "source": "callback", "callbackConfig": { "type": "department" }, "span": 12 }, { "id": "alarmSource", "type": "input", "label": "告警来源设备", "required": false, "source": "auto", "span": 12 }, { "id": "alarmTime", "type": "date", "label": "告警时间", "required": true, "source": "auto", "span": 12 }] },
+            "execute_disposal": { "fields": [{ "id": "disposalConclusion", "type": "textarea", "label": "处置结论", "required": true, "source": "manual", "span": 24 }, { "id": "siteSituation", "type": "textarea", "label": "现场情况", "required": true, "source": "manual", "span": 24 }, { "id": "sitePhotos", "type": "upload", "label": "现场照片", "required": true, "source": "manual", "span": 24 }] },
+            "execute_escalation": { "fields": [{ "id": "disposalConclusion", "type": "textarea", "label": "处置结论", "required": true, "source": "manual", "span": 24 }, { "id": "siteSituation", "type": "textarea", "label": "现场情况", "required": true, "source": "manual", "span": 24 }, { "id": "escalationReason", "type": "textarea", "label": "升级原因（自动填入）", "required": false, "source": "auto", "span": 24 }] },
+            "confirm_record": { "fields": [{ "id": "dispositionRecord", "type": "textarea", "label": "处置信息记录", "required": true, "source": "manual", "span": 24 }, { "id": "recordConclusion", "type": "radio", "label": "处置结论", "required": true, "source": "manual", "options": [{ "value": "resolved", "label": "已解决" }, { "value": "partial", "label": "部分解决" }, { "value": "unresolved", "label": "未解决，需继续跟进" }], "span": 24 }] }
+        },
+        "flowDefinition": {
+            "nodes": [
+                { "id": "start", "type": "start", "name": "告警自动发起", "formFields": [{ "fieldId": "alarmDescription", "mode": "editable" }, { "fieldId": "alarmLevel", "mode": "editable" }, { "fieldId": "targetEnterpriseId", "mode": "editable" }, { "fieldId": "alarmSource", "mode": "editable" }, { "fieldId": "alarmTime", "mode": "editable" }] },
+                { "id": "external_dispatch", "type": "external", "name": "跨企业派发", "crossEnterpriseConfig": { "childNodes": [{ "id": "execute_disposal", "type": "execute", "name": "现场处置（业主单位）", "assignSource": "initiator", "slaLimits": { "ttsMinutes": 120, "amberThreshold": 80 }, "slaNotification": { "enabled": true, "channels": ["in_app", "sms"], "ccSource": "custom", "ccPositionNames": ["安全主管"] }, "notifyOnComplete": true }] } },
+                { "id": "sla_condition_1", "type": "condition", "name": "SLA 超时判断", "slaConditionConfig": { "timer": "tts", "branches": [{ "threshold": "normal", "targetNodeId": "confirm_record", "label": "正常" }, { "threshold": "yellow", "targetNodeId": "confirm_record", "label": "黄灯预警" }, { "threshold": "red", "targetNodeId": "execute_escalation_out", "label": "红灯超时" }], "branchChildNodes": { "normal": [], "yellow": [], "red": [{ "id": "execute_escalation_out", "type": "execute", "name": "升级处置（消防责任人）", "assignSource": "initiator", "slaLimits": { "ttsMinutes": 60, "amberThreshold": 80 }, "slaNotification": { "enabled": true, "channels": ["in_app", "sms", "voice"], "ccSource": "custom", "ccPositionNames": ["消防责任人", "值班经理"] } }] } } },
+                { "id": "confirm_record", "type": "confirm", "name": "值守中心记录处置信息", "assignSource": "initiator", "formFields": [{ "fieldId": "dispositionRecord", "mode": "editable" }, { "fieldId": "recordConclusion", "mode": "editable" }], "actions": [{ "name": "确认归档", "targetNodeId": "close" }, { "name": "退回处置", "targetNodeId": "execute_disposal" }], "slaLimits": { "ttsMinutes": 30, "amberThreshold": 80 }, "slaNotification": { "enabled": true, "channels": ["in_app"], "ccSource": "custom", "ccPositionNames": ["值班经理"] } },
+                { "id": "close", "type": "close", "name": "归档" }
+            ],
+            "edges": [
+                { "from": "start", "to": "external_dispatch" },
+                { "from": "external_dispatch", "to": "sla_condition_1" },
+                { "from": "sla_condition_1", "to": "confirm_record", "condition": "sla.normal" },
+                { "from": "sla_condition_1", "to": "execute_escalation_out", "condition": "sla.red" },
+                { "from": "execute_escalation_out", "to": "confirm_record" },
+                { "from": "confirm_record", "to": "close" }
             ]
         }
     },

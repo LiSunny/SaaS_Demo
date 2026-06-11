@@ -15,7 +15,7 @@
         </div>
 
         <!-- 指派策略 -->
-        <div v-if="node.type === 'assign' || node.type === 'confirm'" class="prop-section">
+        <div v-if="node.type === 'assign' || node.type === 'execute'|| node.type === 'confirm'" class="prop-section">
           <p class="prop-section-title">指派策略
             <el-tooltip placement="top" effect="dark" raw-content>
               <template #content>
@@ -89,12 +89,63 @@
 
         <!-- condition 节点 -->
         <div v-if="node.type === 'condition'" class="prop-section">
-          <p class="prop-section-title">条件表达式</p>
-          <div class="prop-field">
-            <el-input :model-value="local.conditionExpression || ''" :disabled="readonly"
-              @update:model-value="onChange('conditionExpression', $event)"
-              type="textarea" :rows="3" placeholder="例: $form.status === 'approved'" />
-          </div>
+          <p class="prop-section-title">条件类型</p>
+          <el-radio-group :model-value="conditionMode" :disabled="readonly"
+            @update:model-value="onConditionModeChange" style="margin-bottom:var(--spacing-lg, 12px)">
+            <el-radio value="expression">普通条件（表达式）</el-radio>
+            <el-radio value="sla">SLA 条件（阈值判断）</el-radio>
+          </el-radio-group>
+
+          <!-- 普通条件：表达式 -->
+          <template v-if="conditionMode === 'expression'">
+            <p class="prop-section-title" style="margin-top:0">条件表达式</p>
+            <div class="prop-field">
+              <el-input :model-value="local.conditionExpression || ''" :disabled="readonly"
+                @update:model-value="onChange('conditionExpression', $event)"
+                type="textarea" :rows="3" placeholder="例: $form.status === 'approved'" />
+            </div>
+          </template>
+
+          <!-- SLA 条件：阈值判断 -->
+          <template v-else>
+            <p class="prop-section-title" style="margin-top:0">SLA 阈值判断</p>
+            <p class="prop-hint" style="margin-bottom:var(--spacing-lg, 12px)">
+              自动读取前置执行节点的 SLA 配置，超时后自动触发分支流转。
+            </p>
+            <div class="prop-field">
+              <label class="prop-label">计时器类型</label>
+              <el-select :model-value="local.slaConditionConfig?.timer || 'tts'" :disabled="readonly"
+                @update:model-value="onSlaCondition('timer', $event)" style="width:100%">
+                <el-option label="TTR（响应时限）" value="ttr" />
+                <el-option label="TTS（解决时限）" value="tts" />
+              </el-select>
+            </div>
+            <div class="prop-field">
+              <label class="prop-label">启用出口分支</label>
+              <p class="prop-hint" style="margin-bottom:var(--spacing-sm, 6px)">配置几个出口就自动生成几条连线。</p>
+              <div v-for="br in slaBranchOptions" :key="br.threshold" class="prop-action-row">
+                <label class="prop-check" style="width:100px;flex-shrink:0">
+                  <input type="checkbox" :disabled="readonly"
+                    :checked="branchEnabled(br.threshold)"
+                    @change="toggleBranch(br.threshold)" /> {{ br.label }}
+                </label>
+                <el-select
+                  v-if="branchEnabled(br.threshold)"
+                  :model-value="getBranchTarget(br.threshold)"
+                  :disabled="readonly"
+                  @update:model-value="setBranchTarget(br.threshold, $event)"
+                  placeholder="目标节点" style="flex:1">
+                  <el-option v-for="n in allNodeNames" :key="n.id" :label="n.name" :value="n.id" />
+                </el-select>
+                <el-input
+                  v-if="branchEnabled(br.threshold)"
+                  :model-value="getBranchLabel(br.threshold)"
+                  :disabled="readonly"
+                  @update:model-value="setBranchLabel(br.threshold, $event)"
+                  placeholder="出口标签" style="flex:1;max-width:140px" />
+              </div>
+            </div>
+          </template>
         </div>
 
         <!-- SLA 覆盖（仅产生任务的节点） -->
@@ -280,8 +331,9 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
-import type { FlowNode, FormField } from '@/types/workflow'
+import type { FlowNode, FormField, SlaConditionConfig, SlaConditionBranch } from '@/types/workflow'
 import PersonSelector from './PersonSelector.vue'
+import { UNIVERSAL_POSITION_ROLES } from '@/config/positions'
 
 const props = defineProps<{
   node: FlowNode | null
@@ -321,8 +373,84 @@ function onPersonConfirm(ids: number[]) {
   local.assignConfig.targetIds = ids
 }
 
+// ===== 条件节点模式判断 =====
+const conditionMode = computed(() => {
+  if (local.slaConditionConfig && local.slaConditionConfig.branches?.length > 0) return 'sla'
+  return 'expression'
+})
+
+function onConditionModeChange(mode: string) {
+  if (mode === 'sla') {
+    local.slaConditionConfig = local.slaConditionConfig || { timer: 'tts', branches: [] }
+    local.conditionExpression = undefined
+  } else {
+    delete (local as any).slaConditionConfig
+    local.conditionExpression = local.conditionExpression || ''
+  }
+}
+
+// ===== SLA 条件出口分支 =====
+const slaBranchOptions = [
+  { threshold: 'normal' as const, label: '正常（未超时）', desc: '耗时 < 黄灯阈值' },
+  { threshold: 'yellow' as const, label: '黄灯预警', desc: '耗时 ≥ 黄灯阈值 且 < 100%' },
+  { threshold: 'red' as const, label: '红灯超时', desc: '耗时 ≥ 100%' },
+]
+
+function getBranches(): SlaConditionBranch[] {
+  return local.slaConditionConfig?.branches || []
+}
+
+function branchEnabled(threshold: string): boolean {
+  return getBranches().some(b => b.threshold === threshold)
+}
+
+function getBranchTarget(threshold: string): string {
+  return getBranches().find(b => b.threshold === threshold)?.targetNodeId || ''
+}
+
+function getBranchLabel(threshold: string): string {
+  return getBranches().find(b => b.threshold === threshold)?.label || ''
+}
+
+function toggleBranch(threshold: string) {
+  if (!local.slaConditionConfig) {
+    local.slaConditionConfig = { timer: 'tts', branches: [] }
+  }
+  const branches = [...local.slaConditionConfig.branches]
+  const idx = branches.findIndex(b => b.threshold === threshold)
+  if (idx >= 0) {
+    branches.splice(idx, 1)
+  } else {
+    const labelMap: Record<string, string> = { normal: '正常', yellow: '黄灯预警', red: '红灯超时' }
+    branches.push({ threshold: threshold as SlaConditionBranch['threshold'], targetNodeId: '', label: labelMap[threshold] || threshold })
+  }
+  local.slaConditionConfig = { ...local.slaConditionConfig, branches }
+}
+
+function setBranchTarget(threshold: string, targetNodeId: string) {
+  if (!local.slaConditionConfig) return
+  const branches = local.slaConditionConfig.branches.map(b =>
+    b.threshold === threshold ? { ...b, targetNodeId } : b,
+  )
+  local.slaConditionConfig = { ...local.slaConditionConfig, branches }
+}
+
+function setBranchLabel(threshold: string, label: string) {
+  if (!local.slaConditionConfig) return
+  const branches = local.slaConditionConfig.branches.map(b =>
+    b.threshold === threshold ? { ...b, label } : b,
+  )
+  local.slaConditionConfig = { ...local.slaConditionConfig, branches }
+}
+
+function onSlaCondition(key: string, val: any) {
+  const cfg: SlaConditionConfig = local.slaConditionConfig || { timer: 'tts', branches: [] }
+  ;(cfg as any)[key] = val
+  local.slaConditionConfig = cfg
+}
+
 // ===== SLA 抄送岗位 =====
-const ccPresets = ['安全主管', '部门负责人', '值班经理', '区域经理', '项目负责人']
+const ccPresets = [...UNIVERSAL_POSITION_ROLES]
 function addSlaCcPreset(name: string) {
   if (!slaNotifyCcNames.value.includes(name)) {
     slaNotifyCcNames.value = [...slaNotifyCcNames.value, name]
@@ -439,6 +567,16 @@ function emitUpdate() {
   } else {
     delete result.slaNotification
   }
+  // SLA 条件节点：清除普通条件表达式
+  if (result.slaConditionConfig?.branches?.length) {
+    delete result.conditionExpression
+  } else {
+    delete result.slaConditionConfig
+  }
+  // crossEnterprise：无子节点时清理
+  if (result.crossEnterpriseConfig && (!result.crossEnterpriseConfig.childNodes || result.crossEnterpriseConfig.childNodes.length === 0)) {
+    delete result.crossEnterpriseConfig
+  }
   emit('update', result)
 }
 </script>
@@ -492,6 +630,25 @@ function emitUpdate() {
   cursor: help; flex-shrink: 0;
 }
 .prop-help-icon:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+.prop-info-card {
+  background: var(--accent-primary5, rgba(64, 128, 255, 0.04));
+  border: 1px solid var(--accent-primary15, rgba(64, 128, 255, 0.15));
+  border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-lg, 12px);
+}
+.prop-info-text {
+  font-size: var(--font-body, 16px);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-xs, 4px) 0;
+}
+.prop-info-hint {
+  font-size: var(--font-xs, 12px);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
 
 .prop-field { margin-bottom: var(--spacing-md, 8px); }
 .prop-label {

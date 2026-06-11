@@ -795,6 +795,16 @@ export async function getWorkOrderDetail(id: number): Promise<WorkOrderDetail> {
     detail = buildDetail(id)
     detailStore.add(detail)
   }
+  // SLA 条件重新评估：打开详情时，如果当前 in_progress 节点后紧跟 SLA 条件节点，触发评估
+  const inProgressNode = detail.nodes.find(n => n.status === 'in_progress')
+  if (inProgressNode && detail.status === 'active') {
+    const advanced = advanceAfterNodeCompletion(detail, String(inProgressNode.id))
+    if (advanced) {
+      detail = advanced
+      // 更新 detailStore 中的记录
+      detailStore.update(id, advanced)
+    }
+  }
   return detail
 }
 
@@ -885,6 +895,11 @@ export async function submitDraft(id: number): Promise<WorkOrderDetail> {
 
   detailStore.update(id, updated)
   syncListItemFromDetail(updated)
+  // SLA 评估（复用函数开头已声明的 startNode）
+  if (startNode) {
+    const advanced = advanceAfterNodeCompletion(updated, String(startNode.id))
+    if (advanced) return advanced
+  }
   return updated
 }
 
@@ -975,7 +990,9 @@ export async function acceptWorkOrder(id: number): Promise<WorkOrderDetail> {
 
   detailStore.update(id, updated)
   syncListItemFromDetail(updated)
-  return updated
+  // SLA 评估
+  const advanced = advanceAfterNodeCompletion(updated, String(assignNode.id))
+  return advanced || updated
 }
 
 // ===== 提交处置表单 =====
@@ -1040,7 +1057,9 @@ export async function submitNodeForm(id: number, formData: Record<string, any>):
 
     detailStore.update(id, updated)
     syncListItemFromDetail(updated)
-    return updated
+    // SLA 评估 / 跨企业派发
+    const advanced = advanceAfterNodeCompletion(updated, String(assignNode.id))
+    return advanced || updated
   }
 
   if (detail.status !== 'active') throw new Error('当前状态不允许提交处置')
@@ -1101,6 +1120,12 @@ export async function submitNodeForm(id: number, formData: Record<string, any>):
 
   detailStore.update(id, updated)
   syncListItemFromDetail(updated)
+
+  // SLA 评估 / 跨企业派发 / 子工单回流
+  const advanced = advanceAfterNodeCompletion(updated, String(executeNode.id))
+  if (advanced) return advanced
+  backflowToParent(updated)
+
   return updated
 }
 
@@ -1150,7 +1175,9 @@ export async function performNodeAction(id: number, action: { name: string; targ
 
     detailStore.update(id, updated)
     syncListItemFromDetail(updated)
-    return updated
+    // SLA 评估
+    const advanced = advanceAfterNodeCompletion(updated, String(confirmNode.id))
+    return advanced || updated
   } else {
     // reject：confirm → 回退对应执行节点，状态 → processing
     confirmNode.status = 'pending'
@@ -1218,6 +1245,341 @@ export async function updatePriority(id: number, newPriority: string, operatorNa
 export async function getWorkOrderStats(): Promise<WorkOrderStats> {
   await new Promise(r => setTimeout(r, 100))
   return getStats(store.getAll())
+}
+
+// ===== SLA 条件评估与跨企业流转引擎 =====
+
+/**
+ * 节点完成后推进流程。处理 SLA 条件自动评估和跨企业派发。
+ * 返回更新后的 detail，未变更返回 null。
+ */
+function advanceAfterNodeCompletion(
+  detail: WorkOrderDetail,
+  completedNodeId: string,
+): WorkOrderDetail | null {
+  const td = detail.templateId ? getTemplateDetailForEval(detail.templateId) : null
+  if (!td) return null
+
+  const flowNodes = td.flowDefinition?.nodes || getTemplateNodes(detail.templateId)
+  const runtimeNodes = detail.nodes
+  const completedIdx = flowNodes.findIndex(n => String(n.id) === String(completedNodeId))
+  if (completedIdx < 0) return null
+
+  const nextFlowNode = flowNodes[completedIdx + 1]
+  if (!nextFlowNode) return null // 没有更多节点
+
+  // SLA 条件节点：评估阈值并自动跳转
+  if (nextFlowNode.type === 'condition' && nextFlowNode.slaConditionConfig?.branches?.length) {
+    return handleSlaCondition(detail, nextFlowNode, flowNodes, runtimeNodes)
+  }
+
+  // 跨企业协同节点：创建子工单（目标企业由运行时上下文动态解析）
+  if (nextFlowNode.type === 'external' && nextFlowNode.crossEnterpriseConfig?.childNodes?.length) {
+    return handleCrossEnterprise(detail, nextFlowNode, flowNodes, runtimeNodes)
+  }
+
+  return null
+}
+
+/** 获取模板详情（用于 SLA 评估，优先 localStorage → BUILTIN_DETAILS） */
+function getTemplateDetailForEval(templateId: number): { flowDefinition?: { nodes?: any[] } } | null {
+  try {
+    const raw = localStorage.getItem(`db:workflow:config:${templateId}`)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  try {
+    const seedRaw = localStorage.getItem(`db:workflow:seed:${templateId}`)
+    if (seedRaw) return JSON.parse(seedRaw)
+  } catch { /* ignore */ }
+  if (BUILTIN_DETAILS[templateId]) return BUILTIN_DETAILS[templateId]
+  return null
+}
+
+/**
+ * SLA 条件节点评估：计算前置节点耗时 → 匹配阈值 → 返回分支流转后的 detail
+ */
+function handleSlaCondition(
+  detail: WorkOrderDetail,
+  slaNode: any, // FlowNode with slaConditionConfig
+  flowNodes: any[],
+  runtimeNodes: WorkOrderDetail['nodes'],
+): WorkOrderDetail | null {
+  const now = fmtNow()
+  const cfg = slaNode.slaConditionConfig
+  const timer = cfg.timer // 'ttr' | 'tts'
+
+  // 找到前置可执行节点的 sla 阈值
+  const slaIdx = flowNodes.findIndex(n => String(n.id) === String(slaNode.id))
+  const prevFlowNode = flowNodes[slaIdx - 1]
+  const prevRuntimeNode = runtimeNodes.find(n => String(n.id) === String(prevFlowNode?.id))
+
+  if (!prevFlowNode || !prevRuntimeNode) return null
+
+  const slaLimits = prevFlowNode.slaLimits || {}
+  const amberThreshold = (slaLimits.amberThreshold ?? 0.8) / 100 // 转为 0-1
+  const timeLimit = timer === 'ttr' ? slaLimits.ttrMinutes : slaLimits.ttsMinutes
+  if (!timeLimit) return null
+
+  // 计算已用时间
+  const startedAt = prevRuntimeNode.startedAt || detail.createdAt
+  const base = new Date(startedAt).getTime()
+  if (isNaN(base)) return null
+
+  const elapsed = Math.max(0, (Date.now() - base) / 60000)
+  const progress = Math.min(elapsed / timeLimit, 2) // cap at 200%
+
+  // 确定阈值分支
+  let matchedBranch: { threshold: string; targetNodeId: string; label: string } | null = null
+  if (progress >= 1) {
+    // 红灯：≥ 100%
+    matchedBranch = cfg.branches.find((b: any) => b.threshold === 'red') || null
+  } else if (progress >= amberThreshold) {
+    // 黄灯：≥ amberThreshold 且 < 100%
+    matchedBranch = cfg.branches.find((b: any) => b.threshold === 'yellow') || null
+  }
+
+  // 如果没有匹配的黄灯/红灯，使用正常分支
+  if (!matchedBranch) {
+    matchedBranch = cfg.branches.find((b: any) => b.threshold === 'normal') || null
+  }
+
+  if (!matchedBranch || !matchedBranch.targetNodeId) return null
+
+  // 标记前置节点（如果是红灯/黄灯 → 标记为超时未完成，跳过）
+  const isTimeout = matchedBranch.threshold === 'red' || matchedBranch.threshold === 'yellow'
+  const nodes = runtimeNodes.map(n => {
+    if (String(n.id) === String(prevRuntimeNode.id) && isTimeout && (n.status === 'completed' || n.status === 'in_progress')) {
+      return { ...n, status: 'skipped' as NodeStatus, completedAt: n.completedAt || now }
+    }
+    return { ...n }
+  })
+
+  // 找到目标节点并激活
+  const targetFlowIdx = flowNodes.findIndex(n => String(n.id) === String(matchedBranch!.targetNodeId))
+  const targetRuntimeNode = nodes.find(n => String(n.id) === String(matchedBranch!.targetNodeId))
+
+  // 激活目标节点
+  const updatedNodes = nodes.map(n => {
+    if (String(n.id) === String(matchedBranch!.targetNodeId)) {
+      return { ...n, status: 'in_progress' as NodeStatus, startedAt: now }
+    }
+    return n
+  })
+
+  const targetNode = targetRuntimeNode || updatedNodes.find(n => String(n.id) === String(matchedBranch!.targetNodeId))
+
+  const records = appendRecord(
+    detail.records,
+    isTimeout ? 'sla_timeout' : 'sla_normal',
+    '系统',
+    null,
+    `SLA ${cfg.timer.toUpperCase()} 评估：${matchedBranch.label}（进度 ${Math.round(progress * 100)}%，阈值 ${Math.round(amberThreshold * 100)}%）→ 流转至"${targetNode?.name || matchedBranch.targetNodeId}"`,
+    now,
+  )
+
+  const updated: WorkOrderDetail = {
+    ...detail,
+    status: 'active',
+    currentNodeId: matchedBranch.targetNodeId,
+    currentNodeName: targetNode?.name || null,
+    currentNodeIndex: targetFlowIdx >= 0 ? targetFlowIdx + 1 : detail.currentNodeIndex,
+    currentNodeType: targetNode?.type || targetRuntimeNode?.type || null,
+    updatedAt: now,
+    nodes: updatedNodes,
+    records,
+    nodeRecords: detail.nodeRecords || [],
+  }
+
+  detailStore.update(detail.id, updated)
+  syncListItemFromDetail(updated)
+  return updated
+}
+
+/**
+ * 跨企业派发节点：在目标企业创建子工单
+ */
+function handleCrossEnterprise(
+  detail: WorkOrderDetail,
+  externalNode: any, // FlowNode with crossEnterpriseConfig
+  flowNodes: any[],
+  runtimeNodes: WorkOrderDetail['nodes'],
+): WorkOrderDetail | null {
+  const now = fmtNow()
+  const cfg = externalNode.crossEnterpriseConfig
+
+  // 从工单上下文解析目标企业 ID（从 formData 中查找 targetEnterpriseId）
+  const enterpriseIdRaw = detail.formData?.targetEnterpriseId
+  const targetEnterpriseId = typeof enterpriseIdRaw === 'number' ? enterpriseIdRaw : (typeof enterpriseIdRaw === 'string' ? parseInt(enterpriseIdRaw, 10) : null)
+  if (!targetEnterpriseId || isNaN(targetEnterpriseId)) return null
+
+  const childNodes = cfg.childNodes || []
+  if (childNodes.length === 0) return null
+
+  // 生成子工单
+  const childId = store.nextId()
+  const childOrderNo = `WO${now.slice(0, 10).replace(/-/g, '')}-${String(childId).padStart(3, '0')}`
+
+  // 构建子工单节点列表
+  const childRuntimeNodes = childNodes.map((cn: any, ci: number) => ({
+    id: cn.id,
+    name: cn.name,
+    type: cn.type,
+    status: ci === 0 ? 'in_progress' as NodeStatus : 'pending' as NodeStatus,
+    assigneeName: null,
+    startedAt: ci === 0 ? now : null,
+    completedAt: null,
+    order: ci + 1,
+  }))
+
+  const firstChildNode = childNodes[0]
+  const childItem: WorkOrderItem = {
+    id: childId,
+    orderNo: childOrderNo,
+    templateId: detail.templateId,
+    templateName: `${detail.templateName}（子工单）`,
+    templateVersion: detail.templateVersion,
+    status: 'active',
+    priority: detail.priority,
+    currentNodeId: firstChildNode?.id || null,
+    currentNodeName: firstChildNode?.name || null,
+    currentNodeIndex: 1,
+    totalNodes: childNodes.length,
+    currentNodeType: firstChildNode?.type || null,
+    currentAssigneeId: null,
+    currentAssigneeName: null,
+    creatorId: detail.creatorId,
+    creatorName: detail.creatorName,
+    creatorOrgId: detail.creatorOrgId,
+    creatorOrgName: detail.creatorOrgName,
+    parentOrderId: detail.id,
+    createdAt: now,
+    updatedAt: now,
+    closedAt: null,
+    closedBy: null,
+    title: `${detail.title || detail.templateName} - 子工单`,
+    remark: '',
+    formData: { ...detail.formData, _targetEnterpriseId: targetEnterpriseId },
+    sla: {
+      ttrMinutes: firstChildNode?.slaLimits?.ttrMinutes ?? null,
+      ttsMinutes: firstChildNode?.slaLimits?.ttsMinutes ?? 120,
+      ttrStartedAt: null,
+      ttrEndedAt: null,
+      ttsStartedAt: now,
+      ttsPausedAt: null,
+      yellowThreshold: (firstChildNode?.slaLimits?.amberThreshold ?? 80) / 100,
+      ttrProgress: null,
+      ttsProgress: 0,
+      slaStatus: 'normal',
+    },
+  }
+
+  store.add(childItem)
+
+  // 构建子工单详情
+  const childRecords: WorkOrderDetail['records'] = [{
+    id: detailStore.nextId(),
+    action: 'create',
+    operatorName: detail.creatorName,
+    operatorOrgName: detail.creatorOrgName,
+    content: `父工单 ${detail.orderNo} 跨企业派发 → 目标企业 ID ${targetEnterpriseId}，自动创建子工单`,
+    createdAt: now,
+  }]
+
+  const childDetail: WorkOrderDetail = {
+    ...childItem,
+    nodes: childRuntimeNodes,
+    records: childRecords,
+    nodeRecords: [],
+  }
+
+  detailStore.add(childDetail)
+
+  // 父工单记录子工单创建
+  const parentRecords = appendRecord(
+    detail.records,
+    'cross_enterprise',
+    detail.creatorName,
+    detail.creatorOrgName,
+    `跨企业派发 → 目标企业 ID ${targetEnterpriseId}，子工单 ${childOrderNo} 已创建（${childNodes.length} 个节点）`,
+    now,
+  )
+
+  // 父工单停留在 external 节点，等待子工单完成后回流
+  const extRuntimeNode = runtimeNodes.find(n => String(n.id) === String(externalNode.id))
+  const updatedNodes = runtimeNodes.map(n => {
+    if (String(n.id) === String(externalNode.id)) {
+      return { ...n, status: 'in_progress' as NodeStatus, startedAt: now }
+    }
+    return { ...n }
+  })
+
+  const updated: WorkOrderDetail = {
+    ...detail,
+    currentNodeId: externalNode.id,
+    currentNodeName: externalNode.name,
+    currentNodeType: externalNode.type,
+    updatedAt: now,
+    nodes: updatedNodes,
+    records: parentRecords,
+    nodeRecords: detail.nodeRecords || [],
+  }
+
+  detailStore.update(detail.id, updated)
+  syncListItemFromDetail(updated)
+  return updated
+}
+
+/**
+ * 子工单完成后回流父工单
+ */
+function backflowToParent(childDetail: WorkOrderDetail): boolean {
+  const parentId = childDetail.parentOrderId
+  if (!parentId) return false
+
+  const parentDetail = detailStore.getById(parentId)
+  if (!parentDetail) return false
+
+  const now = fmtNow()
+  const externalNode = parentDetail.nodes.find(n => n.type === 'external' && n.status === 'in_progress')
+  if (!externalNode) return false
+
+  // 标记 external 节点完成
+  const extIdx = parentDetail.nodes.indexOf(externalNode)
+  const updatedNodes = parentDetail.nodes.map((n, i) => {
+    if (i === extIdx) return { ...n, status: 'completed' as NodeStatus, completedAt: now }
+    // 激活下一个节点
+    if (i === extIdx + 1 && n.status === 'pending') {
+      return { ...n, status: 'in_progress' as NodeStatus, startedAt: now }
+    }
+    return { ...n }
+  })
+
+  const nextNode = extIdx + 1 < updatedNodes.length ? updatedNodes[extIdx + 1] : null
+
+  const records = appendRecord(
+    parentDetail.records,
+    'child_completed',
+    '系统',
+    null,
+    `子工单 ${childDetail.orderNo} 已完成，结果回流父工单 → ${nextNode?.name || '下一节点'}`,
+    now,
+  )
+
+  const updated: WorkOrderDetail = {
+    ...parentDetail,
+    currentNodeId: nextNode?.id ?? null,
+    currentNodeName: nextNode?.name ?? null,
+    currentNodeIndex: nextNode?.order ?? parentDetail.currentNodeIndex,
+    currentNodeType: nextNode?.type ?? null,
+    updatedAt: now,
+    nodes: updatedNodes,
+    records,
+    nodeRecords: parentDetail.nodeRecords || [],
+  }
+
+  detailStore.update(parentId, updated)
+  syncListItemFromDetail(updated)
+  return true
 }
 
 function getStats(list: WorkOrderItem[]): WorkOrderStats {
