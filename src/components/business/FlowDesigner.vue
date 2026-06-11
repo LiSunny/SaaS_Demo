@@ -70,7 +70,7 @@
                   <!-- SLA branches for child condition nodes -->
                   <div v-if="child.type === 'condition' && child.slaConditionConfig?.branches?.length" class="fd-sla-branches">
                     <div
-                      v-for="(br, bi) in child.slaConditionConfig.branches"
+                      v-for="br in child.slaConditionConfig.branches"
                       :key="br.threshold"
                       class="fd-sla-branch"
                       :class="`fd-sla-${br.threshold}`"
@@ -325,7 +325,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import type { FlowNode, FormField, FlowEdge, FlowDefinition, SlaConditionBranch } from '@/types/workflow'
+import type { FlowNode, FormField, FlowEdge, FlowDefinition, SlaConditionBranch, NodeType } from '@/types/workflow'
 import NodePropertyPanel from './NodePropertyPanel.vue'
 
 const props = defineProps<{
@@ -401,15 +401,15 @@ function selectNode(id: string) {
 
 // ===== 节点类型选项（容器内不允许再嵌套 external） =====
 const nodeTypeOptions = computed(() => {
-  const all = [
-    { type: 'assign' as const, label: '指派', desc: '分配任务给指定人员处理' },
-    { type: 'execute' as const, label: '执行', desc: '执行任务并记录执行情况' },
-    { type: 'confirm' as const, label: '审批', desc: '需要审核人员审核通过' },
-    { type: 'condition' as const, label: '条件判断', desc: '根据条件分支流转' },
+  const all: { type: NodeType; label: string; desc: string }[] = [
+    { type: 'assign', label: '指派', desc: '分配任务给指定人员处理' },
+    { type: 'execute', label: '执行', desc: '执行任务并记录执行情况' },
+    { type: 'confirm', label: '审批', desc: '需要审核人员审核通过' },
+    { type: 'condition', label: '条件判断', desc: '根据条件分支流转' },
   ]
   // 只有主流程才能插入跨企业协同容器（容器内 / 分支通道内不允许）
   if (!currentExternalNodeId.value && !branchInsertTarget.value) {
-    all.push({ type: 'external' as const, label: '跨企业协同', desc: '插入跨企业协同容器' })
+    all.push({ type: 'external', label: '跨企业协同', desc: '插入跨企业协同容器' })
   }
   return all
 })
@@ -434,13 +434,6 @@ function nodeSubtitle(node: FlowNode): string {
     return `协作方执行区域 · ${node.crossEnterpriseConfig.childNodes.length} 个子节点`
   }
   return typeDesc(node.type)
-}
-
-/** 按节点 ID 在主节点列表中查找节点名称 */
-function getNodeName(nodeId: string): string {
-  if (!nodeId) return '（未指定）'
-  const found = nodes.value.find(n => n.id === nodeId)
-  return found ? (found.name || typeLabel(found.type)) : '（未指定）'
 }
 
 /** 按节点 ID 全局查找（主节点 + external 容器内子节点） */
@@ -554,7 +547,7 @@ function removeNode(idx: number) {
 }
 
 // ===== External 容器内子节点操作 =====
-function selectExternalChild(parentId: string, childId: string) {
+function selectExternalChild(_parentId: string, childId: string) {
   selectedId.value = childId
 }
 

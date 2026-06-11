@@ -1401,7 +1401,7 @@ function handleSlaCondition(
 function handleCrossEnterprise(
   detail: WorkOrderDetail,
   externalNode: any, // FlowNode with crossEnterpriseConfig
-  flowNodes: any[],
+  _flowNodes: any[],
   runtimeNodes: WorkOrderDetail['nodes'],
 ): WorkOrderDetail | null {
   const now = fmtNow()
@@ -1505,7 +1505,6 @@ function handleCrossEnterprise(
   )
 
   // 父工单停留在 external 节点，等待子工单完成后回流
-  const extRuntimeNode = runtimeNodes.find(n => String(n.id) === String(externalNode.id))
   const updatedNodes = runtimeNodes.map(n => {
     if (String(n.id) === String(externalNode.id)) {
       return { ...n, status: 'in_progress' as NodeStatus, startedAt: now }
