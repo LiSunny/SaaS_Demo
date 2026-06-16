@@ -1,0 +1,426 @@
+/* ============================================================
+   应急局「人工智能+安全自律」监管平台 — Design Tokens
+   提取自 Figma 设计稿: node 1:991 应急局 (1920×1080)
+   ============================================================ */
+
+:root {
+  /* ── 品牌蓝系 (Brand Blue) ── */
+  --blue-950: #003972;
+  --blue-900: #00489b;
+  --blue-850: #00498e;
+  --blue-800: #005a9b;
+  --blue-750: #014a90;
+  --blue-700: #015eaf;
+  --blue-650: #0060a5;
+  --blue-600: #0151a4;
+  --blue-550: #016e94;
+  --blue-500: #035fc8;
+  --blue-450: #0457a7;
+  --blue-400: #166fc9;
+  --blue-350: #1865c6;
+  --blue-300: #1457ad;
+  --blue-200: #205cc2;
+  --blue-100: #02397c;
+
+  /* ── 辅助蓝系 (Accent Blue) ── */
+  --blue-50:  #ebf9ff;
+  --blue-100a: #aeccff;
+  --blue-200a: #9dcbfe;
+  --blue-300a: #7fc2ff;
+  --blue-400a: #66b5ff;
+  --blue-500a: #4baefa;
+  --blue-600a: #1e92ff;
+  --blue-700a: #148dff;
+
+  /* ── 青绿色系 (Cyan / Teal) ── */
+  --cyan-100: #00d5ff;
+  --cyan-200: #3cd3d7;
+  --cyan-300: #30c8d3;
+  --cyan-400: #24c3e2;
+  --cyan-500: #62c0e8;
+  --cyan-600: #12869d;
+  --cyan-700: #2584ab;
+  --cyan-800: #0094e6;
+
+  /* ── 暖色点缀 (Warm / Amber) ── */
+  --amber-100: #ffeaa4;
+  --amber-200: #fdd23e;
+  --amber-300: #fecc39;
+  --amber-400: #fab670;
+  --amber-500: #fdbb58;
+  --amber-600: #fdd542;
+  --amber-700: #d4b100;
+  --amber-800: #fe9100;
+  --amber-900: #fa6c21;
+
+  /* ── 警示色系 (Alert / Danger) ── */
+  --red-100: #d93d45;
+  --red-200: #fe3030;
+  --red-300: #f73e3e;
+  --red-400: #ff4e51;
+  --red-500: #dd2828;
+  --red-600: #ff0000;
+
+  /* ── 中性色系 (Neutrals) ── */
+  --white:      #ffffff;
+  --white-off:  #fffdfd;
+  --gray-100:   #f1f1f1;
+  --gray-300:   #d9d9d9;
+  --black-60:   rgba(18, 18, 18, 0.58);
+  --black:      #000000;
+
+  /* ── 语义颜色 (Semantic Colors) ── */
+  --color-primary:       var(--blue-500);
+  --color-primary-dark:  var(--blue-800);
+  --color-primary-light: var(--blue-400a);
+  --color-accent:        var(--cyan-200);
+  --color-accent-dark:   var(--cyan-600);
+  --color-warning:       var(--amber-800);
+  --color-danger:        var(--red-400);
+  --color-success:       var(--cyan-300);
+  --color-info:          var(--blue-600a);
+
+  /* ── 背景语义颜色 ── */
+  --bg-page:          linear-gradient(180deg, var(--blue-700) 0%, var(--blue-100) 100%);
+  --bg-card:          linear-gradient(180deg, #03448f 0%, #02387b 100%);
+  --bg-card-alt:      linear-gradient(180deg, #033b80 0%, #0062bd 100%);
+  --bg-header-row:    var(--blue-450);
+  --bg-table-stripe:  var(--gray-100);
+  --bg-danger-light:  rgba(217, 61, 69, 0.17);
+  --bg-overlay:       rgba(0, 0, 0, 0.3);
+
+  /* ── 文字语义颜色 ── */
+  --text-primary:      var(--white);
+  --text-secondary:    var(--blue-200a);
+  --text-header:       var(--blue-100a);
+  --text-danger:       var(--red-300);
+  --text-muted:        rgba(255, 255, 255, 0.6);
+  --text-gradient:     linear-gradient(180deg, #ffffff 0%, #ce8511 100%);
+
+  /* ── 字体家族 (Font Families) ── */
+  --font-title:      'Source-KeynoteartHans', 'PingFang SC', sans-serif;
+  --font-display:    'Douyin Sans', 'PingFang SC', sans-serif;
+  --font-label:      'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
+  --font-body:       'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  --font-ui:         'DingTalk JinBuTi', 'PingFang SC', sans-serif;
+  --font-heiti:      'Heiti TC', 'PingFang SC', sans-serif;
+  --font-en:         'Helvetica Neue', sans-serif;
+
+  /* ── 字号 (Font Sizes) ── */
+  --text-xs:    12px;
+  --text-sm:    14px;
+  --text-base:  16px;
+  --text-lg:    18px;
+  --text-xl:    20px;
+  --text-2xl:   24px;
+  --text-3xl:   32px;
+  --text-4xl:   36px;
+
+  /* ── 行高 (Line Heights) ── */
+  --leading-xs:    1.2;
+  --leading-sm:    1.4;
+  --leading-base:  1.5;
+  --leading-lg:    1.6;
+  --leading-auto:  auto;
+
+  /* ── 字重 (Font Weights) ── */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-bold:     700;
+
+  /* ── 间距系统 (Spacing) ── */
+  --space-xs:   4px;
+  --space-sm:   6px;
+  --space-md:   8px;
+  --space-lg:   12px;
+  --space-xl:   16px;
+  --space-2xl:  22px;
+  --space-3xl:  33px;
+  --space-4xl:  49px;
+
+  /* ── 页面级间距 ── */
+  --page-gutter:    16px;
+  --column-gap:     16px;
+  --card-gap:       16px;
+  --section-padding: var(--space-md) var(--space-xl);
+
+  /* ── 圆角 (Border Radius) ── */
+  --radius-sm:  1px;
+  --radius-md:  2px;
+  --radius-lg:  4px;
+  --radius-xl:  8px;
+
+  /* ── 描边 (Borders) ── */
+  --border-cyan:    2px solid #24c3e2;
+  --border-blue:    1px solid #0180d6;
+  --border-accent:  1px solid #0094e6;
+  --border-teal:    1px solid #3cd3d7;
+  --border-warm:    1px solid #fab670;
+  --border-danger:  1px solid #f73e3e;
+
+  /* ── 布局 (Layout) ── */
+  --canvas-width:       1920px;
+  --canvas-height:      1080px;
+  --header-height:      86px;
+  --content-top:        97px;
+  --sidebar-width:      448px;
+  --center-width:       960px;
+  --card-title-height:  46px;
+  --table-row-height:   42px;
+  --table-header-height: 30px;
+  --progress-bar-height: 8px;
+  --divider-height:     2px;
+
+  /* ── 图标尺寸 (Icon Sizes) ── */
+  --icon-sm:  22px;
+  --icon-md:  24px;
+  --icon-lg:  26px;
+  --icon-xl:  30px;
+  --hexagon:  64.67px;
+
+  /* ── 过渡 (Transitions) ── */
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* ── Z-index layers ── */
+  --z-base:     0;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-modal:    300;
+  --z-toast:    400;
+}
+
+/* ============================================================
+   渐变预设 (Gradient Presets)
+   ============================================================ */
+
+:root {
+  --gradient-bg:       radial-gradient(circle, #015eaf 0%, #02397c 100%);
+  --gradient-content:  radial-gradient(circle, #1865c6 36.5%, #1966c8 66.3%, #1457ad 100%);
+  --gradient-glow:     radial-gradient(circle, #00d5ff 0%, #12869d 58.9%, #02448f 75.8%);
+  --gradient-map:      linear-gradient(180deg, #0056cd 2.2%, #4baefa 48.9%, #0056cd 100%);
+  --gradient-header:   linear-gradient(180deg, #0059ae 0%, #00498f 100%);
+  --gradient-card:     linear-gradient(180deg, #03448f 0%, #02387b 100%);
+  --gradient-card-alt: linear-gradient(180deg, #033b80 0%, #0062bd 100%);
+  --gradient-text:     linear-gradient(180deg, #ffffff 0%, #ce8511 100%);
+  --gradient-gold:     linear-gradient(180deg, #ffeaa4 0%, #fff5ce 18.3%, #d4b100 75.8%, #ffe134 100%);
+  --gradient-orange:   linear-gradient(180deg, #fecc39 0%, #fe9100 75.8%, #fe911c 100%);
+  --gradient-warm:     linear-gradient(180deg, #fa6c21 0%, #ffd358 100%);
+  --gradient-yellow:   linear-gradient(180deg, #ffc21a 0%, #fdd542 100%);
+
+  /* 大标题导航栏装饰叠加层 */
+  --gradient-header-layer-1: linear-gradient(180deg, #044582 0%, #00498f 100%);
+  --gradient-header-layer-3: linear-gradient(180deg, #014a90 0%, #005fc1 100%);
+  --color-decor-cyan:  #62c0e8;
+  --color-decor-amber: #fab670;
+}
+
+/* ============================================================
+   文字样式预设 (Text Style Presets)
+   ============================================================ */
+
+.text-hero {
+  font-family: var(--font-title);
+  font-size: var(--text-4xl);       /* 36px */
+  font-weight: 900;
+}
+
+.text-h1 {
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);       /* 24px */
+  font-weight: 900;
+}
+
+.text-h1-alt {
+  font-family: var(--font-label);
+  font-size: var(--text-2xl);       /* 24px */
+  font-weight: var(--weight-regular);
+}
+
+.text-h2 {
+  font-family: var(--font-label);
+  font-size: var(--text-lg);        /* 18px */
+  font-weight: var(--weight-regular);
+  color: var(--text-primary);
+}
+
+.text-h3 {
+  font-family: var(--font-label);
+  font-size: var(--text-base);      /* 16px */
+  font-weight: var(--weight-regular);
+  color: var(--text-primary);
+}
+
+.text-h4 {
+  font-family: var(--font-title);
+  font-size: var(--text-base);      /* 16px */
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.text-number-xl {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);       /* 32px */
+  font-weight: var(--weight-bold);
+}
+
+.text-number-lg {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);       /* 24px */
+  font-weight: var(--weight-bold);
+}
+
+.text-number-md {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);        /* 20px */
+  font-weight: var(--weight-bold);
+}
+
+.text-label-lg {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);        /* 18px */
+  font-weight: var(--weight-bold);
+}
+
+.text-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--text-base);      /* 16px */
+  font-weight: var(--weight-regular);
+}
+
+.text-body-md {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);      /* 16px */
+  font-weight: var(--weight-regular);
+  color: var(--text-primary);
+}
+
+.text-body-heiti {
+  font-family: var(--font-heiti);
+  font-size: var(--text-base);      /* 16px */
+  font-weight: var(--weight-medium);
+}
+
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);        /* 14px */
+  font-weight: var(--weight-regular);
+}
+
+.text-caption {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);        /* 12px */
+  font-weight: var(--weight-regular);
+}
+
+.text-en-subtitle {
+  font-family: var(--font-en);
+  font-size: var(--text-xl);        /* 20px */
+  font-weight: var(--weight-medium);
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   组件样式预设 (Component Presets)
+   ============================================================ */
+
+/* 卡片容器 */
+.card {
+  background: var(--gradient-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* 卡片标题栏 */
+.card__title {
+  height: var(--card-title-height);
+  background: var(--gradient-header);
+  border-bottom: var(--divider-height) solid var(--cyan-200);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-xl);
+  gap: var(--space-md);
+}
+
+/* 表格容器 */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 表头行 */
+.data-table thead th {
+  height: var(--table-header-height);
+  background: var(--bg-header-row);
+  color: var(--text-header);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  text-align: left;
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* 数据行 */
+.data-table tbody td {
+  height: var(--table-row-height);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* 进度条 */
+.progress-bar {
+  height: var(--progress-bar-height);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+
+.progress-bar__fill--blue {
+  background: var(--blue-700a);
+}
+
+.progress-bar__fill--teal {
+  background: var(--cyan-300);
+}
+
+/* 六边形图标容器 */
+.hexagon-icon {
+  width: var(--hexagon);
+  height: var(--hexagon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-blue);
+  border-radius: var(--radius-lg);
+}
+
+/* 标签页 (Segment) */
+.segment {
+  height: 36px;
+  padding: 0 var(--space-xl);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.segment--active {
+  background: var(--blue-700a);
+  color: var(--white);
+}
+
+.segment--default {
+  background: transparent;
+  color: var(--text-muted);
+}

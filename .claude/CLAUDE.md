@@ -14,11 +14,11 @@
 | 目录 | 用途 |
 |------|------|
 | `DESIGN.md` / `DESIGN_DETAIL.md` | md-template 格式的设计文档（直接喂给 md-figma-to-vue3） |
-| `docs/design/` | 业务设计文档（biz-design.md、navigation-design.md、域级详细设计） |
-| `docs/prd/{模块}.md` | gen-prd 产出 |
-| `docs/api/{模块}.md` | gen-prd 产出（接口规格） |
-| `docs/ai-spec/{模块}/{页面}.md` | gen-ai-spec 产出 → md-figma-to-vue3 输入 |
-| `docs/issues/{模块}-review.md` | review-demo 走查报告 |
+| `docs/{域名}/` | 按业务域聚合（标准模板：prd/ + biz-design.md + module-plan.md + api.md + technical/ + ai-spec/） |
+| `docs/{域名}/prd/` | gen-prd 产出 |
+| `docs/{域名}/api.md` | gen-prd 产出（接口规格） |
+| `docs/{域名}/ai-spec/` | gen-ai-spec 产出 → md-figma-to-vue3 输入 |
+| `docs/issues/` | review-demo 走查报告 |
 | `src/views/` | 生成的页面 |
 | `src/views/*/widgets/` | 仪表盘 Widget 组件（按业务模块存放） |
 | `src/components/dashboard/` | 仪表盘框架组件（通用） |
@@ -72,13 +72,13 @@
 
 | 阶段 | 命令 | 产出 |
 |------|------|------|
-| 业务设计 | `/biz-design "描述"` | `docs/design/biz-design.md` |
-| 模块规划 | `/module-plan "约束"` | `docs/design/module-plan.md` |
+| 业务设计 | `/biz-design "描述"` | `docs/{域名}/biz-design.md` |
+| 模块规划 | `/module-plan "约束"` | `docs/{域名}/module-plan.md` |
 | Demo 搭建 | `/demo-scaffold {模块}` | `demo/{模块}/` |
 | Demo 走查 | `/review-demo {模块}` | `docs/issues/{模块}-review.md` |
 | 更新设计 | `/update-spec {模块}` | 更新 biz-design.md / module-plan.md |
-| 生成 PRD | `/gen-prd {模块}` | `docs/prd/{模块}.md` |
-| 生成 AI 规格 | `/gen-ai-spec {模块}` | `docs/ai-spec/{模块}/{页面}.md` |
+| 生成 PRD | `/gen-prd {域名}` | `docs/{域名}/prd/{域名}.md` |
+| 生成 AI 规格 | `/gen-ai-spec {域名}` | `docs/{域名}/ai-spec/{页面}.md` |
 | 生成代码 | `/md-figma-to-vue3` + Figma | Vue 3 代码 |
 | 提交 | `/commit` | git commit |
 | 保存进度 | `/context-snapshot` | 更新本文档 |
@@ -124,7 +124,7 @@
 | ⚙️ 平台管理 | 折叠 | 系统管理员 | 流程管理（1）· 平台配置→（22）· 系统管理→（17） |
 
 > **→** 标记表示该域模块数 > 10，侧栏只放入口，点击跳转至域首页概览页。
-> 交互机制详见 [navigation-design.md](docs/design/navigation-design.md)。
+> 交互机制详见 [navigation-design.md](docs/navigation-design.md)。
 
 ### 路由 → 侧栏映射
 
@@ -150,15 +150,15 @@
 
 | 层级 | 文档 | 说明 |
 |------|------|------|
-| 平台总览 | [biz-design.md](docs/design/biz-design.md) | 14 个业务域 + 11 岗位 + 导航分组 |
-| 平台岗位 | [平台岗位设计.md](docs/design/平台岗位设计.md) | 11 岗位 × 四方协同 × 权限矩阵 × 数据范围（**后续功能设计依据**） |
-| 导航设计 | [navigation-design.md](docs/design/navigation-design.md) | 侧栏主导航：6 分组、搜索/钉选/收起、角色化路线图 |
-| 仪表盘框架 | [仪表盘框架/框架设计.md](docs/design/仪表盘框架/框架设计.md) | 通用仪表盘引擎 |
-| 工作台 | [工作台/biz-design.md](docs/design/工作台/biz-design.md) | 跨域聚合，角色化首页 |
-| 工单管理 | [工单管理/biz-design.md](docs/design/工单管理/biz-design.md) | 流程编排 + 工单全生命周期 |
-| 维保管理 | [维保管理/biz-design.md](docs/design/维保管理/biz-design.md) | 维保计划→任务→报告全链路 |
+| 平台总览 | [biz-design.md](docs/biz-design.md) | 14 个业务域 + 11 岗位 + 导航分组 |
+| 平台岗位 | [平台岗位设计.md](docs/平台岗位设计.md) | 11 岗位 × 四方协同 × 权限矩阵 × 数据范围（**后续功能设计依据**） |
+| 导航设计 | [navigation-design.md](docs/navigation-design.md) | 侧栏主导航：6 分组、搜索/钉选/收起、角色化路线图 |
+| 仪表盘框架 | [仪表盘框架/](docs/仪表盘框架/) | 通用仪表盘引擎 |
+| 工作台 | [工作台/biz-design.md](docs/工作台/biz-design.md) | 跨域聚合，角色化首页 |
+| 工单管理 | [工单管理/biz-design.md](docs/工单管理/biz-design.md) | 流程编排 + 工单全生命周期 |
+| 维保管理 | [维保管理/biz-design.md](docs/维保管理/biz-design.md) | 维保计划→任务→报告全链路 |
 
-> 新增业务域：创建 `docs/design/{业务域}/` 目录，`/biz-design` 产出 `biz-design.md` 放入该目录，更新 `biz-design.md` 和本索引。
+> 新增业务域：在 `docs/` 下创建 `{域名}/` 目录，按标准模板（prd/ + biz-design.md + module-plan.md + api.md + technical/ + ai-spec/）组织。`/biz-design` 产出 `biz-design.md` 放入该目录，更新本索引。
 
 ## 模块清单
 > 最后更新：2026-06-05
@@ -180,27 +180,24 @@
 | M7 占位 Widget | P0 | 📝 设计完成，待编码 |
 | M8 工单数据看板 | P1 | 📝 设计完成，待编码 |
 
-详见 [工作台/module-plan.md](docs/design/工作台/module-plan.md)
+详见 [工作台/module-plan.md](docs/工作台/module-plan.md)
 
-### 流程管理
+### 工单管理（流程编排 + 工单全生命周期）
+
+> 文档按域聚合于 `docs/工单管理/`：PRD → `prd/` | 业务设计 → `biz-design.md` | 模块规划 → `module-plan.md` | API → `api.md` | 技术设计 → `technical/` | AI 规格 → `ai-spec/`
+
 | 模块 | 优先级 | 状态 |
 |------|--------|------|
 | M0 流程模板列表 | P0 | ✅ 已完成 |
 | M1 流程模板配置（表单设计+流程设计） | P0 | ✅ 已完成 |
-| 关键页面 | TemplateList + TemplateConfig | — |
-
-详见 [工单管理/biz-design.md](docs/design/工单管理/biz-design.md)
-
-### 工单管理
-| 模块 | 优先级 | 状态 |
-|------|--------|------|
 | M0 工单监控列表 | P0 | ✅ 已完成（含统计卡片+筛选+发起弹窗） |
 | M1 工单详情页 | P0 | ✅ 已完成 |
 | M2 工单数据看板 | P1 | 📝 设计完成，待编码 |
 | 待实现 | M3 动态表单渲染 / M4 移动端处置 / M5 归档 / M6 消息通知 | — |
+| 关键页面 | TemplateList + TemplateConfig + WorkOrderMonitor + WorkOrderDetail | — |
 
-详见 [工单管理/module-plan.md](docs/设计/工单管理/module-plan.md)
-设计：[00c-动态表单渲染设计](docs/design/工单管理/00c-动态表单渲染设计.md)
+详见 [工单管理/biz-design.md](docs/工单管理/biz-design.md) · [工单管理/module-plan.md](docs/工单管理/module-plan.md)
+设计：[00c-动态表单渲染设计](docs/工单管理/technical/00c-动态表单渲染设计.md)
 
 ### 域首页占位（跳转式入口，>10 模块的大域）
 | 页面 | 路由 | 状态 |

@@ -18,8 +18,14 @@ const DefaultLayout = () => import('@/layouts/DefaultLayout.vue')
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // 默认首页 → 工作台
-    { path: '/', redirect: '/workbench' },
+    // ===== 全屏可视化大屏首页 =====
+    {
+      path: '/',
+      component: () => import('@/layouts/StandaloneLayout.vue'),
+      children: [
+        { path: '', name: 'BigscreenLanding', component: () => import('@/views/bigscreen/BigscreenLanding.vue') },
+      ],
+    },
 
     // ===== 工作台 =====
     {
