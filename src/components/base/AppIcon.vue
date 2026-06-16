@@ -22,7 +22,7 @@ const props = defineProps<{
 
 const tdIcon = computed(() => {
   const key = props.name.charAt(0).toUpperCase() + props.name.slice(1)
-  return TDesignIconsVue[key] ?? null
+  return (TDesignIconsVue as Record<string, any>)[key] ?? null
 })
 
 const computedSize = computed(() => props.size ?? '1em')
