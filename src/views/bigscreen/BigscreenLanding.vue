@@ -60,7 +60,7 @@ import EduSafety from './components/EduSafety.vue'
 /* ===== 内容区 ===== */
 .bigscreen-content {
   position: absolute;
-  top: calc(97 * var(--h));
+  top: calc(89 * var(--h));
   left: 0;
   right: 0;
   bottom: calc(16 * var(--h));
@@ -101,9 +101,6 @@ import EduSafety from './components/EduSafety.vue'
 .center-top {
   flex: 2;
   min-height: 0;
-  border-color: #002C62;
-  border-width: 1px;
-  border-style: solid;
 }
 
 .center-bottom {

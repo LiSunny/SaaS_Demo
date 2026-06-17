@@ -104,7 +104,7 @@ const props = withDefaults(defineProps<{
   username?: string
 }>(), {
   title: '港南区“人工智能+安全自律”监管平台',
-  username: '用户名',
+  username: '王猛',
 })
 
 const timeStr = ref('')
@@ -152,7 +152,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   width: 100vw;
-  height: calc(86 * var(--h));
+  height: calc(70 * var(--h));
   z-index: 100;
   pointer-events: auto;
 }
@@ -163,7 +163,7 @@ onUnmounted(() => {
   left: 0;
   top: 0;
   width: calc(960 * var(--w));
-  height: calc(86 * var(--h));
+  height: calc(70 * var(--h));
   background: linear-gradient(180deg, #03448F 0%, #02387B 100%);
 }
 .header-bg-right {
@@ -171,7 +171,7 @@ onUnmounted(() => {
   left: calc(960 * var(--w));
   top: 0;
   width: calc(960 * var(--w));
-  height: calc(86 * var(--h));
+  height: calc(70 * var(--h));
   background: linear-gradient(180deg, #03448F 0%, #02387B 100%);
 }
 
@@ -197,13 +197,13 @@ onUnmounted(() => {
   left: calc(456 * var(--w));
   top: 0;
   width: calc(1008 * var(--w));
-  height: calc(86 * var(--h));
+  height: calc(70 * var(--h));
   pointer-events: none;
 }
 .bottom-glow {
   position: absolute;
   left: calc(721 * var(--w));
-  top: calc(80 * var(--h));
+  top: calc(64 * var(--h));
   width: calc(478 * var(--w));
   height: calc(7 * var(--h));
   pointer-events: none;
@@ -346,12 +346,12 @@ onUnmounted(() => {
 }
 .left-line {
   left: calc(1 * var(--w));
-  top: calc(65 * var(--h));
+  top: calc(60 * var(--h));
   width: calc(495 * var(--w));
 }
 .right-line {
   left: calc(1425 * var(--w));
-  top: calc(65 * var(--h));
+  top: calc(60 * var(--h));
   width: calc(495 * var(--w));
   transform: scaleX(-1);
 }
@@ -367,7 +367,7 @@ onUnmounted(() => {
 }
 .platform-title {
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(22px, calc(36 * var(--min-scale)), 44px);
+  font-size: clamp(22px, calc(32 * var(--min-scale)), 34px);
   font-weight: 900;
   background: linear-gradient(to bottom, #fff 0%, #89b5ff 100%);
   -webkit-background-clip: text;

@@ -438,7 +438,6 @@ function exitFullscreen() {
   position: relative;
   border: 1px solid rgba(71, 132, 232, 0.3);
   border-radius: 4px;
-  border-style: solid;
   background: #0a1a2e;
   overflow: hidden;
   transition: all 0.3s ease;

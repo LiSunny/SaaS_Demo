@@ -38,11 +38,13 @@
     <!-- 底部分隔线（渐变） -->
     <div class="title-divider" />
 
-    <!-- 主标题（白色→蓝色线性渐变文字） -->
-    <p class="title-text">{{ title }}</p>
-
-    <!-- 副标题（右侧淡出英文斜体） -->
-    <p class="title-sub">{{ subtitle }}</p>
+    <!-- 文字区域（flex 垂直居中 + 两端对齐） -->
+    <div class="title-content">
+      <!-- 主标题（白色→蓝色线性渐变文字） -->
+      <p class="title-text">{{ title }}</p>
+      <!-- 副标题（右侧淡出英文斜体） -->
+      <p class="title-sub">{{ subtitle }}</p>
+    </div>
   </div>
 </template>
 
@@ -69,7 +71,7 @@ const gradientId = nextGradientId()
 .module-title-bar {
   position: relative;
   width: 100%;
-  height: calc(46 * var(--h));
+  height: calc(40 * var(--h));
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -107,11 +109,20 @@ const gradientId = nextGradientId()
   );
 }
 
+/* ===== 文字容器（flex 垂直居中 + 两端对齐，高度自适应） ===== */
+.title-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: calc(38 * var(--w));
+  padding-right: calc(12 * var(--w));
+  pointer-events: none;
+}
+
 /* ===== 主标题（Figma: 24px, Source-KeynoteartHans, 白色→蓝色渐变） ===== */
 .title-text {
-  position: absolute;
-  left: calc(38 * var(--w));
-  top: calc(6 * var(--h));
   margin: 0;
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(12px, calc(20 * var(--min-scale)), 24px);
@@ -121,13 +132,11 @@ const gradientId = nextGradientId()
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  white-space: nowrap;
 }
 
 /* ===== 副标题（Figma: 20px, Helvetica Neue Medium Italic, 右侧淡出） ===== */
 .title-sub {
-  position: absolute;
-  right: calc(12 * var(--w));
-  top: calc(11 * var(--h));
   margin: 0;
   font-family: 'Helvetica Neue', sans-serif;
   font-size: clamp(10px, calc(16 * var(--min-scale)), 20px);
@@ -135,5 +144,6 @@ const gradientId = nextGradientId()
   font-style: italic;
   color: rgba(157, 203, 254, 0.26);
   text-align: right;
+  white-space: nowrap;
 }
 </style>

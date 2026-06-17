@@ -18,8 +18,26 @@
           <div v-for="(page, pi) in monitorPages" :key="pi" class="monitor-page">
             <div v-for="(item, ii) in page" :key="ii" class="monitor-item">
               <div class="monitor-thumb">
-                <img :src="item.img" :alt="item.label" />
-                <div class="monitor-title-bar">{{ item.label }}</div>
+                <div class="surveillance-camera">
+                  <img :src="item.img" :alt="item.label" />
+                  <!-- 镜头暗角 -->
+                  <div class="lens-vignette"></div>
+                  <!-- 扫描线 -->
+                  <div class="scan-lines"></div>
+                  <!-- 监控信息叠加层 -->
+                  <div class="camera-osd">
+                    <div class="osd-top">
+                      <span class="rec-indicator">
+                        <span class="rec-dot"></span>REC
+                      </span>
+                      <span class="camera-id">{{ item.cameraId || 'CAM-' + String(ii + 1).padStart(2, '0') }}</span>
+                    </div>
+                    <div class="osd-bottom">
+                      <span class="osd-timestamp">{{ formatTimestamp() }}</span>
+                    </div>
+                  </div>
+                  <div class="monitor-title-bar">{{ item.label }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -49,16 +67,17 @@ const topStats = [
   { label: '风险点位', value: '102', unit: '个', hexSrc: riskPointSrc },
 ]
 
-// 监控画面列表
+// 监控画面列表 - 写实风格监控场景
+// 使用 Vite 的 new URL 动态引用本地图片
 const monitorList = [
-  { label: '1#消防控制室', img: 'https://picsum.photos/seed/mon1/400/225' },
-  { label: '1#消防控制室', img: 'https://picsum.photos/seed/mon2/400/225' },
-  { label: '2#变配电室', img: 'https://picsum.photos/seed/mon3/400/225' },
-  { label: '3#水泵房', img: 'https://picsum.photos/seed/mon4/400/225' },
-  { label: '4#锅炉房', img: 'https://picsum.photos/seed/mon5/400/225' },
-  { label: '5#监控中心', img: 'https://picsum.photos/seed/mon6/400/225' },
-  { label: '6#危化品库', img: 'https://picsum.photos/seed/mon7/400/225' },
-  { label: '7#配电室', img: 'https://picsum.photos/seed/mon8/400/225' },
+  { label: '1#消防控制室', cameraId: 'CAM-01', img: new URL('@/assets/bigscreen/rsouce/them_1.png', import.meta.url).href },
+  { label: '1#消防控制室', cameraId: 'CAM-02', img: new URL('@/assets/bigscreen/rsouce/them_2.png', import.meta.url).href },
+  { label: '2#变配电室',    cameraId: 'CAM-03', img: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=225&fit=crop&crop=center' },
+  { label: '3#水泵房',      cameraId: 'CAM-04', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=225&fit=crop&crop=center' },
+  { label: '4#锅炉房',      cameraId: 'CAM-05', img: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&h=225&fit=crop&crop=center' },
+  { label: '5#监控中心',    cameraId: 'CAM-06', img: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=225&fit=crop&crop=center' },
+  { label: '6#危化品库',    cameraId: 'CAM-07', img: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=400&h=225&fit=crop&crop=center' },
+  { label: '7#配电室',      cameraId: 'CAM-08', img: 'https://images.unsplash.com/photo-1581092919535-7146ff1a8b0b?w=400&h=225&fit=crop&crop=center' },
 ]
 
 const ITEMS_PER_PAGE = 2
@@ -81,6 +100,18 @@ const startAutoScroll = () => {
   timer = setInterval(() => {
     currentPage.value = (currentPage.value + 1) % totalPages.value
   }, 3000)
+}
+
+// 格式化当前时间为监控时间戳样式
+const formatTimestamp = () => {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  const hh = String(now.getHours()).padStart(2, '0')
+  const mm = String(now.getMinutes()).padStart(2, '0')
+  const ss = String(now.getSeconds()).padStart(2, '0')
+  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`
 }
 
 onMounted(() => startAutoScroll())
@@ -148,11 +179,126 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   min-height: 0;
 }
 
-.monitor-thumb img {
+/* ========== 写实监控摄像头样式 ========== */
+.surveillance-camera {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.surveillance-camera img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  /* 监控画面色调：略微偏绿偏冷 */
+  filter: saturate(0.85) brightness(0.95) hue-rotate(15deg);
+}
+
+/* 镜头暗角效果 */
+.lens-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+}
+
+/* 扫描线 — 模拟CRT/监控逐行扫描 */
+.scan-lines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.06) 1px,
+    rgba(0, 0, 0, 0.06) 2px
+  );
+  pointer-events: none;
+  animation: scan-roll 8s linear infinite;
+}
+
+@keyframes scan-roll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(4px); }
+}
+
+/* 监控 OSD 信息叠加层 */
+.camera-osd {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 8px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.osd-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.osd-bottom {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+/* REC 录制指示器 */
+.rec-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: clamp(9px, calc(11 * var(--min-scale)), 14px);
+  font-weight: 700;
+  color: #ff3333;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3333;
+  box-shadow: 0 0 4px #ff0000;
+  animation: rec-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* 摄像头编号 */
+.camera-id {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: clamp(9px, calc(11 * var(--min-scale)), 14px);
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+/* 时间戳 */
+.osd-timestamp {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: clamp(9px, calc(11 * var(--min-scale)), 14px);
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
 }
 
 /* 标题栏 — 叠加在缩略图底部，半透明深色背景 */
@@ -161,9 +307,10 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(18, 18, 18, 0.58);
+  z-index: 3;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.58));
   color: #ffffff;
-  padding: 4px 10px;
+  padding: 14px 10px 4px;
   font-family: 'YouSheBiaoTiHei', 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(10px, calc(14 * var(--min-scale)), 18px);
   line-height: normal;
