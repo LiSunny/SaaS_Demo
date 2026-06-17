@@ -23,6 +23,7 @@ const router = createRouter({
       path: '/',
       component: () => import('@/layouts/StandaloneLayout.vue'),
       children: [
+        { path: '', redirect: { name: 'BigscreenLanding' } },
         { path: 'landing', name: 'BigscreenLanding', component: () => import('@/views/bigscreen/BigscreenLanding.vue') },
       ],
     },
