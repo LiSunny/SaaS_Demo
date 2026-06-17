@@ -15,12 +15,13 @@
       <!-- 监控画面滚动区 -->
       <div class="monitor-scroll-wrapper">
         <div class="monitor-track" :style="{ transform: `translateX(-${scrollOffset * 100}%)` }">
-          <div v-for="(item, idx) in monitorList" :key="idx" class="monitor-item">
-            <div class="monitor-img">
-              <img :src="item.img" :alt="item.label" />
+          <div v-for="(page, pi) in monitorPages" :key="pi" class="monitor-page">
+            <div v-for="(item, ii) in page" :key="ii" class="monitor-item">
+              <div class="monitor-thumb">
+                <img :src="item.img" :alt="item.label" />
+                <div class="monitor-title-bar">{{ item.label }}</div>
+              </div>
             </div>
-            <div class="monitor-label">{{ item.label }}</div>
-            <span class="monitor-tag">{{ item.tag }}</span>
           </div>
         </div>
         <div class="monitor-dots">
@@ -50,18 +51,29 @@ const topStats = [
 
 // 监控画面列表
 const monitorList = [
-  { label: '1#消防控制室', tag: '豆包AI主站', img: 'https://picsum.photos/seed/mon1/400/225' },
-  { label: '1#消防控制室', tag: '豆包AI主站', img: 'https://picsum.photos/seed/mon2/400/225' },
-  { label: '2#变配电室', tag: '实时监控', img: 'https://picsum.photos/seed/mon3/400/225' },
-  { label: '3#水泵房', tag: '实时监控', img: 'https://picsum.photos/seed/mon4/400/225' },
-  { label: '4#锅炉房', tag: '实时监控', img: 'https://picsum.photos/seed/mon5/400/225' },
-  { label: '5#监控中心', tag: '豆包AI主站', img: 'https://picsum.photos/seed/mon6/400/225' },
+  { label: '1#消防控制室', img: 'https://picsum.photos/seed/mon1/400/225' },
+  { label: '1#消防控制室', img: 'https://picsum.photos/seed/mon2/400/225' },
+  { label: '2#变配电室', img: 'https://picsum.photos/seed/mon3/400/225' },
+  { label: '3#水泵房', img: 'https://picsum.photos/seed/mon4/400/225' },
+  { label: '4#锅炉房', img: 'https://picsum.photos/seed/mon5/400/225' },
+  { label: '5#监控中心', img: 'https://picsum.photos/seed/mon6/400/225' },
+  { label: '6#危化品库', img: 'https://picsum.photos/seed/mon7/400/225' },
+  { label: '7#配电室', img: 'https://picsum.photos/seed/mon8/400/225' },
 ]
 
 const ITEMS_PER_PAGE = 2
 const currentPage = ref(0)
 const scrollOffset = computed(() => currentPage.value)
 const totalPages = computed(() => Math.ceil(monitorList.length / ITEMS_PER_PAGE))
+
+// 将监控列表按每页 ITEMS_PER_PAGE 分组
+const monitorPages = computed(() => {
+  const pages: typeof monitorList[] = []
+  for (let i = 0; i < monitorList.length; i += ITEMS_PER_PAGE) {
+    pages.push(monitorList.slice(i, i + ITEMS_PER_PAGE))
+  }
+  return pages
+})
 
 let timer: ReturnType<typeof setInterval> | null = null
 
@@ -77,16 +89,20 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 
 <style scoped>
 .risk-control {
-  padding: calc(10 * var(--h)) calc(12 * var(--w));
+  height: 100%;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: 16px;
+  box-sizing: border-box;
 }
 
 .risk-stats {
   display: flex;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
 }
 
 /* 监控画面滚动区 */
@@ -95,72 +111,84 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   overflow: hidden;
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .monitor-track {
   display: flex;
   transition: transform 0.6s ease-in-out;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 每一页 = 一屏宽度，包含 2 个监控项 */
+.monitor-page {
+  flex: 0 0 100%;
+  display: flex;
+  gap: 8px;
+  min-height: 0;
 }
 
 .monitor-item {
-  width: 50%;
-  flex-shrink: 0;
-  padding: calc(4 * var(--w));
-  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 缩略图容器 — 标题叠加在底部 */
+.monitor-thumb {
   position: relative;
-}
-
-.monitor-img {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 6px;
+  flex: 1;
+  border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(100, 160, 255, 0.25);
-  background: rgba(10, 30, 70, 0.5);
+  min-height: 0;
 }
 
-.monitor-img img {
+.monitor-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.monitor-label {
-  margin-top: calc(4 * var(--h));
-  font-size: clamp(9px, calc(13 * var(--min-scale)), 15px);
-  font-weight: 600;
-  color: #e8f0ff;
-  letter-spacing: 0.5px;
-}
-
-.monitor-tag {
+/* 标题栏 — 叠加在缩略图底部，半透明深色背景 */
+.monitor-title-bar {
   position: absolute;
-  bottom: calc(4 * var(--h));
-  right: calc(8 * var(--w));
-  font-size: clamp(7px, calc(9 * var(--min-scale)), 11px);
-  color: rgba(140, 175, 235, 0.65);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(18, 18, 18, 0.58);
+  color: #ffffff;
+  padding: 4px 10px;
+  font-family: 'YouSheBiaoTiHei', 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(10px, calc(14 * var(--min-scale)), 18px);
+  line-height: normal;
+  white-space: nowrap;
 }
 
 /* 分页指示器 */
 .monitor-dots {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 6px;
-  margin-top: calc(6 * var(--h));
+  flex-shrink: 0;
 }
 
 .dot {
-  width: 14px;
-  height: 3px;
+  width: 16px;
+  height: 4px;
   border-radius: 2px;
-  background: rgba(100, 160, 255, 0.2);
+  background: rgba(32, 92, 194, 0.56);
   transition: all 0.3s ease;
 }
 
 .dot.active {
-  width: 24px;
-  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  width: 32px;
+  background: #aeccff;
 }
 </style>

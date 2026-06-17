@@ -1,81 +1,17 @@
 <template>
   <SectionCard title="安全自律履责概览" subtitle="Discipline">
     <div class="compliance-overview">
-      <!-- 矢量背景底图（Figma Rectangle 131） -->
-      <svg
-        class="vec-bg"
-        viewBox="0 0 430 213"
-        preserveAspectRatio="none"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="430" height="213" fill="url(#vecBgGrad)" />
-        <defs>
-          <linearGradient id="vecBgGrad" x1="0" y1="0" x2="0" y2="213" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#014692" stop-opacity="0.25" />
-            <stop offset="1" stop-color="#0457a7" stop-opacity="0.08" />
-          </linearGradient>
-        </defs>
-      </svg>
+      <!--
+        背景图占位：中间圆形 + 四条射线（Figma Rectangle 131 + 同心圆 + Union Stroke）
+        TODO: 替换为实际设计图
+        替换方式：将下方 background 属性替换为 url('@/assets/bigscreen/compliance-bg.png') 或实际图片路径
+      -->
+      <div class="overview-bg" />
 
-      <!-- Union Stroke 十字装饰（内联 SVG，避免额外文件依赖） -->
-      <svg
-        class="union-stroke"
-        viewBox="0 0 398 188"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <!-- 水平条 -->
-        <rect
-          x="0" y="66" width="398" height="56" rx="28"
-          stroke="url(#unionGrad)" stroke-width="1" fill="none"
-          opacity="0.4"
-        />
-        <!-- 垂直条 -->
-        <rect
-          x="170" y="0" width="58" height="188" rx="29"
-          stroke="url(#unionGrad)" stroke-width="1" fill="none"
-          opacity="0.4"
-        />
-        <defs>
-          <linearGradient id="unionGrad" x1="199" y1="0" x2="199" y2="188" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#4784e8" stop-opacity="0" />
-            <stop offset="0.5" stop-color="#89b5ff" stop-opacity="0.6" />
-            <stop offset="1" stop-color="#4784e8" stop-opacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      <!-- 三层同心环形图 -->
-      <div class="donut-area">
-        <svg class="donut" viewBox="0 0 168 168">
-          <!-- 外环：r=79, 视觉直径168 -->
-          <circle cx="84" cy="84" r="79" fill="none" stroke="rgba(71,132,232,0.12)" stroke-width="10" />
-          <circle
-            cx="84" cy="84" r="79" fill="none" stroke="#4784e8" stroke-width="10"
-            stroke-dasharray="446" stroke-dashoffset="80" stroke-linecap="round"
-            transform="rotate(-90 84 84)"
-          />
-          <!-- 中环：r=74, 视觉直径158 -->
-          <circle cx="84" cy="84" r="74" fill="none" stroke="rgba(71,132,232,0.08)" stroke-width="10" />
-          <circle
-            cx="84" cy="84" r="74" fill="none" stroke="#5ea3f6" stroke-width="10"
-            stroke-dasharray="415" stroke-dashoffset="75" stroke-linecap="round"
-            transform="rotate(-90 84 84)"
-          />
-          <!-- 内环：r=64, 视觉直径138 -->
-          <circle cx="84" cy="84" r="64" fill="none" stroke="rgba(71,132,232,0.06)" stroke-width="10" />
-          <circle
-            cx="84" cy="84" r="64" fill="none" stroke="#89b5ff" stroke-width="10"
-            stroke-dasharray="352" stroke-dashoffset="65" stroke-linecap="round"
-            transform="rotate(-90 84 84)"
-          />
-        </svg>
-        <!-- 中心数字 -->
-        <div class="donut-center">
-          <span class="donut-num">999</span>
-          <span class="donut-label">接入企业</span>
-        </div>
+      <!-- 中心数字（覆盖在背景图上方） -->
+      <div class="center-text">
+        <span class="center-num">999</span>
+        <span class="center-label">接入企业</span>
       </div>
 
       <!-- 四角行业卡片 -->
@@ -85,13 +21,13 @@
         class="industry-card"
         :class="[`card--${item.corner}`]"
       >
-        <div class="card-row" :class="`card-row--${item.side}`">
+        <div class="card-row" :class="[`card-row--${item.side}`]">
           <img class="card-icon" :src="item.icon" alt="" />
-          <span class="card-num" :class="`card-num--${item.side}`"
+          <span class="card-num" :class="[`card-num--${item.side}`]"
             >{{ item.count }}<span class="card-unit">家</span></span
           >
         </div>
-        <span class="card-label" :class="`card-label--${item.side}`">{{ item.name }}</span>
+        <span class="card-label" :class="[`card-label--${item.side}`]">{{ item.name }}</span>
       </div>
     </div>
   </SectionCard>
@@ -123,63 +59,61 @@ const industries: IndustryItem[] = [
 </script>
 
 <style scoped>
-/* ===== 容器 ===== */
+/* ===== 容器：撑满父级 + 内边距 ===== */
 .compliance-overview {
   position: relative;
   width: 100%;
   height: 100%;
+  /* 与父容器四周留有边距 */
+  padding: calc(10 * var(--h)) calc(12 * var(--w));
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* ===== 矢量背景底图（Figma Rectangle 131） ===== */
-.vec-bg {
+/* ===== 背景图占位（中间圆形 + 四条射线） ===== */
+/*
+ * TODO 用户自行替换：
+ *   将下方 background 整行替换为实际背景图，例如：
+ *   background: url('@/assets/bigscreen/compliance-bg.png') center/contain no-repeat;
+ *   或直接使用 Figma 导出的 SVG/PNG
+ */
+.overview-bg {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  /* 覆盖 padded 区域 */
+  inset: calc(10 * var(--h)) calc(12 * var(--w));
+  /* 占位示意：深色底 + 虚线框 + 中央淡色提示 */
+  background: url('@/assets/bigscreen/circle_bg.svg') center / contain no-repeat;
   pointer-events: none;
   z-index: 0;
 }
 
-/* ===== Union Stroke 十字装饰 ===== */
-.union-stroke {
+/* 占位提示文字 */
+.overview-bg::after {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: calc(398 * var(--w));
-  height: calc(188 * var(--h));
+  font-size: clamp(8px, calc(12 * var(--min-scale)), 14px);
+  color: rgba(157, 203, 254, 0.25);
+  white-space: nowrap;
   pointer-events: none;
-  z-index: 1;
 }
 
-/* ===== 环形图区域 ===== */
-.donut-area {
+/* ===== 中心数字 ===== */
+.center-text {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: calc(168 * var(--min-scale));
-  height: calc(168 * var(--min-scale));
-  z-index: 2;
-}
-
-.donut {
-  width: 100%;
-  height: 100%;
-}
-
-.donut-center {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: calc(4 * var(--h));
+  z-index: 2;
 }
 
-.donut-num {
+.center-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(18px, calc(32 * var(--min-scale)), 40px);
   font-weight: 700;
@@ -190,7 +124,7 @@ const industries: IndustryItem[] = [
   background-clip: text;
 }
 
-.donut-label {
+.center-label {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(10px, calc(18 * var(--min-scale)), 22px);
   font-weight: 700;
@@ -215,47 +149,50 @@ const industries: IndustryItem[] = [
   z-index: 3;
 }
 
-/* 左上：工贸企业 */
+/* -- 左上：工贸企业 -- */
 .card--tl {
-  left: 0;
-  top: 0;
-  background: linear-gradient(-83deg, #014692 3.46%, #0457a7 96.54%);
-  border-left: 1px solid #4784e8;
-  border-top: 1px solid #4784e8;
-  border-radius: 4px 0 0 0;
-}
-
-/* 右上：教育行业 */
-.card--tr {
-  right: 0;
-  top: 0;
-  background: linear-gradient(-83deg, #0457a7 3.46%, #014692 96.54%);
-  border-right: 1px solid #024792;
-  border-top: 1px solid #024792;
-  border-radius: 0 4px 0 0;
-}
-
-/* 左下：社区物业 */
-.card--bl {
-  left: 0;
-  bottom: 0;
+  left: calc(12 * var(--w));
+  top: calc(34 * var(--h));
   background: linear-gradient(-83deg, #014692 3.46%, #0457a7 96.54%);
   border-left: 1px solid #4784e8;
   border-bottom: 1px solid #4784e8;
-  border-radius: 0 0 0 4px;
+  border-top: 1px solid #4784e8;
+  border-radius: 4px 0 0 4px;
 }
 
-/* 右下：其他 */
+/* -- 右上：教育行业 -- */
+.card--tr {
+  right: calc(12 * var(--w));
+  top: calc(34 * var(--h));
+  background: linear-gradient(-83deg, #0457a7 3.46%, #014692 96.54%);
+  border-right: 1px solid #4784e8;
+  border-bottom: 1px solid #4784e8;
+  border-top: 1px solid #4784e8;
+  border-radius: 0 4px 4px 0;
+}
+
+/* -- 左下：社区物业 -- */
+.card--bl {
+  left: calc(12 * var(--w));
+  bottom: calc(34 * var(--h));
+  background: linear-gradient(-83deg, #014692 3.46%, #0457a7 96.54%);
+  border-left: 1px solid #4784e8;
+  border-bottom: 1px solid #4784e8;
+  border-top: 1px solid #4784e8;
+  border-radius: 4px 0 0 4px;
+}
+
+/* -- 右下：其他 -- */
 .card--br {
-  right: 0;
-  bottom: 0;
+  right: calc(12 * var(--w));
+  bottom: calc(34 * var(--h));
   background: linear-gradient(-83deg, #0457a7 3.46%, #014692 96.54%);
   border-right: 1px solid #024792;
   border-bottom: 1px solid #024792;
   border-radius: 0 0 4px 0;
 }
 
-/* 图标 + 数字行 */
+/* ===== 图标 + 数字行 ===== */
 .card-row {
   display: flex;
   align-items: center;
@@ -273,7 +210,7 @@ const industries: IndustryItem[] = [
   justify-content: center;
 }
 
-/* 图标 */
+/* ===== 图标 ===== */
 .card-icon {
   width: calc(22 * var(--min-scale));
   height: calc(22 * var(--min-scale));
@@ -282,7 +219,7 @@ const industries: IndustryItem[] = [
   object-fit: contain;
 }
 
-/* 数字 */
+/* ===== 数字 ===== */
 .card-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(11px, calc(20 * var(--min-scale)), 24px);
@@ -296,14 +233,16 @@ const industries: IndustryItem[] = [
   flex: 1;
   min-width: 0;
 }
+
 .card-num--left {
   text-align: left;
 }
+
 .card-num--right {
   text-align: right;
 }
 
-/* 单位 "家" */
+/* ===== 单位 "家" ===== */
 .card-unit {
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(8px, calc(14 * var(--min-scale)), 18px);
@@ -314,7 +253,7 @@ const industries: IndustryItem[] = [
   background-clip: text;
 }
 
-/* 行业名称标签 */
+/* ===== 行业名称标签 ===== */
 .card-label {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(9px, calc(18 * var(--min-scale)), 22px);
@@ -326,9 +265,11 @@ const industries: IndustryItem[] = [
   background-clip: text;
   width: 100%;
 }
+
 .card-label--left {
   text-align: left;
 }
+
 .card-label--right {
   text-align: right;
 }

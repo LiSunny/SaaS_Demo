@@ -46,16 +46,18 @@ const industryData: CategoryStatItem[] = [
 
 <style scoped>
 .charging-safety {
-  padding: calc(12 * var(--h)) calc(12 * var(--w));
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: calc(12 * var(--h));
+  gap: 16px;
 }
 
 .charging-stats {
   display: flex;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
 }
 
 </style>

@@ -23,7 +23,7 @@
       </div>
 
       <!-- 表格区（统一大屏列表样式） -->
-      <BigscreenListTable :columns="columns" :rows="records" row-key="id">
+      <BigscreenListTable :columns="columns" :rows="records" row-key="id" style="flex: 1; min-height: 0;">
         <template #cell-status="{ row }">
           <span :class="['dc-duty-badge', row.statusClass]">{{ row.status }}</span>
         </template>
@@ -68,15 +68,24 @@ const records = [
   { id: 1, status: '未履职', statusClass: 'undone', company: '盛邦木业', person: '傅梦梁' },
   { id: 2, status: '未履职', statusClass: 'undone', company: '盛邦木业', person: '萧春燕' },
   { id: 3, status: '未履职', statusClass: 'undone', company: '盛邦木业', person: '谭伟' },
+  { id: 4, status: '未履职', statusClass: 'undone', company: '华泰建材', person: '李国强' },
+  { id: 5, status: '未履职', statusClass: 'undone', company: '华泰建材', person: '王芳' },
+  { id: 6, status: '未履职', statusClass: 'undone', company: '中联重科', person: '张建国' },
+  { id: 7, status: '未履职', statusClass: 'undone', company: '中联重科', person: '周明华' },
+  { id: 8, status: '未履职', statusClass: 'undone', company: '远大化工', person: '赵文博' },
+  { id: 9, status: '未履职', statusClass: 'undone', company: '远大化工', person: '陈志强' },
+  { id: 10, status: '未履职', statusClass: 'undone', company: '盛邦木业', person: '林晓峰' },
 ]
 </script>
 
 <style scoped>
 .daily-checklist {
+  height: 100%;
+  overflow: hidden;
   padding: calc(8 * var(--h)) calc(8 * var(--w));
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: calc(16 * var(--h));
 }
 
 /* ===== 履职概览 ===== */
@@ -155,10 +164,12 @@ const records = [
   padding: calc(2 * var(--h)) calc(6 * var(--w));
   border-radius: 2px;
   font-size: clamp(7px, calc(11 * var(--min-scale)), 14px);
+  font-weight: 600;
 }
 .dc-duty-badge.undone {
-  color: #eaad6c;
-  background: rgba(234, 173, 108, 0.1);
-  border: 1px solid rgba(234, 173, 108, 0.2);
+  color: #ffc46b;
+  background: rgba(234, 173, 108, 0.22);
+  border: 1px solid rgba(234, 173, 108, 0.55);
+  box-shadow: 0 0 6px rgba(234, 173, 108, 0.18);
 }
 </style>

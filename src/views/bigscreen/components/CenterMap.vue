@@ -251,6 +251,48 @@ function buildInfoWindowContent(point: typeof scatterPoints[number], cfg: { colo
   </div>`
 }
 
+function buildStreetInfoWindowContent() {
+  return `<div class="street-hover-tooltip">
+    <div class="street-hover-tooltip__header">
+      <span class="street-hover-tooltip__icon">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#3cd3d7" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </span>
+      <span class="street-hover-tooltip__name">示范街</span>
+    </div>
+    <div class="street-hover-tooltip__body">
+      <div class="street-hover-tooltip__stats">
+        <div class="street-hover-tooltip__stat">
+          <span class="street-hover-tooltip__stat-value">286</span>
+          <span class="street-hover-tooltip__stat-label">纳管商铺</span>
+        </div>
+        <div class="street-hover-tooltip__stat">
+          <span class="street-hover-tooltip__stat-value">98.6%</span>
+          <span class="street-hover-tooltip__stat-label">设备在线率</span>
+        </div>
+        <div class="street-hover-tooltip__stat">
+          <span class="street-hover-tooltip__stat-value">92%</span>
+          <span class="street-hover-tooltip__stat-label">今日履职率</span>
+        </div>
+        <div class="street-hover-tooltip__stat">
+          <span class="street-hover-tooltip__stat-value">6</span>
+          <span class="street-hover-tooltip__stat-label">今日告警</span>
+        </div>
+        <div class="street-hover-tooltip__stat street-hover-tooltip__stat--danger">
+          <span class="street-hover-tooltip__stat-value">12</span>
+          <span class="street-hover-tooltip__stat-label">未整改隐患</span>
+        </div>
+      </div>
+    </div>
+    <div class="street-hover-tooltip__footer">
+      <a class="street-hover-tooltip__btn" href="javascript:void(0)" id="street-detail-btn">查看详情 ›</a>
+    </div>
+    <div class="street-hover-tooltip__arrow"></div>
+  </div>`
+}
+
 function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
 
@@ -320,6 +362,7 @@ function initMap() {
         closeTimeout = null
       }
       const content = buildInfoWindowContent(point, cfg)
+      infoWindow.setOffset(new AMap.Pixel(0, -20))
       infoWindow.setContent(content)
       infoWindow.open(mapInstance, marker.getPosition())
       // 弹窗挂载后绑定鼠标事件，保持弹窗不消失
@@ -383,6 +426,7 @@ function addPolygonLayer(AMap: any) {
             strokeDasharray: [6, 4],
             fillColor: '#30C8D3',
             fillOpacity: 0.35,
+            cursor: 'pointer',
           })
           mapInstance.add(polygon)
 
@@ -392,6 +436,8 @@ function addPolygonLayer(AMap: any) {
             const totalLat = path.reduce((s: number, p: any) => s + p.lat, 0)
             const centerLng = totalLng / path.length
             const centerLat = totalLat / path.length
+
+            // 文字标注：仅保留点击打开详情
             const textMarker = new AMap.Marker({
               position: [centerLng, centerLat],
               content: `<div class="street-label-text">示范街</div>`,
@@ -401,6 +447,69 @@ function addPolygonLayer(AMap: any) {
               showStreetPanel.value = true
             })
             mapInstance.add(textMarker)
+
+            // 面区域悬浮：鼠标进入整个示范街区域时展示统计弹窗
+            const streetCenter = [centerLng, centerLat]
+            const streetPolygon = polygon
+            // 记录 polygon 原始样式用于恢复
+            const origFillOpacity = 0.35
+            const origStrokeWeight = 2
+
+            streetPolygon.on('mouseover', () => {
+              if (closeTimeout) {
+                clearTimeout(closeTimeout)
+                closeTimeout = null
+              }
+              // 悬浮高亮
+              streetPolygon.setOptions({
+                fillOpacity: 0.55,
+                strokeWeight: 4,
+                strokeColor: '#3cd3d7',
+              })
+              const content = buildStreetInfoWindowContent()
+              infoWindow.setOffset(new AMap.Pixel(0, 0))
+              infoWindow.setContent(content)
+              infoWindow.open(mapInstance, streetCenter)
+              // 弹窗挂载后绑定事件，保持弹窗不消失
+              nextTick(() => {
+                const tipEl = document.querySelector('.street-hover-tooltip')
+                if (tipEl) {
+                  tipEl.addEventListener('mouseenter', () => {
+                    if (closeTimeout) {
+                      clearTimeout(closeTimeout)
+                      closeTimeout = null
+                    }
+                  })
+                  tipEl.addEventListener('mouseleave', () => {
+                    scheduleCloseInfoWindow()
+                  })
+                }
+                // 绑定查看详情按钮点击事件
+                const detailBtn = document.getElementById('street-detail-btn')
+                if (detailBtn) {
+                  detailBtn.addEventListener('click', (e) => {
+                    e.preventDefault()
+                    showStreetPanel.value = true
+                    infoWindow.close()
+                  })
+                }
+              })
+            })
+
+            streetPolygon.on('mouseout', () => {
+              // 恢复原始样式
+              streetPolygon.setOptions({
+                fillOpacity: origFillOpacity,
+                strokeWeight: origStrokeWeight,
+                strokeColor: '#30C8D3',
+              })
+              scheduleCloseInfoWindow()
+            })
+
+            // 点击面区域也打开详情面板
+            streetPolygon.on('click', () => {
+              showStreetPanel.value = true
+            })
           }
         })
       })
@@ -433,7 +542,7 @@ function exitFullscreen() {
 .center-map {
   height: 100%;
   position: relative;
-  border: 1px solid rgba(71,132,232,0.2);
+  border: 1px solid rgba(71, 132, 232, 0.3);
   border-radius: 4px;
   background: #0a1a2e;
   overflow: hidden;
@@ -512,7 +621,7 @@ function exitFullscreen() {
   color: #89b5ff;
 }
 .ml-text {
-  font-size: clamp(7px, calc(11 * var(--min-scale)), 14px);
+  font-size: clamp(7px, calc(11 * var(--min-scale)), 16px);
   color: rgba(137,181,255,0.5);
 }
 
@@ -527,8 +636,8 @@ function exitFullscreen() {
   align-items: center;
   gap: calc(8 * var(--w));
   padding: 0 calc(8 * var(--w));
-  background: rgba(10,26,46,0.85);
-  border: 1px solid rgba(71,132,232,0.3);
+  background: rgba(10,26,46,0.92);
+  border: 1px solid rgba(71,132,232,0.4);
   border-radius: 4px;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -541,15 +650,16 @@ function exitFullscreen() {
 }
 
 .legend-icon {
-  width: calc(14 * var(--min-scale));
-  height: calc(14 * var(--min-scale));
+  width: calc(16 * var(--min-scale));
+  height: calc(16 * var(--min-scale));
   flex-shrink: 0;
   object-fit: contain;
 }
 
 .legend-text {
-  font-size: clamp(7px, calc(11 * var(--min-scale)), 14px);
-  color: rgba(137,181,255,0.8);
+  font-size: clamp(10px, calc(12 * var(--min-scale)), 16px);
+  color: rgba(255,255,255,0.95);
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -852,10 +962,154 @@ function exitFullscreen() {
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0,0,0,0.6), 0 0 10px rgba(60,211,215,0.3);
   cursor: pointer;
+  pointer-events: none;
   transform: translate(-50%,-50%) rotate(-32deg) translateY(-12px);
   transition: text-shadow 0.3s ease;
 }
 .street-label-text:hover {
   text-shadow: 0 0 16px rgba(60,211,215,0.7), 0 0 30px rgba(60,211,215,0.4), 0 1px 4px rgba(0,0,0,0.6);
+}
+
+/* ===== 示范街悬浮弹窗 ===== */
+.street-hover-tooltip {
+  min-width: 280px;
+  background: linear-gradient(135deg, rgba(13,33,55,0.98) 0%, rgba(8,22,42,0.98) 100%);
+  border: 1px solid rgba(60, 211, 215, 0.5);
+  border-radius: 8px;
+  padding: 0;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(60, 211, 215, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #eef3fa;
+  font-size: 13px;
+  line-height: 1.6;
+  position: relative;
+  overflow: hidden;
+}
+
+.street-hover-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(60, 211, 215, 0.4), transparent);
+}
+
+.street-hover-tooltip__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px 9px;
+  border-bottom: 1px solid rgba(60, 211, 215, 0.18);
+  background: linear-gradient(180deg, rgba(60, 211, 215, 0.1) 0%, transparent 100%);
+}
+
+.street-hover-tooltip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.street-hover-tooltip__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+.street-hover-tooltip__body {
+  padding: 12px 14px;
+}
+
+.street-hover-tooltip__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.street-hover-tooltip__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  background: rgba(60, 211, 215, 0.06);
+  border: 1px solid rgba(60, 211, 215, 0.12);
+  border-radius: 6px;
+  gap: 4px;
+}
+
+.street-hover-tooltip__stat--danger {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.street-hover-tooltip__stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3cd3d7;
+  line-height: 1.2;
+  text-shadow: 0 0 8px rgba(60, 211, 215, 0.4);
+}
+
+.street-hover-tooltip__stat--danger .street-hover-tooltip__stat-value {
+  color: #f59e0b;
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.street-hover-tooltip__stat-label {
+  font-size: 11px;
+  color: #89b5ff;
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.street-hover-tooltip__stat--danger .street-hover-tooltip__stat-label {
+  color: #f59e0b;
+}
+
+.street-hover-tooltip__footer {
+  padding: 8px 14px 11px;
+  border-top: 1px solid rgba(60, 211, 215, 0.15);
+  text-align: right;
+  background: linear-gradient(0deg, rgba(60, 211, 215, 0.05) 0%, transparent 100%);
+}
+
+.street-hover-tooltip__btn {
+  font-size: 13px;
+  color: #3cd3d7 !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-shadow: 0 0 12px rgba(60,211,215,0.4) !important;
+}
+
+.street-hover-tooltip__btn:hover {
+  color: #6ef0f4 !important;
+  text-shadow: 0 0 16px rgba(110,240,244,0.6), 0 0 30px rgba(60,211,215,0.3) !important;
+  transform: translateX(2px);
+}
+
+.street-hover-tooltip__arrow {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, rgba(13,33,55,0.98) 0%, rgba(8,22,42,0.98) 100%);
+  border-right: 1px solid rgba(60, 211, 215, 0.5);
+  border-bottom: 1px solid rgba(60, 211, 215, 0.5);
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.15);
 }
 </style>

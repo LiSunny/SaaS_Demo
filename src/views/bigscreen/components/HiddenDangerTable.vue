@@ -33,30 +33,38 @@ const rows = [
   { id: 5, status: '整改中', statusClass: 'status-ongoing', content: '应急灯故障', company: '胜邦木业', time: '2025-09-10' },
   { id: 6, status: '整改中', statusClass: 'status-ongoing', content: '消防栓遮挡', company: '胜邦木业', time: '2025-09-10' },
   { id: 7, status: '已整改', statusClass: 'status-done', content: '疏散通道清理', company: '胜邦木业', time: '2025-09-10' },
+  { id: 8, status: '整改中', statusClass: 'status-ongoing', content: '化学品存放不当', company: '华泰建材', time: '2025-09-11' },
+  { id: 9, status: '整改中', statusClass: 'status-ongoing', content: '电焊作业无防护', company: '中联重科', time: '2025-09-12' },
+  { id: 10, status: '已整改', statusClass: 'status-done', content: '配电箱接地修复', company: '远大化工', time: '2025-09-13' },
 ]
 </script>
 
 <style scoped>
 .hidden-danger {
+  height: 100%;
+  overflow: hidden;
   padding: calc(8 * var(--h)) calc(8 * var(--w));
 }
 
-/* ===== 状态标签（Figma: #ff4e51 红色警示） ===== */
+/* ===== 状态标签 ===== */
 .hd-status {
   display: inline-block;
   padding: calc(2 * var(--h)) calc(8 * var(--w));
   border-radius: 2px;
   font-size: clamp(7px, calc(11 * var(--min-scale)), 14px);
+  font-weight: 600;
 }
 .status-ongoing {
-  color: #ff4e51;
-  background: rgba(255, 78, 81, 0.1);
-  border: 1px solid rgba(255, 78, 81, 0.2);
+  color: #ff6b6e;
+  background: rgba(255, 78, 81, 0.22);
+  border: 1px solid rgba(255, 78, 81, 0.55);
+  box-shadow: 0 0 6px rgba(255, 78, 81, 0.18);
 }
 .status-done {
-  color: #3cd3d7;
-  background: rgba(60, 211, 215, 0.1);
-  border: 1px solid rgba(60, 211, 215, 0.2);
+  color: #56f0f4;
+  background: rgba(60, 211, 215, 0.22);
+  border: 1px solid rgba(60, 211, 215, 0.55);
+  box-shadow: 0 0 6px rgba(60, 211, 215, 0.18);
 }
 
 /* ===== 时间列（Figma: #d8d8d8 次要色） ===== */

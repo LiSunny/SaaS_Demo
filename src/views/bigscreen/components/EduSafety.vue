@@ -84,7 +84,7 @@ const warningItems = [
 .edu-segments {
   display: flex;
   gap: calc(16 * var(--w));
-  padding: calc(6 * var(--h)) calc(8 * var(--w));
+  padding: calc(2 * var(--h)) calc(8 * var(--w));
 }
 .edu-seg {
   flex: 1;
@@ -143,21 +143,21 @@ const warningItems = [
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: calc(4 * var(--h));
+  gap: calc(12 * var(--h));
   padding: 0 calc(8 * var(--w));
 }
 
 .edu-warning-row {
   display: flex;
   align-items: center;
-  gap: calc(16 * var(--w));
+  gap: calc(32 * var(--w));
   flex: 1;
 }
 
 /* ===== 右侧：寄宿制/非寄宿制分解 ===== */
 .edu-breakdown {
   display: flex;
-  gap: calc(16 * var(--w));
+  gap: calc(8 * var(--w));
   flex: 1;
 }
 

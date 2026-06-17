@@ -97,17 +97,17 @@ import EduSafety from './components/EduSafety.vue'
   min-height: 0;
 }
 
-/* 中间列：上部弹性填充，下部固定高度 */
+/* 中间列：上部占 2 份，下部占 1 份（与左右列单个模块等高） */
 .center-top {
-  flex: 1;
+  flex: 2;
   min-height: 0;
 }
 
 .center-bottom {
   display: flex;
   gap: calc(16 * var(--w));
-  height: calc(356 * var(--h));
-  flex-shrink: 0;
+  flex: 1;
+  min-height: 0;
 }
 
 .center-bottom > * {
