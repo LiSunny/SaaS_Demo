@@ -37,7 +37,7 @@
 
             <!-- 分类数据展示区 -->
             <div class="street-content">
-              <!-- Seg 切换 -->
+              <!-- Seg 分段控制器 -->
               <div class="street-seg">
                 <div
                   v-for="tab in demoStreetTabs"
@@ -50,8 +50,10 @@
                 </div>
               </div>
 
-              <!-- 安全一张图：3D 地图 -->
-              <div v-show="activeTab === 'safety-map'" class="street-content__area street-content__area--map">
+              <!-- Seg 下方内容面板 -->
+              <div class="street-content__panel">
+                <!-- 安全一张图：3D 地图 -->
+                <div v-show="activeTab === 'safety-map'" class="street-content__area street-content__area--map">
                 <div ref="safetyMapContainer" class="safety-map-container" />
 
                 <!-- 右上角统计悬浮窗口 -->
@@ -82,11 +84,21 @@
                 </div>
               </div>
 
+              <!-- 商户履责监管 -->
+              <StreetBusinessCompliance v-show="activeTab === 'duty-supervision'" class="street-content__area street-content__area--compliance" />
+
+              <!-- 隐患整改跟踪 -->
+              <StreetHiddenDangerTrack v-show="activeTab === 'hazard-track'" class="street-content__area street-content__area--track" />
+
+              <!-- 告警处置中心 -->
+              <StreetAlertCenter v-show="activeTab === 'alarm-center'" class="street-content__area street-content__area--track" />
+
               <!-- 其他 Tab 占位 -->
-              <div v-show="activeTab !== 'safety-map'" class="street-content__area">
-                <div class="street-content__placeholder">
-                  <span class="placeholder-icon">📋</span>
-                  <span>{{ currentTabLabel }} — 内容开发中</span>
+                <div v-show="activeTab !== 'safety-map' && activeTab !== 'duty-supervision' && activeTab !== 'hazard-track' && activeTab !== 'alarm-center'" class="street-content__area street-content__area--placeholder">
+                  <div class="street-content__placeholder">
+                    <span class="placeholder-icon">📋</span>
+                    <span>{{ currentTabLabel }} — 内容开发中</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -100,6 +112,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import BigscreenModuleTitle from './BigscreenModuleTitle.vue'
+import StreetBusinessCompliance from './street/StreetBusinessCompliance.vue'
+import StreetHiddenDangerTrack from './street/StreetHiddenDangerTrack.vue'
+import StreetAlertCenter from './street/StreetAlertCenter.vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -139,8 +154,7 @@ const demoStreetTabs: TabItem[] = [
   { key: 'safety-map', label: '安全一张图' },
   { key: 'duty-supervision', label: '商户履责监管' },
   { key: 'hazard-track', label: '隐患整改跟踪' },
-  { key: 'alarm-center', label: '告警处置中心' },
-  { key: 'stats-analysis', label: '统计分析' },
+  { key: 'alarm-center', label: '告警处置中心' }
 ]
 
 const activeTab = ref('safety-map')
@@ -482,7 +496,7 @@ onBeforeUnmount(() => {
   height: 78vh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(50% 50% at 50% 50%, #015EAF 0%, #02397C 100%);
+  background: #002C62;
   border: 1px solid rgba(71, 132, 232, 0.4);
   border-radius: 8px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(60, 211, 215, 0.1);
@@ -538,19 +552,20 @@ onBeforeUnmount(() => {
 /* ===== 统计指标行 ===== */
 .street-stats-row {
   display: flex;
-  gap: calc(12 * var(--w));
-  padding: calc(4 * var(--h)) 0;
+  gap: calc(16 * var(--w));
+  padding: calc(16 * var(--h)) calc(16 * var(--w));
+  background: rgba(22, 70, 145, 0.51);
+  border-radius: 6px;
 }
 
 .street-stat-card {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: calc(12 * var(--w));
-  padding: calc(12 * var(--h)) calc(14 * var(--w));
-  background: rgba(2, 20, 50, 0.55);
-  border: 1px solid rgba(71, 132, 232, 0.18);
-  border-radius: 6px;
+  gap: calc(16 * var(--w));
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .street-stat-card__icon {
@@ -635,24 +650,24 @@ onBeforeUnmount(() => {
   color: rgba(137, 181, 255, 0.7);
 }
 
-/* ===== Seg 切换 ===== */
+/* ===== Seg 分段控制器 ===== */
 .street-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: calc(14 * var(--h));
+  gap: 0;
   min-height: 0;
 }
 
 .street-seg {
   display: flex;
-  gap: 0;
+  gap: calc(18 * var(--w));
   flex-shrink: 0;
 }
 
 .street-seg__item {
-  flex: 1;
-  padding: calc(8 * var(--h)) 0;
+  flex-shrink: 0;
+  padding: calc(8 * var(--h)) calc(12 * var(--w));
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;
@@ -667,25 +682,29 @@ onBeforeUnmount(() => {
 }
 
 .street-seg__item.is-active {
-  background: rgba(0, 184, 219, 0.3);
+  background: rgba(22, 70, 145, 0.51);
   -webkit-text-fill-color: #ffffff;
   color: #ffffff;
-  border-radius: 4px;
+  border-radius: 8px 8px 0 0;
 }
 
-.street-seg__item:not(.is-active):hover {
-  background: rgba(0, 184, 219, 0.12);
-  -webkit-text-fill-color: #89b5ff;
-  color: #89b5ff;
-  border-radius: 4px;
+/* ===== Seg 下方内容面板 ===== */
+.street-content__panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(22, 70, 145, 0.51);
+  border-radius: 6px;
+  padding: calc(12 * var(--h)) calc(12 * var(--w));
 }
 
-/* ===== 内容区（预留） ===== */
+/* ===== 内容区 ===== */
 .street-content__area {
   flex: 1;
   min-height: 200px;
-  background: rgba(2, 20, 50, 0.4);
-  border: 1px dashed rgba(71, 132, 232, 0.25);
+  background: transparent;
+  border: none;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -694,11 +713,22 @@ onBeforeUnmount(() => {
 
 /* 地图区域去除占位样式 */
 .street-content__area--map {
+  flex: 1;
   display: block;
-  border-style: solid;
   position: relative;
   overflow: hidden;
-  min-height: 400px;
+}
+
+/* 商户履责监管区域去除占位样式 */
+.street-content__area--compliance {
+  display: block;
+  overflow: hidden;
+}
+
+/* 隐患整改跟踪区域 */
+.street-content__area--track {
+  display: block;
+  overflow: hidden;
 }
 
 .street-content__placeholder {

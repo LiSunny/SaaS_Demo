@@ -1,23 +1,22 @@
 <template>
-  <div class="business-compliance">
-      <!-- ===== 左右分栏 ===== -->
+  <div class="danger-track">
       <div class="content-area">
         <!-- ===== 左侧面板 ===== -->
         <div class="left-panel">
-          <!-- 履职概览 -->
+          <!-- 隐患概览 -->
           <div class="panel-section">
             <div class="section-title">
               <div class="title-bar" />
-              <span class="title-text">履职概览</span>
+              <span class="title-text">隐患概览</span>
             </div>
             <div class="overview-body">
               <!-- 左侧指标列 -->
               <div class="overview-metrics">
-                <!-- 今日应完成任务 -->
+                <!-- 累计隐患 -->
                 <div class="metric-item">
-                  <span class="metric-label">今日应完成任务</span>
+                  <span class="metric-label">累计隐患</span>
                   <div class="metric-value-row">
-                    <span class="metric-value">68</span>
+                    <span class="metric-value">156</span>
                     <span class="metric-unit">项</span>
                   </div>
                 </div>
@@ -26,46 +25,46 @@
                 <!-- 三列子指标 -->
                 <div class="sub-metrics-row">
                   <div class="metric-item">
-                    <span class="metric-label">已完成</span>
+                    <span class="metric-label">已整改</span>
                     <div class="metric-value-row">
-                      <span class="metric-value">60</span>
+                      <span class="metric-value metric-value--done">128</span>
                       <span class="metric-unit">项</span>
                     </div>
                   </div>
                   <div class="metric-item">
-                    <span class="metric-label">未完成</span>
+                    <span class="metric-label">未整改</span>
                     <div class="metric-value-row">
-                      <span class="metric-value">8</span>
+                      <span class="metric-value">28</span>
                       <span class="metric-unit">项</span>
                     </div>
                   </div>
                   <div class="metric-item">
-                    <span class="metric-label">累计逾期</span>
+                    <span class="metric-label">逾期未改</span>
                     <div class="metric-value-row">
-                      <span class="metric-value">8</span>
+                      <span class="metric-value metric-value--warn">12</span>
                       <span class="metric-unit">项</span>
                     </div>
                   </div>
                 </div>
               </div>
-              <!-- 右侧环形图 + 履职率 -->
+              <!-- 右侧环形图 + 整改率 -->
               <div class="overview-ring">
                 <div class="ring-chart-wrapper">
                   <v-chart :option="rateRingOption" autoresize />
                   <div class="ring-center-text">
-                    <span class="ring-rate-text">90%</span>
-                    <span class="ring-label-text">今日履职率</span>
+                    <span class="ring-rate-text">82%</span>
+                    <span class="ring-label-text">整改率</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 履职完成率Top3 -->
+          <!-- 整改完成率Top3 -->
           <div class="panel-section">
             <div class="section-title">
               <div class="title-bar" />
-              <span class="title-text">履职完成率Top3</span>
+              <span class="title-text">整改完成率Top3</span>
             </div>
             <div class="rank-list">
               <div v-for="(item, index) in rankList" :key="item.name" class="rank-item">
@@ -86,15 +85,15 @@
             </div>
           </div>
 
-          <!-- 实时履职动态 -->
+          <!-- 实时整改动态 -->
           <div class="panel-section panel-section--flex">
             <div class="section-title">
               <div class="title-bar" />
-              <span class="title-text">实时履职动态</span>
+              <span class="title-text">实时整改动态</span>
             </div>
             <div class="dynamic-list">
               <div v-for="(item, index) in dynamicList" :key="index" class="dynamic-row">
-                <span class="dynamic-name">{{ item.name }}</span>
+                <span class="dynamic-name">{{ item.company }}</span>
                 <span class="dynamic-action">{{ item.action }}</span>
                 <span class="dynamic-time">{{ item.time }}</span>
               </div>
@@ -111,7 +110,7 @@
                 <circle cx="7" cy="7" r="5.5" stroke="#ababab" stroke-width="1.5" />
                 <path d="M11 11l3.5 3.5" stroke="#ababab" stroke-width="1.5" stroke-linecap="round" />
               </svg>
-              <span class="search-placeholder">搜索任务名称...</span>
+              <span class="search-placeholder">搜索隐患内容...</span>
             </div>
             <div class="status-filter">
               <span>全部状态</span>
@@ -126,22 +125,16 @@
             <!-- 表头 -->
             <div class="table-header">
               <div class="th th-status">
-                <span>履职状态</span>
+                <span>整改状态</span>
                 <div class="sort-icons">
                   <svg class="sort-arrow sort-arrow--up" viewBox="0 0 12 12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                   <svg class="sort-arrow sort-arrow--down" viewBox="0 0 12 12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
                 </div>
               </div>
-              <div class="th th-name">商户名称</div>
-              <div class="th th-category">
-                <span>商户业态</span>
-                <div class="sort-icons">
-                  <svg class="sort-arrow sort-arrow--up" viewBox="0 0 12 12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-                  <svg class="sort-arrow sort-arrow--down" viewBox="0 0 12 12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
-                </div>
-              </div>
-              <div class="th th-time">
-                <span>上报时间</span>
+              <div class="th th-content">隐患内容</div>
+              <div class="th th-company">上报企业</div>
+              <div class="th th-deadline">
+                <span>整改期限</span>
                 <div class="sort-icons">
                   <svg class="sort-arrow sort-arrow--up" viewBox="0 0 12 12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                   <svg class="sort-arrow sort-arrow--down" viewBox="0 0 12 12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
@@ -153,13 +146,11 @@
             <div class="table-body">
               <div v-for="(row, index) in paginatedRows" :key="index" class="table-row">
                 <div class="td td-status">
-                  <span class="status-tag" :class="row.status === 'warning' ? 'status-tag--warning' : 'status-tag--normal'">
-                    {{ row.status === 'warning' ? '预警' : '正常' }}
-                  </span>
+                  <span class="status-tag" :class="statusClass(row.status)">{{ row.status }}</span>
                 </div>
-                <div class="td td-name">{{ row.name }}</div>
-                <div class="td td-category">{{ row.category }}</div>
-                <div class="td td-time">{{ row.reportTime }}</div>
+                <div class="td td-content">{{ row.content }}</div>
+                <div class="td td-company">{{ row.company }}</div>
+                <div class="td td-deadline">{{ row.deadline }}</div>
                 <div class="td td-action">
                   <span class="action-link">查看</span>
                 </div>
@@ -217,42 +208,54 @@ const rateRingOption = computed(() => ({
       labelLine: { show: false },
       emphasis: { disabled: true },
       data: [
-        { value: 90, name: '已完成', itemStyle: { color: '#148DFF'} },
-        { value: 10, name: '未完成', itemStyle: { color: '#0151A4' } },
+        { value: 82, name: '已整改', itemStyle: { color: '#148DFF' } },
+        { value: 18, name: '未整改', itemStyle: { color: '#0151A4' } },
       ],
     },
   ],
 }))
 
-// ===== 履职完成率Top5 =====
+// ===== 整改完成率Top3 =====
 const rankList = [
-  { name: '沙县小吃', rate: 96 },
-  { name: '爱玛电动车', rate: 89 },
-  { name: 'Tony美发店', rate: 80 },
+  { name: '消防隐患', rate: 95 },
+  { name: '电气隐患', rate: 88 },
+  { name: '通道隐患', rate: 76 },
 ]
 
-// ===== 实时履职动态 =====
+// ===== 实时整改动态 =====
 const dynamicList = [
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日隐患排查', time: '2025-09-10 13:24' },
+  { company: '盛邦木业', action: '消防通道堵塞已整改', time: '2025-10-14 16:30' },
+  { company: '华泰建材', action: '化学品存放不当整改中', time: '2025-10-14 15:20' },
+  { company: '远大化工', action: '配电箱接地已修复', time: '2025-10-14 14:10' },
+  { company: '中联重科', action: '电焊作业防护已落实', time: '2025-10-14 11:45' },
+  { company: '盛邦木业', action: '灭火器已更换', time: '2025-10-14 10:30' },
+  { company: '旺达建材', action: '安全出口标识已补设', time: '2025-10-14 09:15' },
+  { company: '幸福超市', action: '应急灯已维修', time: '2025-10-13 17:00' },
+  { company: '天天小吃', action: '燃气管道老化整改中', time: '2025-10-13 15:40' },
+  { company: '南湖校区', action: '消防栓遮挡已清理', time: '2025-10-13 14:20' },
 ]
 
 // ===== 表格数据 =====
 const tableRows = [
-  { name: '盛邦木业', category: '木材加工', reportTime: '2025-10-14 09:00', status: 'warning' },
-  { name: '南湖校区', category: '物业', reportTime: '2025-10-14 09:00', status: 'warning' },
-  { name: '江南商贸城', category: '商业', reportTime: '2025-10-14 09:00', status: 'warning' },
-  { name: '旺达建材', category: '建材销售', reportTime: '2025-10-14 09:00', status: 'normal' },
-  { name: '幸福超市', category: '零售', reportTime: '2025-10-14 09:00', status: 'normal' },
-  { name: '天天小吃', category: '餐饮', reportTime: '2025-10-14 09:00', status: 'normal' },
+  { content: '消防通道堵塞', company: '盛邦木业', deadline: '2025-10-20', status: '整改中' },
+  { content: '灭火器过期', company: '盛邦木业', deadline: '2025-10-18', status: '整改中' },
+  { content: '电线私拉乱接', company: '盛邦木业', deadline: '2025-10-15', status: '逾期' },
+  { content: '安全出口标识缺失', company: '旺达建材', deadline: '2025-10-22', status: '整改中' },
+  { content: '应急灯故障', company: '幸福超市', deadline: '2025-10-25', status: '整改中' },
+  { content: '消防栓遮挡', company: '南湖校区', deadline: '2025-10-12', status: '已整改' },
+  { content: '化学品存放不当', company: '华泰建材', deadline: '2025-10-28', status: '整改中' },
+  { content: '电焊作业无防护', company: '中联重科', deadline: '2025-10-16', status: '逾期' },
+  { content: '配电箱接地修复', company: '远大化工', deadline: '2025-10-10', status: '已整改' },
+  { content: '疏散通道清理', company: '盛邦木业', deadline: '2025-10-08', status: '已整改' },
+  { content: '燃气管道老化', company: '天天小吃', deadline: '2025-10-30', status: '整改中' },
+  { content: '电梯维保超期', company: '江南商贸城', deadline: '2025-10-14', status: '逾期' },
 ]
+
+function statusClass(status: string) {
+  if (status === '已整改') return 'status-tag--done'
+  if (status === '逾期') return 'status-tag--overdue'
+  return 'status-tag--ongoing'
+}
 
 const pageSize = ref(5)
 const currentPage = ref(1)
@@ -275,12 +278,20 @@ function nextPage() {
 
 <style scoped>
 /* ===== 容器 ===== */
-.business-compliance {
+.danger-track {
   height: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: rgba(22, 70, 145, 0.51);
+  overflow: hidden;
+}
+
+/* ===== 内容区：左右分栏 ===== */
+.content-area {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -365,15 +376,6 @@ function nextPage() {
   flex-shrink: 0;
 }
 
-/* ===== 内容区：左右分栏 ===== */
-.content-area {
-  flex: 1;
-  display: flex;
-  gap: 24px;
-  min-height: 0;
-  overflow: hidden;
-}
-
 /* ===== 左侧面板 ===== */
 .left-panel {
   flex-shrink: 0;
@@ -430,7 +432,7 @@ function nextPage() {
   white-space: nowrap;
 }
 
-/* ===== 履职概览 ===== */
+/* ===== 隐患概览 ===== */
 .overview-body {
   display: flex;
   align-items: center;
@@ -444,7 +446,7 @@ function nextPage() {
   flex-shrink: 0;
 }
 
-/* 指标项（样式一：左对齐） */
+/* 指标项 */
 .metric-item {
   display: flex;
   flex-direction: column;
@@ -479,6 +481,18 @@ function nextPage() {
   background-clip: text;
 }
 
+.metric-value--done {
+  background: linear-gradient(to bottom, #56f0f4, #148dff);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.metric-value--warn {
+  background: linear-gradient(to bottom, #ff6b6e, #ff3b3e);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 .metric-unit {
   font-family: 'PingFang SC', sans-serif;
   font-size: 16px;
@@ -501,7 +515,7 @@ function nextPage() {
   gap: 36px;
 }
 
-/* ===== 环形图区域（样式二：居中） ===== */
+/* ===== 环形图区域 ===== */
 .overview-ring {
   display: flex;
   flex-direction: column;
@@ -550,7 +564,7 @@ function nextPage() {
   color: #f2fbff;
 }
 
-/* ===== 履职完成率Top5 ===== */
+/* ===== 整改完成率Top3 ===== */
 .rank-list {
   display: flex;
   flex-direction: column;
@@ -632,7 +646,7 @@ function nextPage() {
   line-height: normal;
 }
 
-/* ===== 实时履职动态 ===== */
+/* ===== 实时整改动态 ===== */
 .dynamic-list {
   flex: 1;
   display: flex;
@@ -717,7 +731,6 @@ function nextPage() {
   min-height: 0;
 }
 
-/* 表头（Figma: bg #034aad, text #cecece, 14px） */
 .table-header {
   display: flex;
   align-items: center;
@@ -742,9 +755,9 @@ function nextPage() {
 }
 
 .th-status { width: 118px; flex-shrink: 0; }
-.th-name { flex: 1; min-width: 0; }
-.th-category { flex: 1; min-width: 0; }
-.th-time { flex: 1; min-width: 0; }
+.th-content { flex: 1; min-width: 0; }
+.th-company { flex: 1; min-width: 0; }
+.th-deadline { flex: 1; min-width: 0; }
 .th-action { width: 48px; flex-shrink: 0; }
 
 .sort-icons {
@@ -801,9 +814,9 @@ function nextPage() {
 }
 
 .td-status { width: 118px; flex-shrink: 0; }
-.td-name { flex: 1; min-width: 0; justify-content: flex-start; }
-.td-category { flex: 1; min-width: 0; }
-.td-time { flex: 1; min-width: 0; }
+.td-content { flex: 1; min-width: 0; justify-content: flex-start; }
+.td-company { flex: 1; min-width: 0; }
+.td-deadline { flex: 1; min-width: 0; }
 .td-action { width: 48px; flex-shrink: 0; }
 
 /* 状态标签 */
@@ -821,14 +834,19 @@ function nextPage() {
   white-space: nowrap;
 }
 
-.status-tag--warning {
-  background: rgba(254, 151, 151, 0.625);
-  color: #bd0000;
+.status-tag--done {
+  background: rgba(0, 184, 219, 0.3);
+  color: #56f0f4;
 }
 
-.status-tag--normal {
-  background: rgba(0, 184, 219, 0.3);
-  color: #002873;
+.status-tag--ongoing {
+  background: rgba(255, 180, 0, 0.3);
+  color: #ffb400;
+}
+
+.status-tag--overdue {
+  background: rgba(254, 151, 151, 0.625);
+  color: #ff6b6e;
 }
 
 .action-link {

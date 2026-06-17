@@ -53,7 +53,7 @@ import EduSafety from './components/EduSafety.vue'
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: radial-gradient(50% 50% at 50% 50%, #015EAF 0%, #02397C 100%);
+  background: radial-gradient(50% 50% at 50% 50%, #003F76 0%, #002C62 100%);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
@@ -101,6 +101,9 @@ import EduSafety from './components/EduSafety.vue'
 .center-top {
   flex: 2;
   min-height: 0;
+  border-color: #002C62;
+  border-width: 1px;
+  border-style: solid;
 }
 
 .center-bottom {
