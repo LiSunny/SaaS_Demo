@@ -4,6 +4,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
 
 export default defineConfig({
   plugins: [
@@ -14,6 +15,15 @@ export default defineConfig({
     Components({
       resolvers: [ElementPlusResolver()],
     }),
+    {
+      name: 'geojson-loader',
+      load(id) {
+        if (id.endsWith('.geojson')) {
+          const json = readFileSync(id, 'utf-8')
+          return `export default ${json}`
+        }
+      },
+    },
   ],
   resolve: {
     alias: {
