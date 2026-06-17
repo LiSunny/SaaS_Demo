@@ -47,73 +47,14 @@
       </div>
     </div>
 
-    <!-- 示范街专题弹窗（独立弹窗，Teleport 到 body） -->
-    <Teleport to="body">
-      <Transition name="street-modal">
-        <div v-if="showStreetPanel" class="street-overlay" @click.self="showStreetPanel = false">
-          <div class="street-modal">
-            <!-- 标题栏 -->
-            <div class="street-modal__header">
-              <BigscreenModuleTitle title="示范街专题" subtitle="Demonstration Street" />
-              <button class="street-modal__close" @click="showStreetPanel = false">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <!-- 内容区 -->
-            <div class="street-modal__body">
-              <div
-                v-for="merchant in merchantList"
-                :key="merchant.name"
-                class="merchant-card"
-              >
-                <div class="merchant-card__name">{{ merchant.name }}</div>
-                <div class="merchant-card__grid">
-                  <div class="category-block" data-cat="monitor">
-                    <div class="category-block__title">设备监测</div>
-                    <div class="category-block__items">
-                      <span class="category-block__item">{{ merchant.monitor.smokeStatus }}</span>
-                      <span class="category-block__item">{{ merchant.monitor.deviceLedger }}</span>
-                      <span class="category-block__item">{{ merchant.monitor.deviceMgmt }}</span>
-                    </div>
-                  </div>
-                  <div class="category-block" data-cat="duty">
-                    <div class="category-block__title">履责管理</div>
-                    <div class="category-block__items">
-                      <span class="category-block__item">{{ merchant.duty.cardDef }}</span>
-                      <span class="category-block__item">{{ merchant.duty.clockIn }}</span>
-                      <span class="category-block__item">{{ merchant.duty.hazardReport }}</span>
-                    </div>
-                  </div>
-                  <div class="category-block" data-cat="alarm">
-                    <div class="category-block__title">告警处置</div>
-                    <div class="category-block__items">
-                      <span class="category-block__item">{{ merchant.alarm.alarmGen }}</span>
-                      <span class="category-block__item">{{ merchant.alarm.alarmPush }}</span>
-                      <span class="category-block__item">{{ merchant.alarm.disposeTrack }}</span>
-                    </div>
-                  </div>
-                  <div class="category-block" data-cat="stats">
-                    <div class="category-block__title">统计评估</div>
-                    <div class="category-block__items">
-                      <span class="category-block__item">{{ merchant.stats.dutyAnalysis }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <!-- 示范街专题弹窗 -->
+    <StreetDetailModal v-model="showStreetPanel" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import BigscreenModuleTitle from './BigscreenModuleTitle.vue'
+import StreetDetailModal from './StreetDetailModal.vue'
 import geoData from '@/assets/geojson/gannanstree.geojson'
 import iconGongmao from '@/assets/bigscreen/industry/gongmao.svg'
 import iconJiaoyu from '@/assets/bigscreen/industry/jiaoyu.svg'
@@ -144,53 +85,6 @@ const legendItems = [
   { name: '教育行业', icon: iconJiaoyu },
   { name: '社区物业', icon: iconShequ },
   { name: '其他', icon: iconQita },
-]
-
-// 示范街商户数据
-interface MerchantData {
-  name: string
-  monitor: { smokeStatus: string; deviceLedger: string; deviceMgmt: string }
-  duty: { cardDef: string; clockIn: string; hazardReport: string }
-  alarm: { alarmGen: string; alarmPush: string; disposeTrack: string }
-  stats: { dutyAnalysis: string }
-}
-
-const merchantList: MerchantData[] = [
-  {
-    name: '鑫源金属制品厂',
-    monitor: { smokeStatus: '正常(8/8)', deviceLedger: '设备 12 台', deviceMgmt: '在线率 100%' },
-    duty: { cardDef: '已定义 5 项', clockIn: '本月 28/30', hazardReport: '待处理 1 项' },
-    alarm: { alarmGen: '本月 3 次', alarmPush: '推送率 100%', disposeTrack: '已处置 3/3' },
-    stats: { dutyAnalysis: '履职率 93%' },
-  },
-  {
-    name: '华泰机械加工中心',
-    monitor: { smokeStatus: '正常(6/6)', deviceLedger: '设备 9 台', deviceMgmt: '在线率 89%' },
-    duty: { cardDef: '已定义 4 项', clockIn: '本月 26/30', hazardReport: '待处理 2 项' },
-    alarm: { alarmGen: '本月 5 次', alarmPush: '推送率 80%', disposeTrack: '已处置 4/5' },
-    stats: { dutyAnalysis: '履职率 87%' },
-  },
-  {
-    name: '港南区第一中学',
-    monitor: { smokeStatus: '正常(14/14)', deviceLedger: '设备 22 台', deviceMgmt: '在线率 95%' },
-    duty: { cardDef: '已定义 6 项', clockIn: '本月 30/30', hazardReport: '无待处理' },
-    alarm: { alarmGen: '本月 1 次', alarmPush: '推送率 100%', disposeTrack: '已处置 1/1' },
-    stats: { dutyAnalysis: '履职率 100%' },
-  },
-  {
-    name: '江南社区服务中心',
-    monitor: { smokeStatus: '正常(10/10)', deviceLedger: '设备 16 台', deviceMgmt: '在线率 94%' },
-    duty: { cardDef: '已定义 5 项', clockIn: '本月 29/30', hazardReport: '待处理 0 项' },
-    alarm: { alarmGen: '本月 2 次', alarmPush: '推送率 100%', disposeTrack: '已处置 2/2' },
-    stats: { dutyAnalysis: '履职率 97%' },
-  },
-  {
-    name: '港南综合市场',
-    monitor: { smokeStatus: '异常(9/11)', deviceLedger: '设备 18 台', deviceMgmt: '在线率 78%' },
-    duty: { cardDef: '已定义 5 项', clockIn: '本月 22/30', hazardReport: '待处理 4 项' },
-    alarm: { alarmGen: '本月 8 次', alarmPush: '推送率 75%', disposeTrack: '已处置 5/8' },
-    stats: { dutyAnalysis: '履职率 73%' },
-  },
 ]
 
 // 散布点位数据（集中在贵港市港南区行政区划内）
@@ -663,159 +557,7 @@ function exitFullscreen() {
   white-space: nowrap;
 }
 
-/* ===== 示范街专题弹窗（独立弹窗） ===== */
-.street-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(2, 10, 30, 0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
 
-.street-modal {
-  width: 680px;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  background: radial-gradient(50% 50% at 50% 50%, #015EAF 0%, #02397C 100%);
-  border: 1px solid rgba(71, 132, 232, 0.4);
-  border-radius: 8px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(60, 211, 215, 0.1);
-  overflow: hidden;
-}
-
-.street-modal__header {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.street-modal__close {
-  position: absolute;
-  top: calc(10 * var(--h));
-  right: calc(14 * var(--w));
-  z-index: 2;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid rgba(71, 132, 232, 0.4);
-  border-radius: 4px;
-  background: rgba(2, 20, 50, 0.6);
-  color: #89b5ff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.street-modal__close:hover {
-  background: rgba(71, 132, 232, 0.25);
-  border-color: rgba(71, 132, 232, 0.7);
-  color: #3cd3d7;
-}
-
-.street-modal__body {
-  flex: 1;
-  overflow-y: auto;
-  padding: calc(16 * var(--h)) calc(20 * var(--w));
-  display: flex;
-  flex-direction: column;
-  gap: calc(14 * var(--h));
-  background: linear-gradient(
-    180deg,
-    rgba(1, 70, 146, 0.4) 0%,
-    rgba(4, 87, 167, 0.2) 100%
-  );
-}
-.street-modal__body::-webkit-scrollbar { width: 4px; }
-.street-modal__body::-webkit-scrollbar-track { background: transparent; }
-.street-modal__body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
-
-/* 商户卡片 */
-.merchant-card {
-  background: rgba(2, 20, 50, 0.5);
-  border: 1px solid rgba(71, 132, 232, 0.3);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.merchant-card__name {
-  padding: calc(10 * var(--h)) calc(16 * var(--w));
-  font-size: clamp(12px, calc(14 * var(--min-scale)), 18px);
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 1px;
-  border-bottom: 1px solid rgba(71, 132, 232, 0.2);
-  background: linear-gradient(90deg, rgba(1, 70, 146, 0.5) 0%, transparent 100%);
-}
-
-.merchant-card__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: rgba(71, 132, 232, 0.1);
-}
-
-.category-block {
-  padding: calc(10 * var(--h)) calc(14 * var(--w));
-  background: rgba(2, 20, 50, 0.8);
-}
-
-.category-block__title {
-  font-size: clamp(11px, calc(13 * var(--min-scale)), 16px);
-  font-weight: 700;
-  margin-bottom: calc(6 * var(--h));
-  letter-spacing: 1px;
-}
-.category-block[data-cat="monitor"] .category-block__title { color: #3b82f6; }
-.category-block[data-cat="duty"] .category-block__title { color: #10b981; }
-.category-block[data-cat="alarm"] .category-block__title { color: #f59e0b; }
-.category-block[data-cat="stats"] .category-block__title { color: #8b5cf6; }
-
-.category-block__items {
-  display: flex;
-  flex-direction: column;
-  gap: calc(3 * var(--h));
-}
-
-.category-block__item {
-  font-size: clamp(10px, calc(12 * var(--min-scale)), 14px);
-  color: rgba(224,234,250,0.85);
-  line-height: 1.5;
-  padding-left: calc(10 * var(--w));
-  position: relative;
-}
-.category-block__item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 7px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(60, 211, 215, 0.5);
-}
-
-/* 弹窗过渡动画 */
-.street-modal-enter-active,
-.street-modal-leave-active {
-  transition: opacity 0.3s ease;
-}
-.street-modal-enter-active .street-modal,
-.street-modal-leave-active .street-modal {
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-}
-.street-modal-enter-from,
-.street-modal-leave-to {
-  opacity: 0;
-}
-.street-modal-enter-from .street-modal,
-.street-modal-leave-to .street-modal {
-  transform: scale(0.92);
-  opacity: 0;
-}
 </style>
 
 <!-- InfoWindow 挂载在 body 下，scoped 样式无法命中，故使用全局样式 -->
