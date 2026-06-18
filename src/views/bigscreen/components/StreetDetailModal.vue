@@ -601,7 +601,7 @@ onBeforeUnmount(() => {
 .street-stat-card__label {
   position: relative;
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(11px, calc(15 * var(--min-scale)), 18px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
@@ -669,7 +669,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   padding: calc(8 * var(--h)) calc(12 * var(--w));
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;
   text-align: center;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);

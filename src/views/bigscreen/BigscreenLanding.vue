@@ -9,7 +9,7 @@
       <div class="col-left">
         <ComplianceOverview />
         <RiskControl />
-        <ChargingSafety />
+        <StreetSafetyManagement />
       </div>
 
       <!-- 中间列 -->
@@ -37,7 +37,7 @@
 import BigscreenHeader from './components/BigscreenHeader.vue'
 import ComplianceOverview from './components/ComplianceOverview.vue'
 import RiskControl from './components/RiskControl.vue'
-import ChargingSafety from './components/ChargingSafety.vue'
+import StreetSafetyManagement from './components/StreetSafetyManagement.vue'
 import CenterMap from './components/CenterMap.vue'
 import HiddenDangerTable from './components/HiddenDangerTable.vue'
 import EmergencyPlan from './components/EmergencyPlan.vue'

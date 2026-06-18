@@ -1,7 +1,13 @@
 <template>
   <div class="section-card" :style="height ? { height } : {}">
     <!-- 标题区：复用 BigscreenModuleTitle -->
-    <BigscreenModuleTitle :title="title" :subtitle="subtitle" />
+    <BigscreenModuleTitle
+      :title="title"
+      :subtitle="subtitle"
+      :show-zoom="showZoom"
+      :is-zoomed="isZoomed"
+      @zoom-click="$emit('zoom-click')"
+    />
 
     <!-- 内容区 -->
     <div class="card-body">
@@ -17,6 +23,12 @@ defineProps<{
   title: string
   subtitle: string
   height?: string
+  showZoom?: boolean
+  isZoomed?: boolean
+}>()
+
+defineEmits<{
+  'zoom-click': []
 }>()
 </script>
 

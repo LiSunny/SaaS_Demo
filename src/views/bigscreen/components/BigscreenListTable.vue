@@ -180,7 +180,7 @@ onUnmounted(() => {
   padding: calc(6 * var(--h)) calc(10 * var(--w));
   font-family: 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(10px, calc(14 * var(--min-scale)), 18px);
-  font-weight: 700;
+  font-weight: 400;
   color: #aedaff;
   text-align: center;
   letter-spacing: 1px;
@@ -215,7 +215,7 @@ onUnmounted(() => {
   min-width: 0;
   padding: calc(12 * var(--h)) calc(10 * var(--w));
   font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(9px, calc(13 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
   color: #f1f1f1;
   text-align: center;

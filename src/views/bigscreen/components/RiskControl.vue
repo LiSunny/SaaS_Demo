@@ -72,12 +72,12 @@ const topStats = [
 const monitorList = [
   { label: '1#消防控制室', cameraId: 'CAM-01', img: new URL('@/assets/bigscreen/rsouce/them_1.png', import.meta.url).href },
   { label: '1#消防控制室', cameraId: 'CAM-02', img: new URL('@/assets/bigscreen/rsouce/them_2.png', import.meta.url).href },
-  { label: '2#变配电室',    cameraId: 'CAM-03', img: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=225&fit=crop&crop=center' },
-  { label: '3#水泵房',      cameraId: 'CAM-04', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=225&fit=crop&crop=center' },
-  { label: '4#锅炉房',      cameraId: 'CAM-05', img: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&h=225&fit=crop&crop=center' },
-  { label: '5#监控中心',    cameraId: 'CAM-06', img: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=225&fit=crop&crop=center' },
-  { label: '6#危化品库',    cameraId: 'CAM-07', img: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=400&h=225&fit=crop&crop=center' },
-  { label: '7#配电室',      cameraId: 'CAM-08', img: 'https://images.unsplash.com/photo-1581092919535-7146ff1a8b0b?w=400&h=225&fit=crop&crop=center' },
+  { label: '2#变配电室',    cameraId: 'CAM-03', img: new URL('@/assets/bigscreen/rsouce/them_3.png', import.meta.url).href },
+  { label: '3#水泵房',      cameraId: 'CAM-04', img: new URL('@/assets/bigscreen/rsouce/them_4.png', import.meta.url).href },
+  { label: '4#锅炉房',      cameraId: 'CAM-05', img: new URL('@/assets/bigscreen/rsouce/them_5.png', import.meta.url).href },
+  { label: '5#监控中心',    cameraId: 'CAM-06', img: new URL('@/assets/bigscreen/rsouce/them_6.png', import.meta.url).href },
+  { label: '6#危化品库',    cameraId: 'CAM-07', img: new URL('@/assets/bigscreen/rsouce/them_7.png', import.meta.url).href },
+  { label: '7#配电室',      cameraId: 'CAM-08', img: new URL('@/assets/bigscreen/rsouce/them_8.png', import.meta.url).href },
 ]
 
 const ITEMS_PER_PAGE = 2

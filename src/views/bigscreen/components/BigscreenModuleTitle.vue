@@ -45,6 +45,29 @@
       <!-- 副标题（右侧淡出英文斜体） -->
       <p class="title-sub">{{ subtitle }}</p>
     </div>
+
+    <!-- 放大图标 -->
+    <button
+      v-if="showZoom"
+      class="zoom-btn"
+      :title="isZoomed ? '还原' : '放大'"
+      @click.stop="$emit('zoom-click')"
+    >
+      <!-- 放大图标 -->
+      <svg v-if="!isZoomed" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polyline points="15 3 21 3 21 9" />
+        <polyline points="9 21 3 21 3 15" />
+        <line x1="21" y1="3" x2="14" y2="10" />
+        <line x1="3" y1="21" x2="10" y2="14" />
+      </svg>
+      <!-- 还原图标 -->
+      <svg v-else viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polyline points="4 8 4 4 8 4" />
+        <polyline points="20 16 20 20 16 20" />
+        <line x1="14" y1="10" x2="4" y2="4" />
+        <line x1="10" y1="14" x2="20" y2="20" />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -62,6 +85,14 @@ defineProps<{
   title: string
   /** 副标题（英文） */
   subtitle: string
+  /** 是否显示放大按钮 */
+  showZoom?: boolean
+  /** 是否已处于放大状态 */
+  isZoomed?: boolean
+}>()
+
+defineEmits<{
+  'zoom-click': []
 }>()
 
 const gradientId = nextGradientId()
@@ -145,5 +176,32 @@ const gradientId = nextGradientId()
   color: rgba(157, 203, 254, 0.26);
   text-align: right;
   white-space: nowrap;
+}
+
+/* ===== 放大按钮 ===== */
+.zoom-btn {
+  position: absolute;
+  right: calc(12 * var(--w));
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba(71, 132, 232, 0.3);
+  border-radius: 4px;
+  background: rgba(10, 26, 46, 0.6);
+  color: #89b5ff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.zoom-btn:hover {
+  background: rgba(71, 132, 232, 0.25);
+  border-color: rgba(71, 132, 232, 0.6);
+  color: #3cd3d7;
 }
 </style>
