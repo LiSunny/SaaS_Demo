@@ -47,14 +47,11 @@
       </div>
     </div>
 
-    <!-- 示范街专题弹窗 -->
-    <StreetDetailModal v-model="showStreetPanel" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import StreetDetailModal from './StreetDetailModal.vue'
 import iconGongmao from '@/assets/bigscreen/industry/gongmao.svg'
 import iconJiaoyu from '@/assets/bigscreen/industry/jiaoyu.svg'
 import iconShequ from '@/assets/bigscreen/industry/shequ.svg'
@@ -65,7 +62,6 @@ let mapInstance: any = null
 let infoWindow: any = null
 let closeTimeout: ReturnType<typeof setTimeout> | null = null
 const isFullscreen = ref(false)
-const showStreetPanel = ref(false)
 
 // 港南区中心坐标
 const CENTER = [109.605, 23.075]

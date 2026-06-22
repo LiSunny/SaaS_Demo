@@ -25,6 +25,7 @@ const router = createRouter({
       children: [
         { path: '', redirect: { name: 'BigscreenLanding' } },
         { path: 'landing', name: 'BigscreenLanding', component: () => import('@/views/bigscreen/BigscreenLanding.vue') },
+        { path: 'landing/street-detail', name: 'StreetDetail', component: () => import('@/views/bigscreen/StreetDetailPage.vue') },
       ],
     },
 

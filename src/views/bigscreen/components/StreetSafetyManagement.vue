@@ -4,7 +4,6 @@
     subtitle="进入专题"
     :subtitle-clickable="true"
     :show-zoom="false"
-    :is-zoomed="isZoomed"
     @zoom-click="toggleZoom"
   >
     <div class="street-safety">
@@ -82,14 +81,13 @@
     </div>
   </SectionCard>
 
-  <!-- 放大后复用已有的示范街专题弹窗 -->
-  <StreetDetailModal v-model="isZoomed" />
+
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import SectionCard from './SectionCard.vue'
-import StreetDetailModal from './StreetDetailModal.vue'
 import BigscreenMetricItem from './BigscreenMetricItem.vue'
 import bikeSrc from '@/assets/bigscreen/bike.svg'
 import chargeSrc from '@/assets/bigscreen/charge.svg'
@@ -168,11 +166,11 @@ const overviewStats = computed(() => [
   { label: '纳管商铺', value: totalShops.value, unit: '家', hexSrc: chargeSrc },
 ])
 
-// 放大态 - 控制 StreetDetailModal 显示
-const isZoomed = ref(false)
+const router = useRouter()
 
+// 放大态 - 导航到专题页面
 function toggleZoom() {
-  isZoomed.value = !isZoomed.value
+  router.push({ name: 'StreetDetail' })
 }
 </script>
 

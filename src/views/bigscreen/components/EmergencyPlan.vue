@@ -114,7 +114,7 @@ const ringOption = {
 .ep-seg {
   flex: 1;
   position: relative;
-  height: calc(36 * var(--h));
+  height: calc(32 * var(--h));
   background: transparent;
   border: none;
   cursor: pointer;
