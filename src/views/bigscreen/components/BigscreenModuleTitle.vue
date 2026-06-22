@@ -43,7 +43,11 @@
       <!-- 主标题（白色→蓝色线性渐变文字） -->
       <p class="title-text">{{ title }}</p>
       <!-- 副标题（右侧淡出英文斜体） -->
-      <p class="title-sub">{{ subtitle }}</p>
+      <p
+        class="title-sub"
+        :class="{ clickable: subtitleClickable }"
+        @click="subtitleClickable && $emit('subtitle-click')"
+      >{{ subtitle }}</p>
     </div>
 
     <!-- 放大图标 -->
@@ -89,10 +93,13 @@ defineProps<{
   showZoom?: boolean
   /** 是否已处于放大状态 */
   isZoomed?: boolean
+  /** 副标题是否可点击 */
+  subtitleClickable?: boolean
 }>()
 
 defineEmits<{
   'zoom-click': []
+  'subtitle-click': []
 }>()
 
 const gradientId = nextGradientId()
@@ -176,6 +183,15 @@ const gradientId = nextGradientId()
   color: rgba(157, 203, 254, 0.26);
   text-align: right;
   white-space: nowrap;
+}
+
+.title-sub.clickable {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.title-sub.clickable:hover {
+  color: rgba(157, 203, 254, 0.5);
 }
 
 /* ===== 放大按钮 ===== */

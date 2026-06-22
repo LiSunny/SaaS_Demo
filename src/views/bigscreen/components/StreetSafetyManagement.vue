@@ -1,28 +1,23 @@
 <template>
   <SectionCard
     title="商业街安全管理"
-    subtitle="Street Safety"
-    :show-zoom="true"
+    subtitle="进入专题"
+    :subtitle-clickable="true"
+    :show-zoom="false"
     :is-zoomed="isZoomed"
     @zoom-click="toggleZoom"
   >
     <div class="street-safety">
       <!-- 顶部概览统计 -->
       <div class="safety-overview">
-        <div class="overview-item">
-          <span class="overview-num">{{ totalStreets }}</span>
-          <span class="overview-label">纳管商业街</span>
-        </div>
-        <div class="overview-divider" />
-        <div class="overview-item">
-          <span class="overview-num">{{ totalShops }}</span>
-          <span class="overview-label">纳管商铺</span>
-        </div>
-        <div class="overview-divider" />
-        <div class="overview-item">
-          <span class="overview-num">{{ avgOnlineRate }}%</span>
-          <span class="overview-label">平均设备在线率</span>
-        </div>
+        <BigscreenMetricItem
+          v-for="stat in overviewStats"
+          :key="stat.label"
+          :label="stat.label"
+          :value="stat.value"
+          :unit="stat.unit"
+          :hex-src="stat.hexSrc"
+        />
       </div>
 
       <!-- 商业街滚动区 -->
@@ -37,41 +32,37 @@
               <!-- 街道头部 -->
               <div class="street-card__header">
                 <div class="street-card__title-row">
-                  <svg class="street-card__icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
+                  <img class="street-card__icon" :src="gongmaoIcon" alt="" />
                   <span class="street-card__name">{{ street.name }}</span>
                 </div>
-                <span
-                  class="street-card__badge"
-                  :class="`street-card__badge--${street.level}`"
-                >
-                  {{ street.level === 'demo' ? '示范' : street.level === 'key' ? '重点' : '一般' }}
-                </span>
+                <span class="street-card__detail">详情</span>
               </div>
 
-              <!-- 指标网格 -->
+              <!-- 指标网格 2 行 × 3 列 -->
               <div class="street-card__metrics">
                 <div class="metric-cell">
-                  <span class="metric-cell__value">{{ street.shops }}</span>
                   <span class="metric-cell__label">纳管商铺</span>
+                  <span class="metric-cell__value">{{ street.shops }}<span class="metric-cell__unit">家</span></span>
                 </div>
                 <div class="metric-cell">
-                  <span class="metric-cell__value">{{ street.onlineRate }}%</span>
+                  <span class="metric-cell__label">纳管设备</span>
+                  <span class="metric-cell__value">{{ street.devices }}<span class="metric-cell__unit">台</span></span>
+                </div>
+                <div class="metric-cell">
                   <span class="metric-cell__label">设备在线率</span>
+                  <span class="metric-cell__value">{{ street.onlineRate }}<span class="metric-cell__unit">%</span></span>
                 </div>
                 <div class="metric-cell">
-                  <span class="metric-cell__value">{{ street.dutyRate }}%</span>
                   <span class="metric-cell__label">今日履职率</span>
+                  <span class="metric-cell__value">{{ street.dutyRate }}<span class="metric-cell__unit">%</span></span>
                 </div>
-                <div class="metric-cell metric-cell--alert">
-                  <span class="metric-cell__value metric-cell__value--warn">{{ street.alerts }}</span>
+                <div class="metric-cell">
                   <span class="metric-cell__label">今日告警</span>
+                  <span class="metric-cell__value">{{ street.alerts }}<span class="metric-cell__unit">次</span></span>
                 </div>
-                <div class="metric-cell metric-cell--danger">
-                  <span class="metric-cell__value metric-cell__value--danger">{{ street.hazards }}</span>
+                <div class="metric-cell">
                   <span class="metric-cell__label">未闭环隐患</span>
+                  <span class="metric-cell__value">{{ street.hazards }}<span class="metric-cell__unit">项</span></span>
                 </div>
               </div>
             </div>
@@ -99,10 +90,13 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import SectionCard from './SectionCard.vue'
 import StreetDetailModal from './StreetDetailModal.vue'
+import BigscreenMetricItem from './BigscreenMetricItem.vue'
+import bikeSrc from '@/assets/bigscreen/bike.svg'
+import chargeSrc from '@/assets/bigscreen/charge.svg'
+import gongmaoIcon from '@/assets/bigscreen/industry/gongmao.svg'
 
 interface StreetData {
   name: string
-  level: 'demo' | 'key' | 'normal'
   shops: number
   devices: number
   onlineRate: number
@@ -114,7 +108,6 @@ interface StreetData {
 const streets: StreetData[] = [
   {
     name: '示范街',
-    level: 'demo',
     shops: 286,
     devices: 1536,
     onlineRate: 98.6,
@@ -124,7 +117,6 @@ const streets: StreetData[] = [
   },
   {
     name: '江南商业街',
-    level: 'key',
     shops: 198,
     devices: 1120,
     onlineRate: 96.3,
@@ -134,7 +126,6 @@ const streets: StreetData[] = [
   },
   {
     name: '桥圩商业街',
-    level: 'key',
     shops: 152,
     devices: 896,
     onlineRate: 97.1,
@@ -144,7 +135,6 @@ const streets: StreetData[] = [
   },
   {
     name: '新塘商业街',
-    level: 'normal',
     shops: 95,
     devices: 560,
     onlineRate: 99.2,
@@ -172,10 +162,11 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 
 const totalStreets = computed(() => streets.length)
 const totalShops = computed(() => streets.reduce((sum, s) => sum + s.shops, 0))
-const avgOnlineRate = computed(() => {
-  const avg = streets.reduce((sum, s) => sum + s.onlineRate, 0) / streets.length
-  return avg.toFixed(1)
-})
+
+const overviewStats = computed(() => [
+  { label: '纳管商业街', value: totalStreets.value, unit: '条', hexSrc: bikeSrc },
+  { label: '纳管商铺', value: totalShops.value, unit: '家', hexSrc: chargeSrc },
+])
 
 // 放大态 - 控制 StreetDetailModal 显示
 const isZoomed = ref(false)
@@ -195,59 +186,16 @@ function toggleZoom() {
   box-sizing: border-box;
 }
 
-/* 顶部概览统计 */
+/* ===== 顶部概览统计 ===== */
 .safety-overview {
   display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: calc(8 * var(--h)) calc(8 * var(--w));
-  background: rgba(22, 70, 145, 0.25);
-  border: 1px solid rgba(71, 132, 232, 0.2);
-  border-radius: calc(6 * var(--min-scale));
+  justify-content: space-between;
+  padding: calc(12 * var(--h)) calc(16 * var(--w));
   flex-shrink: 0;
+  gap: calc(16 * var(--w));
 }
 
-.overview-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(2 * var(--h));
-  flex: 1;
-  min-width: 0;
-}
-
-.overview-num {
-  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(12px, calc(18 * var(--min-scale)), 22px);
-  font-weight: 700;
-  background: linear-gradient(to bottom, #3cd3d7 0%, #89b5ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.2;
-}
-
-.overview-label {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(8px, calc(11 * var(--min-scale)), 14px);
-  font-weight: 400;
-  color: rgba(137, 181, 255, 0.6);
-  white-space: nowrap;
-}
-
-.overview-divider {
-  width: 1px;
-  height: calc(28 * var(--h));
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(71, 132, 232, 0.4),
-    transparent
-  );
-  flex-shrink: 0;
-}
-
-/* 商业街滚动区 */
+/* ===== 商业街滚动区 ===== */
 .street-scroll-wrapper {
   position: relative;
   overflow: hidden;
@@ -271,23 +219,20 @@ function toggleZoom() {
   min-height: 0;
 }
 
+/* ===== 街道卡片 ===== */
 .street-card {
   flex: 1;
-  background: rgba(138, 179, 245, 0.04);
-  border: 1px solid rgba(71, 132, 232, 0.15);
+  background: rgba(0, 57, 114, 0.68);
   border-radius: calc(6 * var(--min-scale));
-  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  padding: calc(12 * var(--h)) calc(12 * var(--w));
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: calc(10 * var(--h));
   transition: border-color 0.2s ease;
   min-height: 0;
 }
 
-.street-card:hover {
-  border-color: rgba(71, 132, 232, 0.35);
-}
-
+/* 街道头部 */
 .street-card__header {
   display: flex;
   align-items: center;
@@ -297,12 +242,14 @@ function toggleZoom() {
 .street-card__title-row {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: calc(8 * var(--w));
 }
 
 .street-card__icon {
-  color: #3cd3d7;
+  width: calc(22 * var(--min-scale));
+  height: calc(22 * var(--min-scale));
   flex-shrink: 0;
+  display: block;
 }
 
 .street-card__name {
@@ -316,100 +263,63 @@ function toggleZoom() {
   white-space: nowrap;
 }
 
-.street-card__badge {
-  font-size: clamp(8px, calc(10 * var(--min-scale)), 12px);
-  font-weight: 600;
-  padding: calc(1 * var(--h)) calc(6 * var(--w));
-  border-radius: calc(3 * var(--min-scale));
-  line-height: 1.4;
-  white-space: nowrap;
+.street-card__detail {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(10px, calc(12 * var(--min-scale)), 16px);
+  font-weight: 400;
+  color: #00b8db;
+  cursor: pointer;
   flex-shrink: 0;
+  transition: opacity 0.2s;
 }
 
-.street-card__badge--demo {
-  background: rgba(60, 211, 215, 0.15);
-  color: #3cd3d7;
-  border: 1px solid rgba(60, 211, 215, 0.3);
+.street-card__detail:hover {
+  opacity: 0.8;
 }
 
-.street-card__badge--key {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
-.street-card__badge--normal {
-  background: rgba(137, 181, 255, 0.08);
-  color: rgba(137, 181, 255, 0.7);
-  border: 1px solid rgba(137, 181, 255, 0.15);
-}
-
+/* ===== 指标网格：3 列自动流 ===== */
 .street-card__metrics {
-  flex: 1;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: calc(4 * var(--w));
-  align-content: center;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(6 * var(--h)) calc(6 * var(--w));
 }
 
 .metric-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(2 * var(--h));
-  padding: calc(4 * var(--h)) calc(2 * var(--w));
-  background: rgba(60, 211, 215, 0.04);
-  border: 1px solid rgba(60, 211, 215, 0.08);
-  border-radius: calc(4 * var(--min-scale));
+  gap: calc(4 * var(--h));
+  padding: calc(4 * var(--h)) calc(4 * var(--w));
   min-width: 0;
 }
 
-.metric-cell--alert {
-  background: rgba(245, 158, 11, 0.06);
-  border-color: rgba(245, 158, 11, 0.15);
-}
-
-.metric-cell--danger {
-  background: rgba(239, 68, 68, 0.06);
-  border-color: rgba(239, 68, 68, 0.15);
+.metric-cell__label {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(10px, calc(12 * var(--min-scale)), 14px);
+  font-weight: 400;
+  color: #f2fbff;
+  white-space: nowrap;
+  line-height: 1.4;
 }
 
 .metric-cell__value {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(10px, calc(13 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(17 * var(--min-scale)), 20px);
   font-weight: 700;
-  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #f1f1f1;
   line-height: 1.2;
   white-space: nowrap;
 }
 
-.metric-cell__value--warn {
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: #f59e0b;
-  background-clip: unset;
-  color: #f59e0b;
+.metric-cell__unit {
+  font-family: 'Heiti TC', 'PingFang SC', sans-serif;
+  font-size: clamp(10px, calc(14 * var(--min-scale)), 16px);
+  font-weight: 500;
+  color: rgba(241, 241, 241, 0.7);
+  margin-left: calc(2 * var(--w));
 }
 
-.metric-cell__value--danger {
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: #ff4e51;
-  background-clip: unset;
-  color: #ff4e51;
-}
-
-.metric-cell__label {
-  font-size: clamp(7px, calc(9 * var(--min-scale)), 11px);
-  font-weight: 400;
-  color: rgba(137, 181, 255, 0.55);
-  white-space: nowrap;
-  text-align: center;
-}
-
+/* ===== 分页指示器 ===== */
 .street-dots {
   display: flex;
   justify-content: center;

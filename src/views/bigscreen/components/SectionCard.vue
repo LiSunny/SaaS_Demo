@@ -6,7 +6,9 @@
       :subtitle="subtitle"
       :show-zoom="showZoom"
       :is-zoomed="isZoomed"
+      :subtitle-clickable="subtitleClickable"
       @zoom-click="$emit('zoom-click')"
+      @subtitle-click="$emit('zoom-click')"
     />
 
     <!-- 内容区 -->
@@ -25,6 +27,7 @@ defineProps<{
   height?: string
   showZoom?: boolean
   isZoomed?: boolean
+  subtitleClickable?: boolean
 }>()
 
 defineEmits<{

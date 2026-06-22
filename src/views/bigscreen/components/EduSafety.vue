@@ -89,7 +89,7 @@ const warningItems = [
 .edu-seg {
   flex: 1;
   position: relative;
-  height: calc(36 * var(--h));
+  height: calc(32 * var(--h));
   background: transparent;
   border: none;
   cursor: pointer;
@@ -150,7 +150,12 @@ const warningItems = [
 .edu-warning-row {
   display: flex;
   align-items: center;
-  gap: calc(32 * var(--w));
+  gap: calc(16 * var(--w));
+  flex: 1;
+}
+
+/* 左侧 BigscreenMetricItem 加宽，与右侧分解信息平分空间 */
+.edu-warning-row > :first-child {
   flex: 1;
 }
 
@@ -171,7 +176,7 @@ const warningItems = [
 .edu-bd-label {
   margin: 0;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(8px, calc(13 * var(--min-scale)), 16px);
+  font-size: clamp(10px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
@@ -188,7 +193,7 @@ const warningItems = [
 
 .edu-bd-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(12px, calc(20 * var(--min-scale)), 24px);
+  font-size: clamp(12px, calc(18 * var(--min-scale)), 22px);
   font-weight: 700;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
@@ -199,7 +204,7 @@ const warningItems = [
 
 .edu-bd-unit {
   font-family: 'Heiti TC', 'PingFang SC', sans-serif;
-  font-size: clamp(8px, calc(13 * var(--min-scale)), 16px);
+  font-size: clamp(10px, calc(14 * var(--min-scale)), 16px);
   font-weight: 500;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;

@@ -55,7 +55,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import StreetDetailModal from './StreetDetailModal.vue'
-import geoData from '@/assets/geojson/gannanstree.geojson'
 import iconGongmao from '@/assets/bigscreen/industry/gongmao.svg'
 import iconJiaoyu from '@/assets/bigscreen/industry/jiaoyu.svg'
 import iconShequ from '@/assets/bigscreen/industry/shequ.svg'
@@ -145,47 +144,7 @@ function buildInfoWindowContent(point: typeof scatterPoints[number], cfg: { colo
   </div>`
 }
 
-function buildStreetInfoWindowContent() {
-  return `<div class="street-hover-tooltip">
-    <div class="street-hover-tooltip__header">
-      <span class="street-hover-tooltip__icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#3cd3d7" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-      </span>
-      <span class="street-hover-tooltip__name">示范街</span>
-    </div>
-    <div class="street-hover-tooltip__body">
-      <div class="street-hover-tooltip__stats">
-        <div class="street-hover-tooltip__stat">
-          <span class="street-hover-tooltip__stat-value">286</span>
-          <span class="street-hover-tooltip__stat-label">纳管商铺</span>
-        </div>
-        <div class="street-hover-tooltip__stat">
-          <span class="street-hover-tooltip__stat-value">98.6%</span>
-          <span class="street-hover-tooltip__stat-label">设备在线率</span>
-        </div>
-        <div class="street-hover-tooltip__stat">
-          <span class="street-hover-tooltip__stat-value">92%</span>
-          <span class="street-hover-tooltip__stat-label">今日履职率</span>
-        </div>
-        <div class="street-hover-tooltip__stat">
-          <span class="street-hover-tooltip__stat-value">6</span>
-          <span class="street-hover-tooltip__stat-label">今日告警</span>
-        </div>
-        <div class="street-hover-tooltip__stat street-hover-tooltip__stat--danger">
-          <span class="street-hover-tooltip__stat-value">12</span>
-          <span class="street-hover-tooltip__stat-label">未整改隐患</span>
-        </div>
-      </div>
-    </div>
-    <div class="street-hover-tooltip__footer">
-      <a class="street-hover-tooltip__btn" href="javascript:void(0)" id="street-detail-btn">查看详情 ›</a>
-    </div>
-    <div class="street-hover-tooltip__arrow"></div>
-  </div>`
-}
+
 
 function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
@@ -284,7 +243,7 @@ function initMap() {
   })
 
   // 添加面图层
-  addPolygonLayer(AMap)
+  // addPolygonLayer(AMap)
 
   // 自动调整视野，完整显示全部散点标记
   mapInstance.setFitView(scatterMarkers)
@@ -297,119 +256,7 @@ function scheduleCloseInfoWindow() {
   }, 300)
 }
 
-function addPolygonLayer(AMap: any) {
-  const features = (geoData as any).features
-  if (!features || !features.length) return
 
-  features.forEach((feature: any) => {
-    const { geometry } = feature
-    if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
-      const coords = geometry.type === 'Polygon'
-        ? [geometry.coordinates]
-        : geometry.coordinates
-
-      coords.forEach((polygonCoords: any[]) => {
-        polygonCoords.forEach((ring: any[]) => {
-          const path = ring.map((c: number[]) => new AMap.LngLat(c[0], c[1]))
-          const polygon = new AMap.Polygon({
-            path,
-            strokeColor: '#30C8D3',
-            strokeOpacity: 0.9,
-            strokeWeight: 2,
-            strokeStyle: 'dashed',
-            strokeDasharray: [6, 4],
-            fillColor: '#30C8D3',
-            fillOpacity: 0.35,
-            cursor: 'pointer',
-          })
-          mapInstance.add(polygon)
-
-          // 在面中心添加文字标注（用 Marker + HTML 替代 AMap.Text，无需额外加载插件）
-          if (path.length > 0) {
-            const totalLng = path.reduce((s: number, p: any) => s + p.lng, 0)
-            const totalLat = path.reduce((s: number, p: any) => s + p.lat, 0)
-            const centerLng = totalLng / path.length
-            const centerLat = totalLat / path.length
-
-            // 文字标注：仅保留点击打开详情
-            const textMarker = new AMap.Marker({
-              position: [centerLng, centerLat],
-              content: `<div class="street-label-text">示范街</div>`,
-              offset: new AMap.Pixel(0, 0),
-            })
-            textMarker.on('click', () => {
-              showStreetPanel.value = true
-            })
-            mapInstance.add(textMarker)
-
-            // 面区域悬浮：鼠标进入整个示范街区域时展示统计弹窗
-            const streetCenter = [centerLng, centerLat]
-            const streetPolygon = polygon
-            // 记录 polygon 原始样式用于恢复
-            const origFillOpacity = 0.35
-            const origStrokeWeight = 2
-
-            streetPolygon.on('mouseover', () => {
-              if (closeTimeout) {
-                clearTimeout(closeTimeout)
-                closeTimeout = null
-              }
-              // 悬浮高亮
-              streetPolygon.setOptions({
-                fillOpacity: 0.55,
-                strokeWeight: 4,
-                strokeColor: '#3cd3d7',
-              })
-              const content = buildStreetInfoWindowContent()
-              infoWindow.setOffset(new AMap.Pixel(0, 0))
-              infoWindow.setContent(content)
-              infoWindow.open(mapInstance, streetCenter)
-              // 弹窗挂载后绑定事件，保持弹窗不消失
-              nextTick(() => {
-                const tipEl = document.querySelector('.street-hover-tooltip')
-                if (tipEl) {
-                  tipEl.addEventListener('mouseenter', () => {
-                    if (closeTimeout) {
-                      clearTimeout(closeTimeout)
-                      closeTimeout = null
-                    }
-                  })
-                  tipEl.addEventListener('mouseleave', () => {
-                    scheduleCloseInfoWindow()
-                  })
-                }
-                // 绑定查看详情按钮点击事件
-                const detailBtn = document.getElementById('street-detail-btn')
-                if (detailBtn) {
-                  detailBtn.addEventListener('click', (e) => {
-                    e.preventDefault()
-                    showStreetPanel.value = true
-                    infoWindow.close()
-                  })
-                }
-              })
-            })
-
-            streetPolygon.on('mouseout', () => {
-              // 恢复原始样式
-              streetPolygon.setOptions({
-                fillOpacity: origFillOpacity,
-                strokeWeight: origStrokeWeight,
-                strokeColor: '#30C8D3',
-              })
-              scheduleCloseInfoWindow()
-            })
-
-            // 点击面区域也打开详情面板
-            streetPolygon.on('click', () => {
-              showStreetPanel.value = true
-            })
-          }
-        })
-      })
-    }
-  })
-}
 
 // 放大全屏
 function enterFullscreen() {
