@@ -1,193 +1,222 @@
 <template>
-  <div class="danger-track">
-      <div class="content-area">
-        <!-- ===== 左侧面板 ===== -->
-        <div class="left-panel">
-          <!-- 隐患概览 -->
-          <div class="panel-section">
-            <div class="section-title">
-              <div class="title-bar" />
-              <span class="title-text">隐患概览</span>
-            </div>
-            <div class="overview-body">
-              <!-- 左侧指标列 -->
-              <div class="overview-metrics">
-                <!-- 累计隐患 -->
+  <div class="hidden-danger-track">
+    <!-- ===== 左右分栏 ===== -->
+    <div class="content-area">
+      <!-- ===== 左侧面板 ===== -->
+      <div class="left-panel">
+        <!-- 数据概览 -->
+        <div class="panel-section">
+          <div class="section-title">
+            <div class="title-bar" />
+            <span class="title-text">数据概览</span>
+          </div>
+          <div class="overview-body">
+            <!-- 左侧指标列 -->
+            <div class="overview-metrics">
+              <!-- 今日隐患总数 -->
+              <div class="metric-item">
+                <span class="metric-label">今日隐患总数</span>
+                <div class="metric-value-row">
+                  <span class="metric-value">47</span>
+                  <span class="metric-unit">条</span>
+                </div>
+              </div>
+              <!-- 分隔线 -->
+              <div class="metric-divider" />
+              <!-- 三列子指标 -->
+              <div class="sub-metrics-row">
                 <div class="metric-item">
-                  <span class="metric-label">累计隐患</span>
+                  <span class="metric-label">已整改</span>
                   <div class="metric-value-row">
-                    <span class="metric-value">156</span>
-                    <span class="metric-unit">项</span>
+                    <span class="metric-value metric-value--alert">38</span>
+                    <span class="metric-unit">条</span>
                   </div>
                 </div>
-                <!-- 分隔线 -->
-                <div class="metric-divider" />
-                <!-- 三列子指标 -->
-                <div class="sub-metrics-row">
-                  <div class="metric-item">
-                    <span class="metric-label">已整改</span>
-                    <div class="metric-value-row">
-                      <span class="metric-value metric-value--done">128</span>
-                      <span class="metric-unit">项</span>
-                    </div>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">未整改</span>
-                    <div class="metric-value-row">
-                      <span class="metric-value">28</span>
-                      <span class="metric-unit">项</span>
-                    </div>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">逾期未改</span>
-                    <div class="metric-value-row">
-                      <span class="metric-value metric-value--warn">12</span>
-                      <span class="metric-unit">项</span>
-                    </div>
+                <div class="metric-item">
+                  <span class="metric-label">未整改</span>
+                  <div class="metric-value-row">
+                    <span class="metric-value metric-value--warning">6</span>
+                    <span class="metric-unit">条</span>
                   </div>
                 </div>
-              </div>
-              <!-- 右侧环形图 + 整改率 -->
-              <div class="overview-ring">
-                <div class="ring-chart-wrapper">
-                  <v-chart :option="rateRingOption" autoresize />
-                  <div class="ring-center-text">
-                    <span class="ring-rate-text">82%</span>
-                    <span class="ring-label-text">整改率</span>
+                <div class="metric-item">
+                  <span class="metric-label">逾期未改</span>
+                  <div class="metric-value-row">
+                    <span class="metric-value metric-value--warning">3</span>
+                    <span class="metric-unit">条</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- 整改完成率Top3 -->
-          <div class="panel-section">
-            <div class="section-title">
-              <div class="title-bar" />
-              <span class="title-text">整改完成率Top3</span>
-            </div>
-            <div class="rank-list">
-              <div v-for="(item, index) in rankList" :key="item.name" class="rank-item">
-                <div class="rank-num-wrap">
-                  <svg class="rank-bg" viewBox="0 0 30 16" fill="none">
-                    <rect x="1" y="1" width="28" height="14" rx="3" fill="rgba(60,211,215,0.15)" stroke="rgba(60,211,215,0.2)" />
-                  </svg>
-                  <span class="rank-num">{{ String(index + 1).padStart(2, '0') }}</span>
+            <!-- 右侧环形图 + 整改率 -->
+            <div class="overview-ring">
+              <div class="ring-chart-wrapper">
+                <v-chart :option="rectifyRateRingOption" autoresize />
+                <div class="ring-center-text">
+                  <span class="ring-label">今日整改率</span>
+                  <span class="ring-value">81%</span>
                 </div>
-                <span class="rank-name">{{ item.name }}</span>
-                <div class="rank-progress">
-                  <div class="rank-progress-bg">
-                    <div class="rank-progress-fill" :style="{ width: item.rate + '%' }" />
-                  </div>
-                </div>
-                <span class="rank-percent">{{ item.rate }}%</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 实时整改动态 -->
-          <div class="panel-section panel-section--flex">
-            <div class="section-title">
-              <div class="title-bar" />
-              <span class="title-text">实时整改动态</span>
-            </div>
-            <div class="dynamic-list">
-              <div v-for="(item, index) in dynamicList" :key="index" class="dynamic-row">
-                <span class="dynamic-name">{{ item.company }}</span>
-                <span class="dynamic-action">{{ item.action }}</span>
-                <span class="dynamic-time">{{ item.time }}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ===== 右侧面板 ===== -->
-        <div class="right-panel">
-          <!-- 搜索/筛选栏 -->
-          <div class="search-bar">
-            <div class="search-input">
-              <svg class="search-icon" viewBox="0 0 16 16" fill="none">
-                <circle cx="7" cy="7" r="5.5" stroke="#ababab" stroke-width="1.5" />
-                <path d="M11 11l3.5 3.5" stroke="#ababab" stroke-width="1.5" stroke-linecap="round" />
-              </svg>
-              <span class="search-placeholder">搜索隐患内容...</span>
-            </div>
-            <div class="status-filter">
-              <span>全部状态</span>
-              <svg class="filter-arrow" viewBox="0 0 16 16" fill="none">
-                <path d="M4 6l4 4 4-4" stroke="#f2fbff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </div>
-            <div class="query-btn">查询</div>
+        <!-- 整改完成率Top5 -->
+        <div class="panel-section">
+          <div class="section-title">
+            <div class="title-bar" />
+            <span class="title-text">整改完成率Top5</span>
           </div>
-          <!-- 数据表格 -->
-          <div class="table-wrapper">
-            <!-- 表头 -->
-            <div class="table-header">
-              <div class="th th-status">
-                <span>整改状态</span>
-                <div class="sort-icons">
-                  <svg class="sort-arrow sort-arrow--up" viewBox="0 0 12 12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-                  <svg class="sort-arrow sort-arrow--down" viewBox="0 0 12 12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+          <div class="rank-list">
+            <div v-for="(item, index) in rankList" :key="item.name" class="rank-item">
+              <div class="rank-info">
+                <div class="rank-header">
+                  <span class="rank-index">{{ String(index + 1).padStart(2, '0') }}</span>
+                  <span class="rank-name">{{ item.name }}</span>
+                </div>
+                <div class="rank-progress">
+                  <div class="rank-progress-bg" />
+                  <div class="rank-progress-fill" :style="{ width: item.rate + '%' }" />
                 </div>
               </div>
-              <div class="th th-content">隐患内容</div>
-              <div class="th th-company">上报企业</div>
-              <div class="th th-deadline">
-                <span>整改期限</span>
-                <div class="sort-icons">
-                  <svg class="sort-arrow sort-arrow--up" viewBox="0 0 12 12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-                  <svg class="sort-arrow sort-arrow--down" viewBox="0 0 12 12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
-                </div>
-              </div>
-              <div class="th th-action">操作</div>
-            </div>
-            <!-- 表体 -->
-            <div class="table-body">
-              <div v-for="(row, index) in paginatedRows" :key="index" class="table-row">
-                <div class="td td-status">
-                  <span class="status-tag" :class="statusClass(row.status)">{{ row.status }}</span>
-                </div>
-                <div class="td td-content">{{ row.content }}</div>
-                <div class="td td-company">{{ row.company }}</div>
-                <div class="td td-deadline">{{ row.deadline }}</div>
-                <div class="td td-action">
-                  <span class="action-link">查看</span>
-                </div>
-              </div>
+              <span class="rank-percent">{{ item.rate }}%</span>
             </div>
           </div>
-          <!-- 分页栏 -->
-          <div class="pagination">
-            <div class="page-info">
-              <span class="page-info-label">每页显示</span>
-              <div class="page-size-select">
-                <span>10 条</span>
-                <svg class="page-size-arrow" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 6l4 4 4-4" stroke="#f2fbff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+        </div>
+
+        <!-- 实时动态 -->
+        <div class="panel-section panel-section--grow">
+          <div class="section-title">
+            <div class="title-bar" />
+            <span class="title-text">实时动态</span>
+          </div>
+          <div class="timeline-list">
+            <div v-for="(item, index) in dynamicList" :key="item.id" class="timeline-item">
+              <!-- 时间轴线和圆点 -->
+              <div class="timeline-line">
+                <div class="timeline-dot timeline-dot--normal" />
+                <div v-if="index < dynamicList.length - 1" class="timeline-connector" />
               </div>
-              <span class="page-info-label">共 {{ tableRows.length }} 条数据</span>
-            </div>
-            <div class="page-controls">
-              <div class="page-btn" :class="{ 'page-btn--disabled': currentPage <= 1 }" @click="prevPage">上一页</div>
-              <div
-                v-for="p in totalPages"
-                :key="p"
-                class="page-btn page-btn--num"
-                :class="{ 'page-btn--active': p === currentPage }"
-                @click="currentPage = p"
-              >{{ p }}</div>
-              <div class="page-btn" :class="{ 'page-btn--disabled': currentPage >= totalPages }" @click="nextPage">下一页</div>
+              <!-- 内容 -->
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="timeline-time">{{ item.time }}</span>
+                </div>
+                <div class="timeline-body">
+                  <span class="timeline-shop">{{ item.name }}</span>
+                  <span class="timeline-sep">·</span>
+                  <span class="timeline-alert">{{ item.action }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- ===== 右侧面板 ===== -->
+      <div class="right-panel">
+        <!-- 搜索/筛选栏 -->
+        <div class="search-bar">
+          <div class="search-input">
+            <svg class="search-icon-svg" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c1c1c1" stroke-width="1.5">
+              <circle cx="7" cy="7" r="5" />
+              <line x1="11" y1="11" x2="14" y2="14" />
+            </svg>
+            <span class="search-placeholder">搜索隐患名称...</span>
+          </div>
+          <div class="status-filter">
+            <span>全部状态</span>
+            <svg class="filter-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c1c1c1" stroke-width="1.5">
+              <polyline points="4 6 8 10 12 6" />
+            </svg>
+          </div>
+          <button class="query-btn">查询</button>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-wrapper">
+          <!-- 表头 -->
+          <div class="table-header">
+            <div class="th th-status">
+              <span>隐患状态</span>
+              <div class="sort-icons">
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+              </div>
+            </div>
+            <div class="th th-name">隐患名称</div>
+            <div class="th th-category">
+              <span>隐患类型</span>
+              <div class="sort-icons">
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+              </div>
+            </div>
+            <div class="th th-time">
+              <span>上报时间</span>
+              <div class="sort-icons">
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+              </div>
+            </div>
+            <div class="th th-action">操作</div>
+          </div>
+          <!-- 表体 -->
+          <div class="table-body">
+            <div v-for="(row, idx) in paginatedRows" :key="idx" class="table-row">
+              <div class="td td-status">
+                <span class="status-tag" :class="row.status === 'danger' ? 'status-tag--danger' : row.status === 'warning' ? 'status-tag--warning' : 'status-tag--normal'">
+                  {{ row.status === 'danger' ? '逾期未改' : row.status === 'warning' ? '未整改' : '已整改' }}
+                </span>
+              </div>
+              <div class="td td-name">{{ row.name }}</div>
+              <div class="td td-category">{{ row.category }}</div>
+              <div class="td td-time">{{ row.reportTime }}</div>
+              <div class="td td-action">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="action-icon">
+                  <circle cx="3" cy="3" r="1.5" />
+                  <circle cx="3" cy="8" r="1.5" />
+                  <circle cx="3" cy="13" r="1.5" />
+                  <line x1="7" y1="3" x2="14" y2="3" />
+                  <line x1="7" y1="8" x2="14" y2="8" />
+                  <line x1="7" y1="13" x2="11" y2="13" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分页栏 -->
+        <div class="pagination">
+          <div class="page-info">
+            <span class="page-info-label">每页显示</span>
+            <div class="page-size-select">
+              <span>10 条</span>
+              <svg class="page-size-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#f2fbff" stroke-width="1.5">
+                <polyline points="4 6 8 10 12 6" />
+              </svg>
+            </div>
+            <span class="page-info-label">共 {{ tableRows.length }} 条数据</span>
+          </div>
+          <div class="page-controls">
+            <button class="page-btn page-btn--nav" :disabled="currentPage <= 1" @click="prevPage">上一页</button>
+            <button
+              v-for="p in totalPages"
+              :key="p"
+              class="page-btn page-btn--num"
+              :class="{ 'page-btn--active': p === currentPage }"
+              @click="currentPage = p"
+            >{{ p }}</button>
+            <button class="page-btn page-btn--nav" :disabled="currentPage >= totalPages" @click="nextPage">下一页</button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { PieChart } from 'echarts/charts'
@@ -196,7 +225,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 use([CanvasRenderer, PieChart])
 
 // ===== 环形图 =====
-const rateRingOption = computed(() => ({
+const rectifyRateRingOption = computed(() => ({
   series: [
     {
       type: 'pie',
@@ -208,56 +237,93 @@ const rateRingOption = computed(() => ({
       labelLine: { show: false },
       emphasis: { disabled: true },
       data: [
-        { value: 82, name: '已整改', itemStyle: { color: '#148DFF' } },
-        { value: 18, name: '未整改', itemStyle: { color: '#0151A4' } },
+        { value: 81, name: '已整改', itemStyle: { color: '#148DFF' } },
+        { value: 19, name: '未整改', itemStyle: { color: '#0151A4' } },
       ],
     },
   ],
 }))
 
-// ===== 整改完成率Top3 =====
+// ===== 整改完成率Top5 =====
 const rankList = [
-  { name: '消防隐患', rate: 95 },
-  { name: '电气隐患', rate: 88 },
-  { name: '通道隐患', rate: 76 },
+  { name: '消防设施维保', rate: 95 },
+  { name: '电气线路整改', rate: 88 },
+  { name: '燃气管道排查', rate: 82 },
+  { name: '疏散通道清理', rate: 71 },
+  { name: '高空坠物防护', rate: 55 },
 ]
 
-// ===== 实时整改动态 =====
-const dynamicList = [
-  { company: '盛邦木业', action: '消防通道堵塞已整改', time: '2025-10-14 16:30' },
-  { company: '华泰建材', action: '化学品存放不当整改中', time: '2025-10-14 15:20' },
-  { company: '远大化工', action: '配电箱接地已修复', time: '2025-10-14 14:10' },
-  { company: '中联重科', action: '电焊作业防护已落实', time: '2025-10-14 11:45' },
-  { company: '盛邦木业', action: '灭火器已更换', time: '2025-10-14 10:30' },
-  { company: '旺达建材', action: '安全出口标识已补设', time: '2025-10-14 09:15' },
-  { company: '幸福超市', action: '应急灯已维修', time: '2025-10-13 17:00' },
-  { company: '天天小吃', action: '燃气管道老化整改中', time: '2025-10-13 15:40' },
-  { company: '南湖校区', action: '消防栓遮挡已清理', time: '2025-10-13 14:20' },
-]
+// ===== 实时动态（时间轴） =====
+interface DynamicTimelineItem {
+  id: number
+  time: string
+  name: string
+  action: string
+}
+
+const shopPool = ['盛邦木业', '南湖校区', '江南商贸城', '东北饭庄', '柳州螺蛳粉', '沸腾鱼庄', '湘味土菜馆', '李记烧烤']
+const actionPool = ['发现消防隐患并上报', '完成电气隐患整改', '提交隐患复查报告', '逾期隐患督促整改', '新增安全隐患排查', '更新隐患台账', '完成安全专项检查']
+
+const dynamicList = ref<DynamicTimelineItem[]>([])
+
+let nextId = 1
+function generateTimelineItem(): DynamicTimelineItem {
+  const now = new Date()
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  const hh = String(now.getHours()).padStart(2, '0')
+  const m = String(now.getMinutes()).padStart(2, '0')
+  const ss = String(now.getSeconds()).padStart(2, '0')
+  return {
+    id: nextId++,
+    time: `${now.getFullYear()}-${mm}-${dd} ${hh}:${m}:${ss}`,
+    name: shopPool[Math.floor(Math.random() * shopPool.length)],
+    action: actionPool[Math.floor(Math.random() * actionPool.length)],
+  }
+}
+
+// 初始化几条历史记录
+function initTimeline() {
+  dynamicList.value = Array.from({ length: 6 }, () => generateTimelineItem())
+}
+
+let timelineTimer: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  initTimeline()
+  // 不定时插入新记录（4-8 秒随机间隔）
+  function scheduleNext() {
+    const delay = 4000 + Math.random() * 4000
+    timelineTimer = setTimeout(() => {
+      dynamicList.value.unshift(generateTimelineItem())
+      // 保留最近 50 条
+      if (dynamicList.value.length > 50) {
+        dynamicList.value.length = 50
+      }
+      scheduleNext()
+    }, delay)
+  }
+  scheduleNext()
+})
+
+onBeforeUnmount(() => {
+  if (timelineTimer) {
+    clearTimeout(timelineTimer)
+    timelineTimer = null
+  }
+})
 
 // ===== 表格数据 =====
 const tableRows = [
-  { content: '消防通道堵塞', company: '盛邦木业', deadline: '2025-10-20', status: '整改中' },
-  { content: '灭火器过期', company: '盛邦木业', deadline: '2025-10-18', status: '整改中' },
-  { content: '电线私拉乱接', company: '盛邦木业', deadline: '2025-10-15', status: '逾期' },
-  { content: '安全出口标识缺失', company: '旺达建材', deadline: '2025-10-22', status: '整改中' },
-  { content: '应急灯故障', company: '幸福超市', deadline: '2025-10-25', status: '整改中' },
-  { content: '消防栓遮挡', company: '南湖校区', deadline: '2025-10-12', status: '已整改' },
-  { content: '化学品存放不当', company: '华泰建材', deadline: '2025-10-28', status: '整改中' },
-  { content: '电焊作业无防护', company: '中联重科', deadline: '2025-10-16', status: '逾期' },
-  { content: '配电箱接地修复', company: '远大化工', deadline: '2025-10-10', status: '已整改' },
-  { content: '疏散通道清理', company: '盛邦木业', deadline: '2025-10-08', status: '已整改' },
-  { content: '燃气管道老化', company: '天天小吃', deadline: '2025-10-30', status: '整改中' },
-  { content: '电梯维保超期', company: '江南商贸城', deadline: '2025-10-14', status: '逾期' },
+  { name: '消防通道堵塞', category: '消防安全', reportTime: '2025-10-15 08:30', status: 'danger' },
+  { name: '电线裸露老化', category: '电气安全', reportTime: '2025-10-15 09:15', status: 'warning' },
+  { name: '燃气阀门泄漏', category: '燃气安全', reportTime: '2025-10-15 10:00', status: 'danger' },
+  { name: '仓库结构裂缝', category: '建筑结构', reportTime: '2025-10-14 14:20', status: 'warning' },
+  { name: '灭火器过期未检', category: '消防安全', reportTime: '2025-10-14 11:10', status: 'normal' },
+  { name: '安全出口标识损坏', category: '消防安全', reportTime: '2025-10-14 09:45', status: 'normal' },
 ]
 
-function statusClass(status: string) {
-  if (status === '已整改') return 'status-tag--done'
-  if (status === '逾期') return 'status-tag--overdue'
-  return 'status-tag--ongoing'
-}
-
-const pageSize = ref(5)
+const pageSize = ref(10)
 const currentPage = ref(1)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(tableRows.length / pageSize.value)))
@@ -278,139 +344,60 @@ function nextPage() {
 
 <style scoped>
 /* ===== 容器 ===== */
-.danger-track {
+.hidden-danger-track {
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   overflow: hidden;
 }
 
 /* ===== 内容区：左右分栏 ===== */
 .content-area {
+  width: 100%;
   flex: 1;
   display: flex;
-  gap: 24px;
+  gap: calc(48 * var(--w));
   min-height: 0;
   overflow: hidden;
-}
-
-/* ===== 搜索/筛选栏 ===== */
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-shrink: 0;
-}
-
-.search-input {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 203px;
-  height: 36px;
-  padding: 4px 12px;
-  background: rgba(3, 74, 173, 0.5);
-  border: 1px solid rgba(0, 184, 219, 0.3);
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.search-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.search-placeholder {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  color: #ababab;
-  white-space: nowrap;
-}
-
-.status-filter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 36px;
-  width: 140px;
-  padding: 1px 13px;
-  background: rgba(3, 74, 173, 0.5);
-  border: 1px solid rgba(0, 184, 219, 0.3);
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.status-filter span {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  color: #b8b8b8;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-.filter-arrow {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.query-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  padding: 8px 18px;
-  background: #0095ff;
-  border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  text-align: center;
-  line-height: 20px;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
+  padding: calc(18 * var(--h)) calc(18 * var(--w));
 }
 
 /* ===== 左侧面板 ===== */
 .left-panel {
   flex-shrink: 0;
+  width: calc(423 * var(--w));
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 12px;
+  gap: calc(32 * var(--h));
+  padding: calc(12 * var(--h)) 0;
   height: 100%;
   min-height: 0;
-  min-width: 0;
-  overflow-y: auto;
+  overflow: hidden auto;
 }
 
-.left-panel::-webkit-scrollbar { width: 2px; }
+.left-panel::-webkit-scrollbar { width: 4px; }
 .left-panel::-webkit-scrollbar-track { background: transparent; }
-.left-panel::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+.left-panel::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
 
 .panel-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: calc(12 * var(--h));
   flex-shrink: 0;
 }
 
-.panel-section--flex {
+.panel-section--grow {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-/* 小节标题（蓝色竖条 + 文字） */
+/* ===== 小节标题（蓝色竖条 + 文字） ===== */
 .section-title {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: calc(12 * var(--w));
   flex-shrink: 0;
 }
 
@@ -419,47 +406,49 @@ function nextPage() {
   height: 18px;
   background: #2584ab;
   border-radius: 2px;
-  box-shadow: 0 0 6px 0 rgba(37, 132, 171, 0.36);
+  box-shadow: 0 0 6px rgba(37, 132, 171, 0.36);
   flex-shrink: 0;
 }
 
 .title-text {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 16px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(18 * var(--min-scale)), 20px);
   font-weight: 500;
-  color: #e6ecfd;
+  color: #ffffff;
   line-height: normal;
   white-space: nowrap;
 }
 
-/* ===== 隐患概览 ===== */
+/* ===== 数据概览 ===== */
 .overview-body {
   display: flex;
   align-items: center;
-  gap: 46px;
+  justify-content: space-between;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .overview-metrics {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex-shrink: 0;
+  gap: calc(12 * var(--h));
+  min-width: 0;
 }
 
 /* 指标项 */
 .metric-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: calc(6 * var(--h));
   align-items: flex-start;
   flex-shrink: 0;
 }
 
 .metric-label {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 14px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: #a2acd1;
+  color: #b5d3ff;
   line-height: normal;
   white-space: nowrap;
 }
@@ -467,52 +456,61 @@ function nextPage() {
 .metric-value-row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  gap: calc(8 * var(--w));
+  line-height: 0;
 }
 
 .metric-value {
-  font-family: 'Douyin Sans', sans-serif;
-  font-size: 24px;
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(24px, calc(26 * var(--min-scale)), 28px);
   font-weight: 700;
-  line-height: normal;
   background: linear-gradient(to bottom, #ffffff, #89b5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: normal;
+}
+
+.metric-value--warning {
+  background: linear-gradient(to bottom, #ffffff, #ff3a3a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.metric-value--done {
-  background: linear-gradient(to bottom, #56f0f4, #148dff);
+.metric-value--alert {
+  background: linear-gradient(to bottom, #93c5fd, #3b82f6);
   -webkit-background-clip: text;
-  background-clip: text;
-}
-
-.metric-value--warn {
-  background: linear-gradient(to bottom, #ff6b6e, #ff3b3e);
-  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .metric-unit {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 16px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: #fff;
+  color: #b3c5f9;
   line-height: normal;
 }
 
 /* 分隔线 */
 .metric-divider {
   width: 100%;
-  height: 0;
-  border-top: 1px solid rgba(223, 251, 255, 0.16);
+  height: 1px;
+  background: linear-gradient(
+    79.92deg,
+    rgba(15, 43, 91, 0) 0%,
+    rgb(25, 82, 170) 0%,
+    rgba(22, 70, 145, 0.688) 75%,
+    rgba(15, 43, 91, 0) 100%
+  );
 }
 
 /* 三个子指标水平排列 */
 .sub-metrics-row {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: calc(36 * var(--w));
 }
 
 /* ===== 环形图区域 ===== */
@@ -520,14 +518,14 @@ function nextPage() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: calc(8 * var(--h));
   flex-shrink: 0;
 }
 
 .ring-chart-wrapper {
   position: relative;
-  width: 142px;
-  height: 142px;
+  width: calc(142 * var(--min-scale));
+  height: calc(142 * var(--min-scale));
   flex-shrink: 0;
 }
 
@@ -544,100 +542,108 @@ function nextPage() {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  gap: 4px;
+  gap: calc(4 * var(--h));
 }
 
-.ring-rate-text {
-  font-family: 'Douyin Sans', sans-serif;
-  font-size: 24px;
+.ring-label {
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
+  font-weight: 400;
+  color: #f2fbff;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.ring-value {
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(18px, calc(22 * var(--min-scale)), 26px);
   font-weight: 700;
-  background: linear-gradient(to bottom, #ffffff, #89b5ff);
+  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  line-height: normal;
 }
 
-.ring-label-text {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: #f2fbff;
-}
-
-/* ===== 整改完成率Top3 ===== */
+/* ===== 整改完成率Top5 ===== */
 .rank-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: calc(4 * var(--h));
 }
 
 .rank-item {
   display: flex;
   align-items: center;
-  gap: 18px;
-  height: 38px;
+  gap: calc(18 * var(--w));
+  height: calc(38 * var(--h));
 }
 
-.rank-num-wrap {
-  position: relative;
-  width: 30px;
-  height: 16px;
-  flex-shrink: 0;
+.rank-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--h));
 }
 
-.rank-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.rank-header {
+  display: flex;
+  align-items: center;
+  gap: calc(19 * var(--w));
 }
 
-.rank-num {
-  position: absolute;
-  inset: 0;
+.rank-index {
+  width: calc(30 * var(--w));
+  height: calc(16 * var(--h));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Douyin Sans', sans-serif;
-  font-size: 12px;
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(10px, calc(12 * var(--min-scale)), 14px);
   font-weight: 700;
-  color: #c2d9fd;
-  line-height: normal;
-}
-
-.rank-name {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  color: #d6e3ff;
-  white-space: nowrap;
+  color: #ffffff;
+  background: rgba(60, 211, 215, 0.15);
+  border: 1px solid rgba(60, 211, 215, 0.2);
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
+.rank-name {
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
+  font-weight: 400;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
 .rank-progress {
-  flex: 1;
-  min-width: 0;
+  display: grid;
+  grid-template-rows: max-content;
+  width: 100%;
 }
 
 .rank-progress-bg {
-  width: 100%;
+  grid-column: 1;
+  grid-row: 1;
   height: 6px;
-  background: #d9d9d9;
   border-radius: 3px;
-  overflow: hidden;
+  background: #003063;
 }
 
 .rank-progress-fill {
-  height: 100%;
+  grid-column: 1;
+  grid-row: 1;
+  height: 6px;
   border-radius: 3px;
-  background: linear-gradient(172deg, rgb(32, 92, 169) 9.4%, rgb(0, 67, 154) 90.5%);
+  background: linear-gradient(175.85deg, rgb(32, 92, 169) 9.38%, rgb(0, 114, 255) 90.5%);
 }
 
 .rank-percent {
-  font-family: 'Douyin Sans', sans-serif;
-  font-size: 20px;
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(18 * var(--min-scale)), 22px);
   font-weight: 700;
-  background: linear-gradient(to bottom, #ffffff, #89b5ff);
+  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -646,66 +652,108 @@ function nextPage() {
   line-height: normal;
 }
 
-/* ===== 实时整改动态 ===== */
-.dynamic-list {
+/* ===== 实时动态（时间轴） ===== */
+.timeline-list {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   overflow-y: auto;
-  padding: 6px;
+  padding: calc(6 * var(--h)) calc(6 * var(--w)) calc(6 * var(--h)) 0;
   min-height: 0;
 }
 
-.dynamic-list::-webkit-scrollbar { width: 2px; }
-.dynamic-list::-webkit-scrollbar-track { background: transparent; }
-.dynamic-list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+.timeline-list::-webkit-scrollbar { width: 2px; }
+.timeline-list::-webkit-scrollbar-track { background: transparent; }
+.timeline-list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
 
-.dynamic-row {
+.timeline-item {
   display: flex;
+  gap: calc(12 * var(--w));
+  min-height: calc(60 * var(--h));
+}
+
+/* 时间轴线 */
+.timeline-line {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   flex-shrink: 0;
+  width: calc(20 * var(--w));
 }
 
-.dynamic-name {
+.timeline-dot {
+  width: calc(10 * var(--min-scale));
+  height: calc(10 * var(--min-scale));
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: calc(6 * var(--h));
+}
+
+.timeline-dot--normal {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+.timeline-connector {
+  width: 1px;
+  flex: 1;
+  background: rgba(71, 132, 232, 0.2);
+  margin-top: calc(4 * var(--h));
+}
+
+/* 时间轴内容 */
+.timeline-content {
   flex: 1;
   min-width: 0;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--h));
+  padding-bottom: calc(14 * var(--h));
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+}
+
+.timeline-time {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: 12px;
   font-weight: 400;
   color: #a9b0c5;
   line-height: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.timeline-body {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--w));
+  flex-wrap: wrap;
+}
+
+.timeline-shop {
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
+  font-weight: 500;
+  color: #d6e3ff;
+  line-height: normal;
   white-space: nowrap;
 }
 
-.dynamic-action {
-  flex: 1;
-  min-width: 0;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 16px;
-  font-weight: 400;
+.timeline-sep {
   color: #a9b0c5;
-  text-align: center;
-  line-height: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12px;
 }
 
-.dynamic-time {
-  flex: 1;
-  min-width: 0;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 16px;
+.timeline-alert {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 15px);
   font-weight: 400;
   color: #a9b0c5;
-  text-align: center;
-  line-height: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
 }
 
 /* ===== 右侧面板 ===== */
@@ -713,12 +761,96 @@ function nextPage() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  gap: calc(12 * var(--h));
+  padding: calc(12 * var(--h)) 0;
   height: 100%;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+/* ===== 搜索/筛选栏 ===== */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(18 * var(--w));
+  flex-shrink: 0;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--w));
+  height: calc(36 * var(--h));
+  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  background: rgba(3, 74, 173, 0);
+  border: 1px solid rgba(0, 84, 201, 0.67);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  width: calc(203 * var(--w));
+}
+
+.search-icon-svg {
+  flex-shrink: 0;
+}
+
+.search-placeholder {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-weight: 400;
+  color: #c1c1c1;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.status-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(36 * var(--h));
+  width: calc(140 * var(--w));
+  padding: 1px calc(13 * var(--w));
+  background: rgba(3, 74, 173, 0);
+  border: 1px solid rgba(0, 84, 201, 0.67);
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.status-filter span {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-weight: 400;
+  color: #c1c1c1;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.filter-arrow {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.query-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(36 * var(--h));
+  padding: calc(8 * var(--h)) calc(18 * var(--w));
+  background: #0095ff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-weight: 500;
+  color: #ffffff;
+  text-align: center;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* ===== 数据表格 ===== */
@@ -731,12 +863,13 @@ function nextPage() {
   min-height: 0;
 }
 
+/* 表头 */
 .table-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
-  background: #034aad;
+  gap: calc(6 * var(--w));
+  padding: calc(8 * var(--h)) calc(6 * var(--w));
+  background: #0457a7;
   flex-shrink: 0;
 }
 
@@ -744,21 +877,21 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: calc(6 * var(--w));
   height: 21px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 500;
-  color: #cecece;
+  color: #bcd9ff;
   line-height: 21px;
   white-space: nowrap;
 }
 
-.th-status { width: 118px; flex-shrink: 0; }
-.th-content { flex: 1; min-width: 0; }
-.th-company { flex: 1; min-width: 0; }
-.th-deadline { flex: 1; min-width: 0; }
-.th-action { width: 48px; flex-shrink: 0; }
+.th-status { width: calc(118 * var(--w)); flex-shrink: 0; }
+.th-name { flex: 1; min-width: 0; justify-content: flex-start; }
+.th-category { flex: 1; min-width: 0; }
+.th-time { flex: 1; min-width: 0; }
+.th-action { width: calc(48 * var(--w)); flex-shrink: 0; }
 
 .sort-icons {
   display: flex;
@@ -770,12 +903,11 @@ function nextPage() {
   flex-shrink: 0;
 }
 
-.sort-arrow {
-  width: 12px;
-  height: 12px;
+.sort-icons svg {
+  display: block;
 }
 
-.sort-arrow--down {
+.sort-icons svg:last-child {
   margin-top: -4px;
 }
 
@@ -788,16 +920,16 @@ function nextPage() {
   min-height: 0;
 }
 
-.table-body::-webkit-scrollbar { width: 2px; }
+.table-body::-webkit-scrollbar { width: 4px; }
 .table-body::-webkit-scrollbar-track { background: transparent; }
-.table-body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+.table-body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
 
 .table-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 6px;
-  border-top: 1px solid rgba(223, 251, 255, 0.16);
+  gap: calc(6 * var(--w));
+  padding: 0 calc(6 * var(--w));
+  border-top: 1px solid rgba(168, 178, 255, 0.08);
   flex-shrink: 0;
 }
 
@@ -805,55 +937,58 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 0;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  padding: calc(10 * var(--h)) 0;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
   color: #f2fbff;
   line-height: 21px;
 }
 
-.td-status { width: 118px; flex-shrink: 0; }
-.td-content { flex: 1; min-width: 0; justify-content: flex-start; }
-.td-company { flex: 1; min-width: 0; }
-.td-deadline { flex: 1; min-width: 0; }
-.td-action { width: 48px; flex-shrink: 0; }
+.td-status { width: calc(118 * var(--w)); flex-shrink: 0; }
+.td-name { flex: 1; min-width: 0; justify-content: flex-start; }
+.td-category { flex: 1; min-width: 0; }
+.td-time { flex: 1; min-width: 0; }
+.td-action { width: calc(48 * var(--w)); flex-shrink: 0; }
 
 /* 状态标签 */
 .status-tag {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 6px;
+  padding: calc(2 * var(--h)) calc(6 * var(--w));
   border-radius: 4px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 12px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 500;
   line-height: 18px;
   text-align: center;
   white-space: nowrap;
 }
 
-.status-tag--done {
-  background: rgba(0, 184, 219, 0.3);
-  color: #56f0f4;
+.status-tag--danger {
+  background: rgba(255, 58, 58, 0.2);
+  color: #ff3a3a;
 }
 
-.status-tag--ongoing {
-  background: rgba(255, 180, 0, 0.3);
-  color: #ffb400;
+.status-tag--warning {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
 }
 
-.status-tag--overdue {
-  background: rgba(254, 151, 151, 0.625);
-  color: #ff6b6e;
+.status-tag--normal {
+  background: rgba(0, 84, 219, 0.2);
+  color: #0072ff;
 }
 
-.action-link {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  color: #3cd3d7;
+.action-icon {
+  color: rgba(137, 181, 255, 0.6);
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.action-icon:hover {
+  color: #3cd3d7;
 }
 
 /* ===== 分页栏 ===== */
@@ -861,20 +996,20 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 calc(12 * var(--w));
   flex-shrink: 0;
 }
 
 .page-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 36px;
+  gap: calc(12 * var(--w));
+  height: calc(36 * var(--h));
 }
 
 .page-info-label {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
   color: #f2fbff;
   line-height: 21px;
@@ -885,17 +1020,18 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 36px;
-  width: 82px;
-  padding: 1px 13px;
-  background: rgba(3, 74, 173, 0.5);
-  border: 1px solid rgba(0, 184, 219, 0.3);
+  height: calc(36 * var(--h));
+  width: calc(82 * var(--w));
+  padding: 1px calc(13 * var(--w));
+  background: rgba(3, 74, 173, 0);
+  border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
+  cursor: pointer;
 }
 
 .page-size-select span {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
   color: #f2fbff;
   line-height: 20px;
@@ -911,7 +1047,7 @@ function nextPage() {
 .page-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(8 * var(--w));
   height: 32px;
 }
 
@@ -919,35 +1055,40 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 10px;
-  background: #0165b2;
+  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  background: none;
+  border: none;
   border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 500;
-  color: #fff;
+  color: #ffffff;
   line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
 }
 
+.page-btn--nav {
+  background: rgba(1, 101, 178, 0.3);
+}
+
+.page-btn--nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .page-btn--num {
   width: 32px;
   height: 32px;
   padding: 0;
-  background: rgba(3, 74, 173, 0.5);
-  color: #00a4db;
+  background: transparent;
+  color: #bebebe;
 }
 
 .page-btn--active {
   background: rgba(32, 92, 194, 0.56);
-  border: 1px solid rgba(0, 184, 219, 0.3);
-  color: #00d6ff;
-}
-
-.page-btn--disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+  border: 1px solid rgba(0, 84, 201, 0.67);
+  color: #f2fbff;
 }
 </style>

@@ -1,175 +1,202 @@
 <template>
   <div class="alert-center">
+    <!-- ===== 左右分栏 ===== -->
     <div class="content-area">
       <!-- ===== 左侧面板 ===== -->
       <div class="left-panel">
-      <!-- 告警概览 -->
-      <div class="panel-section">
-        <div class="section-title">
-          <div class="title-bar" />
-          <span class="title-text">告警概览</span>
-        </div>
-        <div class="overview-body">
-          <!-- 左侧指标列 -->
-          <div class="overview-metrics">
-            <!-- 今日告警 -->
-            <div class="metric-item">
-              <span class="metric-label">今日告警</span>
-              <div class="metric-value-row">
-                <span class="metric-value">24</span>
-                <span class="metric-unit">起</span>
+        <!-- 数据概览 -->
+        <div class="panel-section">
+          <div class="section-title">
+            <div class="title-bar" />
+            <span class="title-text">数据概览</span>
+          </div>
+          <div class="overview-body">
+            <!-- 左侧指标列 -->
+            <div class="overview-metrics">
+              <!-- 今日预警总数 -->
+              <div class="metric-item">
+                <span class="metric-label">今日预警总数</span>
+                <div class="metric-value-row">
+                  <span class="metric-value">35</span>
+                  <span class="metric-unit">条</span>
+                </div>
+              </div>
+              <!-- 分隔线 -->
+              <div class="metric-divider" />
+              <!-- 三列子指标 -->
+              <div class="sub-metrics-row">
+                <div class="metric-item">
+                  <span class="metric-label">已处理</span>
+                  <div class="metric-value-row">
+                    <span class="metric-value metric-value--alert">28</span>
+                    <span class="metric-unit">条</span>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">未处理</span>
+                  <div class="metric-value-row">
+                    <span class="metric-value metric-value--warning">5</span>
+                    <span class="metric-unit">条</span>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">累计未处理</span>
+                  <div class="metric-value-row">
+                    <span class="metric-value metric-value--warning">7</span>
+                    <span class="metric-unit">条</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <!-- 分隔线 -->
-            <div class="metric-divider" />
-            <!-- 三列子指标 -->
-            <div class="sub-metrics-row">
-              <div class="metric-item">
-                <span class="metric-label">待处置</span>
-                <div class="metric-value-row">
-                  <span class="metric-value metric-value--warn">8</span>
-                  <span class="metric-unit">起</span>
-                </div>
-              </div>
-              <div class="metric-item">
-                <span class="metric-label">处置中</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">5</span>
-                  <span class="metric-unit">起</span>
-                </div>
-              </div>
-              <div class="metric-item">
-                <span class="metric-label">已处置</span>
-                <div class="metric-value-row">
-                  <span class="metric-value metric-value--done">11</span>
-                  <span class="metric-unit">起</span>
+            <!-- 右侧环形图 + 处理率 -->
+            <div class="overview-ring">
+              <div class="ring-chart-wrapper">
+                <v-chart :option="handleRateRingOption" autoresize />
+                <div class="ring-center-text">
+                  <span class="ring-label">今日处理率</span>
+                  <span class="ring-value">80%</span>
                 </div>
               </div>
             </div>
           </div>
-          <!-- 右侧环形图 + 处置率 -->
-          <div class="overview-ring">
-            <div class="ring-chart-wrapper">
-              <v-chart :option="disposalRingOption" autoresize />
-              <div class="ring-center-text">
-                <span class="ring-rate-text">67%</span>
-                <span class="ring-label-text">处置率</span>
+        </div>
+
+        <!-- 实时预警动态 -->
+        <div class="panel-section panel-section--grow">
+          <div class="section-title">
+            <div class="title-bar" />
+            <span class="title-text">实时预警动态</span>
+          </div>
+          <div class="timeline-list">
+            <div v-for="(item, index) in dynamicList" :key="item.id" class="timeline-item">
+              <!-- 时间轴线和圆点 -->
+              <div class="timeline-line">
+                <div
+                  class="timeline-dot"
+                  :class="item.level === 'high' ? 'timeline-dot--danger' : item.level === 'medium' ? 'timeline-dot--warning' : 'timeline-dot--normal'"
+                />
+                <div v-if="index < dynamicList.length - 1" class="timeline-connector" />
+              </div>
+              <!-- 内容 -->
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="timeline-time">{{ item.time }}</span>
+                </div>
+                <div class="timeline-body">
+                  <span class="timeline-shop">{{ item.name }}</span>
+                  <span class="timeline-sep">·</span>
+                  <span class="timeline-alert">{{ item.action }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 最新告警动态 -->
-      <div class="panel-section panel-section--flex">
-        <div class="section-title">
-          <div class="title-bar" />
-          <span class="title-text">最新告警动态</span>
-        </div>
-        <div class="timeline-list">
-          <div v-for="(item, index) in alertTimeline" :key="index" class="timeline-item">
-            <!-- 时间轴线和圆点 -->
-            <div class="timeline-line">
-              <div class="timeline-dot" :class="'timeline-dot--' + item.level" />
-              <div v-if="index < alertTimeline.length - 1" class="timeline-connector" />
-            </div>
-            <!-- 内容 -->
-            <div class="timeline-content">
-              <div class="timeline-header">
-                <span class="timeline-time">{{ item.time }}</span>
-              </div>
-              <div class="timeline-body">
-                <span class="timeline-shop">{{ item.shop }}</span>
-                <span class="timeline-sep">·</span>
-                <span class="timeline-alert">{{ item.alert }}</span>
-              </div>
-            </div>
+      <!-- ===== 右侧面板 ===== -->
+      <div class="right-panel">
+        <!-- 搜索/筛选栏 -->
+        <div class="search-bar">
+          <div class="search-input">
+            <svg class="search-icon-svg" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c1c1c1" stroke-width="1.5">
+              <circle cx="7" cy="7" r="5" />
+              <line x1="11" y1="11" x2="14" y2="14" />
+            </svg>
+            <span class="search-placeholder">搜索商户名称...</span>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== 右侧面板 ===== -->
-    <div class="right-panel">
-      <!-- 搜索/筛选栏 -->
-      <div class="search-bar">
-        <div class="search-input">
-          <svg class="search-icon" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="5.5" stroke="#ababab" stroke-width="1.5" />
-            <path d="M11 11l3.5 3.5" stroke="#ababab" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-          <span class="search-placeholder">搜索商户名称...</span>
-        </div>
-        <div class="status-filter">
-          <span>全部类型</span>
-          <svg class="filter-arrow" viewBox="0 0 16 16" fill="none">
-            <path d="M4 6l4 4 4-4" stroke="#f2fbff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </div>
-        <div class="query-btn">查询</div>
-      </div>
-      <!-- 数据表格 -->
-      <div class="table-wrapper">
-        <!-- 表头 -->
-        <div class="table-header">
-          <div class="th th-level">告警级别</div>
-          <div class="th th-content">告警内容</div>
-          <div class="th th-shop">商户名称</div>
-          <div class="th th-time">
-            <span>告警时间</span>
-            <div class="sort-icons">
-              <svg class="sort-arrow sort-arrow--up" viewBox="0 0 12 12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-              <svg class="sort-arrow sort-arrow--down" viewBox="0 0 12 12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
-            </div>
-          </div>
-          <div class="th th-action">操作</div>
-        </div>
-        <!-- 表体 -->
-        <div class="table-body">
-          <div v-for="(row, index) in paginatedRows" :key="index" class="table-row">
-            <div class="td td-level">
-              <span class="level-tag" :class="levelClass(row.level)">{{ row.level }}</span>
-            </div>
-            <div class="td td-content">{{ row.content }}</div>
-            <div class="td td-shop">{{ row.shop }}</div>
-            <div class="td td-time">{{ row.time }}</div>
-            <div class="td td-action">
-              <span class="action-link">处置</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- 分页栏 -->
-      <div class="pagination">
-        <div class="page-info">
-          <span class="page-info-label">每页显示</span>
-          <div class="page-size-select">
-            <span>10 条</span>
-            <svg class="page-size-arrow" viewBox="0 0 16 16" fill="none">
-              <path d="M4 6l4 4 4-4" stroke="#f2fbff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          <div class="status-filter">
+            <span>全部等级</span>
+            <svg class="filter-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c1c1c1" stroke-width="1.5">
+              <polyline points="4 6 8 10 12 6" />
             </svg>
           </div>
-          <span class="page-info-label">共 {{ alertTableData.length }} 条数据</span>
+          <button class="query-btn">查询</button>
         </div>
-        <div class="page-controls">
-          <div class="page-btn" :class="{ 'page-btn--disabled': currentPage <= 1 }" @click="prevPage">上一页</div>
-          <div
-            v-for="p in totalPages"
-            :key="p"
-            class="page-btn page-btn--num"
-            :class="{ 'page-btn--active': p === currentPage }"
-            @click="currentPage = p"
-          >{{ p }}</div>
-          <div class="page-btn" :class="{ 'page-btn--disabled': currentPage >= totalPages }" @click="nextPage">下一页</div>
+
+        <!-- 数据表格 -->
+        <div class="table-wrapper">
+          <!-- 表头 -->
+          <div class="table-header">
+            <div class="th th-status">
+              <span>预警等级</span>
+              <div class="sort-icons">
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+              </div>
+            </div>
+            <div class="th th-name">商户名称</div>
+            <div class="th th-category">
+              <span>预警类型</span>
+              <div class="sort-icons">
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+              </div>
+            </div>
+            <div class="th th-time">
+              <span>预警时间</span>
+              <div class="sort-icons">
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
+                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
+              </div>
+            </div>
+            <div class="th th-action">操作</div>
+          </div>
+          <!-- 表体 -->
+          <div class="table-body">
+            <div v-for="(row, idx) in paginatedRows" :key="idx" class="table-row">
+              <div class="td td-status">
+                <span class="status-tag" :class="row.level === 'high' ? 'status-tag--danger' : row.level === 'medium' ? 'status-tag--warning' : 'status-tag--normal'">
+                  {{ row.level === 'high' ? '高风险' : row.level === 'medium' ? '中风险' : '低风险' }}
+                </span>
+              </div>
+              <div class="td td-name">{{ row.name }}</div>
+              <div class="td td-category">{{ row.type }}</div>
+              <div class="td td-time">{{ row.alertTime }}</div>
+              <div class="td td-action">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="action-icon">
+                  <circle cx="3" cy="3" r="1.5" />
+                  <circle cx="3" cy="8" r="1.5" />
+                  <circle cx="3" cy="13" r="1.5" />
+                  <line x1="7" y1="3" x2="14" y2="3" />
+                  <line x1="7" y1="8" x2="14" y2="8" />
+                  <line x1="7" y1="13" x2="11" y2="13" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分页栏 -->
+        <div class="pagination">
+          <div class="page-info">
+            <span class="page-info-label">每页显示</span>
+            <div class="page-size-select">
+              <span>10 条</span>
+              <svg class="page-size-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#f2fbff" stroke-width="1.5">
+                <polyline points="4 6 8 10 12 6" />
+              </svg>
+            </div>
+            <span class="page-info-label">共 {{ tableRows.length }} 条数据</span>
+          </div>
+          <div class="page-controls">
+            <button class="page-btn page-btn--nav" :disabled="currentPage <= 1" @click="prevPage">上一页</button>
+            <button
+              v-for="p in totalPages"
+              :key="p"
+              class="page-btn page-btn--num"
+              :class="{ 'page-btn--active': p === currentPage }"
+              @click="currentPage = p"
+            >{{ p }}</button>
+            <button class="page-btn page-btn--nav" :disabled="currentPage >= totalPages" @click="nextPage">下一页</button>
+          </div>
         </div>
       </div>
     </div>
-      </div>
-    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { PieChart } from 'echarts/charts'
@@ -178,7 +205,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 use([CanvasRenderer, PieChart])
 
 // ===== 环形图 =====
-const disposalRingOption = computed(() => ({
+const handleRateRingOption = computed(() => ({
   series: [
     {
       type: 'pie',
@@ -190,76 +217,110 @@ const disposalRingOption = computed(() => ({
       labelLine: { show: false },
       emphasis: { disabled: true },
       data: [
-        { value: 67, name: '已处置', itemStyle: { color: '#148DFF' } },
-        { value: 33, name: '未处置', itemStyle: { color: '#0151A4' } },
+        { value: 80, name: '已处理', itemStyle: { color: '#148DFF' } },
+        { value: 20, name: '未处理', itemStyle: { color: '#0151A4' } },
       ],
     },
   ],
 }))
 
-// ===== 最新告警动态（时间轴） =====
-interface AlertTimelineItem {
+// ===== 实时预警动态（时间轴） =====
+interface DynamicTimelineItem {
+  id: number
   time: string
-  shop: string
-  alert: string
-  level: 'danger' | 'warning' | 'normal'
+  name: string
+  action: string
+  level: 'high' | 'medium' | 'low'
 }
 
-const alertTimeline: AlertTimelineItem[] = [
-  { time: '2025-10-14 16:45', shop: '沸腾鱼庄', alert: '烟感设备触发火灾报警', level: 'danger' },
-  { time: '2025-10-14 16:30', shop: '湘味土菜馆', alert: '燃气浓度超标预警', level: 'danger' },
-  { time: '2025-10-14 15:20', shop: '李记烧烤', alert: '电气线路温度过高', level: 'warning' },
-  { time: '2025-10-14 14:10', shop: 'XX餐饮店', alert: '消防通道堵塞告警', level: 'warning' },
-  { time: '2025-10-14 13:05', shop: '飞越网吧', alert: '烟感设备离线告警', level: 'warning' },
-  { time: '2025-10-14 11:45', shop: '老四川火锅城', alert: '烟雾浓度异常预警', level: 'danger' },
-  { time: '2025-10-14 10:30', shop: '金冠蛋糕坊', alert: '配电箱温度异常', level: 'normal' },
-  { time: '2025-10-14 10:15', shop: '星光台球室', alert: '应急照明设备故障', level: 'normal' },
-  { time: '2025-10-14 09:40', shop: '永辉电器维修', alert: '商铺用电负荷过载', level: 'warning' },
-  { time: '2025-10-14 09:00', shop: '好邻居超市', alert: '消防栓水压偏低告警', level: 'normal' },
-  { time: '2025-10-13 17:30', shop: '顺风货运站', alert: '仓库温感异常报警', level: 'danger' },
-  { time: '2025-10-13 16:20', shop: '老味道面馆', alert: '可燃气体泄漏检测', level: 'danger' },
-]
+const shopPool = ['盛邦木业', '南湖校区', '江南商贸城', '东北饭庄', '柳州螺蛳粉', '沸腾鱼庄', '湘味土菜馆', '李记烧烤']
+const highActionPool = ['触发消防隐患预警', '燃气泄漏预警', '电气线路异常预警']
+const mediumActionPool = ['食品安全预警', '证照到期预警', '人员密集预警', '设备故障预警']
+const lowActionPool = ['环境卫生预警', '人员流动预警', '投诉举报预警', '天气影响预警']
+
+const dynamicList = ref<DynamicTimelineItem[]>([])
+
+let nextId = 1
+function generateTimelineItem(): DynamicTimelineItem {
+  const now = new Date()
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  const hh = String(now.getHours()).padStart(2, '0')
+  const m = String(now.getMinutes()).padStart(2, '0')
+  const ss = String(now.getSeconds()).padStart(2, '0')
+
+  const rand = Math.random()
+  let level: 'high' | 'medium' | 'low'
+  let action: string
+  if (rand < 0.2) {
+    level = 'high'
+    action = highActionPool[Math.floor(Math.random() * highActionPool.length)]
+  } else if (rand < 0.6) {
+    level = 'medium'
+    action = mediumActionPool[Math.floor(Math.random() * mediumActionPool.length)]
+  } else {
+    level = 'low'
+    action = lowActionPool[Math.floor(Math.random() * lowActionPool.length)]
+  }
+
+  return {
+    id: nextId++,
+    time: `${now.getFullYear()}-${mm}-${dd} ${hh}:${m}:${ss}`,
+    name: shopPool[Math.floor(Math.random() * shopPool.length)],
+    action,
+    level,
+  }
+}
+
+// 初始化几条历史记录
+function initTimeline() {
+  dynamicList.value = Array.from({ length: 6 }, () => generateTimelineItem())
+}
+
+let timelineTimer: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  initTimeline()
+  // 不定时插入新记录（4-8 秒随机间隔）
+  function scheduleNext() {
+    const delay = 4000 + Math.random() * 4000
+    timelineTimer = setTimeout(() => {
+      dynamicList.value.unshift(generateTimelineItem())
+      // 保留最近 50 条
+      if (dynamicList.value.length > 50) {
+        dynamicList.value.length = 50
+      }
+      scheduleNext()
+    }, delay)
+  }
+  scheduleNext()
+})
+
+onBeforeUnmount(() => {
+  if (timelineTimer) {
+    clearTimeout(timelineTimer)
+    timelineTimer = null
+  }
+})
 
 // ===== 表格数据 =====
-interface AlertTableRow {
-  level: string
-  content: string
-  shop: string
-  time: string
-}
-
-const alertTableData: AlertTableRow[] = [
-  { level: '一级', content: '烟感设备触发火灾报警', shop: '沸腾鱼庄', time: '2025-10-14 16:45' },
-  { level: '一级', content: '燃气浓度严重超标', shop: '湘味土菜馆', time: '2025-10-14 16:30' },
-  { level: '一级', content: '烟雾浓度异常预警', shop: '老四川火锅城', time: '2025-10-14 11:45' },
-  { level: '二级', content: '电气线路温度过高', shop: '李记烧烤', time: '2025-10-14 15:20' },
-  { level: '二级', content: '消防通道堵塞告警', shop: 'XX餐饮店', time: '2025-10-14 14:10' },
-  { level: '二级', content: '烟感设备离线告警', shop: '飞越网吧', time: '2025-10-14 13:05' },
-  { level: '二级', content: '商铺用电负荷过载', shop: '永辉电器维修', time: '2025-10-14 09:40' },
-  { level: '三级', content: '配电箱温度异常', shop: '金冠蛋糕坊', time: '2025-10-14 10:30' },
-  { level: '三级', content: '应急照明设备故障', shop: '星光台球室', time: '2025-10-14 10:15' },
-  { level: '三级', content: '消防栓水压偏低', shop: '好邻居超市', time: '2025-10-14 09:00' },
-  { level: '一级', content: '仓库温感异常报警', shop: '顺风货运站', time: '2025-10-13 17:30' },
-  { level: '一级', content: '可燃气体泄漏检测', shop: '老味道面馆', time: '2025-10-13 16:20' },
-  { level: '二级', content: '灭火器压力不足告警', shop: '李记烧烤', time: '2025-10-13 14:30' },
-  { level: '三级', content: '监控摄像头离线', shop: '好旺角餐厅', time: '2025-10-13 11:00' },
-  { level: '二级', content: '后厨动火离人告警', shop: '小辣椒火锅', time: '2025-10-13 10:15' },
+const tableRows = [
+  { name: '盛邦木业', type: '消防隐患', alertTime: '2025-10-15 08:30', level: 'high' },
+  { name: '南湖校区', type: '食品安全', alertTime: '2025-10-15 09:15', level: 'medium' },
+  { name: '江南商贸城', type: '设备故障', alertTime: '2025-10-15 10:00', level: 'high' },
+  { name: '东北饭庄', type: '环境卫生', alertTime: '2025-10-14 14:20', level: 'low' },
+  { name: '柳州螺蛳粉', type: '证照过期', alertTime: '2025-10-14 11:10', level: 'medium' },
+  { name: '沸腾鱼庄', type: '人员流动', alertTime: '2025-10-14 09:45', level: 'low' },
 ]
 
-function levelClass(level: string) {
-  if (level === '一级') return 'level-tag--danger'
-  if (level === '二级') return 'level-tag--warning'
-  return 'level-tag--normal'
-}
-
-const pageSize = ref(5)
+const pageSize = ref(10)
 const currentPage = ref(1)
 
-const totalPages = computed(() => Math.max(1, Math.ceil(alertTableData.length / pageSize.value)))
+const totalPages = computed(() => Math.max(1, Math.ceil(tableRows.length / pageSize.value)))
 
 const paginatedRows = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return alertTableData.slice(start, start + pageSize.value)
+  return tableRows.slice(start, start + pageSize.value)
 })
 
 function prevPage() {
@@ -274,57 +335,59 @@ function nextPage() {
 <style scoped>
 /* ===== 容器 ===== */
 .alert-center {
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   overflow: hidden;
 }
 
 /* ===== 内容区：左右分栏 ===== */
 .content-area {
+  width: 100%;
   flex: 1;
   display: flex;
-  gap: 24px;
+  gap: calc(48 * var(--w));
   min-height: 0;
   overflow: hidden;
+  padding: calc(18 * var(--h)) calc(18 * var(--w));
 }
 
 /* ===== 左侧面板 ===== */
 .left-panel {
   flex-shrink: 0;
+  width: calc(423 * var(--w));
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 12px;
+  gap: calc(32 * var(--h));
+  padding: calc(12 * var(--h)) 0;
   height: 100%;
   min-height: 0;
-  min-width: 0;
-  overflow-y: auto;
+  overflow: hidden auto;
 }
 
-.left-panel::-webkit-scrollbar { width: 2px; }
+.left-panel::-webkit-scrollbar { width: 4px; }
 .left-panel::-webkit-scrollbar-track { background: transparent; }
-.left-panel::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+.left-panel::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
 
 .panel-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: calc(12 * var(--h));
   flex-shrink: 0;
 }
 
-.panel-section--flex {
+.panel-section--grow {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-/* 小节标题 */
+/* ===== 小节标题（蓝色竖条 + 文字） ===== */
 .section-title {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: calc(12 * var(--w));
   flex-shrink: 0;
 }
 
@@ -333,47 +396,49 @@ function nextPage() {
   height: 18px;
   background: #2584ab;
   border-radius: 2px;
-  box-shadow: 0 0 6px 0 rgba(37, 132, 171, 0.36);
+  box-shadow: 0 0 6px rgba(37, 132, 171, 0.36);
   flex-shrink: 0;
 }
 
 .title-text {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 16px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(18 * var(--min-scale)), 20px);
   font-weight: 500;
-  color: #e6ecfd;
+  color: #ffffff;
   line-height: normal;
   white-space: nowrap;
 }
 
-/* ===== 告警概览 ===== */
+/* ===== 数据概览 ===== */
 .overview-body {
   display: flex;
   align-items: center;
-  gap: 46px;
+  justify-content: space-between;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .overview-metrics {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex-shrink: 0;
+  gap: calc(12 * var(--h));
+  min-width: 0;
 }
 
 /* 指标项 */
 .metric-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: calc(6 * var(--h));
   align-items: flex-start;
   flex-shrink: 0;
 }
 
 .metric-label {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 14px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: #a2acd1;
+  color: #b5d3ff;
   line-height: normal;
   white-space: nowrap;
 }
@@ -381,52 +446,61 @@ function nextPage() {
 .metric-value-row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  gap: calc(8 * var(--w));
+  line-height: 0;
 }
 
 .metric-value {
-  font-family: 'Douyin Sans', sans-serif;
-  font-size: 24px;
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(24px, calc(26 * var(--min-scale)), 28px);
   font-weight: 700;
-  line-height: normal;
   background: linear-gradient(to bottom, #ffffff, #89b5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: normal;
+}
+
+.metric-value--warning {
+  background: linear-gradient(to bottom, #ffffff, #ff3a3a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.metric-value--done {
-  background: linear-gradient(to bottom, #56f0f4, #148dff);
+.metric-value--alert {
+  background: linear-gradient(to bottom, #93c5fd, #3b82f6);
   -webkit-background-clip: text;
-  background-clip: text;
-}
-
-.metric-value--warn {
-  background: linear-gradient(to bottom, #ff6b6e, #ff3b3e);
-  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .metric-unit {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 16px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: #fff;
+  color: #b3c5f9;
   line-height: normal;
 }
 
 /* 分隔线 */
 .metric-divider {
   width: 100%;
-  height: 0;
-  border-top: 1px solid rgba(223, 251, 255, 0.16);
+  height: 1px;
+  background: linear-gradient(
+    79.92deg,
+    rgba(15, 43, 91, 0) 0%,
+    rgb(25, 82, 170) 0%,
+    rgba(22, 70, 145, 0.688) 75%,
+    rgba(15, 43, 91, 0) 100%
+  );
 }
 
 /* 三个子指标水平排列 */
 .sub-metrics-row {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: calc(36 * var(--w));
 }
 
 /* ===== 环形图区域 ===== */
@@ -434,14 +508,14 @@ function nextPage() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: calc(8 * var(--h));
   flex-shrink: 0;
 }
 
 .ring-chart-wrapper {
   position: relative;
-  width: 142px;
-  height: 142px;
+  width: calc(142 * var(--min-scale));
+  height: calc(142 * var(--min-scale));
   flex-shrink: 0;
 }
 
@@ -458,34 +532,37 @@ function nextPage() {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  gap: 4px;
+  gap: calc(4 * var(--h));
 }
 
-.ring-rate-text {
-  font-family: 'Douyin Sans', sans-serif;
-  font-size: 24px;
+.ring-label {
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
+  font-weight: 400;
+  color: #f2fbff;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.ring-value {
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(18px, calc(22 * var(--min-scale)), 26px);
   font-weight: 700;
-  background: linear-gradient(to bottom, #ffffff, #89b5ff);
+  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  line-height: normal;
 }
 
-.ring-label-text {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: #f2fbff;
-}
-
-/* ===== 最新告警动态（时间轴） ===== */
+/* ===== 实时预警动态（时间轴） ===== */
 .timeline-list {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0;
   overflow-y: auto;
-  padding: 6px 6px 6px 0;
+  padding: calc(6 * var(--h)) calc(6 * var(--w)) calc(6 * var(--h)) 0;
   min-height: 0;
 }
 
@@ -495,8 +572,8 @@ function nextPage() {
 
 .timeline-item {
   display: flex;
-  gap: 12px;
-  min-height: 60px;
+  gap: calc(12 * var(--w));
+  min-height: calc(60 * var(--h));
 }
 
 /* 时间轴线 */
@@ -505,25 +582,15 @@ function nextPage() {
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  width: 20px;
+  width: calc(20 * var(--w));
 }
 
 .timeline-dot {
-  width: 10px;
-  height: 10px;
+  width: calc(10 * var(--min-scale));
+  height: calc(10 * var(--min-scale));
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 6px;
-}
-
-.timeline-dot--danger {
-  background: #ff4e51;
-  box-shadow: 0 0 8px rgba(255, 78, 81, 0.6);
-}
-
-.timeline-dot--warning {
-  background: #f59e0b;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  margin-top: calc(6 * var(--h));
 }
 
 .timeline-dot--normal {
@@ -531,11 +598,21 @@ function nextPage() {
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }
 
+.timeline-dot--warning {
+  background: #ffc107;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+}
+
+.timeline-dot--danger {
+  background: #ff3a3a;
+  box-shadow: 0 0 8px rgba(255, 58, 58, 0.6);
+}
+
 .timeline-connector {
   width: 1px;
   flex: 1;
   background: rgba(71, 132, 232, 0.2);
-  margin-top: 4px;
+  margin-top: calc(4 * var(--h));
 }
 
 /* 时间轴内容 */
@@ -544,8 +621,8 @@ function nextPage() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-bottom: 14px;
+  gap: calc(4 * var(--h));
+  padding-bottom: calc(14 * var(--h));
 }
 
 .timeline-header {
@@ -554,7 +631,7 @@ function nextPage() {
 }
 
 .timeline-time {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 12px;
   font-weight: 400;
   color: #a9b0c5;
@@ -564,13 +641,13 @@ function nextPage() {
 .timeline-body {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6 * var(--w));
   flex-wrap: wrap;
 }
 
 .timeline-shop {
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 15px;
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
   font-weight: 500;
   color: #d6e3ff;
   line-height: normal;
@@ -583,8 +660,8 @@ function nextPage() {
 }
 
 .timeline-alert {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 15px);
   font-weight: 400;
   color: #a9b0c5;
   line-height: 1.4;
@@ -592,38 +669,51 @@ function nextPage() {
   min-width: 0;
 }
 
+/* ===== 右侧面板 ===== */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--h));
+  padding: calc(12 * var(--h)) 0;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* ===== 搜索/筛选栏 ===== */
 .search-bar {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: calc(18 * var(--w));
   flex-shrink: 0;
 }
 
 .search-input {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 203px;
-  height: 36px;
-  padding: 4px 12px;
-  background: rgba(3, 74, 173, 0.5);
-  border: 1px solid rgba(0, 184, 219, 0.3);
+  gap: calc(12 * var(--w));
+  height: calc(36 * var(--h));
+  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  background: rgba(3, 74, 173, 0);
+  border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
+  width: calc(203 * var(--w));
 }
 
-.search-icon {
-  width: 16px;
-  height: 16px;
+.search-icon-svg {
   flex-shrink: 0;
 }
 
 .search-placeholder {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  color: #ababab;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-weight: 400;
+  color: #c1c1c1;
+  line-height: normal;
   white-space: nowrap;
 }
 
@@ -631,19 +721,21 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 36px;
-  width: 140px;
-  padding: 1px 13px;
-  background: rgba(3, 74, 173, 0.5);
-  border: 1px solid rgba(0, 184, 219, 0.3);
+  height: calc(36 * var(--h));
+  width: calc(140 * var(--w));
+  padding: 1px calc(13 * var(--w));
+  background: rgba(3, 74, 173, 0);
+  border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .status-filter span {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  color: #b8b8b8;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-weight: 400;
+  color: #c1c1c1;
   line-height: 20px;
   white-space: nowrap;
 }
@@ -658,32 +750,20 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  padding: 8px 18px;
+  height: calc(36 * var(--h));
+  padding: calc(8 * var(--h)) calc(18 * var(--w));
   background: #0095ff;
+  border: none;
   border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 500;
-  color: #fff;
+  color: #ffffff;
   text-align: center;
   line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
-}
-
-/* ===== 右侧面板 ===== */
-.right-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
 }
 
 /* ===== 数据表格 ===== */
@@ -696,12 +776,13 @@ function nextPage() {
   min-height: 0;
 }
 
+/* 表头 */
 .table-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
-  background: #034aad;
+  gap: calc(6 * var(--w));
+  padding: calc(8 * var(--h)) calc(6 * var(--w));
+  background: #0457a7;
   flex-shrink: 0;
 }
 
@@ -709,21 +790,21 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: calc(6 * var(--w));
   height: 21px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 500;
-  color: #cecece;
+  color: #bcd9ff;
   line-height: 21px;
   white-space: nowrap;
 }
 
-.th-level { width: 118px; flex-shrink: 0; }
-.th-content { flex: 1; min-width: 0; }
-.th-shop { flex: 1; min-width: 0; }
+.th-status { width: calc(118 * var(--w)); flex-shrink: 0; }
+.th-name { flex: 1; min-width: 0; justify-content: flex-start; }
+.th-category { flex: 1; min-width: 0; }
 .th-time { flex: 1; min-width: 0; }
-.th-action { width: 48px; flex-shrink: 0; }
+.th-action { width: calc(48 * var(--w)); flex-shrink: 0; }
 
 .sort-icons {
   display: flex;
@@ -735,12 +816,11 @@ function nextPage() {
   flex-shrink: 0;
 }
 
-.sort-arrow {
-  width: 12px;
-  height: 12px;
+.sort-icons svg {
+  display: block;
 }
 
-.sort-arrow--down {
+.sort-icons svg:last-child {
   margin-top: -4px;
 }
 
@@ -753,16 +833,16 @@ function nextPage() {
   min-height: 0;
 }
 
-.table-body::-webkit-scrollbar { width: 2px; }
+.table-body::-webkit-scrollbar { width: 4px; }
 .table-body::-webkit-scrollbar-track { background: transparent; }
-.table-body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+.table-body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
 
 .table-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 6px;
-  border-top: 1px solid rgba(223, 251, 255, 0.16);
+  gap: calc(6 * var(--w));
+  padding: 0 calc(6 * var(--w));
+  border-top: 1px solid rgba(168, 178, 255, 0.08);
   flex-shrink: 0;
 }
 
@@ -770,55 +850,58 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 0;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  padding: calc(10 * var(--h)) 0;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
   color: #f2fbff;
   line-height: 21px;
 }
 
-.td-level { width: 118px; flex-shrink: 0; }
-.td-content { flex: 1; min-width: 0; justify-content: flex-start; }
-.td-shop { flex: 1; min-width: 0; }
+.td-status { width: calc(118 * var(--w)); flex-shrink: 0; }
+.td-name { flex: 1; min-width: 0; justify-content: flex-start; }
+.td-category { flex: 1; min-width: 0; }
 .td-time { flex: 1; min-width: 0; }
-.td-action { width: 48px; flex-shrink: 0; }
+.td-action { width: calc(48 * var(--w)); flex-shrink: 0; }
 
-/* 级别标签 */
-.level-tag {
-  display: flex;
+/* 状态标签 */
+.status-tag {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 6px;
+  padding: calc(2 * var(--h)) calc(6 * var(--w));
   border-radius: 4px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 12px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 500;
   line-height: 18px;
   text-align: center;
   white-space: nowrap;
 }
 
-.level-tag--danger {
-  background: rgba(254, 151, 151, 0.625);
-  color: #ff6b6e;
+.status-tag--danger {
+  background: rgba(255, 58, 58, 0.2);
+  color: #ff3a3a;
 }
 
-.level-tag--warning {
-  background: rgba(255, 180, 0, 0.3);
-  color: #ffb400;
+.status-tag--warning {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
 }
 
-.level-tag--normal {
-  background: rgba(0, 184, 219, 0.3);
-  color: #56f0f4;
+.status-tag--normal {
+  background: rgba(0, 84, 219, 0.2);
+  color: #0072ff;
 }
 
-.action-link {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
-  color: #3cd3d7;
+.action-icon {
+  color: rgba(137, 181, 255, 0.6);
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.action-icon:hover {
+  color: #3cd3d7;
 }
 
 /* ===== 分页栏 ===== */
@@ -826,20 +909,20 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 calc(12 * var(--w));
   flex-shrink: 0;
 }
 
 .page-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 36px;
+  gap: calc(12 * var(--w));
+  height: calc(36 * var(--h));
 }
 
 .page-info-label {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
   color: #f2fbff;
   line-height: 21px;
@@ -850,17 +933,18 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 36px;
-  width: 82px;
-  padding: 1px 13px;
-  background: rgba(3, 74, 173, 0.5);
-  border: 1px solid rgba(0, 184, 219, 0.3);
+  height: calc(36 * var(--h));
+  width: calc(82 * var(--w));
+  padding: 1px calc(13 * var(--w));
+  background: rgba(3, 74, 173, 0);
+  border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
+  cursor: pointer;
 }
 
 .page-size-select span {
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
   color: #f2fbff;
   line-height: 20px;
@@ -876,7 +960,7 @@ function nextPage() {
 .page-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(8 * var(--w));
   height: 32px;
 }
 
@@ -884,35 +968,40 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 10px;
-  background: #0165b2;
+  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  background: none;
+  border: none;
   border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', sans-serif;
-  font-size: 14px;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
   font-weight: 500;
-  color: #fff;
+  color: #ffffff;
   line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
 }
 
+.page-btn--nav {
+  background: rgba(1, 101, 178, 0.3);
+}
+
+.page-btn--nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .page-btn--num {
   width: 32px;
   height: 32px;
   padding: 0;
-  background: rgba(3, 74, 173, 0.5);
-  color: #00a4db;
+  background: transparent;
+  color: #bebebe;
 }
 
 .page-btn--active {
   background: rgba(32, 92, 194, 0.56);
-  border: 1px solid rgba(0, 184, 219, 0.3);
-  color: #00d6ff;
-}
-
-.page-btn--disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+  border: 1px solid rgba(0, 84, 201, 0.67);
+  color: #f2fbff;
 }
 </style>
