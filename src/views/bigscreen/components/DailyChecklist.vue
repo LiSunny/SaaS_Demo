@@ -107,14 +107,18 @@ const records = [
   align-items: center;
 }
 .dc-sum-label {
-  font-size: clamp(8px, calc(12 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(15 * var(--min-scale)), 16px);
   color: rgba(137, 181, 255, 0.5);
 }
 .dc-sum-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(12px, calc(20 * var(--min-scale)), 24px);
   font-weight: 700;
-  color: #89b5ff;
+  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: normal;
 }
 .dc-sum-dot {
   width: calc(14 * var(--min-scale));

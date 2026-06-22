@@ -732,9 +732,9 @@ const statTableData = [
 
 .page-seg__item {
   flex-shrink: 0;
-  padding: calc(8 * var(--h)) calc(12 * var(--w));
+  padding: calc(12 * var(--h)) calc(18 * var(--w));
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(13px, calc(16 * var(--min-scale)), 18px);
+  font-size: clamp(15px, calc(18 * var(--min-scale)), 18px);
   font-weight: 700;
   text-align: center;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
@@ -823,7 +823,7 @@ const statTableData = [
 
 .safety-stats-panel__title {
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(10px, calc(13 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;
   color: #89b5ff;
   margin-bottom: calc(8 * var(--h));
@@ -847,19 +847,19 @@ const statTableData = [
 
 .safety-stats-panel__label {
   flex: 1;
-  font-size: clamp(8px, calc(11 * var(--min-scale)), 13px);
+  font-size: clamp(14px, calc(15 * var(--min-scale)), 16px);
   color: rgba(224, 234, 250, 0.8);
   white-space: nowrap;
 }
 
 .safety-stats-panel__value {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(10px, calc(14 * var(--min-scale)), 17px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;
 }
 
 .safety-stats-panel__unit {
-  font-size: clamp(8px, calc(11 * var(--min-scale)), 13px);
+  font-size: clamp(14px, calc(15 * var(--min-scale)), 16px);
   color: rgba(137, 181, 255, 0.5);
 }
 
@@ -894,7 +894,7 @@ const statTableData = [
 }
 
 .safety-legend__text {
-  font-size: clamp(7px, calc(10 * var(--min-scale)), 13px);
+  font-size: clamp(14px, calc(15 * var(--min-scale)), 16px);
   color: rgba(224, 234, 250, 0.85);
   white-space: nowrap;
 }

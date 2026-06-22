@@ -28,21 +28,21 @@
                 <div class="metric-item">
                   <span class="metric-label">已完成</span>
                   <div class="metric-value-row">
-                    <span class="metric-value">60</span>
+                    <span class="metric-value metric-value--alert">60</span>
                     <span class="metric-unit">项</span>
                   </div>
                 </div>
                 <div class="metric-item">
                   <span class="metric-label">未完成</span>
                   <div class="metric-value-row">
-                    <span class="metric-value">8</span>
+                    <span class="metric-value metric-value--warning">8</span>
                     <span class="metric-unit">项</span>
                   </div>
                 </div>
                 <div class="metric-item">
                   <span class="metric-label">累计逾期</span>
                   <div class="metric-value-row">
-                    <span class="metric-value">8</span>
+                    <span class="metric-value metric-value--warning">8</span>
                     <span class="metric-unit">项</span>
                   </div>
                 </div>
@@ -50,28 +50,12 @@
             </div>
             <!-- 右侧环形图 + 履职率 -->
             <div class="overview-ring">
-              <svg class="ring-svg" viewBox="0 0 142 142">
-                <circle cx="71" cy="71" r="60" fill="none" stroke="#003063" stroke-width="12" />
-                <circle
-                  cx="71" cy="71" r="60"
-                  fill="none"
-                  stroke="url(#complianceRingGrad)"
-                  stroke-width="12"
-                  stroke-linecap="round"
-                  stroke-dasharray="377"
-                  stroke-dashoffset="38"
-                  transform="rotate(-90 71 71)"
-                />
-                <defs>
-                  <linearGradient id="complianceRingGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="9.38%" stop-color="#205CA9" />
-                    <stop offset="90.5%" stop-color="#0072FF" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-center-text">
-                <span class="ring-label">今日履职率</span>
-                <span class="ring-value">90%</span>
+              <div class="ring-chart-wrapper">
+                <v-chart :option="rateRingOption" autoresize />
+                <div class="ring-center-text">
+                  <span class="ring-label">今日履职率</span>
+                  <span class="ring-value">90%</span>
+                </div>
               </div>
             </div>
           </div>
@@ -106,11 +90,24 @@
             <div class="title-bar" />
             <span class="title-text">实时动态</span>
           </div>
-          <div class="feed-list">
-            <div v-for="(item, idx) in dynamicList" :key="idx" class="feed-row">
-              <span class="feed-shop">{{ item.name }}</span>
-              <span class="feed-action">{{ item.action }}</span>
-              <span class="feed-time">{{ item.time }}</span>
+          <div class="timeline-list">
+            <div v-for="(item, index) in dynamicList" :key="item.id" class="timeline-item">
+              <!-- 时间轴线和圆点 -->
+              <div class="timeline-line">
+                <div class="timeline-dot timeline-dot--normal" />
+                <div v-if="index < dynamicList.length - 1" class="timeline-connector" />
+              </div>
+              <!-- 内容 -->
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="timeline-time">{{ item.time }}</span>
+                </div>
+                <div class="timeline-body">
+                  <span class="timeline-shop">{{ item.name }}</span>
+                  <span class="timeline-sep">·</span>
+                  <span class="timeline-alert">{{ item.action }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -169,7 +166,7 @@
             <div v-for="(row, idx) in paginatedRows" :key="idx" class="table-row">
               <div class="td td-status">
                 <span class="status-tag" :class="row.status === 'warning' ? 'status-tag--warning' : 'status-tag--normal'">
-                  {{ row.status === 'warning' ? '预警' : '正常' }}
+                  {{ row.status === 'warning' ? '未履职' : '已履职' }}
                 </span>
               </div>
               <div class="td td-name">{{ row.name }}</div>
@@ -219,7 +216,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import VChart from 'vue-echarts'
+import { use } from 'echarts/core'
+import { PieChart } from 'echarts/charts'
+import { CanvasRenderer } from 'echarts/renderers'
+
+use([CanvasRenderer, PieChart])
+
+// ===== 环形图 =====
+const rateRingOption = computed(() => ({
+  series: [
+    {
+      type: 'pie',
+      radius: ['65%', '85%'],
+      center: ['50%', '50%'],
+      startAngle: 90,
+      silent: true,
+      label: { show: false },
+      labelLine: { show: false },
+      emphasis: { disabled: true },
+      data: [
+        { value: 90, name: '已履职', itemStyle: { color: '#148DFF' } },
+        { value: 10, name: '未履职', itemStyle: { color: '#0151A4' } },
+      ],
+    },
+  ],
+}))
 
 // ===== 履职完成率Top5 =====
 const rankList = [
@@ -230,19 +253,71 @@ const rankList = [
   { name: '柳州螺蛳粉', rate: 50 },
 ]
 
-// ===== 实时动态 =====
-const dynamicList = [
-  { name: '沙县小吃', action: '完成每日履职打卡', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日履职打卡', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日履职打卡', time: '2025-09-10 13:24' },
-  { name: '沙县小吃', action: '完成每日履职打卡', time: '2025-09-10 13:24' },
-]
+// ===== 实时动态（时间轴） =====
+interface DynamicTimelineItem {
+  id: number
+  time: string
+  name: string
+  action: string
+}
+
+const shopPool = ['沙县小吃', '爱玛电动车', 'Tony美发店', '东北饭庄', '柳州螺蛳粉', '沸腾鱼庄', '湘味土菜馆', '李记烧烤']
+const actionPool = ['完成每日履职打卡', '完成安全巡检', '提交自查报告', '整改已完成', '新增隐患上报', '更新应急预案', '完成消防演练']
+
+const dynamicList = ref<DynamicTimelineItem[]>([])
+
+let nextId = 1
+function generateTimelineItem(): DynamicTimelineItem {
+  const now = new Date()
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  const hh = String(now.getHours()).padStart(2, '0')
+  const m = String(now.getMinutes()).padStart(2, '0')
+  const ss = String(now.getSeconds()).padStart(2, '0')
+  return {
+    id: nextId++,
+    time: `${now.getFullYear()}-${mm}-${dd} ${hh}:${m}:${ss}`,
+    name: shopPool[Math.floor(Math.random() * shopPool.length)],
+    action: actionPool[Math.floor(Math.random() * actionPool.length)],
+  }
+}
+
+// 初始化几条历史记录
+function initTimeline() {
+  dynamicList.value = Array.from({ length: 6 }, () => generateTimelineItem())
+}
+
+let timelineTimer: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  initTimeline()
+  // 不定时插入新记录（4-8 秒随机间隔）
+  function scheduleNext() {
+    const delay = 4000 + Math.random() * 4000
+    timelineTimer = setTimeout(() => {
+      dynamicList.value.unshift(generateTimelineItem())
+      // 保留最近 50 条
+      if (dynamicList.value.length > 50) {
+        dynamicList.value.length = 50
+      }
+      scheduleNext()
+    }, delay)
+  }
+  scheduleNext()
+})
+
+onBeforeUnmount(() => {
+  if (timelineTimer) {
+    clearTimeout(timelineTimer)
+    timelineTimer = null
+  }
+})
 
 // ===== 表格数据 =====
 const tableRows = [
-  { name: '盛邦木业', category: '木材加工', reportTime: '2025-10-14 09:00', status: 'warning' },
-  { name: '南湖校区', category: '物业', reportTime: '2025-10-14 09:00', status: 'warning' },
-  { name: '江南商贸城', category: '商业', reportTime: '2025-10-14 09:00', status: 'warning' },
+  { name: '盛邦木业', category: '木材加工', reportTime: '----', status: 'warning' },
+  { name: '南湖校区', category: '物业', reportTime: '-----', status: 'warning' },
+  { name: '江南商贸城', category: '商业', reportTime: '----', status: 'warning' },
   { name: '生产计划执行与分配', category: '2025-10-14 09:00', reportTime: '2025-10-14 09:00', status: 'normal' },
   { name: '生产计划执行与分配', category: '2025-10-14 09:00', reportTime: '2025-10-14 09:00', status: 'normal' },
   { name: '生产计划执行与分配', category: '2025-10-14 09:00', reportTime: '2025-10-14 09:00', status: 'normal' },
@@ -280,10 +355,10 @@ function nextPage() {
 .content-area {
   flex: 1;
   display: flex;
-  gap: calc(24 * var(--w));
+  gap: calc(48 * var(--w));
   min-height: 0;
   overflow: hidden;
-  padding: calc(12 * var(--h)) calc(12 * var(--w));
+  padding: calc(18 * var(--h)) calc(18 * var(--w));
 }
 
 /* ===== 左侧面板 ===== */
@@ -292,11 +367,11 @@ function nextPage() {
   width: calc(423 * var(--w));
   display: flex;
   flex-direction: column;
-  gap: calc(18 * var(--h));
+  gap: calc(32 * var(--h));
   padding: calc(12 * var(--h)) 0;
   height: 100%;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden auto;
 }
 
 .left-panel::-webkit-scrollbar { width: 4px; }
@@ -306,7 +381,7 @@ function nextPage() {
 .panel-section {
   display: flex;
   flex-direction: column;
-  gap: calc(18 * var(--h));
+  gap: calc(12 * var(--h));
   flex-shrink: 0;
 }
 
@@ -335,7 +410,7 @@ function nextPage() {
 
 .title-text {
   font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(13px, calc(16 * var(--min-scale)), 18px);
+  font-size: clamp(14px, calc(18 * var(--min-scale)), 20px);
   font-weight: 500;
   color: #ffffff;
   line-height: normal;
@@ -346,30 +421,32 @@ function nextPage() {
 .overview-body {
   display: flex;
   align-items: center;
-  gap: calc(46 * var(--w));
+  justify-content: space-between;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .overview-metrics {
   display: flex;
   flex-direction: column;
-  gap: calc(18 * var(--h));
-  flex-shrink: 0;
+  gap: calc(12 * var(--h));
+  min-width: 0;
 }
 
 /* 指标项（Figama: 左对齐, gap label→value = 8px） */
 .metric-item {
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: calc(6 * var(--h));
   align-items: flex-start;
   flex-shrink: 0;
 }
 
 .metric-label {
   font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: #f2fbff;
+  color: #b5d3ff;
   line-height: normal;
   white-space: nowrap;
 }
@@ -383,17 +460,34 @@ function nextPage() {
 
 .metric-value {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(18px, calc(22 * var(--min-scale)), 26px);
+  font-size: clamp(24px, calc(26 * var(--min-scale)), 28px);
   font-weight: 700;
-  color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #89b5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   line-height: normal;
+}
+
+.metric-value--warning {
+  background: linear-gradient(to bottom, #ffffff, #ff3a3a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.metric-value--alert {
+  background: linear-gradient(to bottom, #93c5fd, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .metric-unit {
   font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: #ffffff;
+  color: #b3c5f9;
   line-height: normal;
 }
 
@@ -419,32 +513,39 @@ function nextPage() {
 
 /* ===== 环形图区域 ===== */
 .overview-ring {
-  display: grid;
-  grid-template-columns: max-content;
-  grid-template-rows: max-content;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.ring-svg {
-  grid-column: 1;
-  grid-row: 1;
-  width: calc(142 * var(--min-scale));
-  height: calc(142 * var(--min-scale));
-}
-
-.ring-center-text {
-  grid-column: 1;
-  grid-row: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: calc(8 * var(--h));
+  flex-shrink: 0;
+}
+
+.ring-chart-wrapper {
+  position: relative;
+  width: calc(142 * var(--min-scale));
+  height: calc(142 * var(--min-scale));
+  flex-shrink: 0;
+}
+
+.ring-chart-wrapper :deep(.echarts) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ring-center-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  gap: calc(4 * var(--h));
 }
 
 .ring-label {
   font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(10px, calc(13 * var(--min-scale)), 15px);
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
   font-weight: 400;
   color: #f2fbff;
   line-height: normal;
@@ -549,58 +650,108 @@ function nextPage() {
   line-height: normal;
 }
 
-/* ===== 实时动态 ===== */
-.feed-list {
+/* ===== 实时动态（时间轴） ===== */
+.timeline-list {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: 0;
   overflow-y: auto;
-  padding: calc(6 * var(--h)) 0;
+  padding: calc(6 * var(--h)) calc(6 * var(--w)) calc(6 * var(--h)) 0;
   min-height: 0;
 }
 
-.feed-list::-webkit-scrollbar { width: 4px; }
-.feed-list::-webkit-scrollbar-track { background: transparent; }
-.feed-list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
+.timeline-list::-webkit-scrollbar { width: 2px; }
+.timeline-list::-webkit-scrollbar-track { background: transparent; }
+.timeline-list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
 
-.feed-row {
+.timeline-item {
+  display: flex;
+  gap: calc(12 * var(--w));
+  min-height: calc(60 * var(--h));
+}
+
+/* 时间轴线 */
+.timeline-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: calc(20 * var(--w));
+}
+
+.timeline-dot {
+  width: calc(10 * var(--min-scale));
+  height: calc(10 * var(--min-scale));
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: calc(6 * var(--h));
+}
+
+.timeline-dot--normal {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+.timeline-connector {
+  width: 1px;
+  flex: 1;
+  background: rgba(71, 132, 232, 0.2);
+  margin-top: calc(4 * var(--h));
+}
+
+/* 时间轴内容 */
+.timeline-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--h));
+  padding-bottom: calc(14 * var(--h));
+}
+
+.timeline-header {
   display: flex;
   align-items: center;
-  padding: calc(6 * var(--h)) 0;
-  flex-shrink: 0;
 }
 
-.feed-shop {
-  flex: 1;
-  min-width: 0;
+.timeline-time {
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
+  font-size: 12px;
   font-weight: 400;
-  color: #f1f1f1;
+  color: #a9b0c5;
   line-height: normal;
 }
 
-.feed-action {
-  flex: 1;
-  min-width: 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #f1f1f1;
-  text-align: center;
-  line-height: normal;
+.timeline-body {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--w));
+  flex-wrap: wrap;
 }
 
-.feed-time {
+.timeline-shop {
+  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
+  font-weight: 500;
+  color: #d6e3ff;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.timeline-sep {
+  color: #a9b0c5;
+  font-size: 12px;
+}
+
+.timeline-alert {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 15px);
+  font-weight: 400;
+  color: #a9b0c5;
+  line-height: 1.4;
   flex: 1;
   min-width: 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #d8d8d8;
-  text-align: center;
-  line-height: normal;
 }
 
 /* ===== 右侧面板 ===== */
@@ -715,7 +866,7 @@ function nextPage() {
   display: flex;
   align-items: center;
   gap: calc(6 * var(--w));
-  padding: calc(6 * var(--h)) calc(6 * var(--w));
+  padding: calc(8 * var(--h)) calc(6 * var(--w));
   background: #0457a7;
   flex-shrink: 0;
 }
@@ -729,7 +880,7 @@ function nextPage() {
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 500;
-  color: #cecece;
+  color: #bcd9ff;
   line-height: 21px;
   white-space: nowrap;
 }
@@ -776,7 +927,7 @@ function nextPage() {
   align-items: center;
   gap: calc(6 * var(--w));
   padding: 0 calc(6 * var(--w));
-  border-top: 1px solid rgba(223, 251, 255, 0.16);
+  border-top: 1px solid rgba(168, 178, 255, 0.08);
   flex-shrink: 0;
 }
 

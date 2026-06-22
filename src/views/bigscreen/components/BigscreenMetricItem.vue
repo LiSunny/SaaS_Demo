@@ -75,7 +75,7 @@ withDefaults(defineProps<{
   grid-column: 1;
   grid-row: 1;
   height: calc(13 * var(--h));
-  margin-top: calc(11 * var(--h));
+  margin-top: calc(10 * var(--h));
   width: 100%;
   background: linear-gradient(
     79.92deg,
@@ -92,7 +92,7 @@ withDefaults(defineProps<{
   grid-row: 1;
   margin: 0;
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(10px, calc(15 * var(--min-scale)), 18px);
+  font-size: clamp(15px, calc(18 * var(--min-scale)), 18px);
   font-weight: 700;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
@@ -106,10 +106,13 @@ withDefaults(defineProps<{
   margin: 0;
   white-space: nowrap;
   line-height: 0;
+  display: flex;
+  align-items: baseline;
+  gap: calc(4 * var(--w));
 }
 .metric-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(12px, calc(20 * var(--min-scale)), 24px);
+  font-size: clamp(20px, calc(22 * var(--min-scale)), 24px);
   font-weight: 700;
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
