@@ -34,7 +34,7 @@
                   <img class="street-card__icon" :src="gongmaoIcon" alt="" />
                   <span class="street-card__name">{{ street.name }}</span>
                 </div>
-                <span class="street-card__detail">详情</span>
+                <span class="street-card__detail" @click.stop="viewDetail(street.name)">详情</span>
               </div>
 
               <!-- 指标网格 2 行 × 3 列 -->
@@ -171,6 +171,11 @@ const router = useRouter()
 // 放大态 - 导航到专题页面
 function toggleZoom() {
   router.push({ name: 'StreetDetail' })
+}
+
+// 点击指定商业街的“详情”，导航并带入商业街
+function viewDetail(streetName: string) {
+  router.push({ name: 'StreetDetail', query: { street: streetName } })
 }
 </script>
 

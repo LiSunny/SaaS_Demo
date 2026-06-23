@@ -5,9 +5,64 @@
 
     <!-- 内容区 -->
     <div class="page-body">
-      <!-- 标题行：标题 + 返回按钮 -->
+      <!-- 标题行：标题 + 商业街下拉选 + 返回按钮 -->
       <div class="page-header">
-        <h1 class="page-title">示范街专题</h1>
+        <div class="page-header__left">
+          <h1 class="page-title">示范街专题</h1>
+          <!-- 商业街下拉选 -->
+          <div class="street-select" v-click-outside="closeStreetDropdown">
+            <button ref="streetTriggerRef" class="street-select__trigger" @click="toggleStreetDropdown">
+              <span class="street-select__text">{{ selectedStreet.name }}</span>
+              <svg
+                class="street-select__chevron"
+                :class="{ rotated: streetDropdownOpen }"
+                width="12" height="12" viewBox="0 0 24 24" fill="none"
+              >
+                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <Teleport to="body">
+              <div v-if="streetDropdownOpen" class="street-select__overlay" @click="streetDropdownOpen = false" />
+              <div v-if="streetDropdownOpen" class="street-select__dropdown" :style="streetDropdownStyle" @click.stop>
+                <div class="street-select__search">
+                  <svg class="street-select__search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                    <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <input
+                    ref="streetSearchInputRef"
+                    v-model="streetSearch"
+                    class="street-select__search-input"
+                    placeholder="搜索商业街..."
+                    @keydown.stop
+                  />
+                </div>
+                <div class="street-select__list">
+                  <button
+                    v-for="street in filteredStreets"
+                    :key="street.name"
+                    class="street-select__option"
+                    :class="{ active: selectedStreet.name === street.name }"
+                    @click="selectStreet(street)"
+                  >
+                    <span class="street-select__option-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <div class="street-select__option-info">
+                      <span class="street-select__option-name">{{ street.name }}</span>
+                      <span class="street-select__option-stats">{{ street.shops }}家商铺 · {{ street.devices }}台设备</span>
+                    </div>
+                    <span v-if="selectedStreet.name === street.name" class="street-select__check">✓</span>
+                  </button>
+                  <div v-if="filteredStreets.length === 0" class="street-select__empty">无匹配结果</div>
+                </div>
+              </div>
+            </Teleport>
+          </div>
+        </div>
         <button class="back-btn" title="返回大屏首页" @click="goBack">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -86,98 +141,7 @@
           <StreetAlertCenter v-show="activeTab === 'alarm-center'" class="page-content__area page-content__area--track" />
 
           <!-- 商户列表 -->
-          <div v-show="activeTab === 'stat-analysis'" class="page-content__area page-content__area--stat">
-            <div class="shop-list">
-              <!-- 搜索/筛选栏 -->
-              <div class="shop-list__toolbar">
-                <div class="shop-list__filters">
-                  <div class="shop-list__search">
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <circle cx="7" cy="7" r="5" />
-                      <line x1="11" y1="11" x2="14" y2="14" />
-                    </svg>
-                    <span class="shop-list__search-placeholder">搜索商户名称...</span>
-                  </div>
-                  <div class="shop-list__select">
-                    <span class="shop-list__select-text">全部业态</span>
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <polyline points="4 6 8 10 12 6" />
-                    </svg>
-                  </div>
-                  <div class="shop-list__select">
-                    <span class="shop-list__select-text">全部状态</span>
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <polyline points="4 6 8 10 12 6" />
-                    </svg>
-                  </div>
-                  <button class="shop-list__query-btn">查询</button>
-                </div>
-                <span class="shop-list__total-label">共 {{ shopTableData.length }} 家商户</span>
-              </div>
-
-              <!-- 商户表格 -->
-              <div class="shop-list__table-wrapper">
-                <!-- 表头 -->
-                <div class="shop-list__table-header">
-                  <div class="shop-list__th shop-list__th--index">序号</div>
-                  <div class="shop-list__th shop-list__th--name">商户名称</div>
-                  <div class="shop-list__th shop-list__th--category">商户业态</div>
-                  <div class="shop-list__th shop-list__th--scope">经营范围</div>
-                  <div class="shop-list__th shop-list__th--status">经营状态</div>
-                  <div class="shop-list__th shop-list__th--action">操作</div>
-                </div>
-                <!-- 表体 -->
-                <div class="shop-list__table-body">
-                  <div v-for="(row, idx) in paginatedShopRows" :key="idx" class="shop-list__table-row">
-                    <div class="shop-list__td shop-list__td--index">{{ (currentShopPage - 1) * shopPageSize + idx + 1 }}</div>
-                    <div class="shop-list__td shop-list__td--name">{{ row.name }}</div>
-                    <div class="shop-list__td shop-list__td--category">{{ row.category }}</div>
-                    <div class="shop-list__td shop-list__td--scope">{{ row.scope }}</div>
-                    <div class="shop-list__td shop-list__td--status">
-                      <span class="shop-list__tag" :class="row.status === '营业中' ? 'shop-list__tag--active' : 'shop-list__tag--inactive'">
-                        {{ row.status }}
-                      </span>
-                    </div>
-                    <div class="shop-list__td shop-list__td--action">
-                      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="shop-list__action-icon">
-                        <circle cx="3" cy="3" r="1.5" />
-                        <circle cx="3" cy="8" r="1.5" />
-                        <circle cx="3" cy="13" r="1.5" />
-                        <line x1="7" y1="3" x2="14" y2="3" />
-                        <line x1="7" y1="8" x2="14" y2="8" />
-                        <line x1="7" y1="13" x2="11" y2="13" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 分页 -->
-              <div class="shop-list__pagination">
-                <div class="shop-list__page-info">
-                  <span class="shop-list__page-label">每页显示</span>
-                  <div class="shop-list__page-size">
-                    <span>10 条</span>
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#f2fbff" stroke-width="1.5">
-                      <polyline points="4 6 8 10 12 6" />
-                    </svg>
-                  </div>
-                  <span class="shop-list__page-label">共 {{ shopTableData.length }} 条数据</span>
-                </div>
-                <div class="shop-list__page-controls">
-                  <button class="shop-list__page-btn shop-list__page-btn--nav" :disabled="currentShopPage <= 1" @click="currentShopPage--">上一页</button>
-                  <button
-                    v-for="p in totalShopPages"
-                    :key="p"
-                    class="shop-list__page-btn shop-list__page-btn--num"
-                    :class="{ 'shop-list__page-btn--active': p === currentShopPage }"
-                    @click="currentShopPage = p"
-                  >{{ p }}</button>
-                  <button class="shop-list__page-btn shop-list__page-btn--nav" :disabled="currentShopPage >= totalShopPages" @click="currentShopPage++">下一页</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <StreetShopList v-show="activeTab === 'stat-analysis'" class="page-content__area page-content__area--stat" />
         </div>
       </div>
     </div>
@@ -185,18 +149,143 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import BigscreenHeader from './components/BigscreenHeader.vue'
 import BigscreenMetricItem from './components/BigscreenMetricItem.vue'
 import StreetBusinessCompliance from './components/street/StreetBusinessCompliance.vue'
 import StreetHiddenDangerTrack from './components/street/StreetHiddenDangerTrack.vue'
 import StreetAlertCenter from './components/street/StreetAlertCenter.vue'
+import StreetShopList from './components/street/StreetShopList.vue'
 
 const router = useRouter()
+const route = useRoute()
+
+// 根据路由 query 自动选中商业街
+function syncStreetFromQuery() {
+  const targetName = route.query.street
+  if (targetName && typeof targetName === 'string') {
+    const found = streets.find((s) => s.name === targetName)
+    if (found) {
+      selectedStreet.value = found
+    }
+  }
+}
 
 function goBack() {
   router.push({ name: 'BigscreenLanding' })
+}
+
+// ============================================================
+// 商业街数据 & 下拉选
+// ============================================================
+interface StreetData {
+  name: string
+  shops: number
+  devices: number
+  onlineRate: number
+  dutyRate: number
+  alerts: number
+  hazards: number
+}
+
+const streets: StreetData[] = [
+  {
+    name: '示范街',
+    shops: 286,
+    devices: 1536,
+    onlineRate: 98.6,
+    dutyRate: 92,
+    alerts: 6,
+    hazards: 12,
+  },
+  {
+    name: '江南商业街',
+    shops: 198,
+    devices: 1120,
+    onlineRate: 96.3,
+    dutyRate: 88,
+    alerts: 3,
+    hazards: 5,
+  },
+  {
+    name: '桥圩商业街',
+    shops: 152,
+    devices: 896,
+    onlineRate: 97.1,
+    dutyRate: 85,
+    alerts: 8,
+    hazards: 9,
+  },
+  {
+    name: '新塘商业街',
+    shops: 95,
+    devices: 560,
+    onlineRate: 99.2,
+    dutyRate: 94,
+    alerts: 1,
+    hazards: 2,
+  },
+]
+
+const selectedStreet = ref<StreetData>(streets[0])
+const streetDropdownOpen = ref(false)
+const streetSearch = ref('')
+const streetSearchInputRef = ref<HTMLInputElement | null>(null)
+const streetTriggerRef = ref<HTMLButtonElement | null>(null)
+const streetDropdownStyle = ref<Record<string, string>>({})
+
+const filteredStreets = computed(() => {
+  const keyword = streetSearch.value.trim().toLowerCase()
+  if (!keyword) return streets
+  return streets.filter((s) => s.name.toLowerCase().includes(keyword))
+})
+
+function selectStreet(street: StreetData) {
+  selectedStreet.value = street
+  streetDropdownOpen.value = false
+  streetSearch.value = ''
+}
+
+function closeStreetDropdown() {
+  streetDropdownOpen.value = false
+}
+
+function toggleStreetDropdown() {
+  streetDropdownOpen.value = !streetDropdownOpen.value
+  if (streetDropdownOpen.value && streetTriggerRef.value) {
+    const rect = streetTriggerRef.value.getBoundingClientRect()
+    streetDropdownStyle.value = {
+      top: `${rect.bottom + 4}px`,
+      left: `${rect.left}px`,
+    }
+  }
+}
+
+// 打开下拉时自动聚焦搜索框
+watch(streetDropdownOpen, (open) => {
+  if (open) {
+    streetSearch.value = ''
+    nextTick(() => {
+      streetSearchInputRef.value?.focus()
+    })
+  }
+})
+
+// v-click-outside 自定义指令
+const vClickOutside = {
+  mounted(el: HTMLElement, binding: any) {
+    const handler = (event: MouseEvent) => {
+      if (!(el === event.target || el.contains(event.target as Node))) {
+        binding.value()
+      }
+    }
+    ;(el as any).__clickOutsideHandler = handler
+    document.addEventListener('click', handler)
+  },
+  unmounted(el: HTMLElement) {
+    document.removeEventListener('click', (el as any).__clickOutsideHandler)
+  },
 }
 
 // ============================================================
@@ -208,14 +297,17 @@ interface StatItem {
   unit: string
 }
 
-const statsData: StatItem[] = [
-  { label: '纳管商铺', value: 286, unit: '家' },
-  { label: '纳管设备', value: 1536, unit: '台' },
-  { label: '设备在线率', value: '98.6', unit: '%' },
-  { label: '今日履职率', value: 92, unit: '%' },
-  { label: '今日告警', value: 6, unit: '次' },
-  { label: '未闭环隐患', value: 12, unit: '项' },
-]
+const statsData = computed<StatItem[]>(() => {
+  const s = selectedStreet.value
+  return [
+    { label: '纳管商铺', value: s.shops, unit: '家' },
+    { label: '纳管设备', value: s.devices, unit: '台' },
+    { label: '设备在线率', value: s.onlineRate, unit: '%' },
+    { label: '今日履职率', value: s.dutyRate, unit: '%' },
+    { label: '今日告警', value: s.alerts, unit: '次' },
+    { label: '未闭环隐患', value: s.hazards, unit: '项' },
+  ]
+})
 
 // ============================================================
 // Seg 切换标签
@@ -513,6 +605,7 @@ function destroyMap() {
 
 // 页面挂载时初始化地图，卸载时销毁
 onMounted(() => {
+  syncStreetFromQuery()
   if (activeTab.value === 'safety-map') {
     nextTick(() => initSafetyMap())
   }
@@ -522,34 +615,6 @@ onBeforeUnmount(() => {
   destroyMap()
 })
 
-// ============================================================
-// 商户列表 Tab — Mock 数据
-// ============================================================
-
-const shopTableData = [
-  { name: '沙县小吃', category: '餐饮服务', scope: '中式快餐、小吃', status: '营业中' },
-  { name: '爱玛电动车', category: '零售贸易', scope: '电动车销售及维修', status: '营业中' },
-  { name: 'Tony美发店', category: '生活服务', scope: '美容美发、造型设计', status: '营业中' },
-  { name: '东北饭庄', category: '餐饮服务', scope: '中式正餐、东北菜', status: '营业中' },
-  { name: '柳州螺蛳粉', category: '餐饮服务', scope: '中式快餐、粉面类', status: '营业中' },
-  { name: '盛邦木业', category: '加工制造', scope: '木材加工、家具定制', status: '营业中' },
-  { name: '江南商贸城', category: '商业综合体', scope: '日用百货、服装鞋帽', status: '营业中' },
-  { name: '沸腾鱼庄', category: '餐饮服务', scope: '中式正餐、川湘菜', status: '营业中' },
-  { name: '湘味土菜馆', category: '餐饮服务', scope: '中式正餐、湘菜', status: '暂停营业' },
-  { name: '李记烧烤', category: '餐饮服务', scope: '烧烤、夜宵', status: '营业中' },
-  { name: '好又多超市', category: '零售贸易', scope: '日用百货、食品饮料', status: '营业中' },
-  { name: '康民药房', category: '医疗卫生', scope: '药品零售、健康咨询', status: '营业中' },
-]
-
-const shopPageSize = ref(10)
-const currentShopPage = ref(1)
-
-const totalShopPages = computed(() => Math.max(1, Math.ceil(shopTableData.length / shopPageSize.value)))
-
-const paginatedShopRows = computed(() => {
-  const start = (currentShopPage.value - 1) * shopPageSize.value
-  return shopTableData.slice(start, start + shopPageSize.value)
-})
 </script>
 
 <style scoped>
@@ -591,6 +656,13 @@ const paginatedShopRows = computed(() => {
   flex-shrink: 0;
 }
 
+.page-header__left {
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--w));
+  min-width: 0;
+}
+
 .page-title {
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(18px, calc(22 * var(--min-scale)), 26px);
@@ -601,6 +673,169 @@ const paginatedShopRows = computed(() => {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
+  flex-shrink: 0;
+}
+
+/* ===== 商业街下拉选 ===== */
+.street-select {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.street-select__trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(71, 132, 232, 0.35);
+  border-radius: 4px;
+  background: rgba(2, 20, 50, 0.55);
+  color: #89b5ff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: clamp(11px, calc(13 * var(--min-scale)), 15px);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.street-select__trigger:hover {
+  border-color: rgba(71, 132, 232, 0.65);
+  background: rgba(71, 132, 232, 0.15);
+  color: #b3d4ff;
+}
+
+.street-select__text {
+  font-weight: 500;
+}
+
+.street-select__chevron {
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.street-select__chevron.rotated {
+  transform: rotate(180deg);
+}
+
+/* 遮罩层 */
+.street-select__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+}
+
+/* 下拉面板 */
+.street-select__dropdown {
+  position: fixed;
+  z-index: 2001;
+  width: 240px;
+  max-height: 300px;
+  background: rgba(2, 21, 56, 0.98);
+  border: 1px solid rgba(71, 132, 232, 0.45);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(71, 132, 232, 0.15);
+  overflow: hidden;
+}
+
+/* 搜索框 */
+.street-select__search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(71, 132, 232, 0.18);
+}
+
+.street-select__search-icon {
+  color: rgba(137, 181, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.street-select__search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #89b5ff;
+  font-family: inherit;
+  font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
+  padding: 0;
+}
+.street-select__search-input::placeholder {
+  color: rgba(137, 181, 255, 0.35);
+}
+
+/* 选项列表 */
+.street-select__list {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.street-select__list::-webkit-scrollbar { width: 3px; }
+.street-select__list::-webkit-scrollbar-track { background: transparent; }
+.street-select__list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.25); border-radius: 2px; }
+
+.street-select__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+.street-select__option:hover {
+  background: rgba(71, 132, 232, 0.15);
+}
+.street-select__option.active {
+  background: rgba(71, 132, 232, 0.2);
+}
+
+.street-select__option-icon {
+  color: #4784e8;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.street-select__option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.street-select__option-name {
+  font-size: clamp(12px, calc(13 * var(--min-scale)), 15px);
+  font-weight: 500;
+  color: #f2fbff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.street-select__option-stats {
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+  color: rgba(137, 181, 255, 0.55);
+  white-space: nowrap;
+}
+
+.street-select__check {
+  color: #3cd3d7;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.street-select__empty {
+  padding: 20px 10px;
+  text-align: center;
+  font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
+  color: rgba(137, 181, 255, 0.4);
 }
 
 .back-btn {
@@ -824,346 +1059,6 @@ const paginatedShopRows = computed(() => {
   white-space: nowrap;
 }
 
-/* ============================================================
-   商户列表 Tab 样式
-   ============================================================ */
-.shop-list {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: calc(12 * var(--h));
-  padding: calc(12 * var(--h)) 0;
-}
-
-/* ---- 搜索/筛选栏 ---- */
-.shop-list__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.shop-list__filters {
-  display: flex;
-  align-items: center;
-  gap: calc(18 * var(--w));
-}
-
-.shop-list__search {
-  display: flex;
-  align-items: center;
-  gap: calc(12 * var(--w));
-  height: calc(36 * var(--h));
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
-  background: rgba(3, 74, 173, 0);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  border-radius: 8px;
-  overflow: hidden;
-  width: calc(220 * var(--w));
-  flex-shrink: 0;
-  cursor: text;
-}
-
-.shop-list__search svg {
-  flex-shrink: 0;
-  color: #c1c1c1;
-}
-
-.shop-list__search-placeholder {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #c1c1c1;
-  white-space: nowrap;
-}
-
-.shop-list__select {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: calc(36 * var(--h));
-  width: calc(130 * var(--w));
-  padding: 1px calc(13 * var(--w));
-  background: rgba(3, 74, 173, 0);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  border-radius: 8px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.shop-list__select-text {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #c1c1c1;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-.shop-list__select svg {
-  color: #c1c1c1;
-}
-
-.shop-list__query-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: calc(36 * var(--h));
-  padding: calc(8 * var(--h)) calc(18 * var(--w));
-  background: #0095ff;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 500;
-  color: #ffffff;
-  text-align: center;
-  line-height: 20px;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.shop-list__total-label {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #a9b0c5;
-  white-space: nowrap;
-}
-
-/* ---- 表格 ---- */
-.shop-list__table-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.shop-list__table-header {
-  display: flex;
-  align-items: center;
-  gap: calc(6 * var(--w));
-  padding: calc(8 * var(--h)) calc(6 * var(--w));
-  background: #0457a7;
-  flex-shrink: 0;
-}
-
-.shop-list__table-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.shop-list__table-body::-webkit-scrollbar { width: 4px; }
-.shop-list__table-body::-webkit-scrollbar-track { background: transparent; }
-.shop-list__table-body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
-
-.shop-list__table-row {
-  display: flex;
-  align-items: center;
-  gap: calc(6 * var(--w));
-  padding: 0 calc(6 * var(--w));
-  border-top: 1px solid rgba(168, 178, 255, 0.08);
-  flex-shrink: 0;
-}
-
-.shop-list__th {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 21px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 500;
-  color: #bcd9ff;
-  line-height: 21px;
-  white-space: nowrap;
-}
-
-.shop-list__td {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: calc(10 * var(--h)) 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #f2fbff;
-  line-height: 21px;
-}
-
-.shop-list__th--index,
-.shop-list__td--index {
-  width: calc(60 * var(--w));
-  flex-shrink: 0;
-}
-
-.shop-list__th--name,
-.shop-list__td--name {
-  flex: 1;
-  min-width: 0;
-  justify-content: flex-start;
-}
-
-.shop-list__th--category,
-.shop-list__td--category {
-  flex: 1;
-  min-width: 0;
-}
-
-.shop-list__th--scope,
-.shop-list__td--scope {
-  flex: 1.2;
-  min-width: 0;
-}
-
-.shop-list__th--status,
-.shop-list__td--status {
-  width: calc(120 * var(--w));
-  flex-shrink: 0;
-}
-
-.shop-list__th--action,
-.shop-list__td--action {
-  width: calc(48 * var(--w));
-  flex-shrink: 0;
-}
-
-/* 经营状态标签 */
-.shop-list__tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: calc(2 * var(--h)) calc(6 * var(--w));
-  border-radius: 4px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 500;
-  line-height: 18px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.shop-list__tag--active {
-  background: rgba(0, 84, 219, 0.2);
-  color: #0072ff;
-}
-
-.shop-list__tag--inactive {
-  background: rgba(255, 193, 7, 0.2);
-  color: #ffc107;
-}
-
-.shop-list__action-icon {
-  color: rgba(137, 181, 255, 0.6);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.shop-list__action-icon:hover {
-  color: #3cd3d7;
-}
-
-/* ---- 分页 ---- */
-.shop-list__pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 calc(12 * var(--w));
-  flex-shrink: 0;
-}
-
-.shop-list__page-info {
-  display: flex;
-  align-items: center;
-  gap: calc(12 * var(--w));
-  height: calc(36 * var(--h));
-}
-
-.shop-list__page-label {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 400;
-  color: #f2fbff;
-  line-height: 21px;
-  white-space: nowrap;
-}
-
-.shop-list__page-size {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: calc(36 * var(--h));
-  width: calc(82 * var(--w));
-  padding: 1px calc(13 * var(--w));
-  background: rgba(3, 74, 173, 0);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.shop-list__page-size span {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 400;
-  color: #f2fbff;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-.shop-list__page-controls {
-  display: flex;
-  align-items: center;
-  gap: calc(8 * var(--w));
-  height: 32px;
-}
-
-.shop-list__page-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: calc(6 * var(--h)) calc(10 * var(--w));
-  background: none;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 500;
-  color: #ffffff;
-  line-height: 20px;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-}
-
-.shop-list__page-btn--nav {
-  background: rgba(1, 101, 178, 0.3);
-}
-
-.shop-list__page-btn--nav:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.shop-list__page-btn--num {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background: transparent;
-  color: #bebebe;
-}
-
-.shop-list__page-btn--active {
-  background: rgba(32, 92, 194, 0.56);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  color: #f2fbff;
-}
 </style>
 
 <!-- InfoWindow 全局样式（非 scoped，InfoWindow 挂载在 body 下） -->

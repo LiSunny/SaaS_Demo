@@ -15,7 +15,7 @@
             <div class="overview-metrics">
               <!-- 今日预警总数 -->
               <div class="metric-item">
-                <span class="metric-label">今日预警总数</span>
+                <span class="metric-label">今日告警总数</span>
                 <div class="metric-value-row">
                   <span class="metric-value">35</span>
                   <span class="metric-unit">条</span>
@@ -118,50 +118,43 @@
           <!-- 表头 -->
           <div class="table-header">
             <div class="th th-status">
-              <span>预警等级</span>
+              <span>告警类型</span>
               <div class="sort-icons">
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
               </div>
             </div>
+            <div class="th th-name">告警描述</div>
             <div class="th th-name">商户名称</div>
             <div class="th th-category">
-              <span>预警类型</span>
+              <span>处理状态</span>
               <div class="sort-icons">
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
               </div>
             </div>
             <div class="th th-time">
-              <span>预警时间</span>
+              <span>告警时间</span>
               <div class="sort-icons">
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
               </div>
             </div>
-            <div class="th th-action">操作</div>
+            
           </div>
           <!-- 表体 -->
           <div class="table-body">
             <div v-for="(row, idx) in paginatedRows" :key="idx" class="table-row">
               <div class="td td-status">
                 <span class="status-tag" :class="row.level === 'high' ? 'status-tag--danger' : row.level === 'medium' ? 'status-tag--warning' : 'status-tag--normal'">
-                  {{ row.level === 'high' ? '高风险' : row.level === 'medium' ? '中风险' : '低风险' }}
+                  {{ row.level === 'high' ? '火警' : row.level === 'medium' ? '故障' : '预警' }}
                 </span>
               </div>
+              <div class="td td-name">{{ row.alarmDes }}</div>
               <div class="td td-name">{{ row.name }}</div>
               <div class="td td-category">{{ row.type }}</div>
               <div class="td td-time">{{ row.alertTime }}</div>
-              <div class="td td-action">
-                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="action-icon">
-                  <circle cx="3" cy="3" r="1.5" />
-                  <circle cx="3" cy="8" r="1.5" />
-                  <circle cx="3" cy="13" r="1.5" />
-                  <line x1="7" y1="3" x2="14" y2="3" />
-                  <line x1="7" y1="8" x2="14" y2="8" />
-                  <line x1="7" y1="13" x2="11" y2="13" />
-                </svg>
-              </div>
+            
             </div>
           </div>
         </div>
@@ -305,12 +298,12 @@ onBeforeUnmount(() => {
 
 // ===== 表格数据 =====
 const tableRows = [
-  { name: '盛邦木业', type: '消防隐患', alertTime: '2025-10-15 08:30', level: 'high' },
-  { name: '南湖校区', type: '食品安全', alertTime: '2025-10-15 09:15', level: 'medium' },
-  { name: '江南商贸城', type: '设备故障', alertTime: '2025-10-15 10:00', level: 'high' },
-  { name: '东北饭庄', type: '环境卫生', alertTime: '2025-10-14 14:20', level: 'low' },
-  { name: '柳州螺蛳粉', type: '证照过期', alertTime: '2025-10-14 11:10', level: 'medium' },
-  { name: '沸腾鱼庄', type: '人员流动', alertTime: '2025-10-14 09:45', level: 'low' },
+  { name: '盛邦木业', type: '已处理', alarmDes: '真实火警', alertTime: '2025-10-15 08:30', level: 'high' },
+  { name: '南湖校区', type: '已处理', alarmDes: '欠压故障',alertTime: '2025-10-15 09:15', level: 'medium' },
+  { name: '江南商贸城', type: '未处理', alarmDes: '燃气泄漏',alertTime: '2025-10-15 10:00', level: 'high' },
+  { name: '东北饭庄', type: '未处理', alarmDes: '食品安全问题', alertTime: '2025-10-14 14:20', level: 'low' },
+  { name: '柳州螺蛳粉', type: '未处理', alarmDes: '预警', alertTime: '2025-10-14 11:10', level: 'medium' },
+  { name: '沸腾鱼庄', type: '未处理', alarmDes: '设备故障', alertTime: '2025-10-14 09:45', level: 'low' },
 ]
 
 const pageSize = ref(10)

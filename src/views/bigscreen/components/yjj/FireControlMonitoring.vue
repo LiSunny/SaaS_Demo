@@ -5,7 +5,7 @@
     </div>
     <div v-else class="fc-monitoring__rooms">
       <div v-for="room in enterprise.rooms" :key="room.id" class="fc-room">
-        <BigscreenModuleTitle :title="room.name" />
+        <BigscreenModuleTitle :title="room.name" subtitle="" />
         <div class="fc-room__cameras">
           <div
             v-for="cam in room.cameras"

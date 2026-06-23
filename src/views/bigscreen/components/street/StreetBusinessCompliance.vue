@@ -23,7 +23,7 @@
               </div>
               <!-- 分隔线 -->
               <div class="metric-divider" />
-              <!-- 三列子指标 -->
+              <!-- 二列子指标 -->
               <div class="sub-metrics-row">
                 <div class="metric-item">
                   <span class="metric-label">已完成</span>
@@ -34,13 +34,6 @@
                 </div>
                 <div class="metric-item">
                   <span class="metric-label">未完成</span>
-                  <div class="metric-value-row">
-                    <span class="metric-value metric-value--warning">8</span>
-                    <span class="metric-unit">项</span>
-                  </div>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-label">累计逾期</span>
                   <div class="metric-value-row">
                     <span class="metric-value metric-value--warning">8</span>
                     <span class="metric-unit">项</span>
@@ -153,7 +146,7 @@
               </div>
             </div>
             <div class="th th-time">
-              <span>上报时间</span>
+              <span>打卡时间</span>
               <div class="sort-icons">
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
@@ -262,7 +255,7 @@ interface DynamicTimelineItem {
 }
 
 const shopPool = ['沙县小吃', '爱玛电动车', 'Tony美发店', '东北饭庄', '柳州螺蛳粉', '沸腾鱼庄', '湘味土菜馆', '李记烧烤']
-const actionPool = ['完成每日履职打卡', '完成安全巡检', '提交自查报告', '整改已完成', '新增隐患上报', '更新应急预案', '完成消防演练']
+const actionPool = ['完成每日履职打卡', '完成每日履职打卡', '完成每日履职打卡', '完成每日履职打卡', '完成每日履职打卡', '完成每日履职打卡', '完成每日履职打卡']
 
 const dynamicList = ref<DynamicTimelineItem[]>([])
 
@@ -430,6 +423,7 @@ function nextPage() {
   display: flex;
   flex-direction: column;
   gap: calc(12 * var(--h));
+  flex: 1;
   min-width: 0;
 }
 
@@ -493,22 +487,21 @@ function nextPage() {
 
 /* 分隔线（Figma: 79.92° 蓝色渐变斜线） */
 .metric-divider {
-  width: 100%;
+  width: 80%;
   height: 1px;
-  background: linear-gradient(
-    79.92deg,
-    rgba(15, 43, 91, 0) 0%,
-    rgb(25, 82, 170) 0%,
-    rgba(22, 70, 145, 0.688) 75%,
-    rgba(15, 43, 91, 0) 100%
-  );
+  background:  rgba(22, 70, 145, 0.688) 75%;
 }
 
-/* 三个子指标水平排列 */
+/* 二列子指标水平排列 */
 .sub-metrics-row {
   display: flex;
   align-items: center;
-  gap: calc(36 * var(--w));
+  justify-content: space-between;
+  width: 100%;
+}
+
+.sub-metrics-row .metric-item {
+  flex: 1;
 }
 
 /* ===== 环形图区域 ===== */

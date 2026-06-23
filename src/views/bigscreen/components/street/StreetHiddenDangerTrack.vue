@@ -23,7 +23,7 @@
               </div>
               <!-- 分隔线 -->
               <div class="metric-divider" />
-              <!-- 三列子指标 -->
+              <!-- 二列子指标 -->
               <div class="sub-metrics-row">
                 <div class="metric-item">
                   <span class="metric-label">已整改</span>
@@ -36,13 +36,6 @@
                   <span class="metric-label">未整改</span>
                   <div class="metric-value-row">
                     <span class="metric-value metric-value--warning">6</span>
-                    <span class="metric-unit">条</span>
-                  </div>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-label">逾期未改</span>
-                  <div class="metric-value-row">
-                    <span class="metric-value metric-value--warning">3</span>
                     <span class="metric-unit">条</span>
                   </div>
                 </div>
@@ -145,13 +138,14 @@
               </div>
             </div>
             <div class="th th-name">隐患名称</div>
-            <div class="th th-category">
+            <div class="th th-name">商户名称</div>
+            <!-- <div class="th th-category">
               <span>隐患类型</span>
               <div class="sort-icons">
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
                 <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
               </div>
-            </div>
+            </div> -->
             <div class="th th-time">
               <span>上报时间</span>
               <div class="sort-icons">
@@ -170,7 +164,8 @@
                 </span>
               </div>
               <div class="td td-name">{{ row.name }}</div>
-              <div class="td td-category">{{ row.category }}</div>
+              <div class="td td-name">{{ row.shopName }}</div>
+              <!-- <div class="td td-category">{{ row.category }}</div> -->
               <div class="td td-time">{{ row.reportTime }}</div>
               <div class="td td-action">
                 <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="action-icon">
@@ -246,11 +241,11 @@ const rectifyRateRingOption = computed(() => ({
 
 // ===== 整改完成率Top5 =====
 const rankList = [
-  { name: '消防设施维保', rate: 95 },
-  { name: '电气线路整改', rate: 88 },
-  { name: '燃气管道排查', rate: 82 },
-  { name: '疏散通道清理', rate: 71 },
-  { name: '高空坠物防护', rate: 55 },
+  { name: '江南商贸城', rate: 95 },
+  { name: '南湖校区', rate: 88 },
+  { name: '东北饭庄', rate: 82 },
+  { name: '柳州螺蛳粉', rate: 71 },
+  { name: '沸腾鱼庄', rate: 55 },
 ]
 
 // ===== 实时动态（时间轴） =====
@@ -315,12 +310,12 @@ onBeforeUnmount(() => {
 
 // ===== 表格数据 =====
 const tableRows = [
-  { name: '消防通道堵塞', category: '消防安全', reportTime: '2025-10-15 08:30', status: 'danger' },
-  { name: '电线裸露老化', category: '电气安全', reportTime: '2025-10-15 09:15', status: 'warning' },
-  { name: '燃气阀门泄漏', category: '燃气安全', reportTime: '2025-10-15 10:00', status: 'danger' },
-  { name: '仓库结构裂缝', category: '建筑结构', reportTime: '2025-10-14 14:20', status: 'warning' },
-  { name: '灭火器过期未检', category: '消防安全', reportTime: '2025-10-14 11:10', status: 'normal' },
-  { name: '安全出口标识损坏', category: '消防安全', reportTime: '2025-10-14 09:45', status: 'normal' },
+  { name: '消防通道堵塞', shopName: '盛邦木业', category: '消防安全', reportTime: '2025-10-15 08:30', status: 'warning' },
+  { name: '电线裸露老化', shopName: '南湖校区', category: '电气安全', reportTime: '2025-10-15 09:15', status: 'warning' },
+  { name: '燃气阀门泄漏', shopName: '江南商贸城', category: '燃气安全', reportTime: '2025-10-15 10:00', status: 'warning' },
+  { name: '仓库结构裂缝', shopName: '东北饭庄', category: '建筑结构', reportTime: '2025-10-14 14:20', status: 'warning' },
+  { name: '灭火器过期未检', shopName: '柳州螺蛳粉', category: '消防安全', reportTime: '2025-10-14 11:10', status: 'normal' },
+  { name: '安全出口标识损坏', shopName: '沸腾鱼庄', category: '消防安全', reportTime: '2025-10-14 09:45', status: 'normal' },
 ]
 
 const pageSize = ref(10)
@@ -432,6 +427,7 @@ function nextPage() {
   display: flex;
   flex-direction: column;
   gap: calc(12 * var(--h));
+  flex: 1;
   min-width: 0;
 }
 
@@ -506,11 +502,16 @@ function nextPage() {
   );
 }
 
-/* 三个子指标水平排列 */
+/* 二列子指标水平排列 */
 .sub-metrics-row {
   display: flex;
   align-items: center;
-  gap: calc(36 * var(--w));
+  justify-content: space-between;
+  width: 100%;
+}
+
+.sub-metrics-row .metric-item {
+  flex: 1;
 }
 
 /* ===== 环形图区域 ===== */
