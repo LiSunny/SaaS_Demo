@@ -1,5 +1,10 @@
 <template>
-  <SectionCard title="重点单位风险管控" subtitle="Risk Control">
+  <SectionCard
+    title="重点单位风险管控"
+    subtitle="进入专题"
+    :subtitle-clickable="true"
+    @zoom-click="goToFireControl"
+  >
     <div class="risk-control">
       <!-- 顶部统计指标 -->
       <div class="risk-stats">
@@ -57,10 +62,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import SectionCard from './SectionCard.vue'
 import BigscreenMetricItem from './BigscreenMetricItem.vue'
 import riskPeopleSrc from '@/assets/bigscreen/renyuanligang.svg'
 import riskPointSrc from '@/assets/bigscreen/fengxiandianwei.svg'
+
+const router = useRouter()
+
+function goToFireControl() {
+  router.push({ name: 'FireControlDetail' })
+}
 
 const topStats = [
   { label: '人员离岗', value: '10', unit: '次', hexSrc: riskPeopleSrc },
