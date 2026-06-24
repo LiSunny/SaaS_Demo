@@ -387,14 +387,14 @@ function exitFullscreen() {
 }
 
 .legend-icon {
-  width: calc(16 * var(--min-scale));
-  height: calc(16 * var(--min-scale));
+  width: calc(18 * var(--min-scale));
+  height: calc(18 * var(--min-scale));
   flex-shrink: 0;
   object-fit: contain;
 }
 
 .legend-text {
-  font-size: clamp(10px, calc(12 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   color: rgba(255,255,255,0.95);
   font-weight: 500;
   white-space: nowrap;
