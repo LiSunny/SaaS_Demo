@@ -89,6 +89,10 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         { path: '', name: 'AdminOverview', component: () => import('@/views/admin/Overview.vue') },
+        { path: 'enterpriseManagement/index', name: 'EnterpriseList', component: () => import('@/views/admin/EnterpriseList.vue') },
+        { path: 'enterpriseManagement/create', name: 'EnterpriseCreate', component: () => import('@/views/admin/EnterpriseForm.vue'), meta: { hidden: true } },
+        { path: 'enterpriseManagement/edit', name: 'EnterpriseEdit', component: () => import('@/views/admin/EnterpriseForm.vue'), meta: { hidden: true } },
+        { path: 'enterpriseManagement/detail', name: 'EnterpriseDetail', component: () => import('@/views/admin/EnterpriseDetail.vue'), meta: { hidden: true } },
       ],
     },
 

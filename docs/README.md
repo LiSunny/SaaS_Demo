@@ -6,6 +6,7 @@
 - [工作台](design/工作台/biz-design.md)
 - [维保管理](design/维保管理/biz-design.md)
 - [工单管理](design/工单管理/biz-design.md)
+- [租户管理](design/租户管理/biz-design.md)
 
 ## 模块规划
 - [工作台模块计划](design/工作台/module-plan.md)

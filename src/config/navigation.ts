@@ -219,7 +219,14 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
       },
       { key: 'platform-config', label: '平台配置', icon: 'menuicon-51', route: '/platform' },
-      { key: 'admin-mgmt', label: '系统管理', icon: 'menuicon-33', route: '/admin' },
+      {
+        key: 'admin-mgmt',
+        label: '系统管理',
+        icon: 'menuicon-33',
+        children: [
+          { key: 'tenant-mgmt', label: '租户管理', icon: 'menuicon-43', route: '/admin/enterpriseManagement/index' },
+        ],
+      },
     ],
   },
 ]
@@ -239,6 +246,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/iot': 'iot',
   '/platform': 'platform',
   '/admin': 'admin',
+  '/admin/enterpriseManagement': 'tenant-mgmt',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -252,6 +260,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'iot': '/iot',
   'platform': '/platform',
   'admin': '/admin',
+  'tenant-mgmt': '/admin/enterpriseManagement/index',
 }
 
 // ===== 工具函数 =====

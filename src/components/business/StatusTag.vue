@@ -32,6 +32,11 @@ const MAP: Record<string, { label: string; cls: string }> = {
   in_progress: { label: '进行中', cls: 'info' },
   node_pending: { label: '待处理', cls: 'normal' },
   skipped: { label: '已跳过', cls: 'normal' },
+  // 企业状态
+  ent_active: { label: '有效', cls: 'success' },
+  ent_locked: { label: '已锁定', cls: 'notice' },
+  ent_expired: { label: '已过期', cls: 'danger' },
+  ent_pending: { label: '待生效', cls: 'info' },
 }
 
 const entry = computed(() => MAP[String(props.status)] || { label: props.status, cls: '' })
@@ -56,4 +61,5 @@ const cssClass = computed(() => entry.value.cls)
 .fi-tag.warning { background: var(--warning-bg); color: var(--warning); }
 .fi-tag.danger { background: var(--danger-bg); color: var(--danger); }
 .fi-tag.normal { background: var(--normal-bg); color: var(--normal); }
+.fi-tag.notice { background: var(--notice-bg); color: var(--notice); }
 </style>

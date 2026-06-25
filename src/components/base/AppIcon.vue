@@ -20,9 +20,23 @@ const props = defineProps<{
   size?: string | number
 }>()
 
+/** 将 kebab-case / lowercase 名转为 PascalCaseIcon 后缀，匹配 TDesign 导出名 */
+function toPascalCase(name: string): string {
+  return name
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('')
+}
+
 const tdIcon = computed(() => {
-  const key = props.name.charAt(0).toUpperCase() + props.name.slice(1)
-  return (TDesignIconsVue as Record<string, any>)[key] ?? null
+  // Try original capitalization first (backward compat)
+  const simpleKey = props.name.charAt(0).toUpperCase() + props.name.slice(1)
+  const lib = TDesignIconsVue as Record<string, any>
+  if (lib[simpleKey]) return lib[simpleKey]
+  // Try PascalCase + Icon suffix (TDesign convention: ArrowLeftIcon, EditIcon)
+  const pascalKey = toPascalCase(props.name) + 'Icon'
+  if (lib[pascalKey]) return lib[pascalKey]
+  return null
 })
 
 const computedSize = computed(() => props.size ?? '1em')
