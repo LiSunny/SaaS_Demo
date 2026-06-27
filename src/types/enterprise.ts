@@ -9,8 +9,8 @@ export interface DimC {
   name: string
 }
 
-/** 关系角色（相关方关联时指定，"我的"视角） */
-export type PartnerRole = 'my_supervisor' | 'my_manager' | 'my_service_provider' | 'my_customer' | 'my_collaborator'
+/** 关系角色（相关方关联时指定，"我的"视角，v1.1） */
+export type PartnerRole = 'my_supervisor' | 'my_manager' | 'social_unit' | 'my_service_unit' | 'my_operator'
 
 // ===== 列表相关 =====
 
@@ -87,6 +87,7 @@ export interface PartnerItem {
   enterpriseId: string
   enterpriseName: string
   role: PartnerRole
+  roleLabel: string
   tags: string[]
   contactName: string
   contactPhone: string
@@ -123,4 +124,46 @@ export interface ModuleTreeNode {
 export interface PaginatedData<T> {
   data: T[]
   total: number
+}
+
+// ===== 相关方查询/表单 =====
+
+export interface PartnerQuery {
+  keyword?: string
+  role?: string
+  page: number
+  size: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+export interface PartnerBindForm {
+  enterpriseId: string
+  role: PartnerRole
+  tags?: string[]
+}
+
+export interface PartnerAuthForm {
+  authUnits: string[]
+  allowOperation: boolean
+}
+
+export interface PartnerRoleOption {
+  value: string
+  label: string
+  description: string
+}
+
+export interface PartnerRoleNode {
+  value: string
+  label: string
+  children?: PartnerRoleNode[]
+}
+
+// ===== 企业搜索(关联弹窗用) =====
+
+export interface EnterpriseSearchItem {
+  id: string
+  name: string
+  tags?: string[]
 }

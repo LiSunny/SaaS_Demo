@@ -104,7 +104,7 @@ export async function getPartners(req: Request, res: Response, next: NextFunctio
 
 export async function addPartners(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.addPartners(+req.params.id, req.body.ids.map(Number))
+    await svc.addPartner(+req.params.id, +req.body.enterpriseId, req.body.role, req.body.tags || [])
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
@@ -162,4 +162,7 @@ export async function getD(_req: Request, res: Response, next: NextFunction) {
 }
 export async function getModuleTree(_req: Request, res: Response, next: NextFunction) {
   try { res.json((await svc.getModuleTree()).data) } catch (err) { next(err) }
+}
+export async function getRelationRoles(_req: Request, res: Response, next: NextFunction) {
+  try { res.json((await svc.getRelationRoleDict()).data) } catch (err) { next(err) }
 }

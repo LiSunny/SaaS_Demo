@@ -37,6 +37,12 @@ const MAP: Record<string, { label: string; cls: string }> = {
   ent_locked: { label: '已锁定', cls: 'notice' },
   ent_expired: { label: '已过期', cls: 'danger' },
   ent_pending: { label: '待生效', cls: 'info' },
+  // 相关方关系角色（v1.1）
+  my_supervisor: { label: '我的监管方', cls: 'info' },
+  my_manager: { label: '我的管理方', cls: 'warning' },
+  social_unit: { label: '社会单位', cls: 'success' },
+  my_service_unit: { label: '我的服务单位', cls: 'purple' },
+  my_operator: { label: '我的运营方', cls: 'normal' },
 }
 
 const entry = computed(() => MAP[String(props.status)] || { label: props.status, cls: '' })
@@ -62,4 +68,5 @@ const cssClass = computed(() => entry.value.cls)
 .fi-tag.danger { background: var(--danger-bg); color: var(--danger); }
 .fi-tag.normal { background: var(--normal-bg); color: var(--normal); }
 .fi-tag.notice { background: var(--notice-bg); color: var(--notice); }
+.fi-tag.purple { background: var(--purple-bg, rgba(139, 92, 246, 0.1)); color: var(--purple, #8B5CF6); }
 </style>

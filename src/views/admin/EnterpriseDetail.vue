@@ -185,6 +185,11 @@
           </div>
         </div>
 
+        <!-- ===== Tab 内容：相关方管理 ===== -->
+        <div v-else-if="activeTab === 'partnerMgmt'" class="tab-content">
+          <PartnerManage :enterprise-id="store.detail?.id || ''" />
+        </div>
+
         <!-- ===== 其他 Tab 占位 ===== -->
         <div v-else class="tab-stub">
           <div class="stub-content">
@@ -203,6 +208,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import AppIcon from '@/components/base/AppIcon.vue'
+import PartnerManage from './PartnerManage.vue'
 
 const route = useRoute()
 const router = useRouter()

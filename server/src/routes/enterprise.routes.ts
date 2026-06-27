@@ -11,6 +11,7 @@ router.get('/dict/b', ctrl.getB)
 router.get('/dict/c', ctrl.getC)
 router.get('/dict/d', ctrl.getD)
 router.get('/dict/module-tree', ctrl.getModuleTree)
+router.get('/dict/relation-roles', ctrl.getRelationRoles)
 
 // CRUD
 router.get('/:id', ctrl.getDetail)

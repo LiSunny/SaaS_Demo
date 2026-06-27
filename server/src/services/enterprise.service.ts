@@ -1,5 +1,30 @@
 import db from '../config/db.js'
 
+// 关系角色中文映射
+const ROLE_MAP: Record<string, string> = {
+  my_supervisor: "我的监管方",
+  "my_supervisor/fire_rescue": "我的监管方>消防救援机构",
+  "my_supervisor/emergency_mgmt": "我的监管方>应急管理部门",
+  "my_supervisor/local_gov": "我的监管方>属地政府（街道/社区等）",
+  "my_supervisor/industry_regulator": "我的监管方>行业主管部门",
+  my_manager: "我的管理方",
+  "my_manager/space_manager": "我的管理方>空间管理方",
+  "my_manager/space_manager/business_street": "我的管理方>空间管理方>商业街",
+  "my_manager/space_manager/property": "我的管理方>空间管理方>物业",
+  "my_manager/space_manager/park": "我的管理方>空间管理方>园区",
+  "my_manager/space_manager/market": "我的管理方>空间管理方>市场",
+  "my_manager/space_manager/complex": "我的管理方>空间管理方>综合体",
+  "my_manager/group_manager": "我的管理方>集团管理方",
+  social_unit: "社会单位",
+  my_service_unit: "我的服务单位",
+  "my_service_unit/fire_tech_service": "我的服务单位>消防技术服务机构",
+  my_operator: "我的运营方",
+  "my_operator/operation_manager": "我的运营方>运营管理方",
+  my_service_provider: "我的服务商",
+  my_customer: "我的客户",
+  my_collaborator: "我的协作方",
+};
+
 // ============================================
 // 类型转换：Prisma → 前端 EnterpriseItem
 // ============================================
@@ -111,7 +136,7 @@ export async function create(form: any) {
       dimALevel3: form.dimA?.level3 || '',
       dimB: form.dimB || '',
       dimCCode: typeof form.dimC === 'string' ? form.dimC : form.dimC?.code || '',
-      dimCName: typeof form.dimC === 'string' ? '' : form.dimC?.name || '',
+      dimCName: typeof form.dimC === 'string' ? resolveDimCName(form.dimC) : form.dimC?.name || '',
       dimD: form.dimD || '',
       region: form.region || '',
       contactName: form.contactName || '',
@@ -153,6 +178,7 @@ export async function update(id: number, form: any) {
   if (form.dimC !== undefined) {
     if (typeof form.dimC === 'string') {
       data.dimCCode = form.dimC
+      data.dimCName = resolveDimCName(form.dimC)
     } else {
       data.dimCCode = form.dimC.code || ''
       data.dimCName = form.dimC.name || ''
@@ -312,36 +338,41 @@ export async function getPartners(enterpriseId: number, params: { keyword?: stri
       relatedAt: formatDate(r.relatedAt),
       operatorName: r.operatorName,
       authUnits: safeJsonParse(r.authUnits, []),
+      role: r.role || "my_manager",
+      roleLabel: ROLE_MAP[r.role || "my_manager"] || r.role || "我的管理方",
       allowOperation: r.allowOperation,
     })),
     total,
   }
 }
 
-export async function addPartners(enterpriseId: number, partnerIds: number[]) {
+export async function addPartner(enterpriseId: number, partnerId: number, role?: string, tags: string[] = []) {
   const enterprise = await db.enterprise.findUnique({ where: { id: enterpriseId } })
   if (!enterprise) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
 
-  for (const pId of partnerIds) {
-    const partner = await db.enterprise.findUnique({ where: { id: pId } })
-    if (!partner) continue
+  const partner = await db.enterprise.findUnique({ where: { id: partnerId } })
+  if (!partner) throw Object.assign(new Error('目标企业不存在'), { statusCode: 404 })
 
-    await db.enterpriseRelation.upsert({
-      where: { id: 0 },
-      update: {},
-      create: {
-        type: 'partner',
-        enterpriseId,
-        enterpriseName: enterprise.name,
-        relatedId: pId,
-        relatedName: partner.name,
-        dimALevel1: partner.dimALevel1,
-        contactName: partner.contactName,
-        contactPhone: partner.contactPhone,
-        operatorName: '当前用户',
-      },
-    })
-  }
+  // 同一企业只能关联一次
+  const existing = await db.enterpriseRelation.findFirst({
+    where: { type: "partner", enterpriseId, relatedId: partnerId },
+  })
+  if (existing) throw Object.assign(new Error("该企业已是相关方，不可重复关联"), { statusCode: 409 })
+
+
+  await db.enterpriseRelation.create({
+    data: {
+      type: 'partner',
+      enterpriseId,
+      enterpriseName: enterprise.name,
+      relatedId: partnerId,
+      relatedName: partner.name,
+      dimALevel1: partner.dimALevel1,
+      contactName: partner.contactName,
+      contactPhone: partner.contactPhone,
+      operatorName: '当前用户',
+    },
+  })
 }
 
 export async function removePartners(_enterpriseId: number, relationIds: number[]) {
@@ -366,7 +397,9 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
     relatedAt: formatDate(r.relatedAt),
     operatorName: r.operatorName,
     authUnits: safeJsonParse(r.authUnits, []),
-    allowOperation: r.allowOperation,
+    role: r.role || "my_manager",
+      roleLabel: ROLE_MAP[r.role || "my_manager"] || r.role || "我的管理方",
+      allowOperation: r.allowOperation,
   }
 }
 
@@ -465,9 +498,23 @@ export async function getDictC() { return { data: DIM_C_OPTIONS } }
 export async function getDictD() { return { data: DIM_D_OPTIONS } }
 export async function getModuleTree() { return { data: [] } }
 
+const RELATION_ROLE_OPTIONS = [
+  { value: 'my_supervisor', label: '我的监管方', description: '对方对我有监管/检查职能' },
+  { value: 'my_manager', label: '我的管理方', description: '对方是我的上级管理单位' },
+  { value: 'my_service_provider', label: '我的服务商', description: '对方为我提供服务' },
+  { value: 'my_customer', label: '我的客户', description: '我向对方提供服务' },
+  { value: 'my_collaborator', label: '我的协作方', description: '双方平等协作' },
+]
+
+export async function getRelationRoleDict() { return { data: RELATION_ROLE_OPTIONS } }
+
 // ============================================
 // 辅助
 // ============================================
+function resolveDimCName(code: string): string {
+  return DIM_C_OPTIONS.find(o => o.value === code)?.label || ''
+}
+
 function parseTags(tags: any): string[] {
   if (Array.isArray(tags)) return tags.filter(Boolean)
   if (typeof tags === 'string') return tags.split(',').map(s => s.trim()).filter(Boolean)

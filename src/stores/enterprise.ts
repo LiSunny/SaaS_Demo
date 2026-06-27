@@ -4,14 +4,14 @@ import { ElMessage } from 'element-plus'
 import type {
   EnterpriseItem, EnterpriseQuery, EnterpriseForm,
   SubordinateItem, PartnerItem, OperationLogItem,
-  DictItem, ModuleTreeNode, PartnerRole,
+  DictItem, ModuleTreeNode,
 } from '@/types/enterprise'
 import {
   getEnterpriseList, getEnterpriseDetail,
   createEnterprise, updateEnterprise,
   lockEnterprise, extendEnterprise, batchDeleteEnterprises,
   getSubordinates, addSubordinates, removeSubordinates,
-  getPartners, addPartners, removePartners, savePartnerAuth,
+  getPartners, addPartner, removePartners, savePartnerAuth,
   getOperationLogs, getEnterpriseQrcode, regenerateQrcode,
   searchEnterprises, getRelationRoleDict, getDictB, getDictC, getDictD, getModuleTree,
 } from '@/api/enterprise'
@@ -131,8 +131,8 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
     } finally { partnerLoading.value = false }
   }
 
-  async function handleAddPartners(enterpriseId: string, ids: string[], role?: PartnerRole) {
-    await addPartners(enterpriseId, ids, role)
+  async function handleAddPartner(enterpriseId: string, data: { enterpriseId: string; role: string; tags?: string[] }) {
+    await addPartner(enterpriseId, data)
     ElMessage.success('关联成功')
     fetchPartners(enterpriseId)
   }
@@ -203,7 +203,7 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
     detail, detailLoading, fetchDetail,
     handleLock, handleExtend, handleBatchDelete, handleCreate, handleUpdate,
     subordinates, subLoading, fetchSubordinates, handleAddSubordinates, handleRemoveSubordinates,
-    partners, partnerLoading, fetchPartners, handleAddPartners, handleRemovePartners, handleSavePartnerAuth,
+    partners, partnerLoading, fetchPartners, handleAddPartner, handleRemovePartners, handleSavePartnerAuth,
     logs, logLoading, fetchLogs,
     qrcode, fetchQrcode, handleRegenerateQrcode,
     relationRoleDict, dictB, dictC, dictD, moduleTree, fetchDicts,

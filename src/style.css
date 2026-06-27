@@ -25,6 +25,8 @@
   --normal: #364153;
   --normal-bg: #F3F4F6;
   --normal-border: #ACBCD5;
+  --purple: #8B5CF6;
+  --purple-bg: rgba(139, 92, 246, 0.1);
 
   /* 背景 */
   --bg-main: #F0F1F6;
@@ -127,6 +129,8 @@ html.dark {
   --normal: #B9B9B9;
   --normal-bg: rgba(185, 185, 185, 0.15);
   --normal-border: rgba(185, 185, 185, 0.25);
+  --purple: #A78BFA;
+  --purple-bg: rgba(167, 139, 250, 0.15);
 
   --bg-main: #002B59;
   --bg-card: #00336A;

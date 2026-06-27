@@ -60,8 +60,8 @@ export async function getPartners(enterpriseId: string, query: { keyword?: strin
   return res.data
 }
 
-export async function addPartners(enterpriseId: string, enterpriseIds: string[]): Promise<void> {
-  await request.post(`/enterprise/${enterpriseId}/partners`, { ids: enterpriseIds })
+export async function addPartner(enterpriseId: string, data: { enterpriseId: string; role: string; tags?: string[] }): Promise<void> {
+  await request.post(`/enterprise/${enterpriseId}/partners`, data)
 }
 
 export async function removePartners(enterpriseId: string, relationIds: string[]): Promise<void> {
@@ -88,14 +88,50 @@ export async function regenerateQrcode(id: string): Promise<string> {
   return res.data?.url || ''
 }
 
-export async function searchEnterprises(keyword: string): Promise<EnterpriseItem[]> {
+export async function searchEnterprises(_enterpriseId: string, keyword: string): Promise<EnterpriseItem[]> {
   const res: any = await request.get('/enterprise/search', { params: { keyword } })
   return res.data || res
 }
 
-export async function getRelationRoleDict(): Promise<{ data: { value: string; label: string; description: string }[] }> {
-  const res: any = await request.get('/enterprise/dict/relation-roles')
-  return { data: res }
+const PARTNER_ROLE_TREE = [
+  { value: 'my_supervisor', label: '我的监管方', children: [
+    { value: 'fire_rescue', label: '消防救援机构' },
+    { value: 'emergency_mgmt', label: '应急管理部门' },
+    { value: 'local_gov', label: '属地政府（街道/社区等）' },
+    { value: 'industry_regulator', label: '行业主管部门' },
+  ]},
+  { value: 'my_manager', label: '我的管理方', children: [
+    { value: 'space_manager', label: '空间管理方', children: [
+      { value: 'business_street', label: '商业街' },
+      { value: 'property', label: '物业' },
+      { value: 'park', label: '园区' },
+      { value: 'market', label: '市场' },
+      { value: 'complex', label: '综合体' },
+    ]},
+    { value: 'group_manager', label: '集团管理方' },
+  ]},
+  { value: 'social_unit', label: '社会单位' },
+  { value: 'my_service_unit', label: '我的服务单位', children: [
+    { value: 'fire_tech_service', label: '消防技术服务机构' },
+  ]},
+  { value: 'my_operator', label: '我的运营方', children: [
+    { value: 'operation_manager', label: '运营管理方' },
+  ]},
+]
+
+export async function getRelationRoleDict(): Promise<{ data: any[] }> {
+  return { data: PARTNER_ROLE_TREE }
+}
+
+const TAG_DICT = [
+  { value: '消防安全重点单位', label: '消防安全重点单位' },
+  { value: '维保', label: '维保' },
+  { value: '检测', label: '检测' },
+  { value: '评估', label: '评估' },
+]
+
+export async function getTagDict(): Promise<{ data: { value: string; label: string }[] }> {
+  return { data: TAG_DICT }
 }
 
 export async function getDictB(): Promise<{ data: DictItem[] }> {
