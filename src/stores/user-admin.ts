@@ -3,7 +3,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UserItem, UserQuery, CreateUserForm, UpdateUserForm, UserEnterpriseItem } from '@/types/user-admin'
 import {
-  getUserList, getUserDetail, createUser, updateUser,
+  getUserList, createUser, updateUser,
   toggleUserStatus, resetUserPassword, getUserEnterprises,
 } from '@/api/user-admin'
 

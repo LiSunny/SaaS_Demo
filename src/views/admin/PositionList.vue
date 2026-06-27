@@ -143,7 +143,6 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { usePositionStore } from '@/stores/position-admin'
 import type { PositionItem } from '@/types/position-admin'
 import { nameToKey } from '@/types/position-admin'
-import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 const store = usePositionStore()

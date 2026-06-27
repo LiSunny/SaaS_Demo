@@ -251,8 +251,8 @@ async function handleResetPwd(row: UserItem) {
   try {
     await ElMessageBox.confirm('确定重置该用户的密码吗？重置后密码为随机生成的6位字符串。', '重置密码确认', { type: 'warning' })
   } catch { return }
-  const r = await store.handleResetPassword(row.id)
-  ElMessage.success(`密码已重置为: ${r.password}`)
+  const newPwd = await store.handleResetPassword(row.id)
+  ElMessage.success(`密码已重置为: ${newPwd}`)
 }
 
 // ===== 关联企业 =====
