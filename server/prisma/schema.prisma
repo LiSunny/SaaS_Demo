@@ -14,15 +14,40 @@ datasource db {
 }
 
 // ============================================================
-// 用户
+// 用户（平台级账号，手机号即账号）
 // ============================================================
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String @unique
-  orgId    Int
-  orgName  String
-  password String
-  position String @default("")
+  id         Int       @id @default(autoincrement())
+  phone      String    @unique
+  realName   String
+  email      String    @default("")
+  password   String
+  status     Int       @default(1)     // 1=启用, 0=停用
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  lastLoginAt DateTime?
+  lastLoginIp  String?
+
+  enterprises UserEnterprise[]
+}
+
+// ============================================================
+// 用户-企业关联（多对多）
+// ============================================================
+model UserEnterprise {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  enterpriseId Int
+  positions    String   @default("[]")   // JSON 数组，岗位 key 列表
+  status       Int      @default(1)      // 1=正常, 0=已移除
+  joinedAt     DateTime @default(now())
+  inviterName  String   @default("")
+  remark       String   @default("")
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+
+  @@unique([userId, enterpriseId])
 }
 
 // ============================================================
@@ -60,9 +85,10 @@ model Enterprise {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  workOrders     WorkOrder[]               @relation("creatorOrg")
-  subordinates   EnterpriseRelation[]      @relation("superior")
-  partnersOf     EnterpriseRelation[]      @relation("partnerOf")
+  workOrders      WorkOrder[]               @relation("creatorOrg")
+  subordinates    EnterpriseRelation[]      @relation("superior")
+  partnersOf      EnterpriseRelation[]      @relation("partnerOf")
+  userEnterprises UserEnterprise[]
 }
 
 // 企业关联（Subordinate / Partner 统一表）

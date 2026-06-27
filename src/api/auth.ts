@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 export interface LoginParams {
-  username: string
+  phone: string
   password: string
 }
 
@@ -9,15 +9,15 @@ export interface LoginResult {
   token: string
   user: {
     id: number
-    name: string
-    orgId: number
-    orgName: string
-    position: string
+    phone: string
+    realName: string
+    email: string
+    status: number
   }
 }
 
 /**
- * 用户登录
+ * 用户登录（手机号 + 密码）
  * POST /api/auth/login
  */
 export async function loginApi(params: LoginParams): Promise<LoginResult> {

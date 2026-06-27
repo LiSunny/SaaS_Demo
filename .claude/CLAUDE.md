@@ -6,7 +6,7 @@
 - Vue 3 + Vite + TypeScript + Composition API
 - Element Plus 2.x（UI 组件库）
 - Pinia（状态管理）+ Vue Router 4
-- 所有 API 为 Mock 实现（`src/api/`，内存数据）
+- 后端：Express + Prisma + SQLite（`server/`），已实现 auth / enterprise / user CRUD
 - 开发服务器：`npm run dev`（默认 `http://localhost:3200`）
 
 ## 目录约定
@@ -238,6 +238,47 @@
 | IOT 域首页 | `/iot` | 📝 占位页 |
 | 平台配置域首页 | `/platform` | 📝 占位页 |
 | 系统管理域首页 | `/admin` | 📝 占位页 |
+
+## 工作快照
+> 更新时间：2026-06-27
+
+### 当前阶段
+用户管理体系 — P0 实现完成（M0 用户账号管理），P1/P2 设计完成待实现。
+
+### 已完成的工作
+- [x] 用户管理业务设计 v1.6（`docs/用户管理/biz-design.md`）
+- [x] 用户管理模块规划 v1.0（`docs/用户管理/module-plan.md`）
+- [x] M0 ai-spec 规格（`docs/用户管理/ai-spec/`）
+- [x] 后端 Schema 重构：User 表（phone 即账号）+ UserEnterprise 关联表
+- [x] 后端 Auth 改为手机号登录（`server/src/services/auth.service.ts`）
+- [x] M0 后端实现（`server/src/services/user.service.ts` + controller + routes）
+- [x] M0 前端实现（`src/views/admin/UserList.vue` + types/api/store）
+- [x] 登录页改为手机号登录（`src/views/auth/Login.vue`）
+- [x] 侧栏导航添加"用户管理"菜单（`src/config/navigation.ts`）
+- [x] Header 添加退出登录按钮（`src/layouts/DefaultLayout.vue`）
+- [x] 全流程 UI 测试通过（登录/退出/CRUD/停用/重置密码）
+
+### 关键决策记录
+- **手机号即账号**：去掉 username，phone 唯一标识 + 登录凭证
+- **一对多模型**：User ↔ Enterprise 通过 UserEnterprise 关联，每企业独立岗位
+- **两层岗位体系**：平台内置岗（CRUD） + 企业自定义岗（CRUD）
+- **权限配置**：平台层定义模板，企业层可按需关闭（不可新增）
+- **软删除**：用户只能停用，不可物理删除
+- **M1 添加方式**：输入手机号 → 检索匹配/新建 → 直接关联（不做邀请确认）
+
+### 待处理
+| 模块 | 优先级 | 状态 |
+|------|--------|------|
+| M1 企业用户管理 | P0 | 📝 设计完成，待实现 |
+| M2 权限配置（平台层） | P1 | 📝 设计完成，待实现 |
+| M3 企业权限微调 | P2 | 📝 设计完成 |
+| M4 企业切换 | P1 | 📝 设计完成 |
+| M5 操作日志 | P2 | 📝 设计完成 |
+
+### 下次开始的建议动作
+1. 实现 M1 企业用户管理：`/gen-api M1 enterprise-users` + 前端对接
+2. 或先走 M1 的 ai-spec：生成 `docs/用户管理/ai-spec/企业用户列表.md`
+3. 或继续完善现有功能：给用户列表加搜索筛选交互细节
 
 ### Skill 源仓库
 

@@ -12,12 +12,13 @@
         size="large"
         @submit.prevent="handleLogin"
       >
-        <el-form-item prop="username">
+        <el-form-item prop="phone">
           <el-input
-            v-model="form.username"
-            placeholder="用户名"
-            :prefix-icon="User"
+            v-model="form.phone"
+            placeholder="手机号"
+            :prefix-icon="Phone"
             clearable
+            maxlength="11"
           />
         </el-form-item>
 
@@ -53,7 +54,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
+import { Phone, Lock } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { loginApi } from '@/api/auth'
@@ -67,12 +68,15 @@ const loading = ref(false)
 const errorMsg = ref('')
 
 const form = reactive({
-  username: '',
+  phone: '',
   password: '',
 })
 
 const rules: FormRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+  ],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
@@ -85,7 +89,7 @@ async function handleLogin() {
 
   try {
     const res = await loginApi({
-      username: form.username,
+      phone: form.phone,
       password: form.password,
     })
 

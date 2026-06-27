@@ -3,22 +3,22 @@ import * as authService from '../services/auth.service.js'
 
 /**
  * POST /api/auth/login
- * Body: { username: string, password: string }
+ * Body: { phone: string, password: string }
  */
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { username, password } = req.body
+    const { phone, password } = req.body
 
-    if (!username || !password) {
+    if (!phone || !password) {
       res.status(400).json({
         code: 400,
-        message: '请输入用户名和密码',
+        message: '请输入手机号和密码',
         data: null,
       })
       return
     }
 
-    const result = await authService.login({ username, password })
+    const result = await authService.login({ phone, password })
 
     res.json({
       code: 0,

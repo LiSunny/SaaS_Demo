@@ -225,6 +225,8 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'menuicon-33',
         children: [
           { key: 'tenant-mgmt', label: '租户管理', icon: 'menuicon-43', route: '/admin/enterpriseManagement/index' },
+          { key: 'user-mgmt', label: '用户管理', icon: 'menuicon-43', route: '/admin/users' },
+          { key: 'position-mgmt', label: '岗位管理', icon: 'menuicon-43', route: '/admin/positions' },
         ],
       },
     ],
@@ -247,6 +249,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/platform': 'platform',
   '/admin': 'admin',
   '/admin/enterpriseManagement': 'tenant-mgmt',
+  '/admin/positions': 'position-mgmt',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -261,6 +264,8 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'platform': '/platform',
   'admin': '/admin',
   'tenant-mgmt': '/admin/enterpriseManagement/index',
+  'user-mgmt': '/admin/users',
+  'position-mgmt': '/admin/positions',
 }
 
 // ===== 工具函数 =====

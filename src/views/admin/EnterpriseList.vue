@@ -97,7 +97,7 @@
                     <AppIcon name="edit" class="act-icon" />
                   </button>
                   <button v-if="row.status === 1" class="act-btn" title="锁定" @click="handleLock(row)">
-                    <AppIcon name="lock" class="act-icon" />
+                    <AppIcon name="lock-on" class="act-icon" />
                   </button>
                   <button class="act-btn" title="个性化配置" @click="openBranding(row)">
                     <AppIcon name="setting" class="act-icon" />

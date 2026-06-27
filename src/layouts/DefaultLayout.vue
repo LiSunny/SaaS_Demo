@@ -10,6 +10,12 @@
       <div class="user-area">
         <AppIcon name="message" class="ua-icon" />
         <ThemeToggle />
+        <span v-if="userStore.isLoggedIn" class="user-name">{{ userStore.user?.realName }}</span>
+        <button v-if="userStore.isLoggedIn" class="logout-btn" title="退出登录" @click="handleLogout">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <PositionSwitcher />
         <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" title="切换侧栏">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -147,6 +153,8 @@ import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import PositionSwitcher from '@/components/base/PositionSwitcher.vue'
+import { useUserStore } from '@/stores/user'
+import { ElMessageBox } from 'element-plus'
 import {
   WORKBENCH_ITEM,
   NAV_GROUPS,
@@ -159,6 +167,15 @@ import {
 } from '@/config/navigation'
 
 const router = useRouter()
+const userStore = useUserStore()
+
+async function handleLogout() {
+  try {
+    await ElMessageBox.confirm('确定要退出登录吗？', '退出确认', { type: 'warning' })
+  } catch { return }
+  userStore.logout()
+  router.replace('/login')
+}
 
 // ===== 状态 =====
 const activeNavKey = ref('')
@@ -351,6 +368,8 @@ if (typeof window !== 'undefined') {
   background: var(--border-high); flex-shrink: 0;
 }
 .user-name { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); white-space: nowrap; }
+.logout-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all .2s; }
+.logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
 
 /* 侧栏切换按钮 */
 .sidebar-toggle {

@@ -338,8 +338,8 @@ export async function getPartners(enterpriseId: number, params: { keyword?: stri
       relatedAt: formatDate(r.relatedAt),
       operatorName: r.operatorName,
       authUnits: safeJsonParse(r.authUnits, []),
-      role: r.role || "my_manager",
-      roleLabel: ROLE_MAP[r.role || "my_manager"] || r.role || "我的管理方",
+      role: "my_manager",
+      roleLabel: ROLE_MAP["my_manager"] || "我的管理方",
       allowOperation: r.allowOperation,
     })),
     total,
@@ -397,8 +397,8 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
     relatedAt: formatDate(r.relatedAt),
     operatorName: r.operatorName,
     authUnits: safeJsonParse(r.authUnits, []),
-    role: r.role || "my_manager",
-      roleLabel: ROLE_MAP[r.role || "my_manager"] || r.role || "我的管理方",
+    role: "my_manager",
+      roleLabel: ROLE_MAP["my_manager"] || "我的管理方",
       allowOperation: r.allowOperation,
   }
 }

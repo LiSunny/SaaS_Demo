@@ -101,6 +101,8 @@ const router = createRouter({
         { path: 'enterpriseManagement/create', name: 'EnterpriseCreate', component: () => import('@/views/admin/EnterpriseForm.vue'), meta: { hidden: true } },
         { path: 'enterpriseManagement/edit', name: 'EnterpriseEdit', component: () => import('@/views/admin/EnterpriseForm.vue'), meta: { hidden: true } },
         { path: 'enterpriseManagement/detail', name: 'EnterpriseDetail', component: () => import('@/views/admin/EnterpriseDetail.vue'), meta: { hidden: true } },
+        { path: 'users', name: 'UserList', component: () => import('@/views/admin/UserList.vue') },
+        { path: 'positions', name: 'PositionList', component: () => import('@/views/admin/PositionList.vue') },
       ],
     },
 

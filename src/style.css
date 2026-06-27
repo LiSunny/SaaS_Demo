@@ -486,7 +486,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
   color: var(--text-secondary);
   transition: background .15s, color .15s;
 }
-.act-btn:hover { background: var(--accent-primary10); }
+.act-btn:hover { background: var(--accent-primary10); color: var(--accent-primary); }
 
 /* 语义色 */
 .act-edit  { color: var(--accent-primary); }
