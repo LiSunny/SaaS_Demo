@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import type {
   EnterpriseItem, EnterpriseQuery, EnterpriseForm,
   SubordinateItem, PartnerItem, OperationLogItem,
-  DictItem, ModuleTreeNode,
+  DictItem, ModuleTreeNode, PartnerRole,
 } from '@/types/enterprise'
 import {
   getEnterpriseList, getEnterpriseDetail,
@@ -13,9 +13,15 @@ import {
   getSubordinates, addSubordinates, removeSubordinates,
   getPartners, addPartners, removePartners, savePartnerAuth,
   getOperationLogs, getEnterpriseQrcode, regenerateQrcode,
-  searchEnterprises, getDimADict, getDictB, getDictC, getDictD, getModuleTree,
+  searchEnterprises, getRelationRoleDict, getDictB, getDictC, getDictD, getModuleTree,
 } from '@/api/enterprise'
 import defaultQrcode from '@/assets/qr_code.png'
+
+export interface RelationRoleOption {
+  value: string
+  label: string
+  description: string
+}
 
 export const useEnterpriseStore = defineStore('enterprise', () => {
   // ===== 列表 =====
@@ -38,7 +44,6 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
   function search() { query.page = 1; fetchList() }
   function resetQuery() {
     query.keyword = ''
-    query.dimALevel1 = undefined
     query.dimB = ''
     query.dimC = ''
     query.dimD = ''
@@ -118,16 +123,16 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
   const partners = ref<PartnerItem[]>([])
   const partnerLoading = ref(false)
 
-  async function fetchPartners(enterpriseId: string, kw = '', tag = '') {
+  async function fetchPartners(enterpriseId: string, kw = '', tag = '', role = '') {
     partnerLoading.value = true
     try {
-      const r = await getPartners(enterpriseId, { keyword: kw, tag, page: 1, size: 100 })
+      const r = await getPartners(enterpriseId, { keyword: kw, tag, role, page: 1, size: 100 })
       partners.value = r.data
     } finally { partnerLoading.value = false }
   }
 
-  async function handleAddPartners(enterpriseId: string, ids: string[]) {
-    await addPartners(enterpriseId, ids)
+  async function handleAddPartners(enterpriseId: string, ids: string[], role?: PartnerRole) {
+    await addPartners(enterpriseId, ids, role)
     ElMessage.success('关联成功')
     fetchPartners(enterpriseId)
   }
@@ -170,17 +175,17 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
   }
 
   // ===== 字典 =====
-  const dimADict = ref<DictItem[]>([])
+  const relationRoleDict = ref<RelationRoleOption[]>([])
   const dictB = ref<DictItem[]>([])
   const dictC = ref<DictItem[]>([])
   const dictD = ref<DictItem[]>([])
   const moduleTree = ref<ModuleTreeNode[]>([])
 
   async function fetchDicts() {
-    const [a, b, c, d, m] = await Promise.all([
-      getDimADict(), getDictB(), getDictC(), getDictD(), getModuleTree(),
+    const [r, b, c, d, m] = await Promise.all([
+      getRelationRoleDict(), getDictB(), getDictC(), getDictD(), getModuleTree(),
     ])
-    dimADict.value = a.data
+    relationRoleDict.value = r.data
     dictB.value = b.data
     dictC.value = c.data
     dictD.value = d.data
@@ -201,7 +206,7 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
     partners, partnerLoading, fetchPartners, handleAddPartners, handleRemovePartners, handleSavePartnerAuth,
     logs, logLoading, fetchLogs,
     qrcode, fetchQrcode, handleRegenerateQrcode,
-    dimADict, dictB, dictC, dictD, moduleTree, fetchDicts,
+    relationRoleDict, dictB, dictC, dictD, moduleTree, fetchDicts,
     searchEnterprisesRemote,
   }
 })

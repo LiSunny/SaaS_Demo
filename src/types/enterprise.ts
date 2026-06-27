@@ -3,25 +3,14 @@
 /** 企业状态 */
 export type EnterpriseStatus = 1 | 0 | 2 // 有效 | 已锁定 | 已过期
 
-/** 维度 A — 平台管理角色（三级） */
-export type DimALevel1 = 'supervisor' | 'manager' | 'social_unit' | 'service_unit' | 'platform_operator'
-export type DimALevel2 = 'space_manager' | 'group_manager' | null
-export type DimALevel3 =
-  | 'fire_rescue' | 'emergency_mgmt' | 'local_gov' | 'industry_supervisor'
-  | 'property_mgr' | 'park_mgr' | 'market_mgr' | 'complex_mgr' | 'commercial_street_mgr'
-  | 'fire_tech_service'
-  | null
-
-export interface DimA {
-  level1: DimALevel1
-  level2: DimALevel2
-  level3: DimALevel3
-}
-
+/** 维度 C 行业分类 */
 export interface DimC {
   code: string
   name: string
 }
+
+/** 关系角色（相关方关联时指定，"我的"视角） */
+export type PartnerRole = 'my_supervisor' | 'my_manager' | 'my_service_provider' | 'my_customer' | 'my_collaborator'
 
 // ===== 列表相关 =====
 
@@ -29,7 +18,6 @@ export interface EnterpriseItem {
   id: string
   name: string
   code: string
-  dimA: DimA
   dimB: string
   dimC: DimC
   dimD: string
@@ -56,7 +44,6 @@ export interface EnterpriseItem {
 
 export interface EnterpriseQuery {
   keyword?: string
-  dimALevel1?: DimALevel1
   dimB?: string
   dimC?: string
   dimD?: string
@@ -78,7 +65,6 @@ export interface EnterpriseForm {
   address: string
   remark: string
   logo: string
-  dimA: DimA
   dimB: string
   dimC: string
   dimD: string
@@ -91,7 +77,6 @@ export interface SubordinateItem {
   id: string
   enterpriseId: string
   enterpriseName: string
-  dimALevel1: DimALevel1
   tags: string[]
   relatedAt: string
   operatorName: string
@@ -101,6 +86,7 @@ export interface PartnerItem {
   id: string
   enterpriseId: string
   enterpriseName: string
+  role: PartnerRole
   tags: string[]
   contactName: string
   contactPhone: string

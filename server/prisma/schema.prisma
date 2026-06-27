@@ -1,0 +1,232 @@
+// ============================================================
+// maintenance-demo 数据库 Schema
+// 对照前端 src/types/ 中的类型定义
+// 开发环境：SQLite，生产切换 PostgreSQL 仅需改 datasource
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 用户
+// ============================================================
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  orgId    Int
+  orgName  String
+  password String
+  position String @default("")
+}
+
+// ============================================================
+// 企业 / 租户 → 对应 src/types/enterprise.ts EnterpriseItem
+// ============================================================
+model Enterprise {
+  id            Int      @id @default(autoincrement())
+  name          String
+  code          String   @unique
+  // 维度 A 三级分类
+  dimALevel1    String                           // supervisor|manager|social_unit|service_unit|platform_operator
+  dimALevel2    String   @default("")
+  dimALevel3    String   @default("")
+  dimB          String   @default("")
+  dimCCode      String   @default("")
+  dimCName      String   @default("")
+  dimD          String   @default("")
+  region        String   @default("")
+  contactName   String   @default("")
+  contactPhone  String   @default("")
+  status        Int      @default(1)            // 1=有效, 0=已锁定, 2=已过期
+  validFrom     String   @default("")
+  validTo       String   @default("")
+  parentId      Int      @default(0)
+  parentName    String   @default("")
+  address       String   @default("")
+  remark        String   @default("")
+  logo          String   @default("")
+  qrcode        String   @default("")
+  creatorName   String   @default("")
+  tags          String   @default("[]")          // JSON 数组
+  staffCount    Int      @default(0)
+  unitCount     Int      @default(0)
+  relCount      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workOrders     WorkOrder[]               @relation("creatorOrg")
+  subordinates   EnterpriseRelation[]      @relation("superior")
+  partnersOf     EnterpriseRelation[]      @relation("partnerOf")
+}
+
+// 企业关联（Subordinate / Partner 统一表）
+model EnterpriseRelation {
+  id              Int      @id @default(autoincrement())
+  type            String                      // "subordinate" | "partner"
+  enterpriseId    Int                         // 上级/发起方
+  enterpriseName  String
+  relatedId       Int                         // 下级/相关方
+  relatedName     String
+  dimALevel1      String   @default("")
+  tags            String   @default("[]")     // JSON
+  contactName     String   @default("")
+  contactPhone    String   @default("")
+  relatedAt       DateTime @default(now())
+  operatorName    String   @default("")
+  authUnits       String   @default("[]")     // JSON（仅 partner）
+  allowOperation  Boolean  @default(false)    // 仅 partner
+
+  enterprise      Enterprise @relation("superior", fields: [enterpriseId], references: [id])
+  related         Enterprise @relation("partnerOf", fields: [relatedId], references: [id])
+}
+
+// ============================================================
+// 流程模板 → 对应 src/types/workflow.ts TemplateItem / TemplateDetail
+// ============================================================
+model WorkflowTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String   @unique
+  status      Int      @default(0)            // 0=待生效, 1=执行中, 2=已停用, 3=已过期
+  nodeCount   Int      @default(0)
+  fieldCount  Int      @default(0)
+  creator     String   @default("当前用户")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 配置以 JSON 字符串存储（避免为可变字段建大量关联表）
+  baseInfo        String @default("{}")       // JSON: TemplateBase
+  formSchema      String @default("{}")       // JSON: FormSchema
+  flowDef         String @default("{}")       // JSON: FlowDefinition（编辑中）
+  publishedFlowDef String @default("{}")      // JSON: FlowDefinition（已发布）
+  seedFlowDef     String @default("{}")       // JSON: FlowDefinition（种子快照）
+  draftConfig     String @default("{}")       // JSON: 完整草稿配置
+
+  workOrders WorkOrder[]
+}
+
+// ============================================================
+// 工单 → 对应 src/types/work-order.ts WorkOrderItem / WorkOrderDetail
+// ============================================================
+model WorkOrder {
+  id                Int       @id @default(autoincrement())
+  orderNo           String    @unique
+  templateId        Int
+  templateName      String
+  templateVersion   Int       @default(1)
+  title             String    @default("")
+  status            String    @default("draft")   // draft | active | closed
+  priority          String    @default("normal")  // urgent | high | normal | low
+  currentNodeId     String?
+  currentNodeName   String?
+  currentNodeIndex  Int       @default(0)
+  totalNodes        Int       @default(0)
+  activePathNodeCount Int     @default(0)
+  activePathIndex   Int       @default(0)
+  currentNodeType   String?
+  currentAssigneeId Int?
+  currentAssigneeName String?
+  creatorId         Int
+  creatorName       String
+  creatorOrgId      Int
+  creatorOrgName    String
+  parentOrderId     Int?
+  remark            String    @default("")
+  escalatedFrom     String?                      // 原始优先级（SLA 升级前）
+  closedAt          DateTime?
+  closedBy          String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // 嵌入 JSON
+  slaJson           String    @default("{}")     // JSON: SlaInfo
+  formDataJson      String    @default("{}")     // JSON: 发起表单数据
+
+  // 关联
+  template          WorkflowTemplate  @relation(fields: [templateId], references: [id])
+  creatorOrg        Enterprise        @relation("creatorOrg", fields: [creatorOrgId], references: [id])
+  parentOrder       WorkOrder?        @relation("parentChild", fields: [parentOrderId], references: [id])
+  childOrders       WorkOrder[]       @relation("parentChild")
+
+  nodes             WorkOrderNode[]
+  records           WorkOrderRecord[]
+  nodeFormRecords   NodeFormRecord[]
+  branchDecisions   BranchDecision[]
+}
+
+model WorkOrderNode {
+  id           Int       @id @default(autoincrement())
+  workOrderId  Int
+  nodeId       String
+  name         String
+  type         String
+  status       String    @default("pending")   // completed | in_progress | pending | skipped
+  assigneeName String?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  order        Int       @default(0)
+
+  workOrder    WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@unique([workOrderId, nodeId])
+}
+
+model WorkOrderRecord {
+  id              Int      @id @default(autoincrement())
+  workOrderId     Int
+  action          String
+  operatorName    String
+  operatorOrgName String   @default("")
+  content         String
+  createdAt       DateTime @default(now())
+
+  workOrder       WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+}
+
+model NodeFormRecord {
+  id             Int      @id @default(autoincrement())
+  workOrderId    Int
+  nodeId         String
+  nodeName       String
+  submittedBy    String
+  submittedByOrg String   @default("")
+  submittedAt    DateTime @default(now())
+  data           String   @default("{}")       // JSON
+
+  workOrder      WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+}
+
+model BranchDecision {
+  id                  Int      @id @default(autoincrement())
+  workOrderId         Int
+  conditionNodeId     String
+  evaluatedExpression String
+  result              Boolean
+  takenEdgeId         String
+  resolvedAt          DateTime @default(now())
+
+  workOrder           WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// 维保计划 → 对应 src/types/maintenance.ts MaintenancePlan
+// ============================================================
+model MaintenancePlan {
+  id               Int      @id @default(autoincrement())
+  planName         String
+  status           String   @default("pending") // running | pending | stopped | expired
+  deviceCount      Int      @default(0)
+  maintenanceItems Int      @default(0)
+  maintenanceType  String   @default("daily")   // daily | weekly | monthly | quarterly | yearly
+  executor         String   @default("")
+  nextGenTime      String   @default("")
+  enabled          Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

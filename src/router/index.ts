@@ -18,6 +18,14 @@ const DefaultLayout = () => import('@/layouts/DefaultLayout.vue')
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // ===== 登录页（无布局，独立页面） =====
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('@/views/auth/Login.vue'),
+      meta: { standalone: true },
+    },
+
     // ===== 全屏可视化大屏首页 =====
     {
       path: '/',
@@ -106,6 +114,21 @@ const router = createRouter({
     { path: '/workflow/monitor', redirect: '/system/monitor' },
     { path: '/workflow/order/:id', redirect: to => `/system/order/${to.params.id}` },
   ],
+})
+
+// ===== 全局路由守卫：未登录 → 跳转登录页 =====
+router.beforeEach((to) => {
+  const token = localStorage.getItem('auth_token')
+  const isLoginPage = to.path === '/login'
+
+  if (!token && !isLoginPage) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+
+  // 已登录访问登录页 → 跳转工作台
+  if (token && isLoginPage) {
+    return { path: '/workbench' }
+  }
 })
 
 export default router

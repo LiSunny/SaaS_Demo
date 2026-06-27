@@ -1,14 +1,13 @@
 /**
  * enterprise-dao.ts — 租户管理 DAO 适配器（Mock 数据）
  */
-import type { EnterpriseItem, EnterpriseQuery, EnterpriseForm, SubordinateItem, PartnerItem, OperationLogItem, PaginatedData } from '@/types/enterprise'
+import type { EnterpriseItem, EnterpriseQuery, EnterpriseForm, SubordinateItem, PartnerItem, OperationLogItem, PaginatedData, PartnerRole } from '@/types/enterprise'
 import { createPersistentStore } from '@/utils/db-adapter'
 
 // ===== Mock 企业数据 =====
 const MOCK_ENTERPRISES: EnterpriseItem[] = [
   {
     id: '1', name: '尼特', code: 'QY1',
-    dimA: { level1: 'platform_operator', level2: null, level3: null },
     dimB: '', dimC: { code: '', name: '' }, dimD: '',
     region: '', contactName: '管理员', contactPhone: '16666666666',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -18,17 +17,15 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '2', name: '港南一中', code: 'QY1013801074735185920',
-    dimA: { level1: 'social_unit', level2: null, level3: null },
     dimB: '06', dimC: { code: '85', name: '教育' }, dimD: '12',
     region: '广西壮族自治区 贵港市 港南区', contactName: '李文学', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
-    tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    tags: ['消防安全重点单位'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 1, unitCount: 1, relCount: 2,
     createdAt: '2025-08-29 13:23:32', updatedAt: '2025-08-29 13:23:32',
   },
   {
     id: '3', name: '港南消防队', code: 'QY1044197200894099456',
-    dimA: { level1: 'supervisor', level2: null, level3: 'fire_rescue' },
     dimB: '', dimC: { code: '91', name: '国家机构' }, dimD: '',
     region: '', contactName: '李阳', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -38,7 +35,6 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '4', name: '阳光物业管理有限公司', code: 'QY1000000000000000001',
-    dimA: { level1: 'manager', level2: 'space_manager', level3: 'property_mgr' },
     dimB: '', dimC: { code: '70', name: '房地产业' }, dimD: '2',
     region: '北京市 朝阳区', contactName: '赵丽萍', contactPhone: '13800001111',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -48,7 +44,6 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '5', name: '蓝盾消防技术服务公司', code: 'QY1000000000000000002',
-    dimA: { level1: 'service_unit', level2: null, level3: 'fire_tech_service' },
     dimB: '', dimC: { code: '80', name: '居民服务业' }, dimD: '',
     region: '北京市 海淀区', contactName: '郑晓峰', contactPhone: '13900002222',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -58,7 +53,6 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '6', name: '应急管理局安全管理中心', code: 'QY1000000000000000003',
-    dimA: { level1: 'supervisor', level2: null, level3: 'emergency_mgmt' },
     dimB: '', dimC: { code: '91', name: '国家机构' }, dimD: '',
     region: '北京市', contactName: '王蕾', contactPhone: '13700003333',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -71,19 +65,19 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
 // ===== Mock 下级关联 =====
 const MOCK_SUBORDINATES: Record<string, SubordinateItem[]> = {
   '6': [
-    { id: 's1', enterpriseId: '3', enterpriseName: '港南消防队', dimALevel1: 'supervisor', tags: [], relatedAt: '2025-12-01 10:00:00', operatorName: '王蕾' },
-    { id: 's2', enterpriseId: '4', enterpriseName: '阳光物业管理有限公司', dimALevel1: 'manager', tags: [], relatedAt: '2025-12-15 14:00:00', operatorName: '王蕾' },
+    { id: 's1', enterpriseId: '3', enterpriseName: '港南消防队', tags: [], relatedAt: '2025-12-01 10:00:00', operatorName: '王蕾' },
+    { id: 's2', enterpriseId: '4', enterpriseName: '阳光物业管理有限公司', tags: [], relatedAt: '2025-12-15 14:00:00', operatorName: '王蕾' },
   ],
   '4': [
-    { id: 's3', enterpriseId: '5', enterpriseName: '蓝盾消防技术服务公司', dimALevel1: 'service_unit', tags: [], relatedAt: '2026-01-10 09:00:00', operatorName: '赵丽萍' },
+    { id: 's3', enterpriseId: '5', enterpriseName: '蓝盾消防技术服务公司', tags: [], relatedAt: '2026-01-10 09:00:00', operatorName: '赵丽萍' },
   ],
 }
 
 // ===== Mock 相关方 =====
 const MOCK_PARTNERS: Record<string, PartnerItem[]> = {
   '2': [
-    { id: 'p1', enterpriseId: '3', enterpriseName: '港南消防队', tags: [], contactName: '李阳', contactPhone: '17733550542', relatedAt: '2025-08-29 14:08:21', operatorName: '李文学', authUnits: [], allowOperation: false },
-    { id: 'p2', enterpriseId: '1', enterpriseName: '尼特', tags: [], contactName: '管理员', contactPhone: '16666666666', relatedAt: '2025-08-29 13:23:32', operatorName: '超级管理员', authUnits: [], allowOperation: false },
+    { id: 'p1', enterpriseId: '3', enterpriseName: '港南消防队', role: 'my_supervisor' as PartnerRole, tags: [], contactName: '李阳', contactPhone: '17733550542', relatedAt: '2025-08-29 14:08:21', operatorName: '李文学', authUnits: [], allowOperation: false },
+    { id: 'p2', enterpriseId: '1', enterpriseName: '尼特', role: 'my_service_provider' as PartnerRole, tags: [], contactName: '管理员', contactPhone: '16666666666', relatedAt: '2025-08-29 13:23:32', operatorName: '超级管理员', authUnits: [], allowOperation: false },
   ],
 }
 
@@ -103,9 +97,6 @@ export async function getEnterpriseList(query: EnterpriseQuery): Promise<Paginat
   if (query.keyword) {
     const kw = query.keyword.toLowerCase()
     list = list.filter(e => e.name.toLowerCase().includes(kw) || e.code.toLowerCase().includes(kw))
-  }
-  if (query.dimALevel1) {
-    list = list.filter(e => e.dimA.level1 === query.dimALevel1)
   }
   if (query.dimB) list = list.filter(e => e.dimB === query.dimB)
   if (query.dimC) list = list.filter(e => e.dimC.name === query.dimC)
@@ -131,9 +122,16 @@ export async function createEnterprise(form: EnterpriseForm): Promise<Enterprise
     validFrom: form.validFrom || '', validTo: form.validTo || '',
     region: form.region || '', parentId: form.parentId || '', parentName: '',
     address: form.address || '', remark: form.remark || '', logo: form.logo || '',
-    dimA: { ...form.dimA }, dimB: form.dimB || '', dimC: { code: form.dimC || '', name: '' },
+    dimB: form.dimB || '', dimC: { code: form.dimC || '', name: '' },
     dimD: form.dimD || '', status: 1, qrcode: '', creatorName: '当前用户',
     staffCount: 0, unitCount: 0, relCount: 0, createdAt: now, updatedAt: now,
+  }
+  // 维度 B 命中重点单位类别时自动打标签
+  const hitCodes = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28']
+  if (form.dimB && hitCodes.includes(form.dimB)) {
+    if (!newItem.tags.includes('消防安全重点单位')) {
+      newItem.tags.push('消防安全重点单位')
+    }
   }
   store.add(newItem)
   return newItem
@@ -143,6 +141,13 @@ export async function updateEnterprise(id: string, form: Partial<EnterpriseForm>
   const item = store.getById(id) as EnterpriseItem
   if (!item) throw new Error('企业不存在')
   Object.assign(item, form, { updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19) })
+  // 维度 B 命中重点单位类别时自动打/去标签
+  const hitCodes = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28']
+  if (form.dimB && hitCodes.includes(form.dimB)) {
+    if (!item.tags.includes('消防安全重点单位')) item.tags.push('消防安全重点单位')
+  } else if (form.dimB !== undefined) {
+    item.tags = item.tags.filter(t => t !== '消防安全重点单位')
+  }
   store.update(id, item)
   return item
 }
@@ -181,12 +186,12 @@ export async function removeSubordinates(_enterpriseId: string, _relationIds: st
   // Mock: 无实际操作
 }
 
-export async function getPartners(enterpriseId: string, _query: { keyword?: string; tag?: string; page: number; size: number }): Promise<PaginatedData<PartnerItem>> {
+export async function getPartners(enterpriseId: string, _query: { keyword?: string; tag?: string; role?: string; page: number; size: number }): Promise<PaginatedData<PartnerItem>> {
   const list = MOCK_PARTNERS[enterpriseId] || []
   return { data: list, total: list.length }
 }
 
-export async function addPartners(_enterpriseId: string, _enterpriseIds: string[]): Promise<void> {
+export async function addPartners(_enterpriseId: string, _enterpriseIds: string[], _role?: string): Promise<void> {
   // Mock: 无实际操作
 }
 
@@ -215,8 +220,8 @@ export async function searchEnterprises(keyword: string): Promise<EnterpriseItem
 }
 
 // ===== 字典 =====
-export async function getDimADict() {
-  return { data: DIM_A_OPTIONS }
+export async function getRelationRoleDict(): Promise<{ data: RelationRoleOption[] }> {
+  return { data: RELATION_ROLE_OPTIONS }
 }
 
 export async function getDictB() { return { data: DIM_B_OPTIONS } }
@@ -224,41 +229,19 @@ export async function getDictC() { return { data: DIM_C_OPTIONS } }
 export async function getDictD() { return { data: DIM_D_OPTIONS } }
 export async function getModuleTree() { return { data: MODULE_TREE } }
 
-// ===== 维度 A 级联选项 =====
-const DIM_A_OPTIONS = [
-  {
-    value: 'supervisor', label: '监管方',
-    children: [
-      { value: 'fire_rescue', label: '消防救援机构' },
-      { value: 'emergency_mgmt', label: '应急管理部门' },
-      { value: 'local_gov', label: '属地政府' },
-      { value: 'industry_supervisor', label: '行业主管部门' },
-    ],
-  },
-  {
-    value: 'manager', label: '管理方',
-    children: [
-      {
-        value: 'space_manager', label: '空间管理方',
-        children: [
-          { value: 'property_mgr', label: '物业管理方' },
-          { value: 'park_mgr', label: '园区管理方' },
-          { value: 'market_mgr', label: '市场管理方' },
-          { value: 'complex_mgr', label: '综合体管理方' },
-          { value: 'commercial_street_mgr', label: '商业街管理方' },
-        ],
-      },
-      { value: 'group_manager', label: '集团管理方' },
-    ],
-  },
-  { value: 'social_unit', label: '社会单位' },
-  {
-    value: 'service_unit', label: '服务单位',
-    children: [
-      { value: 'fire_tech_service', label: '消防技术服务机构' },
-    ],
-  },
-  { value: 'platform_operator', label: '平台运营方' },
+// ===== 关系角色选项（"我的"视角） =====
+export interface RelationRoleOption {
+  value: string
+  label: string
+  description: string
+}
+
+const RELATION_ROLE_OPTIONS: RelationRoleOption[] = [
+  { value: 'my_supervisor', label: '我的监管方', description: '对方对我有监管/检查职能' },
+  { value: 'my_manager', label: '我的管理方', description: '对方是我的上级管理单位' },
+  { value: 'my_service_provider', label: '我的服务商', description: '对方为我提供服务' },
+  { value: 'my_customer', label: '我的客户', description: '我向对方提供服务' },
+  { value: 'my_collaborator', label: '我的协作方', description: '双方平等协作' },
 ]
 
 // XF/T 3016.1-2022 消防安全重点单位类别代码（28 项）

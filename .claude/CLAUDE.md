@@ -1,6 +1,6 @@
 # maintenance-demo — AI 安全管理平台（维保计划 Demo）
 
-> Skill 调试验证项目。所有 10 个 skill 在此项目中迭代调试。
+> Skill 调试验证项目。所有 11 个 skill 在此项目中迭代调试。
 
 ## 技术栈
 - Vue 3 + Vite + TypeScript + Composition API
@@ -66,7 +66,7 @@
 | 通用 | `components/business/CreateOrderDialog.vue` | 提取共用弹窗 |
 | 系统管理 | `views/system/Dashboard.vue` | 工单数据看板 |
 
-## 完整流水线（10 个 Skill）
+## 完整流水线（11 个 Skill）
 
 ### 命令速查
 
@@ -80,6 +80,7 @@
 | 生成 PRD | `/gen-prd {域名}` | `docs/{域名}/prd/{域名}.md` |
 | 生成 AI 规格 | `/gen-ai-spec {域名}` | `docs/{域名}/ai-spec/{页面}.md` |
 | 生成代码 | `/md-figma-to-vue3` + Figma | Vue 3 代码 |
+| **生成后端 API** | `/gen-api {模块}` | `server/src/routes/` + `controllers/` + `services/` |
 | 提交 | `/commit` | git commit |
 | 保存进度 | `/context-snapshot` | 更新本文档 |
 
@@ -157,7 +158,8 @@
 | 工作台 | [工作台/biz-design.md](docs/工作台/biz-design.md) | 跨域聚合，角色化首页 |
 | 工单管理 | [工单管理/biz-design.md](docs/工单管理/biz-design.md) | 流程编排 + 工单全生命周期 |
 | 维保管理 | [维保管理/biz-design.md](docs/维保管理/biz-design.md) | 维保计划→任务→报告全链路 |
-| 租户管理 | [租户管理/biz-design.md](docs/租户管理/biz-design.md) | 企业管理、四维度属性体系、层级关系、配置流程 |
+| 租户管理 | [租户管理/biz-design.md](docs/租户管理/biz-design.md) | 企业管理、三维度属性体系(B/C/D)、层级关系、相关方关系角色、配置流程 |
+| **用户管理** | [biz-design](docs/用户管理/biz-design.md) · [module-plan](docs/用户管理/module-plan.md) | 一账号多企业、岗位分配、权限模板 |
 
 > 新增业务域：在 `docs/` 下创建 `{域名}/` 目录，按标准模板（prd/ + biz-design.md + module-plan.md + api.md + technical/ + ai-spec/）组织。`/biz-design` 产出 `biz-design.md` 放入该目录，更新本索引。
 
@@ -207,12 +209,27 @@
 | 模块 | 优先级 | 状态 |
 |------|--------|------|
 | M0 租户全生命周期管理（列表+新增+详情+编辑/锁定/延期） | P0 | 📝 设计完成，平台已有基础 |
-| M1 企业属性升级（四维度 A/B/C/D） | P1 | 📝 设计完成，待开发 |
+| M1 企业属性升级（三维度 B/C/D） | P0 | 📝 设计完成，待开发 |
 | M2 企业间关联管理（下级管理+相关方+数据授权） | P0 | 📝 设计完成，平台已有基础 |
 | M3 应用配置（按域功能授权） | P1 | 📝 设计完成，平台已有基础 |
 | M4 个性化配置（白标定制） | P2 | 📝 设计完成，平台已有基础 |
 
 详见 [租户管理/biz-design.md](docs/租户管理/biz-design.md) · [租户管理/module-plan.md](docs/租户管理/module-plan.md)
+
+### 用户管理
+
+> 文档按域聚合于 `docs/用户管理/`：业务设计 → `biz-design.md` | 模块规划 → `module-plan.md`
+
+| 模块 | 优先级 | 状态 |
+|------|--------|------|
+| M0 用户账号管理（平台级） | P0 | 📝 设计完成 |
+| M1 企业用户管理 | P0 | 📝 设计完成 |
+| M2 权限配置（平台层） | P1 | 📝 设计完成 |
+| M3 企业权限微调 | P2 | 📝 设计完成 |
+| M4 企业切换 | P1 | 📝 设计完成 |
+| M5 操作日志 | P2 | 📝 设计完成 |
+
+详见 [用户管理/biz-design.md](docs/用户管理/biz-design.md) · [用户管理/module-plan.md](docs/用户管理/module-plan.md)
 
 ### 域首页占位（跳转式入口，>10 模块的大域）
 | 页面 | 路由 | 状态 |

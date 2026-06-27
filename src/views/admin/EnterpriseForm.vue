@@ -12,12 +12,7 @@
             <span class="label-text">企业名称</span>
           </div>
           <div class="form-control">
-            <el-input
-              v-model="form.name"
-              placeholder="请输入企业名称"
-              maxlength="100"
-              class="clean-input"
-            />
+            <el-input v-model="form.name" placeholder="请输入企业名称" maxlength="100" class="clean-input" />
           </div>
         </div>
 
@@ -28,12 +23,7 @@
             <span class="label-text">负责人姓名</span>
           </div>
           <div class="form-control">
-            <el-input
-              v-model="form.contactName"
-              placeholder="请输入负责人姓名"
-              maxlength="20"
-              class="clean-input"
-            />
+            <el-input v-model="form.contactName" placeholder="请输入负责人姓名" maxlength="20" class="clean-input" />
           </div>
         </div>
 
@@ -44,90 +34,18 @@
             <span class="label-text">负责人手机号</span>
           </div>
           <div class="form-control">
-            <el-input
-              v-model="form.contactPhone"
-              placeholder="请输入负责人手机号"
-              class="clean-input"
-            />
+            <el-input v-model="form.contactPhone" placeholder="请输入负责人手机号" class="clean-input" />
           </div>
         </div>
 
-        <!-- 管理角色（维度 A） -->
+        <!-- 企业类别（维度 B） -->
         <div class="form-row">
           <div class="form-label">
-            <span class="label-required">*</span>
-            <span class="label-text">管理角色</span>
-            <el-popover
-              placement="right-start"
-              :width="419"
-              trigger="hover"
-              :show-after="200"
-              :hide-after="200"
-              popper-class="role-help-popover"
-            >
-              <template #reference>
-                <el-icon class="label-help-icon"><QuestionFilled /></el-icon>
-              </template>
-              <div class="role-help-content">
-                <p class="role-help-summary">定义企业在平台中的管理角色层级</p>
-                <div class="role-help-list">
-                  <div class="role-help-item">
-                    <p class="role-help-role">监管方</p>
-                    <p class="role-help-desc">消防救援机构/应急管理部门/属地政府（街道/社区等）/行业主管部门</p>
-                  </div>
-                  <div class="role-help-item">
-                    <p class="role-help-role">管理方</p>
-                    <p class="role-help-desc">空间管理方（物业/园区/市场/综合体/商业街等）</p>
-                    <p class="role-help-desc">集团管理方</p>
-                  </div>
-                  <div class="role-help-item">
-                    <p class="role-help-role">社会单位</p>
-                    <p class="role-help-desc">落实消防安全主体责任企业</p>
-                  </div>
-                  <div class="role-help-item">
-                    <p class="role-help-role">服务单位</p>
-                    <p class="role-help-desc">消防技术服务机构（维保、检测、评估、工程安装等）</p>
-                  </div>
-                  <div class="role-help-item">
-                    <p class="role-help-role">平台运营方</p>
-                    <p class="role-help-desc">运营管理方</p>
-                  </div>
-                </div>
-              </div>
-            </el-popover>
+            <span class="label-text">消防类别</span>
           </div>
           <div class="form-control">
-            <el-cascader
-              v-model="dimACascader"
-              :options="dimACascaderOptions"
-              :props="{ expandTrigger: 'hover' }"
-              placeholder="请选择企业所在管理场景角色"
-              clearable
-              filterable
-              class="clean-cascader"
-            />
-          </div>
-        </div>
-
-        <!-- 企业类别（维度 B） — 仅社会单位显示 -->
-        <div v-if="showFireAttrs" class="form-row">
-          <div class="form-label">
-            <span class="label-required">*</span>
-            <span class="label-text">企业类别</span>
-          </div>
-          <div class="form-control">
-            <el-select
-              v-model="form.dimB"
-              placeholder="请选择企业类别"
-              filterable
-              class="clean-select"
-            >
-              <el-option
-                v-for="o in dictB"
-                :key="o.value"
-                :label="`${o.value} ${o.label}`"
-                :value="o.value"
-              />
+            <el-select v-model="form.dimB" placeholder="请选择企业类别（建议填写）" filterable clearable class="clean-select">
+              <el-option v-for="o in dictB" :key="o.value" :label="`${o.value} ${o.label}`" :value="o.value" />
             </el-select>
           </div>
         </div>
@@ -138,18 +56,20 @@
             <span class="label-text">行业分类</span>
           </div>
           <div class="form-control">
-            <el-select
-              v-model="form.dimC"
-              placeholder="请选择企业所在行业分类"
-              filterable
-              class="clean-select"
-            >
-              <el-option
-                v-for="o in dictC"
-                :key="o.value"
-                :label="`${o.value} ${o.label}`"
-                :value="o.value"
-              />
+            <el-select v-model="form.dimC" placeholder="请选择企业所在行业分类" filterable clearable class="clean-select">
+              <el-option v-for="o in dictC" :key="o.value" :label="`${o.value} ${o.label}`" :value="o.value" />
+            </el-select>
+          </div>
+        </div>
+
+        <!-- 场所类型（维度 D） -->
+        <div class="form-row">
+          <div class="form-label">
+            <span class="label-text">场所类型</span>
+          </div>
+          <div class="form-control">
+            <el-select v-model="form.dimD" placeholder="请选择场所类型（建议填写）" filterable clearable class="clean-select">
+              <el-option v-for="o in dictD" :key="o.value" :label="o.label" :value="o.value" />
             </el-select>
           </div>
         </div>
@@ -160,15 +80,7 @@
             <span class="label-text">企业标签</span>
           </div>
           <div class="form-control">
-            <el-select
-              v-model="form.tags"
-              placeholder="请选择企业标签"
-              multiple
-              filterable
-              allow-create
-              default-first-option
-              class="clean-select"
-            />
+            <el-select v-model="form.tags" placeholder="请选择企业标签" multiple filterable allow-create default-first-option class="clean-select" />
           </div>
         </div>
 
@@ -178,15 +90,7 @@
             <span class="label-text">授权期限</span>
           </div>
           <div class="form-control">
-            <el-date-picker
-              v-model="form.validRange"
-              type="datetimerange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              class="clean-datepicker"
-            />
+            <el-date-picker v-model="form.validRange" type="datetimerange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss" class="clean-datepicker" />
           </div>
         </div>
 
@@ -196,13 +100,7 @@
             <span class="label-text">行政区划</span>
           </div>
           <div class="form-control">
-            <el-cascader
-              v-model="form.regionArr"
-              :options="regionOptions"
-              placeholder="请选择行政区划"
-              clearable
-              class="clean-cascader"
-            />
+            <el-cascader v-model="form.regionArr" :options="regionOptions" placeholder="请选择行政区划" clearable class="clean-cascader" />
           </div>
         </div>
 
@@ -212,12 +110,7 @@
             <span class="label-text">详细地址</span>
           </div>
           <div class="form-control">
-            <el-input
-              v-model="form.address"
-              placeholder="请录入详细地址"
-              maxlength="200"
-              class="clean-input"
-            />
+            <el-input v-model="form.address" placeholder="请录入详细地址" maxlength="200" class="clean-input" />
           </div>
         </div>
 
@@ -227,11 +120,7 @@
             <span class="label-text">Gis标注</span>
           </div>
           <div class="form-control form-control-group">
-            <el-input
-              v-model="form.mapLocation"
-              placeholder="请在地图上标注企业位置"
-              class="clean-input flex-1"
-            />
+            <el-input v-model="form.mapLocation" placeholder="请在地图上标注企业位置" class="clean-input flex-1" />
             <button type="button" class="locate-btn" @click="handleLocate">
               <el-icon :size="20"><MapLocation /></el-icon>
               <span>标注位置</span>
@@ -245,22 +134,8 @@
             <span class="label-text">上级企业</span>
           </div>
           <div class="form-control">
-            <el-select
-              v-model="form.parentId"
-              placeholder="输入企业名称模糊搜索"
-              clearable
-              filterable
-              remote
-              :remote-method="searchParent"
-              :loading="parentLoading"
-              class="clean-select"
-            >
-              <el-option
-                v-for="p in parentOptions"
-                :key="p.id"
-                :label="p.name"
-                :value="p.id"
-              />
+            <el-select v-model="form.parentId" placeholder="输入企业名称模糊搜索" clearable filterable remote :remote-method="searchParent" :loading="parentLoading" class="clean-select">
+              <el-option v-for="p in parentOptions" :key="p.id" :label="p.name" :value="p.id" />
             </el-select>
           </div>
         </div>
@@ -271,12 +146,7 @@
             <span class="label-text">备注信息</span>
           </div>
           <div class="form-control">
-            <el-input
-              v-model="form.remark"
-              placeholder="请录入备注信息"
-              maxlength="500"
-              class="clean-input"
-            />
+            <el-input v-model="form.remark" placeholder="请录入备注信息" maxlength="500" class="clean-input" />
           </div>
         </div>
 
@@ -286,12 +156,7 @@
             <span class="label-text">企业Logo</span>
           </div>
           <div class="form-control">
-            <el-upload
-              action="#"
-              :auto-upload="false"
-              :show-file-list="false"
-              accept="image/jpeg,image/png"
-            >
+            <el-upload action="#" :auto-upload="false" :show-file-list="false" accept="image/jpeg,image/png">
               <div class="logo-upload-box">
                 <el-icon :size="34" color="#D9D9D9"><UploadFilled /></el-icon>
                 <span class="logo-upload-text">上传图片</span>
@@ -316,12 +181,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { QuestionFilled, MapLocation, UploadFilled, CircleCloseFilled } from '@element-plus/icons-vue'
+import { MapLocation, UploadFilled, CircleCloseFilled } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
-import type { EnterpriseItem, DimALevel1, DimALevel2, DimALevel3 } from '@/types/enterprise'
+import type { EnterpriseItem } from '@/types/enterprise'
 
 const router = useRouter()
 const route = useRoute()
@@ -345,7 +210,6 @@ const form = reactive({
   remark: '',
   logo: '',
   mapLocation: '',
-  dimA: { level1: '' as DimALevel1 | '', level2: '' as DimALevel2 | '', level3: '' as DimALevel3 | '' },
   dimB: '',
   dimC: '',
   dimD: '',
@@ -360,69 +224,6 @@ function validateForm(): boolean {
   return true
 }
 
-// ===== 维度 A：平台管理角色（三级级联）=====
-const dimACascader = ref<string[]>([])
-
-const dimACascaderOptions = [
-  {
-    value: 'supervisor',
-    label: '监管方',
-    children: [
-      { value: 'fire_rescue', label: '消防救援机构' },
-      { value: 'emergency_mgmt', label: '应急管理部门' },
-      { value: 'local_gov', label: '属地政府' },
-      { value: 'industry_supervisor', label: '行业主管部门' },
-    ],
-  },
-  {
-    value: 'manager',
-    label: '管理方',
-    children: [
-      {
-        value: 'space_manager',
-        label: '空间管理方',
-        children: [
-          { value: 'property_mgr', label: '物业管理方' },
-          { value: 'park_mgr', label: '园区管理方' },
-          { value: 'market_mgr', label: '市场管理方' },
-          { value: 'complex_mgr', label: '综合体管理方' },
-          { value: 'commercial_street_mgr', label: '商业街管理方' },
-        ],
-      },
-      { value: 'group_manager', label: '集团管理方' },
-    ],
-  },
-  { value: 'social_unit', label: '社会单位' },
-  {
-    value: 'service_unit',
-    label: '服务单位',
-    children: [
-      { value: 'fire_tech_service', label: '消防技术服务机构' },
-    ],
-  },
-  { value: 'platform_operator', label: '平台运营方' },
-]
-
-// cascader 数组 ↔ form.dimA 对象同步
-watch(dimACascader, (val) => {
-  if (!val || val.length === 0) {
-    form.dimA = { level1: '' as DimALevel1 | '', level2: '' as DimALevel2 | '', level3: '' as DimALevel3 | '' }
-    form.dimB = ''
-    form.dimD = ''
-    return
-  }
-  form.dimA.level1 = (val[0] || '') as DimALevel1 | ''
-  form.dimA.level2 = (val[1] || '') as DimALevel2 | ''
-  form.dimA.level3 = (val[2] || '') as DimALevel3 | ''
-  // 切换角色时清空消防属性
-  if (val[0] !== 'social_unit') {
-    form.dimB = ''
-    form.dimD = ''
-  }
-}, { deep: true })
-
-const showFireAttrs = computed(() => dimACascader.value[0] === 'social_unit')
-
 // ===== 上级企业远程搜索 =====
 const parentOptions = ref<EnterpriseItem[]>([])
 const parentLoading = ref(false)
@@ -436,7 +237,7 @@ async function searchParent(kw: string) {
   }
 }
 
-// ===== 字典数据（来自 新增编辑租户.md 附录） =====
+// ===== 字典数据 =====
 const dictB = ref<{ value: string; label: string }[]>([])
 const dictC = ref<{ value: string; label: string }[]>([])
 const dictD = ref<{ value: string; label: string }[]>([])
@@ -444,10 +245,7 @@ const dictD = ref<{ value: string; label: string }[]>([])
 const regionOptions = [
   {
     value: '北京市', label: '北京市',
-    children: [
-      { value: '朝阳区', label: '朝阳区' },
-      { value: '海淀区', label: '海淀区' },
-    ],
+    children: [{ value: '朝阳区', label: '朝阳区' }, { value: '海淀区', label: '海淀区' }],
   },
   {
     value: '广西壮族自治区', label: '广西壮族自治区',
@@ -460,16 +258,6 @@ const regionOptions = [
 
 // ===== 操作 =====
 async function handleSave() {
-  // 前置校验
-  if (!dimACascader.value || dimACascader.value.length === 0) {
-    ElMessage.warning('请选择管理角色')
-    return
-  }
-  if (showFireAttrs.value && !form.dimB) {
-    ElMessage.warning('社会单位必须选择企业类别')
-    return
-  }
-
   if (!validateForm()) return
 
   submitting.value = true
@@ -483,7 +271,6 @@ async function handleSave() {
     }
     if (isEdit.value) {
       await store.handleUpdate(editId.value, data)
-      router.push('/admin/enterpriseManagement/index')
     } else {
       const item = await store.handleCreate(data)
       router.push(`/admin/enterpriseManagement/detail?id=${item.id}`)
@@ -507,7 +294,6 @@ function handleLocate() {
 }
 
 // ===== 初始化 & 编辑回填 =====
-const name = ref('')
 onMounted(async () => {
   await store.fetchDicts()
   dictB.value = store.dictB
@@ -518,7 +304,6 @@ onMounted(async () => {
     await store.fetchDetail(editId.value)
     const d = store.detail
     if (d) {
-      name.value = d.name
       Object.assign(form, {
         name: d.name,
         contactName: d.contactName,
@@ -531,16 +316,10 @@ onMounted(async () => {
         remark: d.remark || '',
         logo: d.logo || '',
         mapLocation: '',
-        dimA: { ...d.dimA },
         dimB: d.dimB || '',
         dimC: d.dimC?.code || d.dimC || '',
         dimD: d.dimD || '',
       })
-      // 回填级联选择器
-      const cascaderVal: string[] = [d.dimA.level1]
-      if (d.dimA.level2) cascaderVal.push(d.dimA.level2)
-      if (d.dimA.level3) cascaderVal.push(d.dimA.level3)
-      dimACascader.value = cascaderVal
     }
   }
 })
@@ -603,7 +382,6 @@ onMounted(async () => {
   color: var(--semantic-danger, #DC2626);
   line-height: 1;
   flex-shrink: 0;
-  /* 隐藏不可见占位保持对齐 */;
 }
 
 .label-text {
@@ -612,17 +390,6 @@ onMounted(async () => {
   color: var(--text-tertiary, #454545);
   white-space: nowrap;
   line-height: 1;
-}
-
-.label-help-icon {
-  font-size: 16px;
-  color: var(--text-muted, #5E5E5E);
-  cursor: pointer;
-  transition: color 0.2s;
-  flex-shrink: 0;
-}
-.label-help-icon:hover {
-  color: var(--accent-primary, #3678E3);
 }
 
 /* ===== 表单控件区 ===== */
@@ -819,56 +586,9 @@ onMounted(async () => {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* ===== 管理角色说明 Popover ===== */
-.role-help-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.role-help-summary {
-  font-size: var(--font-small, 14px);
-  font-weight: 400;
-  color: var(--text-tertiary, #454545);
-  margin: 0 0 8px;
-  line-height: 1.5;
-}
-
-.role-help-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.role-help-item {
-  padding: 4px 0;
-  line-height: 1.6;
-}
-
-.role-help-role {
-  font-size: var(--font-small, 14px);
-  font-weight: 500;
-  color: var(--text-secondary, #2E2E2E);
-  margin: 0 0 2px;
-}
-
-.role-help-desc {
-  font-size: var(--font-small, 14px);
-  font-weight: 400;
-  color: var(--text-tertiary, #454545);
-  margin: 0;
-}
 </style>
 
 <style>
-/* Popover 渲染在 body 层，非 scoped */
-.role-help-popover {
-  padding: 16px 18px !important;
-  border-radius: 8px !important;
-  box-shadow: 0 0 1px rgba(0,0,0,0.25) !important;
-}
-
 /* ── cascader：Element Plus 根元素不带 scoped data-v，必须非 scoped ── */
 .clean-cascader {
   min-height: 36px;
@@ -886,7 +606,6 @@ onMounted(async () => {
 }
 .clean-cascader:hover { border-color: #3678E3; }
 .clean-cascader.is-focus { border-color: #3678E3; box-shadow: none; }
-/* cascader 内部 wrapper 透明化（边框由根提供，避免双层边框）*/
 .clean-cascader .el-input__wrapper {
   box-shadow: none !important;
   background: transparent;
@@ -895,7 +614,6 @@ onMounted(async () => {
   height: auto;
   border-radius: 0;
 }
-/* cascader 内部文字 */
 .clean-cascader .el-input__inner {
   font-size: 14px;
   color: var(--text-primary, #101010);
@@ -927,7 +645,6 @@ onMounted(async () => {
   border-color: #3678E3;
   box-shadow: none !important;
 }
-/* datepicker 内部文字 */
 .clean-datepicker .el-range-input {
   font-size: 14px;
   color: var(--text-primary, #101010);

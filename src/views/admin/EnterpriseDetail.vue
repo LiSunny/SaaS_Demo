@@ -118,15 +118,15 @@
             <!-- 信息网格 -->
             <div class="form-grid">
               <div class="form-field">
-                <span class="form-label">管理角色</span>
-                <span class="form-value">{{ dimALabelDisplay }}</span>
+                <span class="form-label">消防单位类别</span>
+                <span class="form-value">{{ dimBLabel }}</span>
               </div>
               <div class="form-field">
                 <span class="form-label">行业分类</span>
                 <span class="form-value">{{ store.detail.dimC?.name || '--' }}</span>
               </div>
               <div class="form-field">
-                <span class="form-label">企业类别</span>
+                <span class="form-label">场所类型</span>
                 <span class="form-value dimd-value">{{ dimDLabel || '----' }}</span>
               </div>
 
@@ -203,7 +203,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import AppIcon from '@/components/base/AppIcon.vue'
-import type { DimA } from '@/types/enterprise'
 
 const route = useRoute()
 const router = useRouter()
@@ -219,59 +218,27 @@ const tabs = [
 type TabKey = (typeof tabs)[number]['key']
 const activeTab = ref<TabKey>('enterpriseDetail')
 
-// ===== dimA 字典（与 EnterpriseList.vue 保持一致） =====
-const DIM_A_MAP: Record<string, string> = {
-  supervisor: '监管方',
-  manager: '管理方',
-  social_unit: '社会单位',
-  service_unit: '服务单位',
-  platform_operator: '平台运营方',
-}
-const DIM_A_L2_MAP: Record<string, string> = {
-  space_manager: '空间管理',
-  group_manager: '集团管理',
-}
-const DIM_A_L3_MAP: Record<string, string> = {
-  fire_rescue: '消防救援机构',
-  emergency_mgmt: '应急管理部门',
-  local_gov: '属地政府',
-  industry_supervisor: '行业主管部门',
-  property_mgr: '物业管理方',
-  park_mgr: '园区管理方',
-  market_mgr: '市场管理方',
-  complex_mgr: '综合体管理方',
-  commercial_street_mgr: '商业街管理方',
-  fire_tech_service: '消防技术服务机构',
+// ===== dimB / dimD 字典 =====
+const DIM_B_MAP: Record<string, string> = {
+  '01': '商场市场', '02': '宾馆饭店', '03': '公共娱乐场所', '04': '餐饮场所',
+  '05': '医院', '06': '学校', '07': '养老福利机构', '08': '体育场馆',
+  '09': '交通枢纽', '10': '劳动密集型企业', '11': '易燃易爆场所', '12': '高层公共建筑',
+  '13': '地下建筑', '14': '大型商业综合体', '15': '文物古建筑', '16': '仓储物流',
+  '17': '金融机构', '18': '通信枢纽', '19': '广播电视', '20': '发电厂/变电站',
+  '21': '博物馆/展览馆', '22': '图书馆/档案馆', '23': '科研机构', '24': '旅游景区',
+  '25': '宗教活动场所', '26': '住宅小区', '27': '党政机关', '28': '其他重点单位',
 }
 
-// dimD 字典
 const DIM_D_MAP: Record<string, string> = {
-  '1': '人员密集场所',
-  '2': '高层建筑',
-  '3': '地下建筑',
-  '4': '易燃易爆场所',
-  '5': '文物古建筑',
-  '6': '大型商业综合体',
-  '7': '工业建筑',
-  '8': '普通商铺',
-  '9': '办公建筑',
-  '10': '交通建筑',
-  '11': '医疗建筑',
-  '12': '教育建筑',
-  '99': '其他',
-}
-
-function dimALabel(dimA: DimA): string {
-  const parts: string[] = [DIM_A_MAP[dimA.level1] || dimA.level1]
-  if (dimA.level2) parts.push(DIM_A_L2_MAP[dimA.level2] || dimA.level2)
-  if (dimA.level3) parts.push(DIM_A_L3_MAP[dimA.level3] || dimA.level3)
-  return parts.join('>')
+  '1': '人员密集场所', '2': '高层建筑', '3': '地下建筑', '4': '易燃易爆场所',
+  '5': '文物古建筑', '6': '大型商业综合体', '7': '工业建筑', '8': '普通商铺',
+  '9': '办公建筑', '10': '交通建筑', '11': '医疗建筑', '12': '教育建筑', '99': '其他',
 }
 
 // ===== 计算属性 =====
-const dimALabelDisplay = computed(() => {
-  if (!store.detail?.dimA) return '--'
-  return dimALabel(store.detail.dimA)
+const dimBLabel = computed(() => {
+  if (!store.detail?.dimB) return '----'
+  return DIM_B_MAP[store.detail.dimB] || store.detail.dimB
 })
 
 const dimDLabel = computed(() => {

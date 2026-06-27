@@ -2,7 +2,7 @@
   <div class="list-page">
     <div class="content-card">
 
-      <!-- ===== 引导说明卡片（Figma 样式：左侧插图 + 右侧说明） ===== -->
+      <!-- ===== 引导说明卡片 ===== -->
       <div v-if="showHelp" class="help-card">
         <div class="help-illustration">
           <svg viewBox="0 0 242 156" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,16 +44,6 @@
             <AppIcon name="search" class="fi-icon" />
           </div>
 
-          <div class="fi-select-wrap">
-            <el-select v-model="query.dimALevel1" placeholder="管理角色" clearable class="fi-select" :teleported="false" popper-class="fi-popper" @change="store.search()">
-              <el-option label="监管方" value="supervisor" />
-              <el-option label="管理方" value="manager" />
-              <el-option label="社会单位" value="social_unit" />
-              <el-option label="服务单位" value="service_unit" />
-              <el-option label="平台运营方" value="platform_operator" />
-            </el-select>
-          </div>
-
           <button class="btn-primary" @click="store.search()">查询</button>
         </div>
 
@@ -77,8 +67,8 @@
                 </svg>
               </th>
               <th class="fi-th col-name"><span>企业名称</span></th>
-              <th class="fi-th col-role"><span>管理角色</span></th>
               <th class="fi-th col-cat"><span>行业分类</span></th>
+              <th class="fi-th col-fire"><span>消防类别</span></th>
               <th class="fi-th col-admin"><span>管理员</span></th>
               <th class="fi-th col-phone"><span>账号</span></th>
               <th class="fi-th col-date"><span>创建日期</span></th>
@@ -92,8 +82,8 @@
                 <StatusTag :status="entStatusKey(row.status)" :label="statusLabel(row.status)" />
               </td>
               <td class="fi-td col-name">{{ row.name }}</td>
-              <td class="fi-td col-role dima-text">{{ dimALabel(row.dimA) }}</td>
               <td class="fi-td col-cat">{{ row.dimC.name || '—' }}</td>
+              <td class="fi-td col-fire">{{ dimBLabel(row.dimB) }}</td>
               <td class="fi-td col-admin">{{ row.contactName }}</td>
               <td class="fi-td col-phone">{{ row.contactPhone }}</td>
               <td class="fi-td col-date">{{ row.createdAt.slice(0, 10) }}</td>
@@ -190,10 +180,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useEnterpriseStore } from '@/stores/enterprise'
-import type { EnterpriseItem, DimA } from '@/types/enterprise'
+import type { EnterpriseItem } from '@/types/enterprise'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import EnterpriseFormDrawer from '@/components/business/EnterpriseFormDrawer.vue'
@@ -232,27 +222,21 @@ function toggleSort() {
   store.list.sort((a, b) => sortAsc.value ? a.status - b.status : b.status - a.status)
 }
 
-// ===== 维度 A 标签（Figma 样式：监管方>消防救援机构） =====
-const DIM_A_MAP: Record<string, string> = {
-  supervisor: '监管方', manager: '管理方', social_unit: '社会单位', service_unit: '服务单位', platform_operator: '平台运营方',
+// ===== 维度 B 字典 =====
+const DIM_B_MAP: Record<string, string> = {
+  '01': '商场市场', '02': '宾馆饭店', '03': '公共娱乐场所', '04': '餐饮场所',
+  '05': '医院', '06': '学校', '07': '养老福利机构', '08': '体育场馆',
+  '09': '交通枢纽', '10': '劳动密集型企业', '11': '易燃易爆场所', '12': '高层公共建筑',
+  '13': '地下建筑', '14': '大型商业综合体', '15': '文物古建筑', '16': '仓储物流',
+  '17': '金融机构', '18': '通信枢纽', '19': '广播电视', '20': '发电厂/变电站',
+  '21': '博物馆/展览馆', '22': '图书馆/档案馆', '23': '科研机构', '24': '旅游景区',
+  '25': '宗教活动场所', '26': '住宅小区', '27': '党政机关', '28': '其他重点单位',
 }
-const DIM_A_L2_MAP: Record<string, string> = {
-  space_manager: '空间管理', group_manager: '集团管理',
-}
-const DIM_A_L3_MAP: Record<string, string> = {
-  fire_rescue: '消防救援机构', emergency_mgmt: '应急管理部门', local_gov: '属地政府',
-  industry_supervisor: '行业主管部门', property_mgr: '物业管理方', park_mgr: '园区管理方',
-  market_mgr: '市场管理方', complex_mgr: '综合体管理方', commercial_street_mgr: '商业街管理方',
-  fire_tech_service: '消防技术服务机构',
-}
-function dimALabel(dimA: DimA): string {
-  const parts: string[] = [DIM_A_MAP[dimA.level1] || dimA.level1]
-  if (dimA.level2) parts.push(DIM_A_L2_MAP[dimA.level2] || dimA.level2)
-  if (dimA.level3) parts.push(DIM_A_L3_MAP[dimA.level3] || dimA.level3)
-  return parts.join('>')
+function dimBLabel(code: string): string {
+  return DIM_B_MAP[code] || code || '—'
 }
 
-// ===== 企业状态键映射（StatusTag 通过专用 key 定位颜色） =====
+// ===== 企业状态键映射 =====
 function entStatusKey(s: number): string {
   if (s === 1) return 'ent_active'
   if (s === 0) return 'ent_locked'
@@ -281,7 +265,7 @@ const extendTarget = ref<EnterpriseItem | null>(null)
 
 // ===== 个性化配置 =====
 const brandingVisible = ref(false)
-const brandingForm = reactive({ domain: '', copyright: '', icp: '', title: '' })
+const brandingForm = ref({ domain: '', copyright: '', icp: '', title: '' })
 function openBranding(_row: EnterpriseItem) { brandingVisible.value = true }
 
 // ===== 应用配置 =====
@@ -318,7 +302,7 @@ onMounted(() => { store.fetchList() })
   height: 100%; gap: var(--spacing-lg, 12px); overflow: auto;
 }
 
-/* ===== 引导说明卡片（Figma 样式：左侧插图 + 右侧说明） ===== */
+/* ===== 引导说明卡片 ===== */
 .help-card {
   background: var(--bg-sub-card); border: 1px solid var(--border-default);
   border-radius: var(--radius-md, 8px); padding: var(--spacing-lg, 12px);
@@ -340,7 +324,6 @@ onMounted(() => { store.fetchList() })
 .help-list li { margin-bottom: 0; }
 .help-list li strong { color: var(--text-primary); }
 
-/* ===== Outline Primary 按钮（Figma 样式：蓝色边框 + 浅蓝底 + 蓝色文字） ===== */
 .btn-outline-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   height: 37px; padding: 8px 12px; border-radius: 8px;
@@ -354,21 +337,18 @@ onMounted(() => { store.fetchList() })
 /* ===== 列宽 ===== */
 .col-status { width: 90px; }
 .col-name { min-width: 140px; }
-.col-role { min-width: 160px; }
 .col-cat { min-width: 120px; }
+.col-fire { min-width: 140px; }
 .col-admin { min-width: 80px; }
 .col-phone { min-width: 130px; }
 .col-date { min-width: 110px; }
 .col-creator { min-width: 80px; }
 .col-actions { width: 160px; min-width: 150px; white-space: nowrap; }
 
-/* 管理角色列文字样式 */
-.dima-text { font-size: var(--font-small, 14px); }
-
 /* ===== 响应式 ===== */
 @media (max-width: 1550px) { .col-cat { display: none !important; } }
 @media (max-width: 1250px) { .col-phone, .col-creator { display: none !important; } }
-@media (max-width: 1050px) { .col-date { display: none !important; } }
+@media (max-width: 1050px) { .col-date, .col-fire { display: none !important; } }
 @media (max-width: 800px) {
   .filter-bar { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: stretch; }
   .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; }
