@@ -158,7 +158,7 @@
 | 工作台 | [工作台/biz-design.md](docs/工作台/biz-design.md) | 跨域聚合，角色化首页 |
 | 工单管理 | [工单管理/biz-design.md](docs/工单管理/biz-design.md) | 流程编排 + 工单全生命周期 |
 | 维保管理 | [维保管理/biz-design.md](docs/维保管理/biz-design.md) | 维保计划→任务→报告全链路 |
-| 租户管理 | [租户管理/biz-design.md](docs/租户管理/biz-design.md) | 企业管理、三维度属性体系(B/C/D)、层级关系、相关方关系角色、配置流程 |
+| 租户管理 | [租户管理/biz-design.md](docs/租户管理/biz-design.md) v2.1 | 企业管理、三维度属性体系(B/C/D)、层级关系、相关方关系角色、**创建企业自动初始化管理员** |
 | **用户管理** | [biz-design](docs/用户管理/biz-design.md) · [module-plan](docs/用户管理/module-plan.md) | 一账号多企业、岗位分配、权限模板 |
 
 > 新增业务域：在 `docs/` 下创建 `{域名}/` 目录，按标准模板（prd/ + biz-design.md + module-plan.md + api.md + technical/ + ai-spec/）组织。`/biz-design` 产出 `biz-design.md` 放入该目录，更新本索引。

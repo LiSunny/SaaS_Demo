@@ -34,12 +34,25 @@ export interface EnterpriseItem {
   remark: string
   logo: string
   qrcode: string
+  mapLng: number
+  mapLat: number
+  mapLocation: string
+  mapAddress: string
   creatorName: string
   staffCount: number
   unitCount: number
   relCount: number
   createdAt: string
   updatedAt: string
+  /** 软删除标记，非空表示已删除 */
+  deletedAt?: string
+  /** 企业管理员账号信息（创建/详情时返回） */
+  adminAccount?: {
+    phone: string
+    name: string
+    isNewUser?: boolean
+    initialPassword?: string
+  } | null
 }
 
 export interface EnterpriseQuery {
@@ -49,6 +62,8 @@ export interface EnterpriseQuery {
   dimD?: string
   page: number
   size: number
+  /** 是否包含已软删除的记录 */
+  includeDeleted?: boolean
 }
 
 // ===== 表单相关 =====
@@ -68,6 +83,10 @@ export interface EnterpriseForm {
   dimB: string
   dimC: string
   dimD: string
+  // GIS 地图标注
+  mapLng: number | string
+  mapLat: number | string
+  mapAddress: string
   appConfig: Record<string, string[]>
 }
 
@@ -166,4 +185,36 @@ export interface EnterpriseSearchItem {
   id: string
   name: string
   tags?: string[]
+}
+
+// ===== M1 企业用户管理 =====
+
+export interface MemberItem {
+  id: number
+  userId: number
+  phone: string
+  realName: string
+  positions: string[]       // position key 列表
+  status: number
+  joinedAt: string
+  inviterName: string
+  remark: string
+}
+
+export interface MemberQuery {
+  keyword?: string
+  positionKey?: string
+  page: number
+  size: number
+}
+
+export interface AddMemberForm {
+  phone: string
+  realName?: string
+  positions: string[]
+}
+
+export interface UpdateMemberForm {
+  positions?: string[]
+  remark?: string
 }

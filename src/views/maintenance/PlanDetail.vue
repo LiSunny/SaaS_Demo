@@ -102,7 +102,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import { getPlanDetail, deletePlan, togglePlanStatus } from '@/api/maintenance'
 import type { MaintenancePlan, PlanCycle } from '@/types/maintenance'
 import StatusTag from '@/components/business/StatusTag.vue'
@@ -110,6 +111,7 @@ import AppIcon from '@/components/base/AppIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { confirmDelete } = useConfirm()
 
 const plan = ref<MaintenancePlan | null>(null)
 const loading = ref(false)
@@ -150,7 +152,7 @@ const handleEdit = () => {
 
 const handleDelete = async () => {
   if (!plan.value) return
-  await ElMessageBox.confirm(`确认删除「${plan.value.planName}」？`, '提示', { type: 'warning' })
+  await confirmDelete(plan.value.planName)
   await deletePlan(plan.value.id)
   ElMessage.success('删除成功')
   router.push('/maintenance/plans')

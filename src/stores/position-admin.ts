@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { PositionItem, PositionQuery, PositionForm } from '@/types/position-admin'
-import { getPositionList, createPosition, updatePosition, deletePosition } from '@/api/position-admin'
+import { getPositionList, createPosition, updatePosition, deletePosition, savePermissions } from '@/api/position-admin'
+import type { PermissionConfig } from '@/types/position-admin'
 
 export const usePositionStore = defineStore('positionAdmin', () => {
   const list = ref<PositionItem[]>([])
@@ -39,5 +40,9 @@ export const usePositionStore = defineStore('positionAdmin', () => {
     fetchList()
   }
 
-  return { list, loading, query, total, fetchList, search, handleCreate, handleUpdate, handleDelete }
+  async function handleSavePermissions(id: number, config: PermissionConfig): Promise<void> {
+    await savePermissions(id, config)
+  }
+
+  return { list, loading, query, total, fetchList, search, handleCreate, handleUpdate, handleDelete, handleSavePermissions }
 })

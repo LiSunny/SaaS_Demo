@@ -16,6 +16,8 @@ export interface NavNode {
   icon?: string
   route?: string
   children?: NavNode[]
+  /** 岗位 key 白名单，缺省 = 全员可见 */
+  visibleTo?: string[]
 }
 
 export interface NavGroup {
@@ -24,6 +26,8 @@ export interface NavGroup {
   icon?: string
   defaultOpen: boolean
   children: NavNode[]
+  /** 岗位 key 白名单，缺省 = 全员可见 */
+  visibleTo?: string[]
 }
 
 // ===== 导出常量 =====
@@ -209,6 +213,10 @@ export const NAV_GROUPS: NavGroup[] = [
     label: '平台管理',
     icon: 'admin',
     defaultOpen: false,
+    visibleTo: [
+      'platform-admin',
+      'org-admin',
+    ],
     children: [
       {
         key: 'process-mgmt',
@@ -223,10 +231,23 @@ export const NAV_GROUPS: NavGroup[] = [
         key: 'admin-mgmt',
         label: '系统管理',
         icon: 'menuicon-33',
+        visibleTo: ['platform-admin'],
         children: [
           { key: 'tenant-mgmt', label: '租户管理', icon: 'menuicon-43', route: '/admin/enterpriseManagement/index' },
           { key: 'user-mgmt', label: '用户管理', icon: 'menuicon-43', route: '/admin/users' },
           { key: 'position-mgmt', label: '岗位管理', icon: 'menuicon-43', route: '/admin/positions' },
+        ],
+      },
+      {
+        key: 'enterprise-mgmt',
+        label: '企业管理',
+        icon: 'menuicon-33',
+        visibleTo: [
+          'platform-admin',
+          'org-admin',
+        ],
+        children: [
+          { key: 'enterprise-members', label: '企业成员', route: '/enterprise/members' },
         ],
       },
     ],
@@ -250,6 +271,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/admin': 'admin',
   '/admin/enterpriseManagement': 'tenant-mgmt',
   '/admin/positions': 'position-mgmt',
+  '/enterprise/members': 'enterprise-members',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -266,6 +288,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'tenant-mgmt': '/admin/enterpriseManagement/index',
   'user-mgmt': '/admin/users',
   'position-mgmt': '/admin/positions',
+  'enterprise-members': '/enterprise/members',
 }
 
 // ===== 工具函数 =====
@@ -308,6 +331,39 @@ export function collectLeafKeys(): string[] {
   }
   keys.push(WORKBENCH_ITEM.key)
   return keys
+}
+
+/**
+ * 按岗位过滤导航树。
+ * 递归裁剪：visibleTo 不匹配的节点及其全部子节点被移除。
+ * 空分支折叠：父节点内所有子节点都被移除后，父节点也移除。
+ *
+ * @param nodes  原始节点数组
+ * @param positionKeys  用户当前拥有的岗位 key 数组
+ * @returns 过滤后的节点数组（新引用，不修改原数组）
+ */
+export function filterNodesByPosition(
+  nodes: NavNode[],
+  positionKeys: string[],
+): NavNode[] {
+  const result: NavNode[] = []
+  for (const node of nodes) {
+    if (!isNodeVisible(node, positionKeys)) continue
+    if (node.children) {
+      const filteredChildren = filterNodesByPosition(node.children, positionKeys)
+      if (filteredChildren.length === 0) continue // 空分支折叠
+      result.push({ ...node, children: filteredChildren })
+    } else {
+      result.push({ ...node })
+    }
+  }
+  return result
+}
+
+/** 单节点可见性判定 */
+function isNodeVisible(node: NavNode, positionKeys: string[]): boolean {
+  if (!node.visibleTo || node.visibleTo.length === 0) return true
+  return positionKeys.some(k => node.visibleTo!.includes(k))
 }
 
 // ===== 内部辅助 =====

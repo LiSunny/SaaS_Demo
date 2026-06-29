@@ -98,11 +98,18 @@ const router = createRouter({
       children: [
         { path: '', name: 'AdminOverview', component: () => import('@/views/admin/Overview.vue') },
         { path: 'enterpriseManagement/index', name: 'EnterpriseList', component: () => import('@/views/admin/EnterpriseList.vue') },
-        { path: 'enterpriseManagement/create', name: 'EnterpriseCreate', component: () => import('@/views/admin/EnterpriseForm.vue'), meta: { hidden: true } },
-        { path: 'enterpriseManagement/edit', name: 'EnterpriseEdit', component: () => import('@/views/admin/EnterpriseForm.vue'), meta: { hidden: true } },
         { path: 'enterpriseManagement/detail', name: 'EnterpriseDetail', component: () => import('@/views/admin/EnterpriseDetail.vue'), meta: { hidden: true } },
         { path: 'users', name: 'UserList', component: () => import('@/views/admin/UserList.vue') },
         { path: 'positions', name: 'PositionList', component: () => import('@/views/admin/PositionList.vue') },
+      ],
+    },
+
+    // ===== 企业管理（M1 企业用户管理） =====
+    {
+      path: '/enterprise',
+      component: DefaultLayout,
+      children: [
+        { path: 'members', name: 'EnterpriseMembers', component: () => import('@/views/enterprise/Members.vue') },
       ],
     },
 

@@ -10,7 +10,7 @@
 el-* 默认样式  →  :root CSS 变量（--el-*）做全局基调  →  scoped CSS 做组件级精确覆盖
 ```
 
-- **`:root` 层**：统一 Element Plus CSS 变量（颜色、字号、圆角、间距）—— 已在 design-tokens.md §六中定义
+- **`:root` 层**：统一 Element Plus CSS 变量（颜色、字号、圆角、间距）—— **必须将 design-tokens.md §六 中所有 `--el-*` 变量写入 style.css 的 `:root` 和 `html.dark` 中**，不得只写在参考文档而遗漏实际样式文件。缺失会导致所有 EL 组件（按钮、弹窗、标签等）使用 Element Plus 默认值而非主题色。
 - **全局 `<style>` 层**（无 scoped）：覆盖 Teleport 到 `<body>` 的弹出层组件
 - **`<style scoped>` 层**：覆盖当前组件内可见的 EL 子元素
 

@@ -90,7 +90,7 @@
       <el-dialog
         v-model="showFormDialog"
         :title="isEdit ? '编辑内置岗位' : '新增内置岗位'"
-        width="480px"
+        width="520px"
         destroy-on-close
         :close-on-click-modal="false"
         @closed="formRef?.resetFields()"
@@ -101,19 +101,28 @@
               v-model="form.name"
               placeholder="请输入岗位名称"
               maxlength="20"
+              @blur="onNameBlur"
             />
           </el-form-item>
-          <el-form-item v-if="!isEdit" label="Key">
-            <div class="key-auto-preview">
-              <code class="key-code">platform:{{ nameToKey(form.name) || '...' }}</code>
-              <span class="key-hint">根据名称自动生成，保存后不可修改</span>
-            </div>
+          <el-form-item v-if="!isEdit" label="Key" prop="key">
+            <el-input
+              v-model="form.key"
+              placeholder="自动生成或手动输入，如 fire-safety-manager"
+              maxlength="40"
+            >
+              <template #prepend>
+                <span class="key-prefix">platform:</span>
+              </template>
+            </el-input>
+            <div class="form-extra">根据名称自动生成拼音 slug，可手动修改。保存后不可修改。</div>
           </el-form-item>
           <el-form-item v-else label="Key">
-            <div class="key-auto-preview">
-              <code class="key-code">platform:{{ form.key }}</code>
-              <span class="key-hint">Key 不可修改</span>
-            </div>
+            <el-input :model-value="form.key" disabled>
+              <template #prepend>
+                <span class="key-prefix">platform:</span>
+              </template>
+            </el-input>
+            <div class="form-extra">Key 不可修改</div>
           </el-form-item>
           <el-form-item label="岗位说明" prop="description">
             <el-input
@@ -132,20 +141,31 @@
         </template>
       </el-dialog>
 
+      <!-- ===== 权限配置抽屉 ===== -->
+      <PermissionConfigDrawer
+        v-model:visible="showPermissionDrawer"
+        :position-id="permissionPositionId"
+        :position-name="permissionPositionName"
+        @saved="onPermissionsSaved"
+      />
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import type { FormInstance, FormRules } from 'element-plus'
 import { usePositionStore } from '@/stores/position-admin'
 import type { PositionItem } from '@/types/position-admin'
 import { nameToKey } from '@/types/position-admin'
 import AppIcon from '@/components/base/AppIcon.vue'
+import PermissionConfigDrawer from '@/components/business/PermissionConfigDrawer.vue'
 
 const store = usePositionStore()
+const { confirm } = useConfirm()
 
 onMounted(() => store.fetchList())
 
@@ -171,6 +191,13 @@ function resetForm() {
   formRef.value?.resetFields()
 }
 
+/** 岗位名称 blur 时，若 key 为空则自动生成 */
+function onNameBlur() {
+  if (!isEdit.value && !form.key) {
+    form.key = nameToKey(form.name)
+  }
+}
+
 function openCreateDialog() {
   isEdit.value = false
   editingId.value = 0
@@ -194,7 +221,7 @@ async function submitForm() {
   try {
     const payload = {
       name: form.name,
-      key: isEdit.value ? form.key : nameToKey(form.name),
+      key: isEdit.value ? form.key : (form.key || nameToKey(form.name)),
       description: form.description,
     }
     if (isEdit.value) {
@@ -210,18 +237,30 @@ async function submitForm() {
 // ===== 删除 =====
 async function handleDelete(row: PositionItem) {
   try {
-    await ElMessageBox.confirm(
+    await confirm(
       '确定删除该岗位吗？删除后已分配此岗位的用户将失去对应权限，且不可恢复。',
       '删除确认',
-      { type: 'warning' },
+      { type: 'error' },
     )
   } catch { return }
   await store.handleDelete(row.id)
 }
 
-// ===== 配置权限（占位，后续对接权限配置抽屉） =====
+// ===== 权限配置抽屉 =====
+const showPermissionDrawer = ref(false)
+const permissionPositionId = ref(0)
+const permissionPositionName = ref('')
+
 function handleConfigPermission(row: PositionItem) {
-  ElMessage.info(`权限配置（待实现）: ${row.name}`)
+  permissionPositionId.value = row.id
+  permissionPositionName.value = row.name
+  showPermissionDrawer.value = true
+}
+
+function onPermissionsSaved() {
+  showPermissionDrawer.value = false
+  ElMessage.success('权限配置已保存')
+  store.fetchList()
 }
 </script>
 
@@ -253,21 +292,20 @@ function handleConfigPermission(row: PositionItem) {
   color: var(--text-secondary);
 }
 
-/* ===== Key 自动生成预览 ===== */
-.key-auto-preview {
-  display: flex; flex-direction: column; gap: 4px;
-}
-.key-auto-preview .key-code {
-  width: fit-content;
-  font-size: var(--font-body, 16px);
-  padding: 4px 8px;
-}
-.key-hint {
-  font-size: var(--font-xs, 12px);
+/* ===== Key prepend 前缀 ===== */
+.key-prefix {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
   color: var(--text-muted);
 }
 
-/* ===== 岗位说明截断 ===== */
+/* ===== 表单辅助提示 ===== */
+.form-extra {
+  font-size: var(--font-xs, 12px);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== 列宽 ===== */
 .desc-text {
   display: block;
   max-width: 220px;

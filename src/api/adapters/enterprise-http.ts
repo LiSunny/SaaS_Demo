@@ -42,6 +42,14 @@ export async function batchDeleteEnterprises(ids: string[]): Promise<void> {
   await request.post('/enterprise/batch-delete', { ids })
 }
 
+export async function softDeleteEnterprise(id: string): Promise<void> {
+  await request.post(`/enterprise/${id}/delete`)
+}
+
+export async function recoverEnterprise(id: string): Promise<void> {
+  await request.post(`/enterprise/${id}/recover`)
+}
+
 export async function getSubordinates(enterpriseId: string, query: { keyword?: string; page: number; size: number }): Promise<PaginatedData<SubordinateItem>> {
   const res: any = await request.get(`/enterprise/${enterpriseId}/subordinates`, { params: query })
   return res.data

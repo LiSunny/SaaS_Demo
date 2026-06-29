@@ -18,7 +18,7 @@ export interface PositionQuery {
 
 export interface PositionForm {
   name: string
-  key: string              // 自动生成，用户不可编辑
+  key: string              // 新建时输入，编辑时不可修改
   description: string
 }
 

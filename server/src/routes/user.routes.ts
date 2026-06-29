@@ -6,6 +6,8 @@ const router = Router()
 
 router.use(authRequired)
 
+router.get('/me/enterprises', ctrl.getMyEnterprises)
+router.get('/lookup', ctrl.lookupUser)
 router.get('/list', ctrl.getList)
 router.get('/:id', ctrl.getDetail)
 router.post('/', ctrl.create)

@@ -4,7 +4,7 @@ import type { PositionItem, PositionQuery, PositionForm, PositionDetail, Permiss
 const BASE = '/admin/positions'
 
 export async function getPositionList(query: PositionQuery): Promise<PaginatedData<PositionItem>> {
-  const res = await request.get(BASE, { params: query })
+  const res = await request.get(`${BASE}/list`, { params: query })
   return (res as any).data
 }
 

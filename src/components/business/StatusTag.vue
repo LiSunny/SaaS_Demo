@@ -36,6 +36,7 @@ const MAP: Record<string, { label: string; cls: string }> = {
   ent_active: { label: '有效', cls: 'success' },
   ent_locked: { label: '已锁定', cls: 'notice' },
   ent_expired: { label: '已过期', cls: 'danger' },
+  ent_deleted: { label: '已删除', cls: 'normal' },
   ent_pending: { label: '待生效', cls: 'info' },
   // 相关方关系角色（v1.1）
   my_supervisor: { label: '我的监管方', cls: 'info' },

@@ -1,4 +1,7 @@
 import db from '../config/db.js'
+import bcrypt from 'bcrypt'
+
+const SALT_ROUNDS = 10
 
 // 关系角色中文映射
 const ROLE_MAP: Record<string, string> = {
@@ -54,10 +57,15 @@ function toItem(e: any) {
     remark: e.remark,
     logo: e.logo,
     qrcode: e.qrcode,
+    mapLng: e.mapLng || 0,
+    mapLat: e.mapLat || 0,
+    mapLocation: e.mapLng && e.mapLat ? `${e.mapLng},${e.mapLat}` : '',
+    mapAddress: e.mapAddress || '',
     creatorName: e.creatorName,
     staffCount: e.staffCount,
     unitCount: e.unitCount,
     relCount: e.relCount,
+    deletedAt: e.deletedAt ? formatDate(e.deletedAt) : '',
     createdAt: formatDate(e.createdAt),
     updatedAt: formatDate(e.updatedAt),
   }
@@ -84,6 +92,7 @@ export interface ListParams {
   dimB?: string
   dimC?: string
   dimD?: string
+  includeDeleted?: boolean
 }
 
 export async function getList(params: ListParams) {
@@ -99,6 +108,11 @@ export async function getList(params: ListParams) {
   if (params.dimB) where.dimB = params.dimB
   if (params.dimC) where.dimCName = params.dimC
   if (params.dimD) where.dimD = params.dimD
+
+  // 默认排除已删除企业
+  if (!params.includeDeleted) {
+    where.deletedAt = null
+  }
 
   const [data, total] = await Promise.all([
     db.enterprise.findMany({
@@ -119,14 +133,30 @@ export async function getList(params: ListParams) {
 export async function getDetail(id: number) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
-  return toItem(e)
+
+  // 查找该企业的管理员账号（UserEnterprise 中岗位包含 org-admin 的第一个）
+  const adminUE = await db.userEnterprise.findFirst({
+    where: { enterpriseId: id, status: 1 },
+    include: { user: true },
+    orderBy: { joinedAt: 'asc' },
+  })
+
+  return {
+    ...toItem(e),
+    adminAccount: adminUE?.user ? {
+      phone: adminUE.user.phone,
+      name: adminUE.user.realName,
+    } : null,
+  }
 }
 
 // ============================================
-// 新增
+// 新增（含自动初始化管理员 + 下级管理关联）
 // ============================================
 export async function create(form: any) {
   const code = `QY${Date.now()}`
+
+  // ① 创建企业记录
   const e = await db.enterprise.create({
     data: {
       name: form.name,
@@ -150,9 +180,120 @@ export async function create(form: any) {
       logo: form.logo || '',
       status: 1,
       creatorName: form.creatorName || '当前用户',
+      // GIS 地图标注
+      mapLng: parseFloat(form.mapLng) || 0,
+      mapLat: parseFloat(form.mapLat) || 0,
+      mapAddress: form.mapAddress || '',
     },
   })
-  return toItem(e)
+
+  // ② 检索/新建 User（以联系人手机号）
+  const phone = form.contactPhone?.trim()
+  let user = phone ? await db.user.findUnique({ where: { phone } }) : null
+  let isNewUser = false
+
+  if (phone && !user) {
+    const hashedPassword = await bcrypt.hash('admin123!@#', SALT_ROUNDS)
+    user = await db.user.create({
+      data: {
+        phone,
+        realName: form.contactName?.trim() || '',
+        password: hashedPassword,
+        status: 1,
+      },
+    })
+    isNewUser = true
+  }
+
+  // ③ 写入 UserEnterprise（统一分配企业管理员岗位）
+  if (user) {
+    // 检查是否已有该企业的关联（避免重复）
+    const existingUE = await db.userEnterprise.findFirst({
+      where: { userId: user.id, enterpriseId: e.id },
+    })
+    if (!existingUE) {
+      await db.userEnterprise.create({
+        data: {
+          userId: user.id,
+          enterpriseId: e.id,
+          positions: JSON.stringify(['platform:org-admin']),
+          inviterName: form.creatorName || '平台运营方',
+        },
+      })
+    }
+  }
+
+  // ④ 条件建立下级管理关联
+  const parentId = parseInt(form.parentId) || 0
+  if (parentId > 0) {
+    const parent = await db.enterprise.findUnique({ where: { id: parentId } })
+    if (parent) {
+      // 校验：一企业一上级（该企业不能已被其他企业纳为下级）
+      const existingSub = await db.enterpriseRelation.findFirst({
+        where: { type: 'subordinate', relatedId: e.id },
+      })
+      if (existingSub) {
+        throw Object.assign(
+          new Error(`该企业已是「${existingSub.enterpriseName}」的下级，不可重复关联`),
+          { statusCode: 409 },
+        )
+      }
+
+      // 校验：环检测（上级不能间接是当前企业的下级）
+      const hasCycle = await checkCycle(parentId, e.id)
+      if (hasCycle) {
+        throw Object.assign(
+          new Error('上级企业选择不合法：所选上级间接是当前企业的下级，形成循环链'),
+          { statusCode: 409 },
+        )
+      }
+
+      await db.enterpriseRelation.create({
+        data: {
+          type: 'subordinate',
+          enterpriseId: parentId,
+          enterpriseName: parent.name,
+          relatedId: e.id,
+          relatedName: e.name,
+          dimALevel1: e.dimALevel1,
+          operatorName: form.creatorName || '当前用户',
+        },
+      })
+
+      // 回写上级企业名称
+      await db.enterprise.update({
+        where: { id: e.id },
+        data: { parentName: parent.name },
+      })
+    }
+  }
+
+  return {
+    ...toItem(await db.enterprise.findUnique({ where: { id: e.id } })!),
+    // 附带管理员账号信息（仅新建 User 时返回密码）
+    adminAccount: user ? {
+      phone: user.phone,
+      name: user.realName,
+      isNewUser,
+      initialPassword: isNewUser ? 'admin123!@#' : undefined,
+    } : null,
+  }
+}
+
+/**
+ * 环检测：检查 ancestorId 是否间接是 childId 的下级
+ */
+async function checkCycle(ancestorId: number, childId: number): Promise<boolean> {
+  const visited = new Set<number>()
+  let current = ancestorId
+  while (current) {
+    if (current === childId) return true
+    if (visited.has(current)) return false // 安全阀
+    visited.add(current)
+    const ent = await db.enterprise.findUnique({ where: { id: current } })
+    current = ent?.parentId || 0
+  }
+  return false
 }
 
 // ============================================
@@ -161,6 +302,7 @@ export async function create(form: any) {
 export async function update(id: number, form: any) {
   const existing = await db.enterprise.findUnique({ where: { id } })
   if (!existing) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+  if (existing.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
 
   const data: any = {}
   if (form.name !== undefined) data.name = form.name
@@ -189,6 +331,10 @@ export async function update(id: number, form: any) {
   if (form.validFrom !== undefined) data.validFrom = form.validFrom
   if (form.validTo !== undefined) data.validTo = form.validTo
   if (form.parentId !== undefined) data.parentId = parseInt(form.parentId) || 0
+  // GIS 地图标注
+  if (form.mapLng !== undefined) data.mapLng = parseFloat(form.mapLng) || 0
+  if (form.mapLat !== undefined) data.mapLat = parseFloat(form.mapLat) || 0
+  if (form.mapAddress !== undefined) data.mapAddress = form.mapAddress
 
   const e = await db.enterprise.update({ where: { id }, data })
   return toItem(e)
@@ -200,6 +346,7 @@ export async function update(id: number, form: any) {
 export async function toggleLock(id: number) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+  if (e.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
 
   const newStatus = e.status === 1 ? 0 : 1
   await db.enterprise.update({ where: { id }, data: { status: newStatus } })
@@ -212,6 +359,7 @@ export async function toggleLock(id: number) {
 export async function extend(id: number, validTo: string) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+  if (e.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
 
   await db.enterprise.update({ where: { id }, data: { validTo, status: 1 } })
   return toItem(await db.enterprise.findUnique({ where: { id } })!)
@@ -225,11 +373,56 @@ export async function batchDelete(ids: number[]) {
 }
 
 // ============================================
+// 软删除
+// ============================================
+export async function softDelete(id: number) {
+  const e = await db.enterprise.findUnique({ where: { id } })
+  if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+  if (e.deletedAt) throw Object.assign(new Error('企业已被删除'), { statusCode: 409 })
+
+  await db.enterprise.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  })
+
+  // 级联：停用该企业下所有用户-企业关联
+  await db.userEnterprise.updateMany({
+    where: { enterpriseId: id, status: 1 },
+    data: { status: 0 },
+  })
+
+  // 级联：删除该企业作为任一方的所有关系记录
+  await db.enterpriseRelation.deleteMany({
+    where: {
+      OR: [
+        { enterpriseId: id },
+        { relatedId: id },
+      ],
+    },
+  })
+}
+
+// ============================================
+// 恢复软删除
+// ============================================
+export async function recover(id: number) {
+  const e = await db.enterprise.findUnique({ where: { id } })
+  if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+  if (!e.deletedAt) throw Object.assign(new Error('企业未被删除'), { statusCode: 409 })
+
+  await db.enterprise.update({
+    where: { id },
+    data: { deletedAt: null },
+  })
+}
+
+// ============================================
 // 搜索（用于关联选择器）
 // ============================================
 export async function search(keyword: string) {
   const list = await db.enterprise.findMany({
     where: {
+      deletedAt: null,
       OR: [
         { name: { contains: keyword } },
         { code: { contains: keyword } },
@@ -401,6 +594,136 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
       roleLabel: ROLE_MAP["my_manager"] || "我的管理方",
       allowOperation: r.allowOperation,
   }
+}
+
+// ============================================
+// M1 企业用户管理
+// ============================================
+
+function toMemberItem(ue: any) {
+  return {
+    id: ue.id,
+    userId: ue.userId,
+    phone: ue.user?.phone || '',
+    realName: ue.user?.realName || '',
+    positions: safeJsonParse(ue.positions, []),
+    status: ue.status,
+    joinedAt: formatDate(ue.joinedAt),
+    inviterName: ue.inviterName,
+    remark: ue.remark,
+  }
+}
+
+export async function getMembers(enterpriseId: number, params: { page: number; size: number; keyword?: string; positionKey?: string }) {
+  const where: any = { enterpriseId, status: 1 }
+  if (params.keyword) {
+    where.user = {
+      OR: [
+        { phone: { contains: params.keyword } },
+        { realName: { contains: params.keyword } },
+      ],
+    }
+  }
+  if (params.positionKey) {
+    where.positions = { contains: `"${params.positionKey}"` }
+  }
+
+  const [data, total] = await Promise.all([
+    db.userEnterprise.findMany({
+      where,
+      skip: (params.page - 1) * params.size,
+      take: params.size,
+      orderBy: { joinedAt: 'desc' },
+      include: { user: true },
+    }),
+    db.userEnterprise.count({ where }),
+  ])
+
+  return { data: data.map(toMemberItem), total }
+}
+
+export async function addMember(enterpriseId: number, form: { phone: string; realName?: string; positions: string[]; inviterName?: string }) {
+  // ① 检索/新建 User
+  const phone = form.phone?.trim()
+  if (!phone) throw Object.assign(new Error('手机号不能为空'), { statusCode: 400 })
+
+  let user = await db.user.findUnique({ where: { phone } })
+  if (!user) {
+    if (!form.realName) {
+      throw Object.assign(new Error('未找到该手机号对应的用户，请输入姓名创建'), { statusCode: 404 })
+    }
+    const hashedPassword = await bcrypt.hash('admin123!@#', SALT_ROUNDS)
+    user = await db.user.create({
+      data: {
+        phone,
+        realName: form.realName.trim(),
+        password: hashedPassword,
+        status: 1,
+      },
+    })
+  }
+
+  // ② 检查是否已在该企业（活跃状态）
+  const existingActive = await db.userEnterprise.findFirst({
+    where: { userId: user.id, enterpriseId, status: 1 },
+  })
+  if (existingActive) {
+    throw Object.assign(new Error('该用户已在本企业中'), { statusCode: 409 })
+  }
+
+  // ③ 建立/恢复关联（处理软删除后重新加入的场景）
+  const ue = await db.userEnterprise.upsert({
+    where: { userId_enterpriseId: { userId: user.id, enterpriseId } },
+    update: {
+      status: 1,
+      positions: JSON.stringify(form.positions || []),
+      inviterName: form.inviterName || '',
+    },
+    create: {
+      userId: user.id,
+      enterpriseId,
+      positions: JSON.stringify(form.positions || []),
+      inviterName: form.inviterName || '',
+    },
+    include: { user: true },
+  })
+
+  return toMemberItem(ue)
+}
+
+export async function updateMember(enterpriseId: number, userId: number, form: { positions?: string[]; remark?: string }) {
+  const ue = await db.userEnterprise.findFirst({
+    where: { enterpriseId, userId, status: 1 },
+  })
+  if (!ue) throw Object.assign(new Error('该用户不在本企业中'), { statusCode: 404 })
+
+  const data: any = {}
+  if (form.positions !== undefined) data.positions = JSON.stringify(form.positions)
+  if (form.remark !== undefined) data.remark = form.remark
+
+  const updated = await db.userEnterprise.update({
+    where: { id: ue.id },
+    data,
+    include: { user: true },
+  })
+  return toMemberItem(updated)
+}
+
+export async function removeMember(enterpriseId: number, userId: number, operatorId?: number) {
+  // 不允许移除自己
+  if (operatorId && operatorId === userId) {
+    throw Object.assign(new Error('不能移除自己，请联系其他管理员操作'), { statusCode: 403 })
+  }
+
+  const ue = await db.userEnterprise.findFirst({
+    where: { enterpriseId, userId, status: 1 },
+  })
+  if (!ue) throw Object.assign(new Error('该用户不在本企业中'), { statusCode: 404 })
+
+  await db.userEnterprise.update({
+    where: { id: ue.id },
+    data: { status: 0 },
+  })
 }
 
 // ============================================

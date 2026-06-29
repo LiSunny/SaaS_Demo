@@ -148,7 +148,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
 import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'
@@ -157,6 +158,7 @@ import { useUserStore } from '@/stores/user'
 
 const store = useWorkOrderStore()
 const userStore = useUserStore()
+const { confirm } = useConfirm()
 
 // ===== 草稿工单操作 =====
 async function handleSubmitDraft(id: number) {
@@ -169,10 +171,8 @@ async function handleSubmitDraft(id: number) {
 
 async function handleDelete(_id: number) {
   try {
-    await ElMessageBox.confirm('确认删除该草稿工单？', '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+    await confirm('确认删除该草稿工单？', '删除确认', {
+      type: 'error',
     })
     // TODO: 接入删除 API
     ElMessage.success('已删除')
@@ -282,8 +282,8 @@ onMounted(() => {
     query.sortField = 'createdAt'
     query.sortOrder = 'desc'
   }
-  // 按岗位设置数据范围过滤
-  store.setDataScope(userStore.currentPosition.dataScope)
+  // 按岗位设置数据范围过滤（DataScope 不再来自岗位定义，先传 null）
+  store.setDataScope(null)
   // 初始化默认近30天
   if (dateRange.value) {
     query.startDate = dateRange.value[0].toISOString().slice(0, 10)

@@ -18,6 +18,7 @@ export interface LoginResult {
     realName: string
     email: string
     status: number
+    position?: string
   }
 }
 
@@ -67,6 +68,8 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       realName: user.realName,
       email: user.email,
       status: user.status,
+      // 默认管理员自动获得平台管理员岗位
+      position: user.phone === '13800000000' ? 'platform-admin' : undefined,
     },
   }
 }
@@ -144,7 +147,7 @@ export async function ensureDefaultAdmin(): Promise<void> {
     data: {
       userId: user.id,
       enterpriseId: platformOrg.id,
-      positions: JSON.stringify(['platform_admin']),
+      positions: JSON.stringify(['platform:platform-admin']),
       inviterName: '系统初始化',
     },
   })

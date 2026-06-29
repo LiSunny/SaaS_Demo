@@ -155,20 +155,29 @@
                 <span class="form-label">备注</span>
                 <span class="form-value">{{ store.detail.remark || '----' }}</span>
               </div>
+              <div class="form-field">
+                <span class="form-label">负责人</span>
+                <span class="form-value">{{ contactDisplay }}</span>
+              </div>
             </div>
 
-            <!-- 负责人 -->
-            <div class="section">
-              <h3 class="section-title">负责人</h3>
-              <div class="contact-card">
-                <div class="contact-content">
-                  <span class="contact-name">{{ store.detail.contactName || '--' }}</span>
-                  <div class="contact-phone">
-                    <AppIcon name="call" class="phone-icon" />
-                    <span class="phone-label">电话</span>
-                    <span class="phone-number">{{ store.detail.contactPhone || '--' }}</span>
-                  </div>
+            <!-- 管理员账号（从企业创建时自动初始化） -->
+            <div v-if="store.detail.adminAccount" class="section">
+              <h3 class="section-title">管理员账号</h3>
+              <div class="admin-account-card">
+                <div class="admin-account-row">
+                  <span class="admin-label">账号</span>
+                  <span class="admin-value">{{ store.detail.adminAccount.phone }}</span>
+                  <button class="btn-copy" @click="copyText(store.detail.adminAccount.phone)">
+                    <el-icon :size="14"><CopyDocument /></el-icon>
+                    复制
+                  </button>
                 </div>
+                <div class="admin-account-row">
+                  <span class="admin-label">姓名</span>
+                  <span class="admin-value">{{ store.detail.adminAccount.name }}</span>
+                </div>
+                <p class="admin-hint">初始密码为 admin123!@#，首次登录需修改密码。可在用户管理中调整岗位或移交管理员。</p>
               </div>
             </div>
 
@@ -176,9 +185,23 @@
             <div class="section">
               <h3 class="section-title">GIS 定位</h3>
               <div class="map-container">
-                <div class="map-placeholder">
+                <!-- 有坐标：显示真实地图 -->
+                <div v-if="hasGisData" ref="detailMapContainer" class="detail-map" />
+                <!-- 无坐标：占位 -->
+                <div v-else class="map-placeholder">
                   <AppIcon name="map" class="map-placeholder-icon" />
-                  <span class="map-placeholder-text">GIS 定位地图</span>
+                  <span class="map-placeholder-text">暂无 GIS 定位信息</span>
+                </div>
+              </div>
+              <!-- 地址信息 -->
+              <div v-if="hasGisData" class="gis-info-row">
+                <div class="gis-info-item">
+                  <span class="gis-info-label">地址</span>
+                  <span class="gis-info-value" :title="store.detail?.mapAddress">{{ store.detail?.mapAddress || '—' }}</span>
+                </div>
+                <div class="gis-info-item">
+                  <span class="gis-info-label">经纬度</span>
+                  <span class="gis-info-value">{{ store.detail?.mapLocation || '—' }}</span>
                 </div>
               </div>
             </div>
@@ -199,20 +222,109 @@
         </div>
       </template>
     </div>
+
+    <!-- ===== 编辑租户 Drawer ===== -->
+    <EnterpriseFormDrawer
+      v-model:visible="drawerVisible"
+      :mode="drawerMode"
+      :edit-id="drawerEditId"
+      @saved="onDrawerSaved"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
+import { CopyDocument } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import AppIcon from '@/components/base/AppIcon.vue'
 import PartnerManage from './PartnerManage.vue'
+import EnterpriseFormDrawer from '@/components/business/EnterpriseFormDrawer.vue'
 
+// ===== Store / Router（必须在最前面，后续 computed/watch 要用） =====
 const route = useRoute()
 const router = useRouter()
 const store = useEnterpriseStore()
+const { confirmDelete } = useConfirm()
+
+// ===== 编辑抽屉 =====
+const drawerVisible = ref(false)
+const drawerMode = ref<'create' | 'edit'>('edit')
+const drawerEditId = ref('')
+
+function openEditDrawer() {
+  if (!store.detail) return
+  drawerMode.value = 'edit'
+  drawerEditId.value = store.detail.id
+  drawerVisible.value = true
+}
+
+function onDrawerSaved() {
+  drawerVisible.value = false
+  if (store.detail?.id) {
+    store.fetchDetail(store.detail.id)
+    store.fetchQrcode(store.detail.id)
+  }
+}
+
+// ===== GIS 地图（只读展示） =====
+const detailMapContainer = ref<HTMLDivElement>()
+let detailMapInstance: any = null
+
+const hasGisData = computed(() => {
+  const d = store.detail
+  return !!(d && d.mapLocation)
+})
+
+// 初始化只读地图（标记企业位置）
+function initDetailMap() {
+  if (!detailMapContainer.value || !(window as any).AMap) return
+  const d = store.detail
+  if (!d?.mapLocation) return
+
+  const parts = d.mapLocation.split(',')
+  if (parts.length !== 2) return
+  const lng = parseFloat(parts[0])
+  const lat = parseFloat(parts[1])
+  if (isNaN(lng) || isNaN(lat)) return
+
+  const AMap = (window as any).AMap
+  detailMapInstance = new AMap.Map(detailMapContainer.value, {
+    zoom: 15,
+    center: [lng, lat],
+    mapStyle: 'amap://styles/light',
+    viewMode: '2D',
+    resizeEnable: true,
+  })
+
+  // 添加标记点
+  const marker = new AMap.Marker({
+    position: [lng, lat],
+    anchor: 'bottom-center',
+  })
+  detailMapInstance.add(marker)
+}
+
+function destroyDetailMap() {
+  if (detailMapInstance) {
+    detailMapInstance.destroy()
+    detailMapInstance = null
+  }
+}
+
+// 监听详情数据加载完成后初始化地图
+watch(() => store.detail, (d) => {
+  if (d?.mapLocation) {
+    nextTick(() => initDetailMap())
+  }
+}, { deep: false })
+
+onBeforeUnmount(() => {
+  destroyDetailMap()
+})
 
 // ===== Tab 状态 =====
 const tabs = [
@@ -265,6 +377,16 @@ const authPeriod = computed(() => {
   return `${d.validFrom || '--'} 至 ${d.validTo || '--'}`
 })
 
+const contactDisplay = computed(() => {
+  const d = store.detail
+  if (!d) return '----'
+  const name = d.contactName || ''
+  const phone = d.contactPhone || ''
+  if (!name && !phone) return '----'
+  if (name && phone) return `${name} - ${phone}`
+  return name || phone
+})
+
 // ===== 资源图片 =====
 import entLogoPng from '@/assets/ent_logo.png'
 import connectSvg from '@/assets/connect.svg'
@@ -277,27 +399,30 @@ function handleBack() {
 }
 
 function handleEdit() {
-  if (!store.detail) return
-  router.push(`/admin/enterpriseManagement/edit?id=${store.detail.id}`)
+  openEditDrawer()
 }
 
 async function handleDelete() {
   if (!store.detail) return
   try {
-    await ElMessageBox.confirm(
-      `确认删除「${store.detail.name}」？删除后不可恢复。`,
-      '删除确认',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      },
+    await confirmDelete(
+      store.detail.name,
+      '删除后不可恢复。',
     )
     await store.handleBatchDelete([store.detail.id])
     ElMessage.success('删除成功')
     router.push('/admin/enterpriseManagement/index')
   } catch {
     // 用户取消
+  }
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('已复制')
+  } catch {
+    ElMessage.warning('复制失败，请手动复制')
   }
 }
 
@@ -614,7 +739,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 18px 36px;
+  padding: 12px 18px;
   background: none;
   border: none;
   cursor: pointer;
@@ -681,14 +806,15 @@ onMounted(() => {
 
 .form-label {
   font-size: var(--font-body);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   white-space: nowrap;
   line-height: normal;
 }
 
 .form-value {
-  font-size: var(--font-h3);
+  font-size: var(--font-h4);
   color: var(--text-primary);
+  font-weight: 500;
   line-height: 25px;
   word-break: break-word;
 }
@@ -777,6 +903,44 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   opacity: 0.5;
+}
+
+/* 详情页只读地图 */
+.detail-map {
+  width: 100%;
+  height: 280px;
+}
+
+/* GIS 地址信息行 */
+.gis-info-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--info-bg);
+  border-radius: var(--radius-md);
+}
+
+.gis-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gis-info-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.gis-info-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .map-placeholder-text {
@@ -892,5 +1056,54 @@ onMounted(() => {
   .header-right {
     align-self: center;
   }
+}
+
+/* ===== 管理员账号卡片 ===== */
+.admin-account-card {
+  background: var(--bg-sub-card, #F8FAFD);
+  border: 1px solid var(--border-light, #E8ECF2);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.admin-account-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.admin-account-row:last-of-type {
+  margin-bottom: 12px;
+}
+.admin-label {
+  font-size: 13px;
+  color: var(--text-tertiary, #454545);
+  min-width: 36px;
+}
+.admin-value {
+  font-size: 14px;
+  color: var(--text-primary, #101010);
+  font-weight: 500;
+}
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-light, #DEDEDE);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  color: var(--text-secondary, #2E2E2E);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-copy:hover {
+  background: var(--bg-sub-card, #FBFBFB);
+}
+.admin-hint {
+  font-size: 12px;
+  color: var(--text-placeholder, #A0A0A0);
+  margin: 0;
+  line-height: 1.6;
 }
 </style>

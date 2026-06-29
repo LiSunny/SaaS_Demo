@@ -19,6 +19,8 @@ export const updateEnterprise         = (...args: any[]) => (api() as any).updat
 export const lockEnterprise           = (...args: any[]) => (api() as any).lockEnterprise(...args)
 export const extendEnterprise         = (...args: any[]) => (api() as any).extendEnterprise(...args)
 export const batchDeleteEnterprises   = (...args: any[]) => (api() as any).batchDeleteEnterprises(...args)
+export const softDeleteEnterprise    = (...args: any[]) => (api() as any).softDeleteEnterprise(...args)
+export const recoverEnterprise       = (...args: any[]) => (api() as any).recoverEnterprise(...args)
 export const getSubordinates          = (...args: any[]) => (api() as any).getSubordinates(...args)
 export const addSubordinates          = (...args: any[]) => (api() as any).addSubordinates(...args)
 export const removeSubordinates       = (...args: any[]) => (api() as any).removeSubordinates(...args)

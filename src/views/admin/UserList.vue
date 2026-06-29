@@ -140,7 +140,7 @@
           <el-table-column prop="enterpriseName" label="企业名称" />
           <el-table-column label="岗位">
             <template #default="{ row: e }">
-              <el-tag v-for="p in e.positions" :key="p" size="small" style="margin-right:4px">{{ p }}</el-tag>
+              <el-tag v-for="p in e.positions" :key="p" size="small" style="margin-right:4px">{{ positionMap[p] || p }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="joinedAt" label="加入时间" width="160">
@@ -157,14 +157,24 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserAdminStore } from '@/stores/user-admin'
 import type { UserItem } from '@/types/user-admin'
+import { ALL_POSITIONS } from '@/config/positions'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 const store = useUserAdminStore()
+const { confirmDisable, confirmResetPwd } = useConfirm()
+
+// ===== 岗位名称映射 =====
+const positionMap: Record<string, string> = {}
+for (const p of ALL_POSITIONS) {
+  positionMap[p.key] = p.name
+  positionMap[`platform:${p.key}`] = p.name
+}
 
 // ===== 状态映射 =====
 function userStatusKey(s: number): string {
@@ -240,7 +250,7 @@ async function submitEdit() {
 async function handleToggle(row: UserItem) {
   if (row.status === 1) {
     try {
-      await ElMessageBox.confirm('确定停用该用户吗？停用后所有企业均不可登录。', '停用确认', { type: 'warning' })
+      await confirmDisable('该用户')
     } catch { return }
   }
   await store.handleToggleStatus(row.id)
@@ -249,7 +259,7 @@ async function handleToggle(row: UserItem) {
 // ===== 重置密码 =====
 async function handleResetPwd(row: UserItem) {
   try {
-    await ElMessageBox.confirm('确定重置该用户的密码吗？重置后密码为随机生成的6位字符串。', '重置密码确认', { type: 'warning' })
+    await confirmResetPwd()
   } catch { return }
   const newPwd = await store.handleResetPassword(row.id)
   ElMessage.success(`密码已重置为: ${newPwd}`)

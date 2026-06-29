@@ -289,7 +289,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import {
   getPartners,
   addPartner,
@@ -311,6 +312,8 @@ import AppIcon from '@/components/base/AppIcon.vue'
 const props = defineProps<{
   enterpriseId: string
 }>()
+
+const { confirmRemove, confirmBatchRemove } = useConfirm()
 
 // ===== 列表 =====
 const query = reactive<PartnerQuery & { keyword: string; role: string }>({
@@ -475,11 +478,7 @@ async function handleBindConfirm() {
 // ===== 删除 =====
 async function handleRemoveSingle(row: PartnerItem) {
   try {
-    await ElMessageBox.confirm(
-      `确认解除与「${row.enterpriseName}」的相关方关联？解除后该企业将无法访问你的数据。`,
-      '解除确认',
-      { confirmButtonText: '确认', cancelButtonText: '取消', type: 'warning' },
-    )
+    await confirmRemove(row.enterpriseName)
     await removePartners(props.enterpriseId, [row.id])
     ElMessage.success('已解除关联')
     fetch()
@@ -497,11 +496,7 @@ async function handleBatchRemove() {
     .map(r => r.enterpriseName)
     .join('、')
   try {
-    await ElMessageBox.confirm(
-      `确认解除与「${names}」的相关方关联？解除后该企业将无法访问你的数据。`,
-      '批量解除确认',
-      { confirmButtonText: '确认', cancelButtonText: '取消', type: 'warning' },
-    )
+    await confirmBatchRemove(names)
     await removePartners(props.enterpriseId, ids)
     ElMessage.success('已解除关联')
     selectedIds.value = new Set()

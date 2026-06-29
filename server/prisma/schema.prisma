@@ -51,6 +51,21 @@ model UserEnterprise {
 }
 
 // ============================================================
+// 内置岗位 → 对应 src/types/position-admin.ts PositionItem / PositionDetail
+// ============================================================
+model Position {
+  id          Int      @id @default(autoincrement())
+  name        String                                     // 岗位名称，如"消防安全管理人"
+  key         String   @unique                           // 岗位唯一标识，如"platform:fire-safety-manager"
+  description String   @default("")                      // 岗位说明
+  permissions String   @default("{}")                    // JSON: PermissionConfig { moduleAccess, dataOperations, managementOperations }
+  isBuiltin   Int      @default(1)                       // 1=内置岗位（M2 场景全为 1）
+  status      Int      @default(1)                       // 1=启用, 0=停用
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ============================================================
 // 企业 / 租户 → 对应 src/types/enterprise.ts EnterpriseItem
 // ============================================================
 model Enterprise {
@@ -79,11 +94,16 @@ model Enterprise {
   qrcode        String   @default("")
   creatorName   String   @default("")
   tags          String   @default("[]")          // JSON 数组
+  // GIS 地图标注
+  mapLng        Float    @default(0)             // 经度
+  mapLat        Float    @default(0)             // 纬度
+  mapAddress    String   @default("")            // 逆地理编码地址
   staffCount    Int      @default(0)
   unitCount     Int      @default(0)
   relCount      Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
 
   workOrders      WorkOrder[]               @relation("creatorOrg")
   subordinates    EnterpriseRelation[]      @relation("superior")

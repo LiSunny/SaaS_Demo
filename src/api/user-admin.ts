@@ -37,3 +37,8 @@ export async function getUserEnterprises(id: number): Promise<UserEnterpriseItem
   const res = await request.get(`${BASE}/${id}/enterprises`)
   return (res as any).data
 }
+
+export async function getMyEnterprises(): Promise<UserEnterpriseItem[]> {
+  const res = await request.get(`${BASE}/me/enterprises`)
+  return (res as any).data
+}

@@ -3,25 +3,29 @@
     <!-- ===== 顶部导航栏（简化：只保留 Logo + 用户区） ===== -->
     <header class="top-header">
       <div class="logo-area">
-        <div class="logo-icon" />
-        <span class="company-name">xxx股份有限公司</span>
+        <img class="logo-icon" src="/favicon.svg" alt="平台logo" />
+        <span class="company-name">消防安全管理平台</span>
       </div>
 
       <div class="user-area">
         <AppIcon name="message" class="ua-icon" />
+        
         <ThemeToggle />
+
+        <EnterpriseSwitcher v-if="userStore.isLoggedIn" />
+        
         <span v-if="userStore.isLoggedIn" class="user-name">{{ userStore.user?.realName }}</span>
         <button v-if="userStore.isLoggedIn" class="logout-btn" title="退出登录" @click="handleLogout">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <PositionSwitcher />
-        <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" title="切换侧栏">
+        
+        <!-- <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" title="切换侧栏">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
-        </button>
+        </button> -->
       </div>
     </header>
 
@@ -152,9 +156,9 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
-import PositionSwitcher from '@/components/base/PositionSwitcher.vue'
+import EnterpriseSwitcher from '@/components/base/EnterpriseSwitcher.vue'
 import { useUserStore } from '@/stores/user'
-import { ElMessageBox } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import {
   WORKBENCH_ITEM,
   NAV_GROUPS,
@@ -162,16 +166,18 @@ import {
   NAV_KEY_TO_ROUTE,
   findAncestors,
   findNodeByKey,
+  filterNodesByPosition,
   type NavNode,
   type NavGroup,
 } from '@/config/navigation'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { confirmLogout } = useConfirm()
 
 async function handleLogout() {
   try {
-    await ElMessageBox.confirm('确定要退出登录吗？', '退出确认', { type: 'warning' })
+    await confirmLogout()
   } catch { return }
   userStore.logout()
   router.replace('/login')
@@ -261,10 +267,26 @@ function filterNode(node: NavNode, query: string): NavNode | null {
 }
 
 const filteredGroups = computed(() => {
-  const q = searchQuery.value.trim()
-  if (!q) return NAV_GROUPS // 无搜索时返回全部
+  // Step 1: 岗位过滤
+  const positionKeys = [userStore.currentPositionKey]
+  const positionFiltered = NAV_GROUPS
+    .filter(group => {
+      if (group.visibleTo && group.visibleTo.length > 0) {
+        return positionKeys.some(k => group.visibleTo!.includes(k))
+      }
+      return true
+    })
+    .map(group => ({
+      ...group,
+      children: filterNodesByPosition(group.children, positionKeys),
+    }))
+    .filter(g => g.children.length > 0)
 
-  return NAV_GROUPS
+  // Step 2: 搜索过滤
+  const q = searchQuery.value.trim()
+  if (!q) return positionFiltered
+
+  return positionFiltered
     .map(group => filterGroup(group, q))
     .filter(g => g.children.length > 0)
 })
@@ -352,8 +374,8 @@ if (typeof window !== 'undefined') {
 }
 .logo-icon {
   width: 40px; height: 40px; border-radius: var(--radius-md, 8px);
-  background: linear-gradient(135deg, #2e95e2, #006efc);
   flex-shrink: 0;
+  object-fit: contain;
 }
 .company-name { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); white-space: nowrap; }
 

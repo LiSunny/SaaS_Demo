@@ -7,8 +7,31 @@
   --accent-primary10: rgba(54, 120, 227, 0.1);
   --accent-dark: #204785;
 
+  /* === Element Plus 主色映射（覆盖默认 #409EFF） === */
+  --el-color-primary: #3678E3;
+  --el-color-primary-light-3: #5e93eb;
+  --el-color-primary-light-5: #86aef0;
+  --el-color-primary-light-7: #afc9f5;
+  --el-color-primary-light-8: #c3d7f8;
+  --el-color-primary-light-9: #d7e5fa;
+  --el-color-primary-dark-2: #2b60b6;
+
+  /* === Element Plus 全局映射 === */
+  --el-font-family: 'Alibaba PuHuiTi', -apple-system, BlinkMacSystemFont, sans-serif;
+  --el-font-size-extra-small: 12px;
+  --el-font-size-small: 14px;
+  --el-font-size-base: 16px;
+  --el-font-size-large: 24px;
+  --el-border-radius-base: 6px;
+  --el-border-radius-small: 4px;
+  --el-border-radius-round: 8px;
+
   /* 语义色 */
   --success: #059669;
+  --el-color-success: #059669;
+  --el-color-warning: #D97706;
+  --el-color-danger: #DC2626;
+  --el-color-info: #3678E3;
   --success-bg: rgba(5, 150, 105, 0.1);
   --warning: #D97706;
   --warning-bg: rgba(217, 119, 6, 0.1);
@@ -111,6 +134,20 @@ html.dark {
   --accent-primary: #3DD1E2;
   --accent-primary10: rgba(61, 209, 226, 0.1);
   --accent-dark: #0091EA;
+
+  /* === Element Plus 主色映射（Dark） === */
+  --el-color-primary: #3DD1E2;
+  --el-color-primary-light-3: #5ee4ed;
+  --el-color-primary-light-5: #81eaf1;
+  --el-color-primary-light-7: #a3f0f4;
+  --el-color-primary-light-8: #b5f3f7;
+  --el-color-primary-light-9: #c8f6f9;
+  --el-color-primary-dark-2: #0091EA;
+
+  --el-color-success: #4CAF50;
+  --el-color-warning: #FF9800;
+  --el-color-danger: #F44336;
+  --el-color-info: #3DD1E2;
 
   --success: #4CAF50;
   --success-bg: rgba(76, 175, 80, 0.13);

@@ -3,7 +3,7 @@ import * as svc from '../services/enterprise.service.js'
 
 export async function getList(req: Request, res: Response, next: NextFunction) {
   try {
-    const { page = 1, size = 20, keyword, dimALevel1, dimB, dimC, dimD } = req.query
+    const { page = 1, size = 20, keyword, dimALevel1, dimB, dimC, dimD, includeDeleted } = req.query
     const result = await svc.getList({
       page: +page, size: +size,
       keyword: keyword as string,
@@ -11,6 +11,7 @@ export async function getList(req: Request, res: Response, next: NextFunction) {
       dimB: dimB as string,
       dimC: dimC as string,
       dimD: dimD as string,
+      includeDeleted: includeDeleted === 'true',
     })
     res.json({ code: 0, message: 'ok', data: result })
   } catch (err) { next(err) }
@@ -54,6 +55,20 @@ export async function extend(req: Request, res: Response, next: NextFunction) {
 export async function batchDelete(req: Request, res: Response, next: NextFunction) {
   try {
     await svc.batchDelete(req.body.ids.map(Number))
+    res.json({ code: 0, message: 'ok', data: null })
+  } catch (err) { next(err) }
+}
+
+export async function softDelete(req: Request, res: Response, next: NextFunction) {
+  try {
+    await svc.softDelete(+req.params.id)
+    res.json({ code: 0, message: 'ok', data: null })
+  } catch (err) { next(err) }
+}
+
+export async function recover(req: Request, res: Response, next: NextFunction) {
+  try {
+    await svc.recover(+req.params.id)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
@@ -120,6 +135,40 @@ export async function savePartnerAuth(req: Request, res: Response, next: NextFun
   try {
     const item = await svc.savePartnerAuth(+req.params.relationId, req.body)
     res.json({ code: 0, message: 'ok', data: item })
+  } catch (err) { next(err) }
+}
+
+// ===== M1 企业用户管理 =====
+export async function getMembers(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { page = 1, size = 20, keyword, positionKey } = req.query
+    const result = await svc.getMembers(+req.params.id, {
+      page: +page, size: +size,
+      keyword: keyword as string,
+      positionKey: positionKey as string,
+    })
+    res.json({ code: 0, message: 'ok', data: result })
+  } catch (err) { next(err) }
+}
+
+export async function addMember(req: Request, res: Response, next: NextFunction) {
+  try {
+    const item = await svc.addMember(+req.params.id, req.body)
+    res.json({ code: 0, message: 'ok', data: item })
+  } catch (err) { next(err) }
+}
+
+export async function updateMember(req: Request, res: Response, next: NextFunction) {
+  try {
+    const item = await svc.updateMember(+req.params.id, +req.params.userId, req.body)
+    res.json({ code: 0, message: 'ok', data: item })
+  } catch (err) { next(err) }
+}
+
+export async function removeMember(req: Request, res: Response, next: NextFunction) {
+  try {
+    await svc.removeMember(+req.params.id, +req.params.userId, req.user?.id)
+    res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
 

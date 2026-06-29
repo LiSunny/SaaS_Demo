@@ -50,7 +50,13 @@ import { useRouter } from 'vue-router'
 import { getWorkOrderList } from '@/api/work-order'
 import { useUserStore } from '@/stores/user'
 import type { WorkOrderItem, WorkOrderStats } from '@/types/work-order'
-import type { DataScope } from '@/config/positions'
+/** 数据范围过滤（运行时由企业上下文计算，不来自岗位定义） */
+type DataScope =
+  | { type: 'self'; orgId: number }
+  | { type: 'assigned'; assigneeId: number }
+  | { type: 'service'; serviceOrgId: number }
+  | { type: 'all' }
+  | { type: 'platform' }
 import StatusTag from '@/components/business/StatusTag.vue'
 
 defineProps<{
@@ -87,7 +93,7 @@ async function fetch() {
   error.value = false
   try {
     const res = await getWorkOrderList({ page: 1, size: 100 }) // 拉全量再过滤
-    const filtered = filterByScope(res.list, userStore.currentPosition.dataScope)
+    const filtered = filterByScope(res.list, { type: 'all' }) // DataScope 不再来自岗位定义
     const stats: WorkOrderStats = {
       all: filtered.length,
       draft: filtered.filter(w => w.status === 'draft').length,

@@ -106,7 +106,8 @@
 <script setup lang="ts">
 import { onMounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import { useWorkflowStore } from '@/stores/workflow'
 import type { TemplateItem } from '@/types/workflow'
 import { isSeedTemplate, saveAsSeed } from '@/api/workflow'
@@ -115,6 +116,7 @@ import AppIcon from '@/components/base/AppIcon.vue'
 
 const router = useRouter()
 const store = useWorkflowStore()
+const { confirmDelete, confirmBatchDelete, confirmToggle } = useConfirm()
 const { query } = store
 
 /** 种子模板状态映射 id → boolean */
@@ -137,12 +139,12 @@ const handleAdd = () => { router.push('/system/template/config') }
 const handleView = (row: TemplateItem) => { router.push(`/system/template/config/${row.id}?mode=view`) }
 const handleEdit = (row: TemplateItem) => { router.push(`/system/template/config/${row.id}`) }
 const handleDelete = async (row: TemplateItem) => {
-  await ElMessageBox.confirm(`确认删除模板「${row.name}」？`, '提示', { type: 'warning' })
+  await confirmDelete(row.name)
   store.remove(row.id)
 }
 const handleBatchDelete = async () => {
   if (store.selected.length === 0) return
-  await ElMessageBox.confirm(`确认删除选中的 ${store.selected.length} 个模板？`, '批量删除', { type: 'warning' })
+  await confirmBatchDelete(store.selected.length, '个模板')
   store.batchRemove()
 }
 
@@ -154,7 +156,7 @@ const toggleRow = (row: TemplateItem) => {
 const allChecked = computed(() => store.list.length > 0 && store.selected.length === store.list.length)
 const handleToggle = async (row: TemplateItem) => {
   const newLabel = row.status === 2 ? '启用' : '停用'
-  await ElMessageBox.confirm(`确认${newLabel}模板「${row.name}」？`, '提示', { type: 'warning' })
+  await confirmToggle(row.name, newLabel)
   store.toggleStatus(row)
 }
 

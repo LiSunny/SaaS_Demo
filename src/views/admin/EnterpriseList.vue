@@ -48,6 +48,10 @@
         </div>
 
         <div class="filter-right">
+          <label class="toggle-label">
+            <el-switch v-model="showDeleted" size="small" @change="onToggleDeleted" />
+            <span class="toggle-text">显示已删除</span>
+          </label>
           <button class="btn-outline-primary" @click="openCreateDrawer">
             <AppIcon name="plus" class="btn-add-icon" />新增租户
           </button>
@@ -79,7 +83,7 @@
           <tbody v-loading="store.loading">
             <tr v-for="row in store.list" :key="row.id" class="fi-tbody-tr">
               <td class="fi-td col-status">
-                <StatusTag :status="entStatusKey(row.status)" :label="statusLabel(row.status)" />
+                <StatusTag :status="entStatusKey(row)" :label="statusLabel(row)" />
               </td>
               <td class="fi-td col-name">{{ row.name }}</td>
               <td class="fi-td col-cat">{{ row.dimC.name || '—' }}</td>
@@ -93,18 +97,28 @@
                   <button class="act-btn act-preview" title="详情" @click="$router.push(`/admin/enterpriseManagement/detail?id=${row.id}`)">
                     <AppIcon name="preview" class="act-icon" />
                   </button>
-                  <button v-if="row.status === 1" class="act-btn act-edit" title="编辑" @click="openEditDrawer(row.id)">
-                    <AppIcon name="edit" class="act-icon" />
-                  </button>
-                  <button v-if="row.status === 1" class="act-btn" title="锁定" @click="handleLock(row)">
-                    <AppIcon name="lock-on" class="act-icon" />
-                  </button>
-                  <button class="act-btn" title="个性化配置" @click="openBranding(row)">
-                    <AppIcon name="setting" class="act-icon" />
-                  </button>
-                  <button class="act-btn" title="应用配置" @click="openAppConfig(row)">
-                    <AppIcon name="operation" class="act-icon" />
-                  </button>
+                  <template v-if="!row.deletedAt">
+                    <button v-if="row.status === 1" class="act-btn act-edit" title="编辑" @click="openEditDrawer(row.id)">
+                      <AppIcon name="edit" class="act-icon" />
+                    </button>
+                    <button v-if="row.status === 1" class="act-btn" title="锁定" @click="handleLock(row)">
+                      <AppIcon name="lock-on" class="act-icon" />
+                    </button>
+                    <button v-if="row.status === 1" class="act-btn act-delete" title="删除" @click="handleDelete(row)">
+                      <AppIcon name="delete" class="act-icon" />
+                    </button>
+                    <button class="act-btn" title="个性化配置" @click="openBranding(row)">
+                      <AppIcon name="setting" class="act-icon" />
+                    </button>
+                    <button class="act-btn" title="应用配置" @click="openAppConfig(row)">
+                      <AppIcon name="operation" class="act-icon" />
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button class="act-btn act-recover" title="恢复" @click="handleRecover(row)">
+                      <AppIcon name="restore" class="act-icon" />
+                    </button>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -181,7 +195,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import type { EnterpriseItem } from '@/types/enterprise'
 import StatusTag from '@/components/business/StatusTag.vue'
@@ -189,6 +204,7 @@ import AppIcon from '@/components/base/AppIcon.vue'
 import EnterpriseFormDrawer from '@/components/business/EnterpriseFormDrawer.vue'
 
 const store = useEnterpriseStore()
+const { confirmToggle, confirmDelete } = useConfirm()
 const query = store.query
 
 // ===== 新增/编辑 Drawer =====
@@ -215,6 +231,13 @@ function onDrawerSaved() {
 // ===== 引导说明 =====
 const showHelp = ref(true)
 
+// ===== 已删除筛选 =====
+const showDeleted = ref(false)
+function onToggleDeleted() {
+  query.includeDeleted = showDeleted.value ? true : undefined
+  store.search()
+}
+
 // ===== 排序 =====
 const sortAsc = ref(true)
 function toggleSort() {
@@ -237,15 +260,17 @@ function dimBLabel(code: string): string {
 }
 
 // ===== 企业状态键映射 =====
-function entStatusKey(s: number): string {
-  if (s === 1) return 'ent_active'
-  if (s === 0) return 'ent_locked'
+function entStatusKey(row: EnterpriseItem): string {
+  if (row.deletedAt) return 'ent_deleted'
+  if (row.status === 1) return 'ent_active'
+  if (row.status === 0) return 'ent_locked'
   return 'ent_expired'
 }
 
-function statusLabel(s: number): string {
-  if (s === 1) return '有效'
-  if (s === 0) return '已锁定'
+function statusLabel(row: EnterpriseItem): string {
+  if (row.deletedAt) return '已删除'
+  if (row.status === 1) return '有效'
+  if (row.status === 0) return '已锁定'
   return '已过期'
 }
 
@@ -253,8 +278,23 @@ function statusLabel(s: number): string {
 async function handleLock(row: EnterpriseItem) {
   const action = row.status === 1 ? '锁定' : '解锁'
   try {
-    await ElMessageBox.confirm(`确认${action}「${row.name}」？`, '提示', { type: 'warning' })
+    await confirmToggle(row.name, action)
     await store.handleLock(row.id)
+  } catch { /* 取消 */ }
+}
+
+// ===== 软删除 =====
+async function handleDelete(row: EnterpriseItem) {
+  try {
+    await confirmDelete(row.name, '删除后可在回收站中恢复。')
+    await store.handleSoftDelete(row.id)
+  } catch { /* 取消 */ }
+}
+
+async function handleRecover(row: EnterpriseItem) {
+  try {
+    await confirmToggle(row.name, '恢复')
+    await store.handleRecover(row.id)
   } catch { /* 取消 */ }
 }
 
@@ -343,7 +383,20 @@ onMounted(() => { store.fetchList() })
 .col-phone { min-width: 130px; }
 .col-date { min-width: 110px; }
 .col-creator { min-width: 80px; }
-.col-actions { width: 160px; min-width: 150px; white-space: nowrap; }
+.col-actions { width: 200px; min-width: 180px; white-space: nowrap; }
+
+/* ===== 操作按钮颜色变体 ===== */
+.act-delete { color: var(--danger, #DC2626); }
+.act-recover { color: var(--success, #059669); }
+
+/* ===== 已删除切换 ===== */
+.toggle-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer; user-select: none; white-space: nowrap;
+}
+.toggle-text {
+  font-size: var(--font-small, 14px); color: var(--text-secondary);
+}
 
 /* ===== 响应式 ===== */
 @media (max-width: 1550px) { .col-cat { display: none !important; } }

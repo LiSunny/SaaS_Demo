@@ -191,6 +191,8 @@
 
 ## 六、Element Plus CSS 变量完整映射
 
+> ⚠️ **重要**：以下映射必须写入 `style.css` 的 `:root` 和 `html.dark` 块中，不可只保留在本文档。若缺失，所有 Element Plus 组件（按钮、弹窗、标签、输入框等）将使用 Element Plus 默认值（如主色 `#409EFF`），与设计系统不一致。
+
 在 `<style>` 中使用以下映射，通过 CSS 变量覆盖 Element Plus 默认主题：
 
 ```css

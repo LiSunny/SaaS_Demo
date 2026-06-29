@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>公共安全管理平台</title>
+    <!-- 高德地图：JSAPI 安全模式（明文方式） -->
+    <!-- ⚠️ 注意：securityJsCode 必须在 JS API 脚本加载之前设置 -->
+    <script type="text/javascript">
+      window._AMapSecurityConfig = {
+        securityJsCode: '5daf4f6a88af245297b73451e95ea25e'
+      }
+    </script>
     <script src="https://webapi.amap.com/maps?v=2.0&key=3c36e2d3d66c2ed242246ef58f47c365"></script>
   </head>
   <body>

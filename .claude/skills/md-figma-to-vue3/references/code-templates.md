@@ -835,7 +835,7 @@ export const useXxxStore = defineStore('xxx', () => {
 ## 4.2 Light/Dark 主题
 
 必须生成三件套：
-1. **`style.css`**：`:root` + `html.dark` 双份 CSS 变量
+1. **`style.css`**：`:root` + `html.dark` 双份 CSS 变量。**除自定义 `--accent-*` / `--text-*` 等令牌外，还必须写入 `--el-color-primary` 等 Element Plus 变量覆盖（完整清单见 design-tokens.md §六），确保 EL 组件（按钮、弹窗、标签等）使用主题色而非默认 `#409EFF`。**
 2. **`src/stores/theme.ts`**：Pinia Store，`localStorage` 持久化，`document.documentElement.classList.toggle('dark')`
 3. **`src/components/base/ThemeToggle.vue`**：切换按钮，嵌入 Header
 

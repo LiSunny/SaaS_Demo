@@ -4,6 +4,40 @@
 import type { EnterpriseItem, EnterpriseQuery, EnterpriseForm, SubordinateItem, PartnerItem, OperationLogItem, PaginatedData, PartnerRole } from '@/types/enterprise'
 import { createPersistentStore } from '@/utils/db-adapter'
 
+// ===== Mock User 数据（供企业创建时自动初始化管理员） =====
+interface MockUser {
+  id: number
+  phone: string
+  realName: string
+  password: string
+  status: number
+  createdAt: string
+}
+
+interface MockUserEnterprise {
+  id: number
+  userId: number
+  enterpriseId: number
+  positions: string[]
+  status: number
+  joinedAt: string
+  inviterName: string
+  remark: string
+}
+
+const MOCK_USERS: MockUser[] = [
+  { id: 1, phone: '13800000000', realName: '赵启明', password: 'admin123', status: 1, createdAt: '2025-01-01 00:00:00' },
+  { id: 2, phone: '16666666666', realName: '管理员', password: 'admin123!@#', status: 1, createdAt: '2025-01-01 00:00:00' },
+]
+
+const MOCK_USER_ENTERPRISES: MockUserEnterprise[] = [
+  { id: 1, userId: 1, enterpriseId: 1, positions: ['platform:platform-admin'], status: 1, joinedAt: '2025-01-01 00:00:00', inviterName: '系统初始化', remark: '' },
+  { id: 2, userId: 2, enterpriseId: 1, positions: ['platform:org-admin'], status: 1, joinedAt: '2025-06-01 00:00:00', inviterName: '孙文博', remark: '' },
+]
+
+const mockUserStore = createPersistentStore('mock_users', MOCK_USERS)
+const mockUEStore = createPersistentStore('mock_user_enterprises', MOCK_USER_ENTERPRISES)
+
 // ===== Mock 企业数据 =====
 const MOCK_ENTERPRISES: EnterpriseItem[] = [
   {
@@ -13,7 +47,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 5, unitCount: 2, relCount: 3,
-    createdAt: '2024-10-31 15:53:06', updatedAt: '2024-10-31 15:53:06',
+    deletedAt: '', createdAt: '2024-10-31 15:53:06', updatedAt: '2024-10-31 15:53:06',
   },
   {
     id: '2', name: '港南一中', code: 'QY1013801074735185920',
@@ -22,7 +56,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['消防安全重点单位'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 1, unitCount: 1, relCount: 2,
-    createdAt: '2025-08-29 13:23:32', updatedAt: '2025-08-29 13:23:32',
+    deletedAt: '', createdAt: '2025-08-29 13:23:32', updatedAt: '2025-08-29 13:23:32',
   },
   {
     id: '3', name: '港南消防队', code: 'QY1044197200894099456',
@@ -31,7 +65,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 3, unitCount: 1, relCount: 1,
-    createdAt: '2025-11-21 10:26:53', updatedAt: '2025-11-21 10:26:53',
+    deletedAt: '', createdAt: '2025-11-21 10:26:53', updatedAt: '2025-11-21 10:26:53',
   },
   {
     id: '4', name: '阳光物业管理有限公司', code: 'QY1000000000000000001',
@@ -40,7 +74,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '朝阳区XX路100号', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 12, unitCount: 5, relCount: 8,
-    createdAt: '2025-06-15 09:00:00', updatedAt: '2025-06-15 09:00:00',
+    deletedAt: '', createdAt: '2025-06-15 09:00:00', updatedAt: '2025-06-15 09:00:00',
   },
   {
     id: '5', name: '蓝盾消防技术服务公司', code: 'QY1000000000000000002',
@@ -49,7 +83,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['维保', '检测'], address: '海淀区XX科技园', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 25, unitCount: 3, relCount: 6,
-    createdAt: '2025-07-01 10:00:00', updatedAt: '2025-07-01 10:00:00',
+    deletedAt: '', createdAt: '2025-07-01 10:00:00', updatedAt: '2025-07-01 10:00:00',
   },
   {
     id: '6', name: '应急管理局安全管理中心', code: 'QY1000000000000000003',
@@ -58,7 +92,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 8, unitCount: 2, relCount: 4,
-    createdAt: '2025-08-01 08:00:00', updatedAt: '2025-08-01 08:00:00',
+    deletedAt: '', createdAt: '2025-08-01 08:00:00', updatedAt: '2025-08-01 08:00:00',
   },
   {
     id: '7', name: '海港区政府', code: 'QY1000000000000000004',
@@ -67,7 +101,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签1'], address: '秦皇岛市海港区XX路', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 15, unitCount: 5, relCount: 10,
-    createdAt: '2025-09-01 08:00:00', updatedAt: '2025-09-01 08:00:00',
+    deletedAt: '', createdAt: '2025-09-01 08:00:00', updatedAt: '2025-09-01 08:00:00',
   },
   {
     id: '8', name: '烟草局', code: 'QY1000000000000000005',
@@ -76,7 +110,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签2'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 6, unitCount: 2, relCount: 3,
-    createdAt: '2025-09-15 08:00:00', updatedAt: '2025-09-15 08:00:00',
+    deletedAt: '', createdAt: '2025-09-15 08:00:00', updatedAt: '2025-09-15 08:00:00',
   },
   {
     id: '9', name: '秦皇岛一中', code: 'QY1000000000000000006',
@@ -85,7 +119,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签3', '消防安全重点单位'], address: '秦皇岛市XX区XX路', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 45, unitCount: 8, relCount: 5,
-    createdAt: '2025-10-01 08:00:00', updatedAt: '2025-10-01 08:00:00',
+    deletedAt: '', createdAt: '2025-10-01 08:00:00', updatedAt: '2025-10-01 08:00:00',
   },
   {
     id: '10', name: '盛泰北苑', code: 'QY1000000000000000007',
@@ -94,7 +128,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签4'], address: '秦皇岛市XX区XX小区', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 3, unitCount: 1, relCount: 2,
-    createdAt: '2025-10-05 08:00:00', updatedAt: '2025-10-05 08:00:00',
+    deletedAt: '', createdAt: '2025-10-05 08:00:00', updatedAt: '2025-10-05 08:00:00',
   },
   {
     id: '11', name: '万达商业管理有限公司', code: 'QY1000000000000000008',
@@ -103,7 +137,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['消防安全重点单位'], address: '朝阳区XX路万达广场', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
     staffCount: 60, unitCount: 12, relCount: 15,
-    createdAt: '2025-11-01 08:00:00', updatedAt: '2025-11-01 08:00:00',
+    deletedAt: '', createdAt: '2025-11-01 08:00:00', updatedAt: '2025-11-01 08:00:00',
   },
 ]
 
@@ -151,6 +185,10 @@ export async function getEnterpriseList(query: EnterpriseQuery): Promise<Paginat
   }
   if (query.dimB) list = list.filter(e => e.dimB === query.dimB)
   if (query.dimC) list = list.filter(e => e.dimC.name === query.dimC)
+  // 默认排除已删除企业
+  if (!query.includeDeleted) {
+    list = list.filter(e => !e.deletedAt)
+  }
   const total = list.length
   const start = (query.page - 1) * query.size
   return { data: list.slice(start, start + query.size), total }
@@ -166,10 +204,20 @@ export async function createEnterprise(form: EnterpriseForm): Promise<Enterprise
   const id = String(Date.now())
   const code = `QY${Date.now()}${Math.random().toString(36).slice(2, 8)}`
   const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
+  const tags: string[] = form.tags ? form.tags.split(',').filter(Boolean) : []
+
+  // 维度 B 命中重点单位类别时自动打标签
+  const hitCodes = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28']
+  if (form.dimB && hitCodes.includes(form.dimB)) {
+    if (!tags.includes('消防安全重点单位')) {
+      tags.push('消防安全重点单位')
+    }
+  }
+
   const newItem: EnterpriseItem = {
     id, code,
     name: form.name, contactName: form.contactName, contactPhone: form.contactPhone,
-    tags: form.tags ? form.tags.split(',').filter(Boolean) : [],
+    tags,
     validFrom: form.validFrom || '', validTo: form.validTo || '',
     region: form.region || '', parentId: form.parentId || '', parentName: '',
     address: form.address || '', remark: form.remark || '', logo: form.logo || '',
@@ -177,15 +225,88 @@ export async function createEnterprise(form: EnterpriseForm): Promise<Enterprise
     dimD: form.dimD || '', status: 1, qrcode: '', creatorName: '当前用户',
     staffCount: 0, unitCount: 0, relCount: 0, createdAt: now, updatedAt: now,
   }
-  // 维度 B 命中重点单位类别时自动打标签
-  const hitCodes = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28']
-  if (form.dimB && hitCodes.includes(form.dimB)) {
-    if (!newItem.tags.includes('消防安全重点单位')) {
-      newItem.tags.push('消防安全重点单位')
+
+  // ① 创建企业
+  store.add(newItem)
+
+  // ② 检索/新建 Mock User
+  const phone = form.contactPhone?.trim()
+  let user = phone ? mockUserStore.findBy(u => u.phone === phone)[0] : null
+  let isNewUser = false
+
+  if (phone && !user) {
+    user = {
+      id: mockUserStore.nextId(),
+      phone,
+      realName: form.contactName?.trim() || '',
+      password: 'admin123!@#', // Mock 明文存储
+      status: 1,
+      createdAt: now,
+    }
+    mockUserStore.add(user)
+    isNewUser = true
+  }
+
+  // ③ 写入 UserEnterprise（org-admin）
+  if (user) {
+    const existing = mockUEStore.findBy(
+      ue => ue.userId === user!.id && String(ue.enterpriseId) === id,
+    )
+    if (existing.length === 0) {
+      mockUEStore.add({
+        id: mockUEStore.nextId(),
+        userId: user.id,
+        enterpriseId: Number(id),
+        positions: ['platform:org-admin'],
+        status: 1,
+        joinedAt: now,
+        inviterName: '平台运营方',
+        remark: '',
+      })
     }
   }
-  store.add(newItem)
-  return newItem
+
+  // ④ 条件建立下级管理关联
+  const parentId = parseInt(form.parentId) || 0
+  if (parentId > 0) {
+    const parent = MOCK_ENTERPRISES.find(e => e.id === String(parentId))
+    if (parent) {
+      // 一企业一上级校验
+      const existingSub = Object.values(MOCK_SUBORDINATES).flat().find(
+        s => s.enterpriseId === id,
+      )
+      if (existingSub) {
+        // Mock 模式：忽略已存在的情况，不抛错
+        console.warn(`[DAO] 企业 ${id} 已有上级，跳过下级管理关联`)
+      } else {
+        if (!MOCK_SUBORDINATES[String(parentId)]) {
+          MOCK_SUBORDINATES[String(parentId)] = []
+        }
+        MOCK_SUBORDINATES[String(parentId)].push({
+          id: `s${Date.now()}`,
+          enterpriseId: id,
+          enterpriseName: newItem.name,
+          tags: newItem.tags,
+          relatedAt: now,
+          operatorName: '当前用户',
+        })
+        newItem.parentId = String(parentId)
+        newItem.parentName = parent.name
+        store.update(id, { parentId: String(parentId), parentName: parent.name })
+      }
+    }
+  }
+
+  // 返回企业信息 + 管理员账号
+  return {
+    ...newItem,
+    adminAccount: user ? {
+      phone: user.phone,
+      name: user.realName,
+      isNewUser,
+      initialPassword: isNewUser ? 'admin123!@#' : undefined,
+    } : null,
+  }
 }
 
 export async function updateEnterprise(id: string, form: Partial<EnterpriseForm>): Promise<EnterpriseItem> {
@@ -222,6 +343,46 @@ export async function extendEnterprise(id: string, validTo: string): Promise<Ent
 
 export async function batchDeleteEnterprises(ids: string[]): Promise<void> {
   ids.forEach(id => store.remove(id))
+}
+
+export async function softDeleteEnterprise(id: string): Promise<void> {
+  const item = store.getById(id) as EnterpriseItem | undefined
+  if (!item) throw new Error('企业不存在')
+  if (item.deletedAt) throw new Error('企业已被删除')
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
+  store.update(id, { deletedAt: now } as any)
+
+  // 级联：停用该企业下所有用户-企业关联
+  const mockUEs = mockUEStore.getAll() as MockUserEnterprise[]
+  for (const ue of mockUEs) {
+    if (ue.enterpriseId === Number(id) && ue.status === 1) {
+      mockUEStore.update(ue.id, { status: 0 } as any)
+    }
+  }
+
+  // 级联：删除该企业作为任一方的所有关系记录
+  for (const key of Object.keys(MOCK_SUBORDINATES)) {
+    MOCK_SUBORDINATES[key] = MOCK_SUBORDINATES[key].filter(
+      s => s.enterpriseId !== id && String(s.enterpriseId) !== id,
+    )
+    if (MOCK_SUBORDINATES[key].length === 0) delete MOCK_SUBORDINATES[key]
+  }
+  if (MOCK_SUBORDINATES[id]) delete MOCK_SUBORDINATES[id]
+
+  for (const key of Object.keys(MOCK_PARTNERS)) {
+    MOCK_PARTNERS[key] = MOCK_PARTNERS[key].filter(
+      p => p.enterpriseId !== id,
+    )
+    if (MOCK_PARTNERS[key].length === 0) delete MOCK_PARTNERS[key]
+  }
+  if (MOCK_PARTNERS[id]) delete MOCK_PARTNERS[id]
+}
+
+export async function recoverEnterprise(id: string): Promise<void> {
+  const item = store.getById(id) as EnterpriseItem | undefined
+  if (!item) throw new Error('企业不存在')
+  if (!item.deletedAt) throw new Error('企业未被删除')
+  store.update(id, { deletedAt: '' } as any)
 }
 
 export async function getSubordinates(enterpriseId: string, _query: { keyword?: string; page: number; size: number }): Promise<PaginatedData<SubordinateItem>> {
@@ -343,7 +504,7 @@ export async function searchEnterprises(enterpriseId: string, keyword: string): 
   const excludeIds = new Set([enterpriseId, ...existingPartnerIds, ...existingSubIds])
   const kw = keyword.toLowerCase()
   return MOCK_ENTERPRISES
-    .filter(e => !excludeIds.has(e.id) && (e.name.toLowerCase().includes(kw) || e.code.toLowerCase().includes(kw)))
+    .filter(e => !e.deletedAt && !excludeIds.has(e.id) && (e.name.toLowerCase().includes(kw) || e.code.toLowerCase().includes(kw)))
     .slice(0, 20)
     .map(e => ({ id: e.id, name: e.name, tags: e.tags }))
 }

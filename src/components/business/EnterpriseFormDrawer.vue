@@ -4,7 +4,7 @@
     :title="mode === 'edit' ? '编辑租户' : '新增租户'"
     size="680px"
     direction="rtl"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
     class="enterprise-form-drawer"
     @update:model-value="$emit('update:visible', $event)"
     @closed="handleClosed"
@@ -126,7 +126,7 @@
           <span class="label-text">Gis标注</span>
         </div>
         <div class="form-control form-control-group">
-          <el-input v-model="form.mapLocation" placeholder="请在地图上标注企业位置" class="clean-input flex-1" />
+          <el-input :model-value="gisAddress || form.mapLocation" placeholder="请在地图上标注企业位置" readonly class="clean-input flex-1" />
           <button type="button" class="locate-btn" @click="handleLocate">
             <el-icon :size="20"><MapLocation /></el-icon>
             <span>标注位置</span>
@@ -182,15 +182,27 @@
         {{ submitting ? '保存中...' : '保存' }}
       </button>
     </div>
+
+    <!-- GIS 地图标点组件 -->
+    <GisMapPicker
+      v-model:visible="gisPickerVisible"
+      v-model:location="form.mapLocation"
+      v-model:address="gisAddress"
+      @confirm="handleGisConfirm"
+    />
   </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import { MapLocation, UploadFilled, CircleCloseFilled } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import type { EnterpriseItem } from '@/types/enterprise'
+import GisMapPicker from './GisMapPicker.vue'
+
+const { confirmLeave, showSuccessAlert } = useConfirm()
 
 // ===== Props & Emits =====
 const props = defineProps<{
@@ -208,6 +220,23 @@ const emit = defineEmits<{
 const store = useEnterpriseStore()
 const submitting = ref(false)
 
+// ===== GIS 标点 =====
+const gisPickerVisible = ref(false)
+const gisAddress = ref('')
+
+function handleLocate() {
+  gisPickerVisible.value = true
+}
+
+// GisMapPicker 确认标注：同步经度、纬度、地址到表单
+function handleGisConfirm(payload: { location: string; address: string; lng: number; lat: number }) {
+  form.mapLocation = payload.location
+  form.mapLng = payload.lng
+  form.mapLat = payload.lat
+  form.mapAddress = payload.address
+  gisAddress.value = payload.address
+}
+
 // ===== 表单 =====
 const form = reactive({
   name: '',
@@ -221,6 +250,9 @@ const form = reactive({
   remark: '',
   logo: '',
   mapLocation: '',
+  mapLng: '' as number | string,
+  mapLat: '' as number | string,
+  mapAddress: '',
   dimB: '',
   dimC: '',
   dimD: '',
@@ -274,17 +306,38 @@ async function handleSave() {
   submitting.value = true
   try {
     const [validFrom, validTo] = form.validRange
+    // 显式列出提交字段：经纬度使用 mapLng / mapLat 独立字段，不传 mapLocation 合并字段
     const data: any = {
-      ...form,
+      name: form.name,
+      contactName: form.contactName,
+      contactPhone: form.contactPhone,
+      tags: form.tags,
       validFrom: validFrom || '',
       validTo: validTo || '',
       region: form.regionArr.join(' '),
-      dimB: form.dimB, dimC: form.dimC, dimD: form.dimD,
+      parentId: form.parentId,
+      address: form.address,
+      remark: form.remark,
+      logo: form.logo,
+      dimB: form.dimB,
+      dimC: form.dimC,
+      dimD: form.dimD,
+      // GIS 地图标注：经度、纬度、逆地理地址（三个独立字段）
+      mapLng: form.mapLng,
+      mapLat: form.mapLat,
+      mapAddress: form.mapAddress,
     }
     if (props.mode === 'edit' && props.editId) {
       await store.handleUpdate(props.editId, data)
     } else {
-      await store.handleCreate(data)
+      const item = await store.handleCreate(data)
+      // 新建企业时展示管理员账号信息
+      if ((item as any)?.adminAccount?.isNewUser) {
+        await showSuccessAlert(
+          `企业「${item.name}」创建成功！\n\n已自动为企业负责人创建管理员账号：\n手机号：${(item as any).adminAccount.phone}\n初始密码：${(item as any).adminAccount.initialPassword}\n\n请妥善保管并交付给企业管理员，首次登录需修改密码。`,
+          '管理员账号已创建',
+        )
+      }
     }
     emit('saved')
     emit('update:visible', false)
@@ -295,13 +348,9 @@ async function handleSave() {
 
 async function handleCancel() {
   try {
-    await ElMessageBox.confirm('放弃已填写的内容？', '提示', { type: 'warning' })
+    await confirmLeave()
     emit('update:visible', false)
   } catch { /* stay */ }
-}
-
-function handleLocate() {
-  ElMessage.info('地图选点功能（开发中）')
 }
 
 // ===== 重置 =====
@@ -310,8 +359,10 @@ function resetForm() {
     name: '', contactName: '', contactPhone: '',
     tags: [], validRange: [], regionArr: [],
     parentId: '', address: '', remark: '', logo: '', mapLocation: '',
+    mapLng: '', mapLat: '', mapAddress: '',
     dimB: '', dimC: '', dimD: '',
   })
+  gisAddress.value = ''
 }
 
 function handleClosed() {
@@ -337,11 +388,16 @@ watch(() => props.visible, async (v) => {
         regionArr: d.region ? d.region.split(' ') : [],
         parentId: d.parentId || '',
         address: d.address || '', remark: d.remark || '', logo: d.logo || '',
-        mapLocation: '',
+        mapLocation: d.mapLocation || '',
+        mapLng: d.mapLng ?? (d.mapLocation ? parseFloat(d.mapLocation.split(',')[0]) || '' : ''),
+        mapLat: d.mapLat ?? (d.mapLocation ? parseFloat(d.mapLocation.split(',')[1]) || '' : ''),
+        mapAddress: d.mapAddress || '',
         dimB: d.dimB || '',
         dimC: d.dimC?.code || d.dimC || '',
         dimD: d.dimD || '',
       })
+      // 编辑回填 GIS 地址显示
+      gisAddress.value = d.mapAddress || d.mapLocation || ''
     }
   }
 })

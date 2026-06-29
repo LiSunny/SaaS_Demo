@@ -10,6 +10,7 @@ import {
   getEnterpriseList, getEnterpriseDetail,
   createEnterprise, updateEnterprise,
   lockEnterprise, extendEnterprise, batchDeleteEnterprises,
+  softDeleteEnterprise, recoverEnterprise,
   getSubordinates, addSubordinates, removeSubordinates,
   getPartners, addPartner, removePartners, savePartnerAuth,
   getOperationLogs, getEnterpriseQrcode, regenerateQrcode,
@@ -79,6 +80,18 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
   async function handleBatchDelete(ids: string[]) {
     await batchDeleteEnterprises(ids)
     ElMessage.success('删除成功')
+    fetchList()
+  }
+
+  async function handleSoftDelete(id: string) {
+    await softDeleteEnterprise(id)
+    ElMessage.success('企业已删除，可在回收站中恢复')
+    fetchList()
+  }
+
+  async function handleRecover(id: string) {
+    await recoverEnterprise(id)
+    ElMessage.success('企业已恢复')
     fetchList()
   }
 
@@ -201,7 +214,7 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
   return {
     list, loading, query, total, fetchList, search, resetQuery,
     detail, detailLoading, fetchDetail,
-    handleLock, handleExtend, handleBatchDelete, handleCreate, handleUpdate,
+    handleLock, handleExtend, handleBatchDelete, handleSoftDelete, handleRecover, handleCreate, handleUpdate,
     subordinates, subLoading, fetchSubordinates, handleAddSubordinates, handleRemoveSubordinates,
     partners, partnerLoading, fetchPartners, handleAddPartner, handleRemovePartners, handleSavePartnerAuth,
     logs, logLoading, fetchLogs,

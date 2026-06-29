@@ -197,7 +197,8 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useMaintenanceStore } from '@/stores/maintenance'
 import { copyPlan, createPlan, updatePlan } from '@/api/maintenance'
@@ -206,6 +207,7 @@ import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 const store = useMaintenanceStore()
+const { confirmDelete } = useConfirm()
 const { query } = store
 
 const cycleMap: Record<PlanCycle, string> = {
@@ -282,7 +284,7 @@ const handleSubmit = async () => {
 const router = useRouter()
 const handleView = (row: MaintenancePlan) => { router.push(`/maintenance/plans/detail/${row.id}`) }
 const handleDelete = async (row: MaintenancePlan) => {
-  await ElMessageBox.confirm(`确认删除「${row.planName}」？`, '提示', { type: 'warning' })
+  await confirmDelete(row.planName)
   store.removePlan(row.id)
 }
 const handleCopy = async (row: MaintenancePlan) => {

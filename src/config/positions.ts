@@ -2,33 +2,23 @@
  * 平台岗位定义
  *
  * 消防安全管理多租户 SaaS 平台，四方协同场景。
- * 11 个岗位覆盖物业方、服务方、监管方、平台方。
+ * 9 个岗位覆盖物业方、服务方、监管方、平台方。
  *
- * @see docs/design/平台岗位设计.md
+ * @see docs/平台岗位设计.md v1.2
  */
 
 // ===== 类型定义 =====
 
-/** 数据范围 */
-export type DataScope =
-  | { type: 'self'; orgId: number }
-  | { type: 'assigned'; assigneeId: number }
-  | { type: 'service'; serviceOrgId: number }
-  | { type: 'all' }
-  | { type: 'platform' }
-
 /** 岗位 key */
 export type PositionKey =
+  | 'org-admin'
   | 'fire-safety-responsible'
   | 'fire-safety-manager'
   | 'duty-officer'
-  | 'org-admin-property'
   | 'project-lead'
   | 'tech-lead'
   | 'maintenance-engineer'
-  | 'org-admin-service'
   | 'safety-supervisor'
-  | 'org-admin-supervisor'
   | 'platform-admin'
 
 /** 岗位定义 */
@@ -41,7 +31,6 @@ export interface PositionDef {
     id: number
     name: string
   }
-  dataScope: DataScope
   description: string
 }
 
@@ -61,7 +50,6 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '阳光物业管理有限公司',
     orgId: 1,
     user: { id: 1, name: '周志远' },
-    dataScope: { type: 'self', orgId: 1 },
     description: '法定负责人，对单位消防安全全面负责',
   },
   {
@@ -70,7 +58,6 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '阳光物业管理有限公司',
     orgId: 1,
     user: { id: 2, name: '张建国' },
-    dataScope: { type: 'self', orgId: 1 },
     description: '日常消防管理，发起工单，组织验收',
   },
   {
@@ -79,17 +66,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '阳光物业管理有限公司',
     orgId: 1,
     user: { id: 3, name: '李明辉' },
-    dataScope: { type: 'self', orgId: 1 },
     description: '告警核实，紧急工单发起，24小时值守',
-  },
-  {
-    key: 'org-admin-property',
-    name: '企业管理员',
-    orgName: '阳光物业管理有限公司',
-    orgId: 1,
-    user: { id: 4, name: '赵丽萍' },
-    dataScope: { type: 'self', orgId: 1 },
-    description: '管理本企业账号与权限，企业信息配置',
   },
 
   // ===== 服务方 — 蓝盾消防技术服务公司 =====
@@ -99,7 +76,6 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '蓝盾消防技术服务公司',
     orgId: 2,
     user: { id: 5, name: '刘建华' },
-    dataScope: { type: 'service', serviceOrgId: 2 },
     description: '对接甲方，SLA 第一责任人，团队工单全貌',
   },
   {
@@ -108,7 +84,6 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '蓝盾消防技术服务公司',
     orgId: 2,
     user: { id: 6, name: '孙工' },
-    dataScope: { type: 'service', serviceOrgId: 2 },
     description: '技术把关，审核处置结果，强制改派',
   },
   {
@@ -117,17 +92,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '蓝盾消防技术服务公司',
     orgId: 2,
     user: { id: 7, name: '王志强' },
-    dataScope: { type: 'assigned', assigneeId: 7 },
     description: '接单，现场处置，拍照留痕，转单',
-  },
-  {
-    key: 'org-admin-service',
-    name: '企业管理员',
-    orgName: '蓝盾消防技术服务公司',
-    orgId: 2,
-    user: { id: 8, name: '郑晓峰' },
-    dataScope: { type: 'service', serviceOrgId: 2 },
-    description: '管理本公司账号与权限，资质证书管理',
   },
 
   // ===== 监管方 — 应急管理局安全管理中心 =====
@@ -137,17 +102,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '应急管理局安全管理中心',
     orgId: 3,
     user: { id: 9, name: '陈浩然' },
-    dataScope: { type: 'all' },
     description: '督办超时工单，核查验收，生成监管报告',
-  },
-  {
-    key: 'org-admin-supervisor',
-    name: '企业管理员',
-    orgName: '应急管理局安全管理中心',
-    orgId: 3,
-    user: { id: 10, name: '王蕾' },
-    dataScope: { type: 'all' },
-    description: '管理本机关内部账号与权限',
   },
 
   // ===== 平台方 =====
@@ -157,8 +112,16 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgName: '平台运营方',
     orgId: 0,
     user: { id: 11, name: '赵启明' },
-    dataScope: { type: 'platform' },
     description: '租户管理，流程模板配置，全局参数',
+  },
+  // 通用岗位（新建企业时自动分配，不区分企业类型）
+  {
+    key: 'org-admin',
+    name: '企业管理员',
+    orgName: '平台运营方',
+    orgId: 0,
+    user: { id: 12, name: '系统默认' },
+    description: '通用企业管理员，新建企业时自动分配',
   },
 ]
 

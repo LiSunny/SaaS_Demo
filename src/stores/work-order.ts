@@ -5,7 +5,14 @@ import type { WorkOrderItem, WorkOrderQuery, WorkOrderDetail, WorkOrderStats, Cr
 import type { TemplateDetail } from '@/types/workflow'
 import { getWorkOrderList, getWorkOrderDetail, getWorkOrderStats, cancelWorkOrder, reassignWorkOrder, acceptWorkOrder, submitNodeForm, performNodeAction, createWorkOrder, submitDraft as submitDraftOrder, updatePriority } from '@/api/work-order'
 import { getTemplateDetail } from '@/api/workflow'
-import type { DataScope } from '@/config/positions'
+
+/** 数据范围过滤（运行时由企业上下文计算，不来自岗位定义） */
+type DataScope =
+  | { type: 'self'; orgId: number }
+  | { type: 'assigned'; assigneeId: number }
+  | { type: 'service'; serviceOrgId: number }
+  | { type: 'all' }
+  | { type: 'platform' }
 
 export const useWorkOrderStore = defineStore('workOrder', () => {
   const list = ref<WorkOrderItem[]>([])

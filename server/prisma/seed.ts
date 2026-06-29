@@ -101,6 +101,41 @@ async function main() {
   // 此处 seed 不创建用户，由启动时的 ensureDefaultAdmin() 统一处理
   console.log('  ℹ️  用户账号由服务启动时的 ensureDefaultAdmin() 创建')
 
+  // ===== 平台内置岗位（9 个） =====
+  const defaultPermissions = JSON.stringify({
+    moduleAccess: [],
+    dataOperations: {},
+    managementOperations: [],
+  })
+
+  const positions = [
+    { name: '消防安全责任人', key: 'platform:fire-safety-responsible', description: '法定负责人，对单位消防安全全面负责' },
+    { name: '消防安全管理人', key: 'platform:fire-safety-manager', description: '日常消防管理，发起工单，组织验收' },
+    { name: '消控值班员', key: 'platform:duty-officer', description: '告警核实，紧急工单发起，24小时值守' },
+    { name: '项目负责人', key: 'platform:project-lead', description: '对接甲方，SLA 第一责任人，团队工单全貌' },
+    { name: '技术负责人', key: 'platform:tech-lead', description: '技术把关，审核处置结果，强制改派' },
+    { name: '维保工程师', key: 'platform:maintenance-engineer', description: '接单，现场处置，拍照留痕，转单' },
+    { name: '安全监管员', key: 'platform:safety-supervisor', description: '督办超时工单，核查验收，生成监管报告' },
+    { name: '企业管理员', key: 'platform:org-admin', description: '通用企业管理员，新建企业时自动分配' },
+    { name: '平台管理员', key: 'platform:platform-admin', description: '租户管理，流程模板配置，全局参数' },
+  ]
+
+  for (const p of positions) {
+    await prisma.position.upsert({
+      where: { key: p.key },
+      update: {},
+      create: {
+        name: p.name,
+        key: p.key,
+        description: p.description,
+        permissions: defaultPermissions,
+        isBuiltin: 1,
+        status: 1,
+      },
+    })
+    console.log(`  ✅ 岗位: ${p.name}`)
+  }
+
   console.log('🌱 种子数据填充完成')
 }
 

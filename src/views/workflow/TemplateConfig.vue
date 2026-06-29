@@ -227,7 +227,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useConfirm } from '@/composables/useConfirm'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getTemplate, getTemplateDetail, saveTemplateDraft, publishTemplate, validateFlowDefinition, isSeedTemplate, saveAsSeed, updateSeed } from '@/api/workflow'
 import type { TemplateForm, SlaPriority, InitiatorScope, FormField, FormSchema, FlowNode, FlowDefinition } from '@/types/workflow'
@@ -238,6 +239,7 @@ import PersonSelector from '@/components/business/PersonSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { confirmLeave } = useConfirm()
 const isEdit = ref(false)
 const isViewMode = computed(() => route.query.mode === 'view')
 const canWriteSeed = computed(() => isEdit.value && !isViewMode.value && !hasSeed.value)
@@ -419,10 +421,9 @@ const handleBack = () => {
 
 const handleCancel = async () => {
   try {
-    await ElMessageBox.confirm('内容未保存，是否离开？', '提示', {
+    await confirmLeave('内容未保存，是否离开？', {
       confirmButtonText: '确认离开',
       cancelButtonText: '继续编辑',
-      type: 'warning',
     })
     router.push('/system/template')
   } catch {

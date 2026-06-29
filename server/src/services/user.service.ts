@@ -56,7 +56,12 @@ export async function getDetail(id: number) {
   return toItem(u)
 }
 
-// ===== 新增 =====
+// ===== 按手机号查找用户（M1 企业用户管理用） =====
+export async function lookupByPhone(phone: string) {
+  const u = await db.user.findUnique({ where: { phone } })
+  if (!u) return null
+  return toItem(u)
+}
 export async function create(form: { phone: string; realName: string; password: string }) {
   const existing = await db.user.findUnique({ where: { phone: form.phone } })
   if (existing) {
