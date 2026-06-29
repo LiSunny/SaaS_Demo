@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:fresh": "bash scripts/dev-fresh.sh",
     "icons": "node scripts/build-sprite.cjs",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
