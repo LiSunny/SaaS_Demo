@@ -153,5 +153,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# 前台挂起，等待任一子进程退出
-wait -n "${PIDS[@]}" 2>/dev/null || true
+# 前台挂起，直到 Ctrl+C 或子进程全部退出
+# 注意：此处不能用 wait -n（bash 4.3+），macOS 默认为 bash 3.2
+wait
