@@ -131,7 +131,7 @@ export async function updateSubordinate(enterpriseId: string, relationId: string
 
 // ===== 相关方管理 =====
 
-export async function getPartners(enterpriseId: string, query: { keyword?: string; tag?: string; page: number; size: number }): Promise<PaginatedData<PartnerItem>> {
+export async function getPartners(enterpriseId: string, query: { keyword?: string; tag?: string; role?: string; page: number; size: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<PaginatedData<PartnerItem>> {
   const res: any = await request.get(`/enterprise/${enterpriseId}/partners`, { params: query })
   // res = { code: 0, data: { data: [...], total: N } }
   // res.data = { data: [...], total: N } （PaginatedData 格式）

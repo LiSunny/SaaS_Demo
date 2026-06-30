@@ -641,7 +641,7 @@ export async function removeSubordinates(enterpriseId: number, relationIds: numb
 // ============================================
 // 相关方管理
 // ============================================
-export async function getPartners(enterpriseId: number, params: { keyword?: string; tag?: string; page: number; size: number }) {
+export async function getPartners(enterpriseId: number, params: { keyword?: string; tag?: string; role?: string; page: number; size: number }) {
   const where: any = { type: 'partner', enterpriseId }
   if (params.keyword) {
     where.OR = [
@@ -649,6 +649,7 @@ export async function getPartners(enterpriseId: number, params: { keyword?: stri
       { relatedName: { contains: params.keyword } },
     ]
   }
+  if (params.role) where.role = params.role
 
   const [data, total] = await Promise.all([
     db.enterpriseRelation.findMany({
@@ -671,8 +672,8 @@ export async function getPartners(enterpriseId: number, params: { keyword?: stri
       relatedAt: formatDate(r.relatedAt),
       operatorName: r.operatorName,
       authUnits: safeJsonParse(r.authUnits, []),
-      role: "my_manager",
-      roleLabel: ROLE_MAP["my_manager"] || "我的管理方",
+      role: r.role || '',
+      roleLabel: r.roleLabel || '',
       allowOperation: r.allowOperation,
     })),
     total,
@@ -700,6 +701,9 @@ export async function addPartner(enterpriseId: number, partnerId: number, role?:
       enterpriseName: enterprise.name,
       relatedId: partnerId,
       relatedName: partner.name,
+      role: role || '',
+      roleLabel: ROLE_MAP[role || ''] || '',
+      tags: JSON.stringify(tags),
       dimALevel1: partner.dimALevel1,
       contactName: partner.contactName,
       contactPhone: partner.contactPhone,
@@ -773,9 +777,9 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
     relatedAt: formatDate(r.relatedAt),
     operatorName: r.operatorName,
     authUnits: safeJsonParse(r.authUnits, []),
-    role: "my_manager",
-      roleLabel: ROLE_MAP["my_manager"] || "我的管理方",
-      allowOperation: r.allowOperation,
+    role: r.role || '',
+    roleLabel: r.roleLabel || '',
+    allowOperation: r.allowOperation,
   }
 }
 
@@ -789,6 +793,10 @@ export async function updatePartner(enterpriseId: number, relationId: number, da
   if (data.tags !== undefined) updateData.tags = JSON.stringify(data.tags)
   if (data.contactName !== undefined) updateData.contactName = data.contactName
   if (data.contactPhone !== undefined) updateData.contactPhone = data.contactPhone
+  if (data.role !== undefined) {
+    updateData.role = data.role
+    updateData.roleLabel = ROLE_MAP[data.role] || ''
+  }
 
   const updated = await db.enterpriseRelation.update({
     where: { id: relationId },
@@ -816,8 +824,8 @@ export async function updatePartner(enterpriseId: number, relationId: number, da
     relatedAt: formatDate(updated.relatedAt),
     operatorName: updated.operatorName,
     authUnits: safeJsonParse(updated.authUnits, []),
-    role: data.role || "my_manager",
-    roleLabel: ROLE_MAP[data.role] || ROLE_MAP["my_manager"] || "我的管理方",
+    role: updated.role || '',
+    roleLabel: updated.roleLabel || '',
     allowOperation: updated.allowOperation,
   }
 }

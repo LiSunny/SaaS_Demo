@@ -118,10 +118,10 @@ export async function removeSubordinates(req: Request, res: Response, next: Next
 // ===== 相关方 =====
 export async function getPartners(req: Request, res: Response, next: NextFunction) {
   try {
-    const { page = 1, size = 100, keyword, tag } = req.query
+    const { page = 1, size = 100, keyword, tag, role } = req.query
     const result = await svc.getPartners(+req.params.id, {
       page: +page, size: +size,
-      keyword: keyword as string, tag: tag as string,
+      keyword: keyword as string, tag: tag as string, role: role as string,
     })
     res.json({ code: 0, message: 'ok', data: result })
   } catch (err) { next(err) }
