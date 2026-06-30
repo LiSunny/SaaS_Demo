@@ -59,7 +59,7 @@
               <th class="fi-th fi-th-sort col-progress"><span>模版概览</span></th>
               <th class="fi-th col-code"><span>模板编号</span></th>
               <th class="fi-th col-creator"><span>创建人</span></th>
-              <th class="fi-th fi-th-sort col-time"><span>最近更新时间</span><AppIcon name="sort" class="th-sort-icon" /></th>
+              <th class="fi-th fi-th-sort col-time" @click="handleSortChange()"><span>最近更新时间</span><TableSortIcon :direction="sortDir" /></th>
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
           </thead>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, reactive } from 'vue'
+import { onMounted, computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
@@ -113,11 +113,20 @@ import type { TemplateItem } from '@/types/workflow'
 import { isSeedTemplate, saveAsSeed } from '@/api/workflow'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import TableSortIcon from '@/components/base/TableSortIcon.vue'
 
 const router = useRouter()
 const store = useWorkflowStore()
 const { confirmDelete, confirmBatchDelete, confirmToggle } = useConfirm()
 const { query } = store
+
+const sortDir = ref<'none' | 'asc' | 'desc'>('none')
+function handleSortChange() {
+  if (sortDir.value === 'none') sortDir.value = 'desc'
+  else if (sortDir.value === 'desc') sortDir.value = 'asc'
+  else sortDir.value = 'none'
+  store.fetchList()
+}
 
 /** 种子模板状态映射 id → boolean */
 const seedMap = reactive<Record<number, boolean>>({})

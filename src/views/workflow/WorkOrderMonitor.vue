@@ -66,11 +66,11 @@
               <th class="fi-th col-tpl"><span>工单名称</span></th>
               <th class="fi-th col-progress"><span>工单进度</span></th>
               <th class="fi-th col-status"><span>工单状态</span></th>
-              <th class="fi-th col-pri sortable" @click="togglePrioritySort"><span>优先级 <span v-if="query.sortField === 'priority'" class="sort-arrow">{{ query.sortOrder === 'asc' ? '↑' : '↓' }}</span></span></th>
+              <th class="fi-th col-pri sortable" @click="togglePrioritySort"><span>优先级 <TableSortIcon :direction="prioritySortDir" /></span></th>
               <th class="fi-th col-sla"><span>SLA状态</span></th>
               <th class="fi-th col-assignee"><span>当前处理人</span></th>
               <th class="fi-th col-creator"><span>发起人</span></th>
-              <th class="fi-th col-time sortable" @click="toggleSort"><span>发起时间 <span class="sort-arrow">{{ query.sortOrder === 'asc' ? '↑' : '↓' }}</span></span></th>
+              <th class="fi-th col-time sortable" @click="toggleSort"><span>发起时间 <TableSortIcon :direction="timeSortDir" /></span></th>
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
           </thead>
@@ -154,10 +154,10 @@ import type { InstanceStatus, Priority, SlaStatus } from '@/types/work-order'
 import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
-import { useUserStore } from '@/stores/user'
+import TableSortIcon from '@/components/base/TableSortIcon.vue'
+
 
 const store = useWorkOrderStore()
-const userStore = useUserStore()
 const { confirm } = useConfirm()
 
 // ===== 草稿工单操作 =====
@@ -226,6 +226,14 @@ function onDateChange(v: [Date, Date] | null) {
 }
 
 // ===== 排序 =====
+const prioritySortDir = computed<'none' | 'asc' | 'desc'>(() => {
+  if (query.sortField === 'priority') return query.sortOrder as 'asc' | 'desc'
+  return 'none'
+})
+const timeSortDir = computed<'none' | 'asc' | 'desc'>(() => {
+  if (query.sortField === 'createdAt') return query.sortOrder as 'asc' | 'desc'
+  return 'none'
+})
 function toggleSort() {
   query.sortField = 'createdAt'
   query.sortOrder = query.sortOrder === 'asc' ? 'desc' : 'asc'

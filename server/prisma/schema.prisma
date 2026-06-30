@@ -121,6 +121,8 @@ model EnterpriseRelation {
   relatedName     String
   dimALevel1      String   @default("")
   tags            String   @default("[]")     // JSON
+  role            String   @default("")       // 级联角色路径 "my_supervisor/emergency_mgmt"
+  roleLabel       String   @default("")       // 人类可读标签 "我的监管方>应急管理部门"
   contactName     String   @default("")
   contactPhone    String   @default("")
   relatedAt       DateTime @default(now())
@@ -130,6 +132,20 @@ model EnterpriseRelation {
 
   enterprise      Enterprise @relation("superior", fields: [enterpriseId], references: [id])
   related         Enterprise @relation("partnerOf", fields: [relatedId], references: [id])
+}
+
+// === 企业操作日志 ===
+model EnterpriseOperationLog {
+  id           Int      @id @default(autoincrement())
+  enterpriseId Int
+  action       String                        // 操作标识: create/update/lock/unlock/delete/recover/...
+  actionLabel  String                        // 中文展示: 创建企业/更新企业/锁定企业/...
+  operatorId   Int
+  operatorName String
+  detailJson   String   @default("[]")       // JSON: [{label, value}]
+  createdAt    DateTime @default(now())
+
+  @@index([enterpriseId, createdAt])
 }
 
 // ============================================================

@@ -97,7 +97,9 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: 'device',
     defaultOpen: false,
     children: [
-      { key: 'device', label: '设备管理', icon: 'menuicon-45', route: '/device' },
+      { key: 'device', label: '设备管理', icon: 'menuicon-45', route: '/device', children: [
+          { key: 'device-list', label: '设备列表', route: '/device/list' },
+        ] },
       { key: 'iot', label: 'IOT', icon: 'menuicon-46', route: '/iot' },
       {
         key: 'maintain-app',
@@ -266,6 +268,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/maintenance/plans': 'maintenance-record',
   '/maintenance/plans/detail': 'maintenance-record',
   '/device': 'device',
+  '/device/list': 'device-list',
   '/iot': 'iot',
   '/platform': 'platform',
   '/admin': 'admin',
@@ -282,6 +285,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'order-dashboard': '/system/dashboard',
   'maintenance-record': '/maintenance/plans',
   'device': '/device',
+  'device-list': '/device/list',
   'iot': '/iot',
   'platform': '/platform',
   'admin': '/admin',

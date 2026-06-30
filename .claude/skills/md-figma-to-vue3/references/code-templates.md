@@ -376,150 +376,155 @@ M 5-8，无 Chart → 两行，每行 4 列
 
 ## 3.1 页面组件 — 列表页
 
-> **写列表页前必须先读项目中已有的列表页**（如 `PlanList.vue`、`TemplateList.vue`），以其实际使用的模板结构为准。
-> 以下模板展示的是项目当前的标准写法：**原生 `<table class="fi-table">` + 全局 CSS 类**。
+> **标准参考实现**：`src/views/admin/EnterpriseList.vue`。模板为其骨架版。
+> **核心原则**：原生 `<table class="fi-table">` + 全局 CSS 类，禁止 `el-table`。
 
-### 容器嵌套范式（不可变）
+### 容器结构（不可变）
 
 ```
-list-page (height:100%)                     ← 只做高度占位
-└── content-card (bg-card + radius + pad)   ← 所有子内容的唯一父容器
-    ├── [统计卡片 / 帮助说明 / 顶部自定义内容]
+list-page (height:100%)
+└── content-card (bg-card + radius + pad + flex column + gap + overflow:auto)
+    ├── [help-card]          ← 可选：引导说明
     ├── filter-bar
     ├── table-wrap > table.fi-table
     └── pagination-wrap
 ```
 
-**关键规则**：页面上所有可见内容（包括统计卡片）必须放在 `content-card` 内部，禁止在外层 `list-page` 中添加任何子节点。
+所有内容必须在 `content-card` 内。统计卡片行放在 `filter-bar` 上方。
 
-### 筛选栏标准范式
-
-> 全局样式定义在 `style.css`，所有页面共用。页面 scoped 中只覆写控件宽度，禁止覆写 gap/height/display。
-
-#### 全局约定（不可变）
-
-| 属性 | 值 | 说明 |
-|------|-----|------|
-| `.filter-left` gap | `var(--spacing-lg, 12px)` | 统一横向间距 |
-| `.filter-left` align-items | `stretch` | 同排组件自动等高 |
-| `.filter-left` flex-wrap | `wrap` | 超宽自动换行 |
-| `.filter-left` row-gap | `var(--spacing-sm, 6px)` | 换行后行间距 |
-| 组件高度 | **禁止写死** | 通过 flex stretch + `flex: 1` 级联自动撑满 |
-
-#### 高度自动统一机制
-
-各筛选组件**不设固定高度**，通过 Flexbox 级联撑满到同行最高组件：
-
-```
-.filter-left (flex, align-items: stretch)  → 子 wrapper 统一到同行最高高度
-  ├── .search-input-wrap (display: flex)
-  │     └── .fi-input (flex: 1 → 填满 wrapper)
-  ├── .fi-select-wrap (display: flex)
-  │     └── .el-select (display: flex, height: 100%)
-  │           └── .el-select__wrapper (flex: 1 → 填满)
-  └── .fi-date-range-wrap (display: flex)
-        └── .el-date-editor (flex: 1, height: 100% !important → 填满)
-```
-
-**关键规则**：
-- Element Plus 的 `el-select__wrapper` 和 `el-date-editor` 内部通过 `--el-component-size` 设有默认高度，必须用 `flex: 1` / `height: 100% !important` 覆盖，确保撑满
-- `el-date-editor` 必须 `height: 100% !important`（Element Plus 特异性高，不加 `!important` 会被覆盖）
-- 每行独立计算——换行后各行高度由该行最高组件决定，互不影响
-
-#### 页面 scoped 覆写规则
-
-页面只需按控件数量调整 wrapper 宽度，**禁止覆写 gap/height**：
-
-- **条件 ≤4 个**：无需额外处理，全局样式足够
-- **条件 ≥5 个**：页面 scoped 中收紧控件宽度（注意 EL 组件有最小内容宽度限制，`el-date-picker[daterange]` ≥ 230px、`el-select` ≥ 100px）：
-  ```css
-  .filter-left .fi-select-wrap { width: 130px; }            /* 193px → 130px */
-  .filter-left .search-input-wrap { width: 180px; }         /* 208px → 180px */
-  .filter-left .fi-date-range-wrap { width: 230px; }        /* 380px → 230px（daterange 最小可用宽度） */
-  ```
-
-- **硬性约束**：筛选栏最多两行，整个页面禁止横向滚动条
-
-#### 筛选操作区布局范式（不可变）
-
-`filter-bar` 内部始终左右分布：
+### 筛选栏
 
 ```
 .filter-bar
-├── .filter-left（flex: 1，居左）
-│   ├── 筛选控件（搜索框 + 下拉 + 日期选择器）
-│   ├── [查询]（btn-primary）
-│   └── [重置]（btn-default）
-└── .filter-right（flex-shrink: 0，居右）
-    └── 操作按钮（如 [发起工单] [新建模板]）
+├── .filter-left（flex:1）
+│   ├── .search-input-wrap > input.fi-input + button.fi-clear + AppIcon.fi-icon
+│   ├── .fi-select-wrap > el-select（可选）
+│   ├── button.btn-primary [查询]
+│   └── button.btn-default [重置]（可选）
+└── .filter-right（flex-shrink:0）
+    ├── label.toggle-label > el-switch（可选）
+    └── button.btn-outline-primary [新增]
 ```
 
-- 查询/重置按钮**必须在** `.filter-left` 内，紧跟筛选控件
-- 操作按钮（发起/新建/批量删除）**必须在** `.filter-right` 内
-- 禁止在 `.filter-left` 和 `.filter-right` 之外创建独立操作栏行
-- 设计文档中筛选区和操作按钮区描述为同行左右布局，代码生成时直接映射到 `.filter-left` + `.filter-right`
+- 查询/重置在 `.filter-left`，操作按钮在 `.filter-right`
+- 全局样式已定义相关 class，页面 scoped 只覆写控件宽度
+
+### 表格
+
+- **必须**原生 `<table class="fi-table">`，禁止 `el-table`
+- `thead > tr.fi-thead-tr > th.fi-th` / `tbody[v-loading] > tr.fi-tbody-tr > td.fi-td`
+- 操作列：`div.action-cell > button.act-btn`，状态列：用 `<StatusTag>`
+
+### 排序（⚠️ 禁止共享 sortDir）
+
+- 每列独立 `ref<'none'|'asc'|'desc'>`，互斥（点一列重置其他）
+- 客户端排序：`store.list.sort(...)`；`'none'` 时 `store.fetchList()`
+- 服务端排序（大数据量）：`sortField/sortOrder` 放入 query，`store.search()`
+- 图标：`<TableSortIcon :direction="dir" />` 放在 `<th class="fi-th fi-th-sort">`
+
+### 列筛选
+
+- `<TableFilterPopover v-model="filter" :options="opts" />` 放在 `<th>` 内
+- `watch(filter, () => { query.xxx = val.join(','); store.search() })`
+
+### 分页（不可协商）
+
+| 属性 | 值 |
+|------|-----|
+| `layout` | `"sizes, prev, pager, next, jumper"` |
+| `:page-sizes` | `[10, 20, 50, 100]` |
+| 事件 | 单一 `@change`，不用 `@size-change`+`@current-change` |
+| v-model | `store.query.page` / `store.query.size` |
+| 总数文本 | `共 {{ store.total }} 条记录 第 {{ store.query.page }}/{{ Math.ceil(store.total / store.query.size) \|\| 1 }} 页` |
 
 #### 代码模板
 
 ```vue
 <template>
   <div class="list-page">
-    <!-- ===== 内容卡片：所有子内容唯一父容器 ===== -->
     <div class="content-card">
-      <!-- 统计卡片行（如有） -->
-      <div class="stat-row">...</div>
 
-      <!-- 筛选栏 -->
+      <!-- ===== 引导说明（可选） ===== -->
+      <div v-if="showHelp" class="help-card">
+        <div class="help-illustration">
+          <img :src="helpImg" alt="说明" class="help-img" />
+        </div>
+        <div class="help-content">
+          <div class="help-section">
+            <h3 class="help-title">标题</h3>
+            <p class="help-text">说明文字</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 筛选栏 ===== -->
       <div class="filter-bar">
         <div class="filter-left">
           <div class="search-input-wrap">
-            <input v-model="query.keyword" class="fi-input" placeholder="关键词" @keyup.enter="search" />
-            <button v-if="query.keyword" class="fi-clear" @click="query.keyword='';search()">
+            <input v-model="query.keyword" class="fi-input" placeholder="关键词" @keyup.enter="store.search()" />
+            <button v-if="query.keyword" class="fi-clear" @click="query.keyword = ''; store.search()">
               <AppIcon name="clear" />
             </button>
             <AppIcon name="search" class="fi-icon" />
           </div>
 
           <div class="fi-select-wrap">
-            <el-select v-model="query.status" placeholder="状态" clearable class="fi-select" :teleported="false" popper-class="fi-popper">
+            <el-select v-model="query.status" placeholder="状态" clearable :teleported="false" popper-class="fi-popper" @change="store.search()">
               <el-option v-for="o in statusOptions" :key="o.value" :label="o.label" :value="o.value" />
             </el-select>
           </div>
 
-          <button class="btn-primary" @click="search">查询</button>
-          <button class="btn-default" @click="handleReset">重置</button>
+          <button class="btn-primary" @click="store.search()">查询</button>
+          <button v-if="hasReset" class="btn-default" @click="handleReset">重置</button>
         </div>
 
         <div class="filter-right">
-          <button class="btn-primary" @click="handleAdd">
+          <label v-if="showToggle" class="toggle-label">
+            <el-switch v-model="toggleVal" size="small" @change="onToggle" />
+            <span class="toggle-text">显示已删除</span>
+          </label>
+          <button class="btn-outline-primary" @click="openCreate">
             <AppIcon name="plus" class="btn-add-icon" />新增
           </button>
         </div>
       </div>
 
-      <!-- 数据表格 — 必须用原生 <table class="fi-table">，禁止用 el-table -->
+      <!-- ===== 数据表格 ===== -->
       <div class="table-wrap">
         <table class="fi-table">
           <thead>
             <tr class="fi-thead-tr">
-              <th class="fi-th col-check"><input type="checkbox" /></th>
-              <th class="fi-th col-status"><span>状态</span></th>
+              <!-- 排序列：fi-th-sort + TableSortIcon + 点击切换 -->
+              <th class="fi-th fi-th-sort col-status" @click="toggleStatusSort">
+                <span>状态</span>
+                <TableSortIcon :direction="statusSortDir" />
+                <!-- 列筛选（可选） -->
+                <TableFilterPopover v-model="statusFilter" :options="statusFilterOptions" />
+              </th>
               <th class="fi-th col-name"><span>名称</span></th>
-              <th class="fi-th col-time"><span>创建时间</span></th>
+              <th class="fi-th col-cat"><span>分类</span></th>
+              <th class="fi-th fi-th-sort col-date" @click="toggleDateSort">
+                <span>创建日期</span>
+                <TableSortIcon :direction="dateSortDir" />
+              </th>
+              <th class="fi-th col-creator"><span>创建人</span></th>
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
           </thead>
-          <tbody v-loading="loading">
-            <tr v-for="row in list" :key="row.id" class="fi-tbody-tr">
-              <td class="fi-td col-check"><input type="checkbox" /></td>
-              <td class="fi-td col-status"><StatusTag :status="row.status" /></td>
+          <tbody v-loading="store.loading">
+            <tr v-for="row in store.list" :key="row.id" class="fi-tbody-tr">
+              <td class="fi-td col-status">
+                <StatusTag :status="statusKey(row)" :label="statusLabel(row)" />
+              </td>
               <td class="fi-td col-name">{{ row.name }}</td>
-              <td class="fi-td col-time">{{ row.createdAt }}</td>
+              <td class="fi-td col-cat">{{ row.category || '—' }}</td>
+              <td class="fi-td col-date">{{ row.createdAt.slice(0, 10) }}</td>
+              <td class="fi-td col-creator">{{ row.creatorName || '—' }}</td>
               <td class="fi-td col-actions">
                 <div class="action-cell">
-                  <button class="act-btn act-preview" @click="handleView(row)" title="查看"><AppIcon name="preview" class="act-icon" /></button>
-                  <button class="act-btn act-edit" @click="handleEdit(row)" title="编辑"><AppIcon name="edit" class="act-icon" /></button>
-                  <button class="act-btn act-delete" @click="handleDelete(row)" title="删除"><AppIcon name="delete" class="act-icon" /></button>
+                  <button class="act-btn act-preview" title="查看详情" @click="$router.push(`/detail?id=${row.id}`)">
+                    <AppIcon name="preview" class="act-icon" />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -527,17 +532,17 @@ list-page (height:100%)                     ← 只做高度占位
         </table>
       </div>
 
-      <!-- 分页 — 必须用 .pagination-wrap + .pagi-total 全局类 -->
+      <!-- ===== 分页 ===== -->
       <div class="pagination-wrap">
-        <span class="pagi-total">共 {{ total }} 条记录 第 {{ query.page }}/{{ Math.ceil(total / query.size) || 1 }} 页</span>
+        <span class="pagi-total">共 {{ store.total }} 条记录 第 {{ store.query.page }}/{{ Math.ceil(store.total / store.query.size) || 1 }} 页</span>
         <el-pagination
-          v-model:current-page="query.page"
-          v-model:page-size="query.size"
-          :total="total"
+          v-model:current-page="store.query.page"
+          v-model:page-size="store.query.size"
+          :total="store.total"
           :page-sizes="[10, 20, 50, 100]"
           layout="sizes, prev, pager, next, jumper"
           background
-          @change="fetch"
+          @change="store.fetchList()"
         />
       </div>
 
@@ -546,70 +551,168 @@ list-page (height:100%)                     ← 只做高度占位
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ref, watch, onMounted } from 'vue'
+import { useXxxStore } from '@/stores/xxx'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
-// import { getList, create, update, remove } from '@/api/xxx'
-// import type { XxxItem, XxxQuery } from '@/types/xxx'
+import TableSortIcon from '@/components/base/TableSortIcon.vue'
+import TableFilterPopover from '@/components/base/TableFilterPopover.vue'
 
-const query = reactive<any>({ keyword: '', status: '', page: 1, size: 20 })
-const search = () => { query.page = 1; fetch() }
+const store = useXxxStore()
+const query = store.query
 
-const list = ref<any[]>([])
-const total = ref(0)
-const loading = ref(false)
-const fetch = async () => {
-  loading.value = true
-  try { /* const { list: data, total: t } = await getList(query); list.value = data; total.value = t */ }
-  finally { loading.value = false }
+// ===== 排序 =====
+// ⚠️ 每列独立 ref，互斥切换。禁止多个列共享同一个 sortDir！
+const statusSortDir = ref<'none' | 'asc' | 'desc'>('none')
+const dateSortDir = ref<'none' | 'asc' | 'desc'>('desc')
+
+function toggleStatusSort() {
+  if (statusSortDir.value === 'none') statusSortDir.value = 'desc'
+  else if (statusSortDir.value === 'desc') statusSortDir.value = 'asc'
+  else statusSortDir.value = 'none'
+  dateSortDir.value = 'none' // 互斥：重置其他排序列
+  if (statusSortDir.value === 'none') {
+    store.fetchList()
+  } else {
+    store.list.sort((a, b) => statusSortDir.value === 'asc' ? a.status - b.status : b.status - a.status)
+  }
 }
 
-const handleAdd = () => { /* 打开新增弹窗 */ }
-const handleView = (row: any) => { /* 跳转详情 */ }
-const handleEdit = (row: any) => { /* 打开编辑弹窗 */ }
-const handleDelete = async (row: any) => { await ElMessageBox.confirm('确认删除？', '提示', { type: 'warning' }); /* await remove(row.id) */ fetch() }
+function toggleDateSort() {
+  if (dateSortDir.value === 'none') dateSortDir.value = 'desc'
+  else if (dateSortDir.value === 'desc') dateSortDir.value = 'asc'
+  else dateSortDir.value = 'none'
+  statusSortDir.value = 'none'
+  if (dateSortDir.value === 'none') {
+    store.fetchList()
+  } else {
+    store.list.sort((a, b) => dateSortDir.value === 'asc'
+      ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+}
 
-onMounted(() => fetch())
+// ===== 列筛选（可选） =====
+const statusFilter = ref<string[]>([])
+const statusFilterOptions = [
+  { label: '有效', value: 'active' },
+  { label: '已锁定', value: 'locked' },
+]
+watch(statusFilter, (val) => {
+  query.status = val.length > 0 ? val.join(',') : undefined
+  store.search()
+})
+
+// ===== 切换开关（可选） =====
+const toggleVal = ref(false)
+function onToggle() { /* query.xxx = toggleVal.value ? true : undefined; store.search() */ }
+
+// ===== 引导说明（可选） =====
+const showHelp = ref(true)
+
+// ===== 字典映射 =====
+function statusKey(row: any): string { /* 返回 StatusTag 需要的 key */ return 'active' }
+function statusLabel(row: any): string { /* 返回显示文本 */ return '有效' }
+
+onMounted(async () => { await store.fetchList() })
 </script>
 
 <style scoped>
-/* 外层页容器 — 只做高度占位 */
+/* ===== 容器 ===== */
 .list-page { height: 100%; }
-
-/* 内容卡片 — 所有子内容唯一父容器（样式不可变） */
 .content-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-md, 8px);
-  padding: var(--spacing-xl, 16px);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: var(--spacing-xl, 16px);
-  overflow: auto;
+  background: var(--bg-card); border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-xl, 16px); display: flex; flex-direction: column;
+  height: 100%; gap: var(--spacing-lg, 12px); overflow: auto;
 }
 
-/* 列宽（页面特有） */
-.col-check { width: 50px; }
-.col-status { width: 125px; min-width: 100px; }
+/* ===== 引导卡片（可选） ===== */
+.help-card {
+  background: var(--bg-sub-card); border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 8px); padding: var(--spacing-lg, 12px);
+  display: flex; gap: 10px; align-items: center; flex-shrink: 0;
+}
+.help-illustration { width: 242px; height: 156px; border-radius: 8px; flex-shrink: 0; overflow: hidden; }
+.help-illustration img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.help-content { display: flex; flex-direction: column; gap: 10px; padding: 0 var(--spacing-lg, 12px); flex: 1; min-width: 0; }
+.help-section { display: flex; flex-direction: column; gap: 6px; }
+.help-title { font-size: var(--font-h4, 16px); font-weight: 600; color: var(--text-primary); margin: 0; }
+.help-text { font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+/* ===== 切换开关 ===== */
+.toggle-label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; white-space: nowrap; }
+.toggle-text { font-size: var(--font-small, 14px); color: var(--text-secondary); }
+
+/* btn-outline-primary — 筛选栏右侧操作按钮标准样式 */
+.btn-outline-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 37px; padding: 8px 12px; border-radius: 8px;
+  font-size: var(--font-small, 14px); font-weight: 500;
+  background: var(--info-bg); color: var(--accent-primary);
+  border: 1px solid var(--accent-primary); cursor: pointer;
+  white-space: nowrap; transition: all .2s;
+}
+.btn-outline-primary:hover { background: var(--accent-primary10); }
+
+/* ===== 列宽（页面特有） ===== */
+.col-status { width: 90px; }
 .col-name { min-width: 140px; }
-.col-time { width: 180px; }
-.col-actions { width: 210px; min-width: 190px; white-space: nowrap; }
+.col-cat { min-width: 120px; }
+.col-date { min-width: 110px; }
+.col-creator { min-width: 80px; }
+.col-actions { width: 70px; min-width: 70px; white-space: nowrap; }
 
-/* 响应式列隐藏 */
-@media (max-width: 1550px) { .col-time { display: none !important; } }
-@media (max-width: 1250px) { .col-name { display: none !important; } }
-@media (max-width: 800px) { .filter-bar { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: stretch; } .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; } }
+/* ===== 操作按钮颜色 ===== */
+.act-delete { color: var(--danger, #DC2626); }
+.act-recover { color: var(--success, #059669); }
 
-/* 分页器 EL 组件覆盖（项目通用，各页面保持一致） */
-:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); }
-:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: var(--bg-card); }
-:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; }
+/* ===== 响应式 ===== */
+@media (max-width: 1550px) { .col-cat { display: none !important; } }
+@media (max-width: 1250px) { .col-creator { display: none !important; } }
+@media (max-width: 1050px) { .col-date { display: none !important; } }
+@media (max-width: 800px) {
+  .filter-bar { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: stretch; }
+  .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; }
+  .help-card { flex-direction: column; }
+  .help-illustration { width: 100%; }
+}
+
+/* ===== 分页器暗色模式（必须全部覆盖，各页面保持一致） ===== */
+:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); border: 1px solid var(--border-default); }
+:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; border: 1px solid var(--border-default); }
+:deep(.el-pagination .btn-prev.is-disabled), :deep(.el-pagination .btn-next.is-disabled) { color: var(--text-muted) !important; background-color: var(--pagi-bg) !important; }
 :deep(.el-pagination .el-select .el-select__wrapper) { background-color: var(--bg-card) !important; color: var(--text-secondary); border: 1px solid var(--border-high) !important; box-shadow: none !important; }
 :deep(.el-pagination .el-pagination__jump .el-input__wrapper) { background-color: var(--bg-card) !important; border: 1px solid var(--border-high) !important; box-shadow: none !important; }
-:deep(.el-pagination .el-pagination__jump .el-input__inner) { color: var(--text-primary) !important; }
+:deep(.el-pagination .el-pagination__jump .el-input__inner) { color: var(--text-primary) !important; background-color: var(--bg-card); }
 </style>
 ```
+
+### Store 模式
+
+列表页必须用 Pinia store 管理数据，不在组件内直接调 API：
+
+```typescript
+// src/stores/xxx.ts
+import { defineStore } from 'pinia'; import { ref, reactive } from 'vue'
+import type { XxxItem, XxxQuery } from '@/types/xxx'; import { getList } from '@/api/xxx'
+
+export const useXxxStore = defineStore('xxx', () => {
+  const list = ref<XxxItem[]>([]); const loading = ref(false)
+  const query = reactive<XxxQuery>({ page: 1, size: 20 }); const total = ref(0)
+
+  async function fetchList() {
+    loading.value = true
+    try { const r = await getList({ ...query }); list.value = r.data; total.value = r.total }
+    finally { loading.value = false }
+  }
+  function search() { query.page = 1; fetchList() }
+
+  return { list, loading, query, total, fetchList, search }
+})
+```
+
+
 
 ## 3.2 页面组件 — 详情页
 

@@ -24,6 +24,7 @@ export const recoverEnterprise       = (...args: any[]) => (api() as any).recove
 export const getSubordinates          = (...args: any[]) => (api() as any).getSubordinates(...args)
 export const addSubordinates          = (...args: any[]) => (api() as any).addSubordinates(...args)
 export const removeSubordinates       = (...args: any[]) => (api() as any).removeSubordinates(...args)
+export const updateSubordinate        = (...args: any[]) => (api() as any).updateSubordinate(...args)
 export const getPartners              = (...args: any[]) => (api() as any).getPartners(...args)
 export const addPartner               = (...args: any[]) => (api() as any).addPartner(...args)
 export const updatePartner            = (...args: any[]) => (api() as any).updatePartner(...args)

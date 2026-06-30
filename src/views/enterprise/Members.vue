@@ -180,12 +180,11 @@ import type { MemberItem } from '@/types/enterprise'
 import { getMembers, addMember, updateMember, removeMember } from '@/api/enterprise-members'
 import { getPositionList } from '@/api/position-admin'
 import { ALL_POSITIONS } from '@/config/positions'
-import { useUserStore } from '@/stores/user'
+
 import request from '@/utils/request'
 import AppIcon from '@/components/base/AppIcon.vue'
 import PositionSelect from '@/components/business/PositionSelect.vue'
 
-const userStore = useUserStore()
 const { confirm } = useConfirm()
 
 // ===== 企业 ID 与名称获取 =====

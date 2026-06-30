@@ -46,6 +46,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '', contactName: '管理员', contactPhone: '16666666666',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 5, unitCount: 2, relCount: 3,
     deletedAt: '', createdAt: '2024-10-31 15:53:06', updatedAt: '2024-10-31 15:53:06',
   },
@@ -55,6 +56,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '广西壮族自治区 贵港市 港南区', contactName: '李文学', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['消防安全重点单位'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 1, unitCount: 1, relCount: 2,
     deletedAt: '', createdAt: '2025-08-29 13:23:32', updatedAt: '2025-08-29 13:23:32',
   },
@@ -64,6 +66,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '', contactName: '李阳', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 3, unitCount: 1, relCount: 1,
     deletedAt: '', createdAt: '2025-11-21 10:26:53', updatedAt: '2025-11-21 10:26:53',
   },
@@ -73,6 +76,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '北京市 朝阳区', contactName: '赵丽萍', contactPhone: '13800001111',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '朝阳区XX路100号', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 12, unitCount: 5, relCount: 8,
     deletedAt: '', createdAt: '2025-06-15 09:00:00', updatedAt: '2025-06-15 09:00:00',
   },
@@ -82,6 +86,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '北京市 海淀区', contactName: '郑晓峰', contactPhone: '13900002222',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['维保', '检测'], address: '海淀区XX科技园', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 25, unitCount: 3, relCount: 6,
     deletedAt: '', createdAt: '2025-07-01 10:00:00', updatedAt: '2025-07-01 10:00:00',
   },
@@ -91,6 +96,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '北京市', contactName: '王蕾', contactPhone: '13700003333',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 8, unitCount: 2, relCount: 4,
     deletedAt: '', createdAt: '2025-08-01 08:00:00', updatedAt: '2025-08-01 08:00:00',
   },
@@ -100,6 +106,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '河北省 秦皇岛市 海港区', contactName: '李子新', contactPhone: '18751529933',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签1'], address: '秦皇岛市海港区XX路', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 15, unitCount: 5, relCount: 10,
     deletedAt: '', createdAt: '2025-09-01 08:00:00', updatedAt: '2025-09-01 08:00:00',
   },
@@ -109,6 +116,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '河北省 秦皇岛市', contactName: '宋力志', contactPhone: '17040201428',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签2'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 6, unitCount: 2, relCount: 3,
     deletedAt: '', createdAt: '2025-09-15 08:00:00', updatedAt: '2025-09-15 08:00:00',
   },
@@ -118,6 +126,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '河北省 秦皇岛市', contactName: '王小康', contactPhone: '18946450602',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签3', '消防安全重点单位'], address: '秦皇岛市XX区XX路', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 45, unitCount: 8, relCount: 5,
     deletedAt: '', createdAt: '2025-10-01 08:00:00', updatedAt: '2025-10-01 08:00:00',
   },
@@ -127,6 +136,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '河北省 秦皇岛市', contactName: '宋敏', contactPhone: '13781265439',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签4'], address: '秦皇岛市XX区XX小区', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 3, unitCount: 1, relCount: 2,
     deletedAt: '', createdAt: '2025-10-05 08:00:00', updatedAt: '2025-10-05 08:00:00',
   },
@@ -136,6 +146,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     region: '北京市 朝阳区', contactName: '陈伟强', contactPhone: '18612345678',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['消防安全重点单位'], address: '朝阳区XX路万达广场', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 60, unitCount: 12, relCount: 15,
     deletedAt: '', createdAt: '2025-11-01 08:00:00', updatedAt: '2025-11-01 08:00:00',
   },
@@ -155,23 +166,30 @@ const MOCK_SUBORDINATES: Record<string, SubordinateItem[]> = {
 // ===== Mock 相关方（v1.1 新角色） =====
 const MOCK_PARTNERS: Record<string, PartnerItem[]> = {
   '2': [
-    { id: 'p1', enterpriseId: '6', enterpriseName: '海港区政府', role: 'my_supervisor' as PartnerRole, roleLabel: '我的监管方>属地政府（街道/社区等）', tags: ['标签1'], contactName: '李子新', contactPhone: '18751529933', relatedAt: '2025-10-09 10:00:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
-    { id: 'p2', enterpriseId: '7', enterpriseName: '烟草局', role: 'my_supervisor' as PartnerRole, roleLabel: '我的监管方>行业主管部门', tags: ['标签2'], contactName: '宋力志', contactPhone: '17040201428', relatedAt: '2025-10-09 11:00:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
-    { id: 'p3', enterpriseId: '4', enterpriseName: '秦皇岛一中', role: 'my_manager' as PartnerRole, roleLabel: '我的管理方>空间管理方>商业街', tags: ['标签3'], contactName: '王小康', contactPhone: '18946450602', relatedAt: '2025-10-09 14:30:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
-    { id: 'p4', enterpriseId: '8', enterpriseName: '盛泰北苑', role: 'my_operator' as PartnerRole, roleLabel: '我的运营方>运营管理方', tags: ['标签4'], contactName: '宋敏', contactPhone: '13781265439', relatedAt: '2025-10-09 09:15:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
+    { id: 'p1', enterpriseId: '7', enterpriseName: '海港区政府', role: 'my_supervisor' as PartnerRole, roleLabel: '我的监管方>属地政府（街道/社区等）', tags: ['标签1'], contactName: '李子新', contactPhone: '18751529933', relatedAt: '2025-10-09 10:00:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
+    { id: 'p2', enterpriseId: '8', enterpriseName: '烟草局', role: 'my_supervisor' as PartnerRole, roleLabel: '我的监管方>行业主管部门', tags: ['标签2'], contactName: '宋力志', contactPhone: '17040201428', relatedAt: '2025-10-09 11:00:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
+    { id: 'p3', enterpriseId: '9', enterpriseName: '秦皇岛一中', role: 'my_manager' as PartnerRole, roleLabel: '我的管理方>空间管理方>商业街', tags: ['标签3'], contactName: '王小康', contactPhone: '18946450602', relatedAt: '2025-10-09 14:30:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
+    { id: 'p4', enterpriseId: '10', enterpriseName: '盛泰北苑', role: 'my_operator' as PartnerRole, roleLabel: '我的运营方>运营管理方', tags: ['标签4'], contactName: '宋敏', contactPhone: '13781265439', relatedAt: '2025-10-09 09:15:00', operatorName: '孙文博', authUnits: [], allowOperation: false },
   ],
   '4': [
     { id: 'p5', enterpriseId: '5', enterpriseName: '蓝盾消防技术服务公司', role: 'my_service_unit' as PartnerRole, roleLabel: '我的服务单位>消防技术服务机构', tags: ['维保', '检测'], contactName: '郑晓峰', contactPhone: '13900002222', relatedAt: '2025-11-20 10:00:00', operatorName: '赵丽萍', authUnits: [], allowOperation: false },
-    { id: 'p6', enterpriseId: '9', enterpriseName: '万达商业管理有限公司', role: 'social_unit' as PartnerRole, roleLabel: '社会单位', tags: ['消防安全重点单位'], contactName: '陈伟强', contactPhone: '18612345678', relatedAt: '2025-12-01 08:30:00', operatorName: '赵丽萍', authUnits: [], allowOperation: false },
+    { id: 'p6', enterpriseId: '11', enterpriseName: '万达商业管理有限公司', role: 'social_unit' as PartnerRole, roleLabel: '社会单位', tags: ['消防安全重点单位'], contactName: '陈伟强', contactPhone: '18612345678', relatedAt: '2025-12-01 08:30:00', operatorName: '赵丽萍', authUnits: [], allowOperation: false },
   ],
 }
 
 // ===== Mock 操作日志 =====
 const MOCK_LOGS: OperationLogItem[] = [
-  { id: 'l1', action: '创建企业', timestamp: '2025-08-29 13:23:32', operatorName: '超级管理员', details: [{ label: '企业名称', value: '港南一中' }] },
-  { id: 'l2', action: '关联相关方', timestamp: '2025-08-29 13:23:32', operatorName: '超级管理员', details: [{ label: '关联企业', value: '尼特' }] },
-  { id: 'l3', action: '关联相关方', timestamp: '2025-08-29 14:08:21', operatorName: '李文学', details: [{ label: '关联企业', value: '港南消防队' }] },
+  { id: 'l1', action: '创建企业', timestamp: '2025-10-09 13:54', operatorName: '李子新', description: '新建企业【港南一中】', details: [{ label: '企业名称', value: '港南一中' }] },
+  { id: 'l2', action: '关联相关方', timestamp: '2025-10-09 13:54', operatorName: '宋力志', description: '新增相关方关联，将【海港区政府】关联为相关方（我的监管方>属地政府）', details: [{ label: '相关方', value: '海港区政府' }, { label: '角色', value: '我的监管方>属地政府（街道/社区等）' }] },
+  { id: 'l3', action: '关联相关方', timestamp: '2025-10-09 13:54', operatorName: '王小康', description: '新增相关方关联，将【港南消防队】关联为相关方（我的监管方>消防救援机构）', details: [{ label: '相关方', value: '港南消防队' }, { label: '角色', value: '我的监管方>消防救援机构' }] },
+  { id: 'l4', action: '添加下级', timestamp: '2025-10-09 13:54', operatorName: '宋敏', description: '新增下级关联，将【尼特智能科技有限公司】关联为下级企业', details: [{ label: '下级企业', value: '尼特智能科技有限公司' }] },
+  { id: 'l5', action: '锁定企业', timestamp: '2025-10-09 13:54', operatorName: '李子新', description: '锁定企业【港南一中】', details: [{ label: '企业名称', value: '港南一中' }] },
+  { id: 'l6', action: '解除相关方', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '取消相关方关联，将【港南消防队】取消关联关系', details: [{ label: '相关方', value: '港南消防队' }] },
+  { id: 'l7', action: '配置相关方授权', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '修改相关方【港南消防队】的数据权限，开启【消防巡查、隐患管理】权限', details: [{ label: '相关方', value: '港南消防队' }, { label: '授权单元', value: '消防巡查、隐患管理' }, { label: '允许操作', value: '是' }] },
+  { id: 'l8', action: '配置相关方授权', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '修改相关方【海港区政府】的数据权限，关闭【消防巡查、隐患管理】权限', details: [{ label: '相关方', value: '海港区政府' }, { label: '授权单元', value: '消防巡查、隐患管理' }, { label: '允许操作', value: '否' }] },
 ]
+
+const logStore = createPersistentStore<OperationLogItem>('enterprise_operation_logs', MOCK_LOGS)
 
 const store = createPersistentStore('enterprises', MOCK_ENTERPRISES)
 
@@ -185,6 +203,16 @@ export async function getEnterpriseList(query: EnterpriseQuery): Promise<Paginat
   }
   if (query.dimB) list = list.filter(e => e.dimB === query.dimB)
   if (query.dimC) list = list.filter(e => e.dimC.name === query.dimC)
+  if (query.status) {
+    const statii = query.status.split(',').filter(Boolean)
+    list = list.filter(e => {
+      if (e.deletedAt) return statii.includes('deleted')
+      if (e.status === 1) return statii.includes('active')
+      if (e.status === 0) return statii.includes('locked')
+      if (e.status === 2) return statii.includes('expired')
+      return false
+    })
+  }
   // 默认排除已删除企业
   if (!query.includeDeleted) {
     list = list.filter(e => !e.deletedAt)
@@ -223,6 +251,9 @@ export async function createEnterprise(form: EnterpriseForm): Promise<Enterprise
     address: form.address || '', remark: form.remark || '', logo: form.logo || '',
     dimB: form.dimB || '', dimC: { code: form.dimC || '', name: '' },
     dimD: form.dimD || '', status: 1, qrcode: '', creatorName: '当前用户',
+    mapLng: Number(form.mapLng) || 0, mapLat: Number(form.mapLat) || 0,
+    mapLocation: `${form.mapLat},${form.mapLng}`,
+    mapAddress: form.mapAddress || '',
     staffCount: 0, unitCount: 0, relCount: 0, createdAt: now, updatedAt: now,
   }
 
@@ -398,6 +429,10 @@ export async function removeSubordinates(_enterpriseId: string, _relationIds: st
   // Mock: 无实际操作
 }
 
+export async function updateSubordinate(_enterpriseId: string, _relationId: string, _data: { tags?: string[] }): Promise<void> {
+  // Mock: 无实际操作
+}
+
 export async function getPartners(enterpriseId: string, query: { keyword?: string; role?: string; page: number; size: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<PaginatedData<PartnerItem>> {
   let list = MOCK_PARTNERS[enterpriseId] || []
   if (query.keyword) {
@@ -420,18 +455,34 @@ export async function getPartners(enterpriseId: string, query: { keyword?: strin
   return { data: list.slice(start, start + query.size), total }
 }
 
+/**
+ * 根据级联角色路径（如 "my_supervisor/emergency_mgmt"）遍历 PARTNER_ROLE_TREE
+ * 构建人类可读标签（如 "我的监管方>应急管理部门"）
+ */
+function buildRoleLabel(rolePath: string): string {
+  const parts = rolePath.split('/').filter(Boolean)
+  if (parts.length === 0) return rolePath
+  let nodes: any[] = PARTNER_ROLE_TREE
+  const labels: string[] = []
+  for (const part of parts) {
+    const node = nodes.find((n: any) => n.value === part)
+    if (!node) break
+    labels.push(node.label)
+    nodes = node.children || []
+  }
+  return labels.join('>')
+}
+
 export async function addPartner(enterpriseId: string, data: { enterpriseId: string; role: string; tags?: string[] }): Promise<PartnerItem> {
   const target = MOCK_ENTERPRISES.find(e => e.id === data.enterpriseId)
   if (!target) throw new Error('目标企业不存在')
-  // 查关系角色字典获取 label
-  const roleOption = RELATION_ROLE_OPTIONS.find(r => r.value === data.role)
   const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
   const newPartner: PartnerItem = {
     id: `p${Date.now()}`,
     enterpriseId: target.id,
     enterpriseName: target.name,
     role: data.role as PartnerRole,
-    roleLabel: roleOption?.label || data.role,
+    roleLabel: buildRoleLabel(data.role),
     tags: data.tags || [],
     contactName: target.contactName,
     contactPhone: target.contactPhone,
@@ -446,14 +497,13 @@ export async function addPartner(enterpriseId: string, data: { enterpriseId: str
 }
 
 export async function updatePartner(enterpriseId: string, relationId: string, data: { role?: string; tags?: string[] }): Promise<PartnerItem> {
+  if (!MOCK_PARTNERS[enterpriseId]) MOCK_PARTNERS[enterpriseId] = []
   const list = MOCK_PARTNERS[enterpriseId]
-  if (!list) throw new Error('相关方列表不存在')
   const idx = list.findIndex(p => p.id === relationId)
   if (idx === -1) throw new Error('相关方关联不存在')
   if (data.role) {
-    const roleOption = RELATION_ROLE_OPTIONS.find(r => r.value === data.role)
     list[idx].role = data.role as PartnerRole
-    list[idx].roleLabel = roleOption?.label || data.role
+    list[idx].roleLabel = buildRoleLabel(data.role)
   }
   if (data.tags !== undefined) list[idx].tags = data.tags
   return list[idx]
@@ -485,8 +535,12 @@ export async function getPartnerAuth(relationId: string, _enterpriseId: string):
   throw new Error('相关方关联不存在')
 }
 
-export async function getOperationLogs(_enterpriseId: string, _query: { page: number; size: number }): Promise<PaginatedData<OperationLogItem>> {
-  return { data: MOCK_LOGS, total: MOCK_LOGS.length }
+export async function getOperationLogs(_enterpriseId: string, query: { page: number; size: number }): Promise<PaginatedData<OperationLogItem>> {
+  const all = logStore.getAll()
+  const total = all.length
+  const start = (query.page - 1) * query.size
+  const data = all.slice(start, start + query.size)
+  return { data, total }
 }
 
 export async function getEnterpriseQrcode(_id: string): Promise<string> {
@@ -523,21 +577,7 @@ export async function getDictC() { return { data: DIM_C_OPTIONS } }
 export async function getDictD() { return { data: DIM_D_OPTIONS } }
 export async function getModuleTree() { return { data: MODULE_TREE } }
 
-// ===== 关系角色选项（"我的"视角） =====
-export interface RelationRoleOption {
-  value: string
-  label: string
-  description: string
-}
-
-const RELATION_ROLE_OPTIONS: RelationRoleOption[] = [
-  { value: 'my_supervisor', label: '我的监管方', description: '消防救援机构/应急管理部门/属地政府（街道/社区等）/行业主管部门' },
-  { value: 'my_manager', label: '我的管理方', description: '空间管理方（物业/园区/市场/综合体/商业街等）/集团管理方' },
-  { value: 'social_unit', label: '社会单位', description: '落实消防安全主体责任企业' },
-  { value: 'my_service_unit', label: '我的服务单位', description: '消防技术服务机构（维保、检测、评估、工程安装等）' },
-  { value: 'my_operator', label: '我的运营方', description: '运营管理方' },
-]
-
+// ===== 关系角色树（级联选择器用，"我的"视角） =====
 const PARTNER_ROLE_TREE = [
   {
     value: 'my_supervisor', label: '我的监管方',

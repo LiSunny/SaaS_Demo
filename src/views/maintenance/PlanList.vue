@@ -73,11 +73,11 @@
             <tr class="fi-thead-tr">
               <th class="fi-th col-status"><span>状态</span></th>
               <th class="fi-th col-name"><span>计划名称</span></th>
-              <th class="fi-th fi-th-sort col-count" @click="handleSortChange()"><span>设备总数</span><AppIcon name="sort" class="th-sort-icon" /></th>
-              <th class="fi-th fi-th-sort col-items" @click="handleSortChange()"><span>保养项目</span><AppIcon name="sort" class="th-sort-icon" /></th>
+              <th class="fi-th fi-th-sort col-count" @click="handleSortChange()"><span>设备总数</span><TableSortIcon :direction="sortDir" /></th>
+              <th class="fi-th fi-th-sort col-items" @click="handleSortChange()"><span>保养项目</span><TableSortIcon :direction="sortDir" /></th>
               <th class="fi-th col-type"><span>保养类型</span></th>
               <th class="fi-th col-executor"><span>执行人</span></th>
-              <th class="fi-th fi-th-sort col-time" @click="handleSortChange()"><span>下次生成时间</span><AppIcon name="sort" class="th-sort-icon" /></th>
+              <th class="fi-th fi-th-sort col-time" @click="handleSortChange()"><span>下次生成时间</span><TableSortIcon :direction="sortDir" /></th>
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
           </thead>
@@ -205,6 +205,7 @@ import { copyPlan, createPlan, updatePlan } from '@/api/maintenance'
 import type { PlanCycle, PlanStatus, MaintenancePlan } from '@/types/maintenance'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import TableSortIcon from '@/components/base/TableSortIcon.vue'
 
 const store = useMaintenanceStore()
 const { confirmDelete } = useConfirm()
@@ -216,8 +217,14 @@ const cycleMap: Record<PlanCycle, string> = {
 }
 const cycleLabel = (type: PlanCycle) => cycleMap[type] || type
 
+const sortDir = ref<'none' | 'asc' | 'desc'>('none')
 const handleSearch = () => { query.page = 1; store.fetchList() }
-const handleSortChange = () => { store.fetchList() }
+const handleSortChange = () => {
+  if (sortDir.value === 'none') sortDir.value = 'desc'
+  else if (sortDir.value === 'desc') sortDir.value = 'asc'
+  else sortDir.value = 'none'
+  store.fetchList()
+}
 
 // ===== 新增/编辑弹窗 =====
 const dialogVisible = ref(false)

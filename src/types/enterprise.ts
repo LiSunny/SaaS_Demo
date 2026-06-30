@@ -60,6 +60,8 @@ export interface EnterpriseQuery {
   dimB?: string
   dimC?: string
   dimD?: string
+  /** 状态筛选，逗号分隔: active,locked,expired */
+  status?: string
   page: number
   size: number
   /** 是否包含已软删除的记录 */
@@ -101,6 +103,10 @@ export interface SubordinateItem {
   operatorName: string
 }
 
+export interface SubordinateUpdateForm {
+  tags?: string[]
+}
+
 export interface PartnerItem {
   id: string
   enterpriseId: string
@@ -121,6 +127,7 @@ export interface OperationLogItem {
   action: string
   timestamp: string
   operatorName: string
+  description: string
   details: { label: string; value: string }[]
 }
 

@@ -92,6 +92,7 @@ export interface ListParams {
   dimB?: string
   dimC?: string
   dimD?: string
+  status?: string
   includeDeleted?: boolean
 }
 
@@ -108,6 +109,7 @@ export async function getList(params: ListParams) {
   if (params.dimB) where.dimB = params.dimB
   if (params.dimC) where.dimCName = params.dimC
   if (params.dimD) where.dimD = params.dimD
+  if (params.status !== undefined && params.status !== '') where.status = +params.status
 
   // 默认排除已删除企业
   if (!params.includeDeleted) {
@@ -153,7 +155,7 @@ export async function getDetail(id: number) {
 // ============================================
 // 新增（含自动初始化管理员 + 下级管理关联）
 // ============================================
-export async function create(form: any) {
+export async function create(form: any, _operator?: any) {
   const code = `QY${Date.now()}`
 
   // ① 创建企业记录
@@ -299,7 +301,7 @@ async function checkCycle(ancestorId: number, childId: number): Promise<boolean>
 // ============================================
 // 更新
 // ============================================
-export async function update(id: number, form: any) {
+export async function update(id: number, form: any, _operator?: any) {
   const existing = await db.enterprise.findUnique({ where: { id } })
   if (!existing) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (existing.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
@@ -343,7 +345,7 @@ export async function update(id: number, form: any) {
 // ============================================
 // 锁定/解锁
 // ============================================
-export async function toggleLock(id: number) {
+export async function toggleLock(id: number, _operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (e.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
@@ -375,7 +377,7 @@ export async function batchDelete(ids: number[]) {
 // ============================================
 // 软删除
 // ============================================
-export async function softDelete(id: number) {
+export async function softDelete(id: number, _operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (e.deletedAt) throw Object.assign(new Error('企业已被删除'), { statusCode: 409 })
@@ -405,7 +407,7 @@ export async function softDelete(id: number) {
 // ============================================
 // 恢复软删除
 // ============================================
-export async function recover(id: number) {
+export async function recover(id: number, _operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (!e.deletedAt) throw Object.assign(new Error('企业未被删除'), { statusCode: 409 })
@@ -470,7 +472,7 @@ export async function getSubordinates(enterpriseId: number, params: { keyword?: 
   }
 }
 
-export async function addSubordinates(enterpriseId: number, subordinateIds: number[]) {
+export async function addSubordinates(enterpriseId: number, subordinateIds: number[], _operator?: any) {
   const enterprise = await db.enterprise.findUnique({ where: { id: enterpriseId } })
   if (!enterprise) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
 
@@ -494,7 +496,7 @@ export async function addSubordinates(enterpriseId: number, subordinateIds: numb
   }
 }
 
-export async function removeSubordinates(_enterpriseId: number, relationIds: number[]) {
+export async function removeSubordinates(_enterpriseId: number, relationIds: number[], _operator?: any) {
   await db.enterpriseRelation.deleteMany({ where: { id: { in: relationIds } } })
 }
 
@@ -539,7 +541,7 @@ export async function getPartners(enterpriseId: number, params: { keyword?: stri
   }
 }
 
-export async function addPartner(enterpriseId: number, partnerId: number, role?: string, tags: string[] = []) {
+export async function addPartner(enterpriseId: number, partnerId: number, role?: string, tags: string[] = [], _operator?: any) {
   const enterprise = await db.enterprise.findUnique({ where: { id: enterpriseId } })
   if (!enterprise) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
 
@@ -568,11 +570,11 @@ export async function addPartner(enterpriseId: number, partnerId: number, role?:
   })
 }
 
-export async function removePartners(_enterpriseId: number, relationIds: number[]) {
+export async function removePartners(_enterpriseId: number, relationIds: number[], _operator?: any) {
   await db.enterpriseRelation.deleteMany({ where: { id: { in: relationIds } } })
 }
 
-export async function savePartnerAuth(relationId: number, data: { authUnits: string[]; allowOperation: boolean }) {
+export async function savePartnerAuth(relationId: number, data: { authUnits: string[]; allowOperation: boolean }, _operator?: any) {
   const r = await db.enterpriseRelation.update({
     where: { id: relationId },
     data: {
@@ -593,6 +595,38 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
     role: "my_manager",
       roleLabel: ROLE_MAP["my_manager"] || "我的管理方",
       allowOperation: r.allowOperation,
+  }
+}
+
+export async function updatePartner(enterpriseId: number, relationId: number, data: any, _operator?: any) {
+  const r = await db.enterpriseRelation.findFirst({
+    where: { id: relationId, enterpriseId, type: 'partner' },
+  })
+  if (!r) throw Object.assign(new Error('相关方关系不存在'), { statusCode: 404 })
+
+  const updateData: any = {}
+  if (data.tags !== undefined) updateData.tags = JSON.stringify(data.tags)
+  if (data.contactName !== undefined) updateData.contactName = data.contactName
+  if (data.contactPhone !== undefined) updateData.contactPhone = data.contactPhone
+
+  const updated = await db.enterpriseRelation.update({
+    where: { id: relationId },
+    data: updateData,
+  })
+
+  return {
+    id: String(updated.id),
+    enterpriseId: String(updated.relatedId),
+    enterpriseName: updated.relatedName,
+    tags: safeJsonParse(updated.tags, []),
+    contactName: updated.contactName,
+    contactPhone: updated.contactPhone,
+    relatedAt: formatDate(updated.relatedAt),
+    operatorName: updated.operatorName,
+    authUnits: safeJsonParse(updated.authUnits, []),
+    role: data.role || "my_manager",
+    roleLabel: ROLE_MAP[data.role] || ROLE_MAP["my_manager"] || "我的管理方",
+    allowOperation: updated.allowOperation,
   }
 }
 

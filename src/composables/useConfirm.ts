@@ -29,6 +29,28 @@ export function useConfirm() {
   }
 
   /**
+   * 删除确认（输入校验）— 用户必须录入正确的名称才能删除。
+   * 提示文字：请输入「{name}」以确认删除。{extra}
+   * @param name 需录入匹配的名称
+   * @param extra 额外提示文字（如 "删除后不可恢复。"），可选
+   */
+  async function confirmDeleteWithInput(name: string, extra?: string): Promise<void> {
+    const message = extra
+      ? `请输入「${name}」以确认删除。${extra}`
+      : `请输入「${name}」以确认删除。`
+    // 转义正则特殊字符，确保精确匹配
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    await ElMessageBox.prompt(message, '删除确认', {
+      type: 'error',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      inputPlaceholder: `请输入「${name}」`,
+      inputPattern: new RegExp(`^${escaped}$`),
+      inputErrorMessage: `输入不匹配，请输入「${name}」`,
+    } as ElMessageBoxOptions)
+  }
+
+  /**
    * 批量删除确认
    * @param count 选中数量
    * @param label 项标签（如 "模板"、"计划"），可选
@@ -173,6 +195,7 @@ export function useConfirm() {
   return {
     // 破坏性
     confirmDelete,
+    confirmDeleteWithInput,
     confirmBatchDelete,
     // 警示
     confirmLeave,

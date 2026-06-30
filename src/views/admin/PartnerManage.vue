@@ -73,7 +73,7 @@
             <th class="fi-th col-phone"><span>联系方式</span></th>
             <th class="fi-th fi-th-sort col-date" @click="handleSortChange()">
               <span>关联日期</span>
-              <AppIcon name="sort" class="th-sort-icon" />
+              <TableSortIcon :direction="sortDir" />
             </th>
             <th class="fi-th col-operator"><span>操作人</span></th>
             <th class="fi-th col-actions"><span>操作</span></th>
@@ -159,6 +159,7 @@
             remote
             :remote-method="searchEnterprises"
             :loading="searchLoading"
+            :disabled="isBindEdit"
             class="dialog-select"
             :teleported="false"
             popper-class="fi-popper"
@@ -308,6 +309,7 @@ import type {
 } from '@/types/enterprise'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import TableSortIcon from '@/components/base/TableSortIcon.vue'
 
 const props = defineProps<{
   enterpriseId: string
@@ -316,6 +318,7 @@ const props = defineProps<{
 const { confirmRemove, confirmBatchRemove } = useConfirm()
 
 // ===== 列表 =====
+const sortDir = ref<'none' | 'asc' | 'desc'>('none')
 const query = reactive<PartnerQuery & { keyword: string; role: string }>({
   keyword: '',
   role: '',
@@ -348,7 +351,10 @@ function handleSearch() {
 }
 
 function handleSortChange() {
-  query.sortOrder = query.sortOrder === 'asc' ? 'desc' : 'asc'
+  if (sortDir.value === 'none') sortDir.value = 'desc'
+  else if (sortDir.value === 'desc') sortDir.value = 'asc'
+  else sortDir.value = 'none'
+  query.sortOrder = sortDir.value === 'none' ? 'desc' : sortDir.value
   fetch()
 }
 
@@ -418,15 +424,18 @@ function openBindDialog(row?: PartnerItem) {
   if (row) {
     isBindEdit.value = true
     editingPartnerId.value = row.id
-    bindForm.enterpriseId = row.enterpriseId
+    bindForm.enterpriseId = String(row.enterpriseId)
     bindForm.rolePath = (row.role || '').split('/').filter(Boolean)
-    bindForm.tags = [...row.tags]
+    bindForm.tags = [...(row.tags || [])]
+    // 预填搜索结果，让 el-select 能正确显示企业名称而非原始 ID
+    searchResults.value = [{ id: String(row.enterpriseId), name: row.enterpriseName, tags: row.tags || [] }]
   } else {
     isBindEdit.value = false
     editingPartnerId.value = ''
     bindForm.enterpriseId = ''
     bindForm.rolePath = []
     bindForm.tags = []
+    searchResults.value = []
   }
   bindVisible.value = true
 }

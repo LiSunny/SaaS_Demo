@@ -41,6 +41,7 @@ router.delete('/:id/users/:userId', ctrl.removeMember)
 // 相关方
 router.get('/:id/partners', ctrl.getPartners)
 router.post('/:id/partners', ctrl.addPartners)
+router.put('/:id/partners/:relationId', ctrl.updatePartner)
 router.delete('/:id/partners', ctrl.removePartners)
 router.put('/partners/:relationId/auth', ctrl.savePartnerAuth)
 

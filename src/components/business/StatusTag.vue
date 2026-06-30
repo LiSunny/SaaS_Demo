@@ -38,12 +38,7 @@ const MAP: Record<string, { label: string; cls: string }> = {
   ent_expired: { label: '已过期', cls: 'danger' },
   ent_deleted: { label: '已删除', cls: 'normal' },
   ent_pending: { label: '待生效', cls: 'info' },
-  // 相关方关系角色（v1.1）
-  my_supervisor: { label: '我的监管方', cls: 'info' },
-  my_manager: { label: '我的管理方', cls: 'warning' },
-  social_unit: { label: '社会单位', cls: 'success' },
-  my_service_unit: { label: '我的服务单位', cls: 'purple' },
-  my_operator: { label: '我的运营方', cls: 'normal' },
+  // 相关方关系角色（v1.1）— 由数据层 roleLabel 字段驱动，StatusTag 不做二次映射
 }
 
 const entry = computed(() => MAP[String(props.status)] || { label: props.status, cls: '' })

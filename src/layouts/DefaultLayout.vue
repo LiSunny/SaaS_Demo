@@ -116,6 +116,31 @@
                 </div>
               </div>
 
+              <!-- 混合节点（同时有 route + children）— 点击导航 + 展开子项 -->
+              <div v-else-if="node.route && node.children" class="side-group">
+                <button
+                  :class="['side-item', { active: activeNavKey === node.key, open: expandedKeys.includes(node.key) }]"
+                  @click="onMixedNodeClick(node)"
+                >
+                  <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
+                  <span class="side-label">{{ node.label }}</span>
+                  <span
+                    class="pin-icon"
+                    :class="{ pinned: pinnedKeys.has(node.key) }"
+                    @click.stop="togglePin(node.key)"
+                  >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
+                  <svg class="side-arrow" :class="{ rotated: expandedKeys.includes(node.key) }" width="14" height="14" viewBox="0 0 24 24" @click.stop="toggleExpand(node.key)"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                </button>
+                <div v-show="expandedKeys.includes(node.key)" class="side-sub">
+                  <button
+                    v-for="child in node.children"
+                    :key="child.key"
+                    :class="['side-sub-item', { active: activeNavKey === child.key }]"
+                    @click="onNodeClick(child)"
+                  >{{ child.label }}</button>
+                </div>
+              </div>
+
               <!-- 跳转节点（有 route，无 children）— 包括跳转域首页入口 -->
               <button
                 v-else-if="node.route && !node.children"
@@ -308,6 +333,12 @@ function onNodeClick(node: NavNode): void {
     activeNavKey.value = node.key
     router.push(node.route)
   }
+}
+
+/** 混合节点（route + children）：点击主体导航，箭头展开子项 */
+function onMixedNodeClick(node: NavNode): void {
+  onNodeClick(node)
+  toggleExpand(node.key)
 }
 
 // ===== 路由 → 菜单同步 =====

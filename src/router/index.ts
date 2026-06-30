@@ -76,6 +76,7 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         { path: '', name: 'DeviceOverview', component: () => import('@/views/device/Overview.vue') },
+        { path: 'list', name: 'DeviceList', component: () => import('@/views/device/DeviceList.vue') },
       ],
     },
     {

@@ -5,17 +5,7 @@
       <!-- ===== 引导说明卡片 ===== -->
       <div v-if="showHelp" class="help-card">
         <div class="help-illustration">
-          <svg viewBox="0 0 242 156" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="242" height="156" rx="8" fill="var(--accent-primary10)"/>
-            <circle cx="80" cy="78" r="40" fill="var(--accent-primary)" opacity="0.15"/>
-            <circle cx="80" cy="78" r="28" fill="var(--accent-primary)" opacity="0.25"/>
-            <rect x="60" y="60" width="40" height="36" rx="4" fill="var(--accent-primary)" opacity="0.5"/>
-            <rect x="130" y="42" width="80" height="12" rx="6" fill="var(--accent-primary)" opacity="0.15"/>
-            <rect x="130" y="62" width="96" height="8" rx="4" fill="var(--accent-primary)" opacity="0.12"/>
-            <rect x="130" y="76" width="72" height="8" rx="4" fill="var(--accent-primary)" opacity="0.12"/>
-            <rect x="130" y="96" width="80" height="8" rx="4" fill="var(--accent-primary)" opacity="0.1"/>
-            <rect x="130" y="110" width="64" height="8" rx="4" fill="var(--accent-primary)" opacity="0.1"/>
-          </svg>
+          <img :src="zhuhuImg" alt="租户管理说明" class="help-img" />
         </div>
         <div class="help-content">
           <div class="help-section">
@@ -63,19 +53,17 @@
         <table class="fi-table">
           <thead>
             <tr class="fi-thead-tr">
-              <th class="fi-th fi-th-sort col-status" @click="toggleSort">
+              <th class="fi-th fi-th-sort col-status" @click="toggleStatusSort">
                 <span>状态</span>
-                <svg class="th-sort-icon" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5.25 6.75L9 3L12.75 6.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M5.25 11.25L9 15L12.75 11.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <TableSortIcon :direction="statusSortDir" />
+                <TableFilterPopover v-model="statusFilter" :options="statusFilterOptions" />
               </th>
               <th class="fi-th col-name"><span>企业名称</span></th>
               <th class="fi-th col-cat"><span>行业分类</span></th>
               <th class="fi-th col-fire"><span>消防类别</span></th>
               <th class="fi-th col-admin"><span>管理员</span></th>
               <th class="fi-th col-phone"><span>账号</span></th>
-              <th class="fi-th col-date"><span>创建日期</span></th>
+              <th class="fi-th fi-th-sort col-date" @click="toggleDateSort"><span>创建日期</span><TableSortIcon :direction="dateSortDir" /></th>
               <th class="fi-th col-creator"><span>创建人</span></th>
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
@@ -94,31 +82,9 @@
               <td class="fi-td col-creator">{{ row.creatorName || '—' }}</td>
               <td class="fi-td col-actions">
                 <div class="action-cell">
-                  <button class="act-btn act-preview" title="详情" @click="$router.push(`/admin/enterpriseManagement/detail?id=${row.id}`)">
+                  <button class="act-btn act-preview" title="查看详情" @click="$router.push(`/admin/enterpriseManagement/detail?id=${row.id}`)">
                     <AppIcon name="preview" class="act-icon" />
                   </button>
-                  <template v-if="!row.deletedAt">
-                    <button v-if="row.status === 1" class="act-btn act-edit" title="编辑" @click="openEditDrawer(row.id)">
-                      <AppIcon name="edit" class="act-icon" />
-                    </button>
-                    <button v-if="row.status === 1" class="act-btn" title="锁定" @click="handleLock(row)">
-                      <AppIcon name="lock-on" class="act-icon" />
-                    </button>
-                    <button v-if="row.status === 1" class="act-btn act-delete" title="删除" @click="handleDelete(row)">
-                      <AppIcon name="delete" class="act-icon" />
-                    </button>
-                    <button class="act-btn" title="个性化配置" @click="openBranding(row)">
-                      <AppIcon name="setting" class="act-icon" />
-                    </button>
-                    <button class="act-btn" title="应用配置" @click="openAppConfig(row)">
-                      <AppIcon name="operation" class="act-icon" />
-                    </button>
-                  </template>
-                  <template v-else>
-                    <button class="act-btn act-recover" title="恢复" @click="handleRecover(row)">
-                      <AppIcon name="restore" class="act-icon" />
-                    </button>
-                  </template>
                 </div>
               </td>
             </tr>
@@ -142,46 +108,6 @@
 
     </div>
 
-    <!-- ===== 延期弹窗 ===== -->
-    <el-dialog v-model="extendVisible" title="延期设置" width="400px" :close-on-click-modal="false">
-      <el-form label-width="100px">
-        <el-form-item label="有效期至">
-          <el-date-picker v-model="extendDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width:100%" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <button class="btn-default" @click="extendVisible = false">取消</button>
-        <button class="btn-primary" @click="confirmExtend">确定</button>
-      </template>
-    </el-dialog>
-
-    <!-- ===== 个性化配置弹窗 ===== -->
-    <el-dialog v-model="brandingVisible" title="个性化设置" width="500px" :close-on-click-modal="false">
-      <el-form label-width="100px">
-        <el-form-item label="域名"><el-input v-model="brandingForm.domain" placeholder="如 tenant.platform.com" /></el-form-item>
-        <el-form-item label="版权公告"><el-input v-model="brandingForm.copyright" placeholder="如 © 2026 Company" /></el-form-item>
-        <el-form-item label="ICP备案"><el-input v-model="brandingForm.icp" placeholder="如 京ICP备XXXXXXXX号" /></el-form-item>
-        <el-form-item label="平台标题"><el-input v-model="brandingForm.title" placeholder="如 XX安全管理平台" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <button class="btn-default" @click="brandingVisible = false">取消</button>
-        <button class="btn-primary" @click="brandingVisible = false">确认</button>
-      </template>
-    </el-dialog>
-
-    <!-- ===== 应用配置弹窗 ===== -->
-    <el-dialog v-model="appConfigVisible" title="应用设置" width="700px" :close-on-click-modal="false">
-      <el-tabs v-model="appConfigTab">
-        <el-tab-pane v-for="tab in moduleTabs" :key="tab.key" :label="tab.label" :name="tab.key">
-          <el-tree :data="tab.children" show-checkbox node-key="key" default-expand-all :default-checked-keys="allModuleKeys" />
-        </el-tab-pane>
-      </el-tabs>
-      <template #footer>
-        <button class="btn-default" @click="appConfigVisible = false">取消</button>
-        <button class="btn-primary" @click="appConfigVisible = false">确定</button>
-      </template>
-    </el-dialog>
-
     <!-- ===== 新增/编辑租户 Drawer ===== -->
     <EnterpriseFormDrawer
       v-model:visible="drawerVisible"
@@ -194,17 +120,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { useConfirm } from '@/composables/useConfirm'
+import { ref, watch, onMounted } from 'vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import type { EnterpriseItem } from '@/types/enterprise'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import TableSortIcon from '@/components/base/TableSortIcon.vue'
+import TableFilterPopover from '@/components/base/TableFilterPopover.vue'
 import EnterpriseFormDrawer from '@/components/business/EnterpriseFormDrawer.vue'
+import zhuhuImg from '@/assets/zhuhu.png'
 
 const store = useEnterpriseStore()
-const { confirmToggle, confirmDelete } = useConfirm()
 const query = store.query
 
 // ===== 新增/编辑 Drawer =====
@@ -215,12 +141,6 @@ const drawerEditId = ref('')
 function openCreateDrawer() {
   drawerMode.value = 'create'
   drawerEditId.value = ''
-  drawerVisible.value = true
-}
-
-function openEditDrawer(id: string) {
-  drawerMode.value = 'edit'
-  drawerEditId.value = id
   drawerVisible.value = true
 }
 
@@ -239,11 +159,48 @@ function onToggleDeleted() {
 }
 
 // ===== 排序 =====
-const sortAsc = ref(true)
-function toggleSort() {
-  sortAsc.value = !sortAsc.value
-  store.list.sort((a, b) => sortAsc.value ? a.status - b.status : b.status - a.status)
+const statusSortDir = ref<'none' | 'asc' | 'desc'>('none')
+const dateSortDir = ref<'none' | 'asc' | 'desc'>('desc')
+function applyDateSort() {
+  store.list.sort((a, b) => dateSortDir.value === 'asc'
+    ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
+function toggleStatusSort() {
+  if (statusSortDir.value === 'none') statusSortDir.value = 'desc'
+  else if (statusSortDir.value === 'desc') statusSortDir.value = 'asc'
+  else statusSortDir.value = 'none'
+  dateSortDir.value = 'none'
+  if (statusSortDir.value === 'none') {
+    store.fetchList()
+  } else {
+    store.list.sort((a, b) => statusSortDir.value === 'asc' ? a.status - b.status : b.status - a.status)
+  }
+}
+function toggleDateSort() {
+  if (dateSortDir.value === 'none') dateSortDir.value = 'desc'
+  else if (dateSortDir.value === 'desc') dateSortDir.value = 'asc'
+  else dateSortDir.value = 'none'
+  statusSortDir.value = 'none'
+  if (dateSortDir.value === 'none') {
+    store.fetchList()
+  } else {
+    applyDateSort()
+  }
+}
+
+// ===== 筛选 =====
+const statusFilter = ref<string[]>([])
+const statusFilterOptions = [
+  { label: '有效', value: 'active' },
+  { label: '已锁定', value: 'locked' },
+  { label: '已过期', value: 'expired' },
+]
+
+watch(statusFilter, (val) => {
+  query.status = val.length > 0 ? val.join(',') : undefined
+  store.search()
+})
 
 // ===== 维度 B 字典 =====
 const DIM_B_MAP: Record<string, string> = {
@@ -274,64 +231,7 @@ function statusLabel(row: EnterpriseItem): string {
   return '已过期'
 }
 
-// ===== 锁定 =====
-async function handleLock(row: EnterpriseItem) {
-  const action = row.status === 1 ? '锁定' : '解锁'
-  try {
-    await confirmToggle(row.name, action)
-    await store.handleLock(row.id)
-  } catch { /* 取消 */ }
-}
-
-// ===== 软删除 =====
-async function handleDelete(row: EnterpriseItem) {
-  try {
-    await confirmDelete(row.name, '删除后可在回收站中恢复。')
-    await store.handleSoftDelete(row.id)
-  } catch { /* 取消 */ }
-}
-
-async function handleRecover(row: EnterpriseItem) {
-  try {
-    await confirmToggle(row.name, '恢复')
-    await store.handleRecover(row.id)
-  } catch { /* 取消 */ }
-}
-
-// ===== 延期 =====
-const extendVisible = ref(false)
-const extendDate = ref('')
-const extendTarget = ref<EnterpriseItem | null>(null)
-
-// ===== 个性化配置 =====
-const brandingVisible = ref(false)
-const brandingForm = ref({ domain: '', copyright: '', icp: '', title: '' })
-function openBranding(_row: EnterpriseItem) { brandingVisible.value = true }
-
-// ===== 应用配置 =====
-const appConfigVisible = ref(false)
-const appConfigTab = ref('设备管理')
-const allModuleKeys = ['device-ledger', 'maintenance', 'monitor']
-const moduleTabs: { key: string; label: string; children: { key: string; label: string }[] }[] = [
-  { key: '设备管理', label: '设备管理', children: [
-    { key: 'device-ledger', label: '设备台账' }, { key: 'maintenance', label: '保养管理' }, { key: 'monitor', label: '运行监控' },
-  ]},
-  { key: 'IOT', label: 'IOT', children: [] },
-  { key: '远程值守', label: '远程值守', children: [{ key: 'alarm-center', label: '告警中心' }] },
-  { key: '巡查检查', label: '巡查检查', children: [] },
-  { key: '维保应用', label: '维保应用', children: [] },
-  { key: '数据可视化', label: '数据可视化', children: [] },
-]
-function openAppConfig(_row: EnterpriseItem) { appConfigVisible.value = true }
-
-// ===== 延期确认 =====
-async function confirmExtend() {
-  if (!extendDate.value) { ElMessage.warning('请选择有效期'); return }
-  if (extendTarget.value) await store.handleExtend(extendTarget.value.id, extendDate.value)
-  extendVisible.value = false
-}
-
-onMounted(() => { store.fetchList() })
+onMounted(async () => { await store.fetchList(); applyDateSort() })
 </script>
 
 <style scoped>
@@ -351,14 +251,14 @@ onMounted(() => { store.fetchList() })
 .help-illustration {
   width: 242px; height: 156px; border-radius: 8px; flex-shrink: 0; overflow: hidden;
 }
-.help-illustration svg { display: block; width: 100%; height: 100%; }
+.help-illustration img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .help-content {
   display: flex; flex-direction: column; gap: 10px;
   padding: 0 var(--spacing-lg, 12px); flex: 1; min-width: 0;
 }
 .help-section { display: flex; flex-direction: column; gap: 6px; }
-.help-title { font-size: 18px; font-weight: 500; color: var(--text-primary); margin: 0; }
-.help-subtitle { font-size: 18px; font-weight: 500; color: var(--text-primary); margin: 0; }
+.help-title { font-size:  var(--font-h4, 16px); font-weight: 600; color: var(--text-primary); margin: 0; }
+.help-subtitle { font-size:  var(--font-body, 16px); font-weight: 500; color: var(--text-primary); margin: 0; }
 .help-text { font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.6; margin: 0; }
 .help-list { margin: 0; padding-left: 20px; font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.8; }
 .help-list li { margin-bottom: 0; }
@@ -383,7 +283,7 @@ onMounted(() => { store.fetchList() })
 .col-phone { min-width: 130px; }
 .col-date { min-width: 110px; }
 .col-creator { min-width: 80px; }
-.col-actions { width: 200px; min-width: 180px; white-space: nowrap; }
+.col-actions { width: 70px; min-width: 70px; white-space: nowrap; }
 
 /* ===== 操作按钮颜色变体 ===== */
 .act-delete { color: var(--danger, #DC2626); }

@@ -31,6 +31,10 @@
 | `src/config/` | 全局配置（Widget 注册表 / 仪表盘预设） + **导航数据结构** |
 | `src/style.css` | 全局样式（Design Tokens + Light/Dark 变量） |
 
+## 开发规范
+
+- **列表页标准实现**：参考 `src/views/admin/EnterpriseList.vue`，代码模板见 `.claude/skills/md-figma-to-vue3/references/code-templates.md` §3.1
+
 ## 已生成的代码
 
 | 模块 | 页面/组件 | 状态 |

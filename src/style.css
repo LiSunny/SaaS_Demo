@@ -253,6 +253,24 @@ html.dark {
 .el-message-box__close {
   color: var(--text-muted);
 }
+.el-message-box .el-button--primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  border-color: var(--btn-primary-bg);
+}
+.el-message-box .el-button--primary:hover {
+  background: var(--btn-primary-hover-bg);
+  border-color: var(--btn-primary-hover-bg);
+}
+.el-message-box .el-button--default {
+  background: transparent !important;
+  color: var(--btn-default-color) !important;
+  border-color: var(--btn-default-border) !important;
+}
+.el-message-box .el-button--default:hover {
+  color: var(--btn-default-hover-color) !important;
+  border-color: var(--btn-default-hover-border) !important;
+}
 
 /* el-dialog */
 .el-dialog {
@@ -366,6 +384,10 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .fi-th-sort { cursor: pointer; user-select: none; }
 .fi-th-sort span { vertical-align: middle; }
 .th-sort-icon { width: 18px; height: 18px; margin-left: var(--spacing-xs, 4px); vertical-align: middle; opacity: .5; color: var(--table-header-text); }
+/* 新排序图标（TableSortIcon 组件）内联到 th 中 */
+.fi-th .sort-icon { margin-left: var(--spacing-xs, 4px); }
+/* 筛选按钮内联到 th 中 */
+.fi-th .filter-btn { margin-left: 2px; }
 .fi-tbody-tr { border-bottom: 1px solid var(--border-low); }
 .fi-tbody-tr:nth-child(even) { background: var(--bg-sub-card); }
 .fi-tbody-tr:hover { background: var(--table-row-hover); }
@@ -376,7 +398,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .pagi-total { color: var(--pagi-text); font-size: var(--font-small, 14px); }
 
 /* ========== 操作列 ========== */
-.action-cell { display: flex; align-items: center; gap: var(--spacing-lg, 12px); }
+.action-cell { display: flex; align-items: center; justify-content: center; gap: var(--spacing-lg, 12px); }
 .btn-add-icon { width: 20px; height: 20px; }
 
 /* ========== EL 组件通用适配 ========== */
@@ -517,7 +539,7 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 /* ========== 基础 UI：操作列按钮 ========== */
 .act-btn {
   background: none; border: none; cursor: pointer;
-  width: 26px; height: 26px; display: flex;
+  width: 22px; height: 22px; display: flex;
   align-items: center; justify-content: center;
   padding: 2px; border-radius: 4px;
   color: var(--text-secondary);

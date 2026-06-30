@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>租户列表 — 消防维保平台</title>
+  <style>
+    /* ===== CSS 变量（来源：design-tokens.md） ===== */
+    :root {
+      /* 背景 */
+      --bg-main: #F0F1F6;
+      --bg-card: #FFFFFF;
+      --bg-sub-card: #FBFBFB;
+
+      /* 文字 */
+      --text-primary: #101010;
+      --text-secondary: #2E2E2E;
+      --text-tertiary: #454545;
+      --text-muted: #5E5E5E;
+      --text-placeholder: #D9D9D9;
+
+      /* 品牌 */
+      --accent-primary: #3678E3;
+      --accent-primary-10: rgba(54, 120, 227, 0.10);
+      --accent-primary-20: rgba(54, 120, 227, 0.20);
+      --accent-dark: #204785;
+
+      /* 边框 */
+      --border-high: #D3D3D3;
+      --border-default: #E9E9E9;
+      --border-low: #F3F3F3;
+      --border-hover: rgba(54, 120, 227, 0.19);
+
+      /* 语义色 */
+      --semantic-success: #059669;
+      --semantic-success-bg: rgba(5, 150, 105, 0.10);
+      --semantic-danger: #DC2626;
+      --semantic-danger-bg: rgba(220, 38, 38, 0.10);
+      --semantic-warning: #D97706;
+      --semantic-warning-bg: rgba(217, 119, 6, 0.10);
+      --semantic-info: #3678E3;
+      --semantic-info-bg: rgba(54, 120, 227, 0.10);
+      --semantic-normal: #364153;
+      --semantic-normal-bg: #F3F4F6;
+
+      /* 字号（强制映射） */
+      --font-h1: 24px;
+      --font-h2: 20px;
+      --font-h3: 18px;
+      --font-h4: 16px;
+      --font-body: 16px;
+      --font-small: 14px;
+      --font-xs: 12px;
+
+      /* 间距（4px 基数） */
+      --spacing-4: 4px;
+      --spacing-6: 6px;
+      --spacing-8: 8px;
+      --spacing-12: 12px;
+      --spacing-16: 16px;
+      --spacing-24: 24px;
+
+      /* 圆角 */
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 10px;
+      --radius-xl: 14px;
+
+      /* 按钮令牌 */
+      --btn-height: 37px;
+      --btn-radius: 8px;
+      --btn-padding-y: 8px;
+      --btn-padding-x: 12px;
+      --btn-font-size: 14px;
+      --btn-font-weight: 400;
+      --btn-gap: 8px;
+    }
+
+    /* ===== 全局重置 ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Alibaba PuHuiTi", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: var(--font-body); color: var(--text-primary); background: var(--bg-main);
+    }
+
+    /* ===== Header ===== */
+    .header {
+      height: 48px; background: var(--bg-card); border-bottom: 1px solid var(--border-default);
+      display: flex; align-items: center; padding: 0 var(--spacing-24);
+    }
+    .header-logo { font-size: var(--font-h3); font-weight: 500; color: var(--text-primary); }
+    .header-sub { font-size: var(--font-small); color: var(--text-secondary); margin-left: var(--spacing-8); }
+
+    /* ===== 内容区 ===== */
+    .content { max-width: 1400px; margin: 0 auto; padding: var(--spacing-24); }
+
+    /* ===== 引导说明区 ===== */
+    .guide-card {
+      background: var(--accent-primary-10); border-radius: var(--radius-lg);
+      padding: var(--spacing-16) var(--spacing-24); margin-bottom: var(--spacing-16);
+      border: 1px solid var(--accent-primary-20);
+    }
+    .guide-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .guide-title { font-size: var(--font-h4); font-weight: 500; color: var(--text-primary); }
+    .guide-toggle { color: var(--accent-primary); font-size: var(--font-small); }
+    .guide-body {
+      margin-top: var(--spacing-12); padding-top: var(--spacing-12);
+      border-top: 1px solid var(--accent-primary-20); color: var(--text-secondary); font-size: var(--font-small);
+      line-height: 1.8;
+    }
+    .guide-body .step { display: flex; align-items: flex-start; gap: var(--spacing-8); margin-bottom: var(--spacing-4); }
+    .guide-body .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent-primary); color: #fff; font-size: var(--font-xs); flex-shrink: 0;
+    }
+
+    /* ===== 搜索筛选区 ===== */
+    .filter-bar {
+      display: flex; align-items: flex-start; gap: var(--spacing-12);
+      padding: var(--spacing-16) var(--spacing-24); background: var(--bg-card);
+      border-radius: var(--radius-lg); margin-bottom: var(--spacing-16);
+      flex-wrap: wrap; justify-content: space-between;
+    }
+    .filter-left { display: flex; align-items: center; gap: var(--spacing-8); flex-wrap: wrap; flex: 1; }
+    .filter-right { display: flex; align-items: center; flex-shrink: 0; }
+    .filter-bar input[type="search"],
+    .filter-bar select {
+      height: 32px; padding: 0 var(--spacing-12); border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm); font-size: var(--font-body);
+      color: var(--text-primary); background: var(--bg-card); outline: none;
+    }
+    .filter-bar input[type="search"] { width: 200px; }
+    .filter-bar select { min-width: 130px; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent-primary); }
+    .filter-folded { display: none; align-items: center; gap: var(--spacing-8); flex-wrap: wrap; width: 100%; padding-top: var(--spacing-8); }
+    .filter-folded.show { display: flex; }
+    .fold-toggle {
+      color: var(--accent-primary); cursor: pointer; font-size: var(--font-small); white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 4px; user-select: none;
+    }
+
+    /* ===== 按钮 ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--btn-gap);
+      height: var(--btn-height); padding: var(--btn-padding-y) var(--btn-padding-x);
+      border-radius: var(--btn-radius);
+      font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
+      cursor: pointer; border: none; white-space: nowrap; transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--accent-primary); color: #fff; }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-default { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-default); }
+    .btn-default:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
+    .btn-danger { background: var(--semantic-danger); color: #fff; }
+    .btn-danger:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-link {
+      background: none; border: none; color: var(--accent-primary); padding: 0; height: auto; cursor: pointer;
+      font-size: var(--font-small);
+    }
+    .btn-link:hover { opacity: .7; }
+    .btn-sm { height: 28px; padding: 0 var(--spacing-12); font-size: var(--font-xs); }
+
+    /* ===== 操作栏 ===== */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--spacing-12);
+    }
+    .toolbar-left { color: var(--text-secondary); font-size: var(--font-small); }
+
+    /* ===== 表格 ===== */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse; background: var(--bg-card);
+      border-radius: var(--radius-lg); overflow: hidden;
+      min-width: 1400px;
+    }
+    thead { background: var(--bg-sub-card); }
+    th, td {
+      padding: var(--spacing-12); text-align: left;
+      border-bottom: 1px solid var(--border-default); font-size: var(--font-body); white-space: nowrap;
+    }
+    th { color: var(--text-secondary); font-weight: 400; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-sub-card); }
+    th:first-child, td:first-child { padding-left: var(--spacing-16); width: 40px; }
+    th:last-child, td:last-child { padding-right: var(--spacing-16); }
+
+    /* 操作列 sticky */
+    .sticky-right {
+      position: sticky; right: 0; background: var(--bg-card); z-index: 1;
+      box-shadow: -4px 0 8px -4px rgba(0,0,0,.06);
+    }
+    tr:hover .sticky-right { background: var(--bg-sub-card); }
+
+    /* ===== 标签 ===== */
+    .tag {
+      display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
+      font-size: var(--font-small); line-height: 20px;
+    }
+    .tag-success { background: var(--semantic-success-bg); color: var(--semantic-success); }
+    .tag-danger { background: var(--semantic-danger-bg); color: var(--semantic-danger); }
+    .tag-normal { background: var(--semantic-normal-bg); color: var(--semantic-normal); }
+
+    /* ===== 行操作链接 ===== */
+    .row-actions { display: flex; gap: var(--spacing-8); flex-wrap: nowrap; }
+    .row-actions a {
+      color: var(--accent-primary); text-decoration: none; font-size: var(--font-small); cursor: pointer;
+    }
+    .row-actions a:hover { opacity: .7; }
+    .row-actions a.action-danger { color: var(--semantic-danger); }
+
+    /* ===== 分页 ===== */
+    .pagination {
+      display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-8);
+      padding: var(--spacing-16) 0;
+    }
+    .pagination button {
+      min-width: 32px; height: 32px; padding: 0 8px;
+      border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+      background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: var(--font-small);
+    }
+    .pagination button.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+    .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+    .pagination .page-info { color: var(--text-secondary); font-size: var(--font-small); margin-right: var(--spacing-8); }
+    .pagination select { height: 32px; padding: 0 8px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); font-size: var(--font-small); }
+
+    /* ===== 域名 Tag ===== */
+    .domain-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .domain-tag {
+      padding: 1px 6px; border-radius: var(--radius-sm); font-size: var(--font-xs); line-height: 18px;
+      background: var(--semantic-warning-bg); color: var(--semantic-warning);
+    }
+
+    /* ===== 自适应 ===== */
+    @media (max-width: 800px) {
+      .content { padding: var(--spacing-12); }
+      .filter-bar { flex-direction: column; }
+      .filter-left { flex-direction: column; width: 100%; }
+      .filter-bar input[type="search"] { width: 100%; }
+      .pagination { justify-content: center; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <span class="header-logo">消防维保平台</span>
+    <span class="header-sub">系统管理</span>
+  </header>
+
+  <main class="content">
+    <!-- 引导说明区 -->
+    <div class="guide-card">
+      <div class="guide-header" onclick="toggleGuide()">
+        <span class="guide-title">📘 什么是租户？</span>
+        <span class="guide-toggle" id="guideToggle">收起 ▲</span>
+      </div>
+      <div class="guide-body" id="guideBody">
+        <p style="margin-bottom:8px;">租户是指使用平台服务的独立企业/单位，每个租户拥有独立的数据空间和配置。</p>
+        <div class="step"><span class="step-num">1</span><span><b>新增租户</b> — 填写企业基本信息，系统自动生成企业唯一码（QY+雪花ID）</span></div>
+        <div class="step"><span class="step-num">2</span><span><b>租户授权</b> — 设置有效期、分配功能权限</span></div>
+        <div class="step"><span class="step-num">3</span><span><b>租户关系管理</b> — 建立上下级关联链或相关方关系</span></div>
+      </div>
+    </div>
+
+    <!-- 搜索筛选 + 新增 -->
+    <div class="filter-bar">
+      <div class="filter-left">
+        <input type="search" id="keywordInput" placeholder="企业名称" oninput="refresh()">
+        <button class="btn btn-primary" onclick="refresh()">查询</button>
+        <button class="btn btn-default" onclick="resetFilter()">重置</button>
+        <span class="fold-toggle" onclick="toggleFold()">
+          筛选 <span id="foldArrow">▼</span>
+        </span>
+        <div class="filter-folded" id="foldFilters">
+          <select id="dimBFilter" onchange="refresh()">
+            <option value="">消防类别（全部）</option>
+            <option value="餐饮场所">餐饮场所</option>
+            <option value="商场市场">商场市场</option>
+            <option value="宾馆饭店">宾馆饭店</option>
+            <option value="公共娱乐场所">公共娱乐场所</option>
+            <option value="医院">医院</option>
+            <option value="学校">学校</option>
+            <option value="生产加工企业">生产加工企业</option>
+            <option value="易燃易爆场所">易燃易爆场所</option>
+          </select>
+          <select id="dimCFilter" onchange="refresh()">
+            <option value="">行业分类（全部）</option>
+            <option value="餐饮业">餐饮业</option>
+            <option value="零售业">零售业</option>
+            <option value="住宿业">住宿业</option>
+            <option value="教育">教育</option>
+            <option value="卫生">卫生</option>
+            <option value="制造业">制造业</option>
+          </select>
+          <select id="dimDFilter" onchange="refresh()">
+            <option value="">场所类型（全部）</option>
+            <option value="人员密集场所">人员密集场所</option>
+            <option value="高层建筑">高层建筑</option>
+            <option value="普通商铺">普通商铺</option>
+            <option value="地下建筑">地下建筑</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-right">
+        <button class="btn btn-primary" onclick="handleAdd()">＋ 新增租户</button>
+      </div>
+    </div>
+
+    <!-- 操作栏 -->
+    <div class="toolbar">
+      <span class="toolbar-left">已选 <b id="selectedCount">0</b> 项</span>
+      <div>
+        <button class="btn btn-danger" id="batchDeleteBtn" disabled onclick="handleBatchDelete()">批量删除</button>
+      </div>
+    </div>
+
+    <!-- 数据表格 -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+            <th>企业名称</th>
+            <th>企业唯一码</th>
+            <th>消防类别</th>
+            <th>行业分类</th>
+            <th>场所类型</th>
+            <th>行政区划</th>
+            <th>负责人</th>
+            <th>负责人手机号</th>
+            <th>状态</th>
+            <th>有效期</th>
+            <th>创建时间</th>
+            <th class="sticky-right" style="padding-right:var(--spacing-16);">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <script>
+    // ===== Mock 数据 =====
+    const NOW = new Date();
+    const fmt = d => d.toISOString().slice(0, 10);
+    const daysAgo = n => { const d = new Date(NOW); d.setDate(d.getDate() - n); return fmt(d); };
+    const daysLater = n => { const d = new Date(NOW); d.setDate(d.getDate() + n); return fmt(d); };
+
+    const mockData = [
+      { id:'1', name:'张三餐饮管理有限公司', code:'QY20240601001', dimB:'餐饮场所', dimC:'餐饮业', dimD:'人员密集场所', region:'浙江省/杭州市/余杭区', contactName:'张三', contactPhone:'13800001111', status:1, validFrom:'2025-01-01', validTo:daysLater(180), parentId:'', tags:['消防安全重点单位'], createdAt:daysAgo(120) },
+      { id:'2', name:'杭州万达商场', code:'QY20240601002', dimB:'商场市场', dimC:'零售业', dimD:'人员密集场所', region:'浙江省/杭州市/拱墅区', contactName:'李四', contactPhone:'13800002222', status:1, validFrom:'2025-03-01', validTo:daysLater(90), parentId:'1', tags:['消防安全重点单位'], createdAt:daysAgo(100) },
+      { id:'3', name:'未来科技城中学', code:'QY20240601003', dimB:'学校', dimC:'教育', dimD:'人员密集场所', region:'浙江省/杭州市/余杭区', contactName:'王五', contactPhone:'13800003333', status:1, validFrom:'2025-02-15', validTo:null, parentId:'', tags:[], createdAt:daysAgo(90) },
+      { id:'4', name:'城西快捷酒店', code:'QY20240601004', dimB:'宾馆饭店', dimC:'住宿业', dimD:'高层建筑', region:'浙江省/杭州市/西湖区', contactName:'赵六', contactPhone:'13800004444', status:0, validFrom:'2025-01-01', validTo:daysAgo(10), parentId:'2', tags:[], createdAt:daysAgo(80) },
+      { id:'5', name:'滨江社区卫生服务中心', code:'QY20240601005', dimB:'医院', dimC:'卫生', dimD:'普通商铺', region:'浙江省/杭州市/滨江区', contactName:'孙七', contactPhone:'13800005555', status:2, validFrom:'2024-06-01', validTo:daysAgo(5), parentId:'', tags:[], createdAt:daysAgo(300) },
+      { id:'6', name:'云谷科技有限公司', code:'QY20240601006', dimB:'', dimC:'制造业', dimD:'高层建筑', region:'浙江省/杭州市/余杭区', contactName:'周八', contactPhone:'13800006666', status:1, validFrom:'2025-04-01', validTo:daysLater(365), parentId:'', tags:[], createdAt:daysAgo(60) },
+      { id:'7', name:'杭州万象餐饮有限公司', code:'QY20240601007', dimB:'餐饮场所', dimC:'餐饮业', dimD:'普通商铺', region:'浙江省/杭州市/上城区', contactName:'吴九', contactPhone:'13800007777', status:1, validFrom:'2025-01-15', validTo:daysLater(200), parentId:'', tags:['消防安全重点单位'], createdAt:daysAgo(110) },
+      { id:'8', name:'余杭区第一人民医院', code:'QY20240601008', dimB:'医院', dimC:'卫生', dimD:'人员密集场所', region:'浙江省/杭州市/余杭区', contactName:'郑十', contactPhone:'13800008888', status:1, validFrom:'2025-03-20', validTo:null, parentId:'', tags:['消防安全重点单位'], createdAt:daysAgo(85) },
+      { id:'9', name:'拱墅区教育局', code:'QY20240601009', dimB:'学校', dimC:'教育', dimD:'普通商铺', region:'浙江省/杭州市/拱墅区', contactName:'陈一', contactPhone:'13800009999', status:0, validFrom:'2024-09-01', validTo:daysAgo(30), parentId:'', tags:[], createdAt:daysAgo(240) },
+      { id:'10', name:'西溪银泰百货', code:'QY20240601010', dimB:'商场市场', dimC:'零售业', dimD:'人员密集场所', region:'浙江省/杭州市/西湖区', contactName:'林二', contactPhone:'13800000001', status:1, validFrom:'2025-05-01', validTo:daysLater(150), parentId:'2', tags:['消防安全重点单位'], createdAt:daysAgo(50) },
+      { id:'11', name:'杭州燃气有限公司', code:'QY20240601011', dimB:'易燃易爆场所', dimC:'制造业', dimD:'地下建筑', region:'浙江省/杭州市/萧山区', contactName:'黄三', contactPhone:'13800000002', status:1, validFrom:'2025-02-01', validTo:daysLater(300), parentId:'', tags:['消防安全重点单位'], createdAt:daysAgo(130) },
+      { id:'12', name:'钱塘新区第一小学', code:'QY20240601012', dimB:'学校', dimC:'教育', dimD:'普通商铺', region:'浙江省/杭州市/钱塘区', contactName:'何四', contactPhone:'13800000003', status:1, validFrom:'2025-06-01', validTo:null, parentId:'', tags:[], createdAt:daysAgo(30) },
+      { id:'13', name:'新天地娱乐城', code:'QY20240601013', dimB:'公共娱乐场所', dimC:'零售业', dimD:'人员密集场所', region:'浙江省/杭州市/上城区', contactName:'马五', contactPhone:'13800000004', status:2, validFrom:'2024-01-01', validTo:daysAgo(60), parentId:'', tags:[], createdAt:daysAgo(400) },
+      { id:'14', name:'临平食品加工厂', code:'QY20240601014', dimB:'生产加工企业', dimC:'制造业', dimD:'高层建筑', region:'浙江省/杭州市/临平区', contactName:'刘六', contactPhone:'13800000005', status:1, validFrom:'2025-04-15', validTo:daysLater(90), parentId:'', tags:[], createdAt:daysAgo(75) },
+      { id:'15', name:'富阳假日酒店', code:'QY20240601015', dimB:'宾馆饭店', dimC:'住宿业', dimD:'高层建筑', region:'浙江省/杭州市/富阳区', contactName:'杨七', contactPhone:'13800000006', status:1, validFrom:'2025-03-10', validTo:null, parentId:'', tags:[], createdAt:daysAgo(95) },
+      { id:'16', name:'平台运营方（自身）', code:'QY20240000000', dimB:'', dimC:'', dimD:'', region:'浙江省/杭州市', contactName:'管理员', contactPhone:'13900000000', status:1, validFrom:'2024-01-01', validTo:null, parentId:'', tags:[], createdAt:daysAgo(500), _isSelf:true },
+    ];
+
+    // ===== 状态映射 =====
+    const STATUS_MAP = {
+      1: { text:'有效', cls:'success' },
+      0: { text:'已锁定', cls:'danger' },
+      2: { text:'已过期', cls:'normal' },
+    };
+
+    // ===== 分页状态 =====
+    let currentPage = 1;
+    let pageSize = 20;
+    let selectedIds = new Set();
+
+    // ===== 引导说明区折叠（localStorage 持久化） =====
+    function toggleGuide() {
+      const body = document.getElementById('guideBody');
+      const toggle = document.getElementById('guideToggle');
+      if (body.style.display === 'none') {
+        body.style.display = 'block';
+        toggle.textContent = '收起 ▲';
+        localStorage.setItem('tenantGuideCollapsed', '0');
+      } else {
+        body.style.display = 'none';
+        toggle.textContent = '展开 ▼';
+        localStorage.setItem('tenantGuideCollapsed', '1');
+      }
+    }
+
+    function toggleFold() {
+      const el = document.getElementById('foldFilters');
+      const arrow = document.getElementById('foldArrow');
+      el.classList.toggle('show');
+      arrow.textContent = el.classList.contains('show') ? '▲' : '▼';
+    }
+
+    // ===== 获取筛选后的数据 =====
+    function getFilteredData() {
+      const keyword = document.getElementById('keywordInput').value.trim().toLowerCase();
+      const dimB = document.getElementById('dimBFilter').value;
+      const dimC = document.getElementById('dimCFilter').value;
+      const dimD = document.getElementById('dimDFilter').value;
+      return mockData.filter(item => {
+        if (keyword && !item.name.toLowerCase().includes(keyword)) return false;
+        if (dimB && item.dimB !== dimB) return false;
+        if (dimC && item.dimC !== dimC) return false;
+        if (dimD && item.dimD !== dimD) return false;
+        return true;
+      });
+    }
+
+    // ===== 渲染表格 =====
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      const selfId = mockData.find(d => d._isSelf)?.id;
+      selectedIds.clear();
+      document.getElementById('selectAll').checked = false;
+      tbody.innerHTML = data.map(item => {
+        const s = STATUS_MAP[item.status] || { text:'未知', cls:'normal' };
+        const isValid = item.status === 1;
+        const hasValidTo = !!item.validTo;
+        const isSelf = item.id === selfId;
+        let actions = `<a onclick="handleDetail('${item.id}')">详情</a>`;
+        if (!isSelf && isValid) actions += ` <a onclick="handleEdit('${item.id}')">编辑</a>`;
+        if (!isSelf && isValid) actions += ` <a class="action-danger" onclick="handleLock('${item.id}','${item.name}')">锁定</a>`;
+        if (!isSelf && isValid && hasValidTo) actions += ` <a onclick="handleExtend('${item.id}','${item.validTo}')">延期</a>`;
+        actions += ` <a onclick="handleCustom('${item.id}')">个性化</a>`;
+        actions += ` <a onclick="handleAppConfig('${item.id}')">应用配置</a>`;
+        const validRange = item.validFrom ? `${item.validFrom || '—'} ~ ${item.validTo || '永久'}` : '—';
+        const tagsHtml = item.tags.length ? item.tags.map(t => `<span class="domain-tag">${t}</span>`).join('') : '';
+        return `
+          <tr>
+            <td><input type="checkbox" value="${item.id}" onchange="onSelect(this)" ${isSelf ? 'disabled' : ''}></td>
+            <td>${item.name}${tagsHtml ? ' ' + tagsHtml : ''}</td>
+            <td style="color:var(--text-secondary);">${item.code}</td>
+            <td>${item.dimB || '—'}</td>
+            <td>${item.dimC || '—'}</td>
+            <td>${item.dimD || '—'}</td>
+            <td>${item.region || '—'}</td>
+            <td>${item.contactName}</td>
+            <td>${item.contactPhone}</td>
+            <td><span class="tag tag-${s.cls}">${s.text}</span></td>
+            <td style="color:var(--text-secondary);">${validRange}</td>
+            <td style="color:var(--text-secondary);">${item.createdAt}</td>
+            <td class="sticky-right"><div class="row-actions">${actions}</div></td>
+          </tr>`;
+      }).join('');
+    }
+
+    // ===== 渲染分页 =====
+    function renderPagination(total) {
+      const totalPages = Math.ceil(total / pageSize) || 1;
+      let html = `<span class="page-info">共 ${total} 条</span>`;
+      html += `<select onchange="changePageSize(this.value)">`;
+      [10,20,50,100].forEach(s => {
+        html += `<option value="${s}" ${pageSize === s ? 'selected' : ''}>${s} 条/页</option>`;
+      });
+      html += `</select>`;
+      html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">‹</button>`;
+      for (let i = 1; i <= Math.min(totalPages, 7); i++) {
+        html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+      }
+      if (totalPages > 7) html += `<span style="color:var(--text-muted)">…</span><button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+      html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">›</button>`;
+      document.getElementById('pagination').innerHTML = html;
+    }
+
+    // ===== 分页操作 =====
+    function goToPage(page) { currentPage = page; refresh(); }
+    function changePageSize(size) { pageSize = parseInt(size); currentPage = 1; refresh(); }
+
+    // ===== 选择 =====
+    function onSelect(cb) {
+      if (cb.checked) selectedIds.add(cb.value); else selectedIds.delete(cb.value);
+      document.getElementById('selectedCount').textContent = selectedIds.size;
+      document.getElementById('batchDeleteBtn').disabled = selectedIds.size === 0;
+    }
+    function toggleSelectAll() {
+      const checked = document.getElementById('selectAll').checked;
+      document.querySelectorAll('#tableBody input[type="checkbox"]:not(:disabled)').forEach(cb => {
+        cb.checked = checked;
+        if (checked) selectedIds.add(cb.value); else selectedIds.delete(cb.value);
+      });
+      document.getElementById('selectedCount').textContent = selectedIds.size;
+      document.getElementById('batchDeleteBtn').disabled = selectedIds.size === 0;
+    }
+
+    // ===== 操作 =====
+    function handleAdd() { alert('跳转至：/admin/enterpriseManagement/create'); }
+    function handleDetail(id) { alert(`跳转详情：id=${id}`); }
+    function handleEdit(id) { alert(`跳转编辑：id=${id}`); }
+    function handleLock(id, name) {
+      if (confirm(`确认锁定「${name}」？锁定后该企业不可登录。`)) {
+        const item = mockData.find(d => d.id === id);
+        if (item) { item.status = 0; refresh(); }
+      }
+    }
+    function handleExtend(id, currentTo) {
+      const newDate = prompt('请输入新的有效期止（YYYY-MM-DD）：', currentTo || '');
+      if (newDate) {
+        const item = mockData.find(d => d.id === id);
+        if (item) { item.validTo = newDate; refresh(); }
+      }
+    }
+    function handleCustom(id) { alert(`打开个性化配置：id=${id}\n（域名 / 版权公告 / ICP备案 / 平台标题）`); }
+    function handleAppConfig(id) { alert(`打开应用配置：id=${id}\n（13 域 Tab × 模块树）`); }
+    function handleBatchDelete() {
+      if (selectedIds.size === 0) return;
+      if (confirm(`确认删除选中的 ${selectedIds.size} 个企业？`)) {
+        selectedIds.forEach(id => {
+          const idx = mockData.findIndex(d => d.id === id);
+          if (idx !== -1) mockData.splice(idx, 1);
+        });
+        selectedIds.clear();
+        currentPage = 1;
+        refresh();
+      }
+    }
+    function resetFilter() {
+      document.getElementById('keywordInput').value = '';
+      document.getElementById('dimBFilter').value = '';
+      document.getElementById('dimCFilter').value = '';
+      document.getElementById('dimDFilter').value = '';
+      currentPage = 1;
+      refresh();
+    }
+
+    // ===== 驱动 =====
+    function refresh() {
+      const filtered = getFilteredData();
+      const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+      renderTable(paged);
+      renderPagination(filtered.length);
+      document.getElementById('selectedCount').textContent = '0';
+      document.getElementById('batchDeleteBtn').disabled = true;
+    }
+
+    // ===== 初始化 =====
+    if (localStorage.getItem('tenantGuideCollapsed') === '1') {
+      document.getElementById('guideBody').style.display = 'none';
+      document.getElementById('guideToggle').textContent = '展开 ▼';
+    }
+    refresh();
+  </script>
+</body>
+</html>

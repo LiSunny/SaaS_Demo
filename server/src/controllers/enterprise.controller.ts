@@ -3,7 +3,7 @@ import * as svc from '../services/enterprise.service.js'
 
 export async function getList(req: Request, res: Response, next: NextFunction) {
   try {
-    const { page = 1, size = 20, keyword, dimALevel1, dimB, dimC, dimD, includeDeleted } = req.query
+    const { page = 1, size = 20, keyword, dimALevel1, dimB, dimC, dimD, status, includeDeleted } = req.query
     const result = await svc.getList({
       page: +page, size: +size,
       keyword: keyword as string,
@@ -11,6 +11,7 @@ export async function getList(req: Request, res: Response, next: NextFunction) {
       dimB: dimB as string,
       dimC: dimC as string,
       dimD: dimD as string,
+      status: status as string,
       includeDeleted: includeDeleted === 'true',
     })
     res.json({ code: 0, message: 'ok', data: result })
@@ -26,21 +27,24 @@ export async function getDetail(req: Request, res: Response, next: NextFunction)
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await svc.create(req.body)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    const item = await svc.create(req.body, operator)
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await svc.update(+req.params.id, req.body)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    const item = await svc.update(+req.params.id, req.body, operator)
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }
 
 export async function lock(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await svc.toggleLock(+req.params.id)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    const item = await svc.toggleLock(+req.params.id, operator)
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }
@@ -61,14 +65,16 @@ export async function batchDelete(req: Request, res: Response, next: NextFunctio
 
 export async function softDelete(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.softDelete(+req.params.id)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.softDelete(+req.params.id, operator)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
 
 export async function recover(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.recover(+req.params.id)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.recover(+req.params.id, operator)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
@@ -93,14 +99,16 @@ export async function getSubordinates(req: Request, res: Response, next: NextFun
 
 export async function addSubordinates(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.addSubordinates(+req.params.id, req.body.ids.map(Number))
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.addSubordinates(+req.params.id, req.body.ids.map(Number), operator)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
 
 export async function removeSubordinates(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.removeSubordinates(+req.params.id, req.body.ids.map(Number))
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.removeSubordinates(+req.params.id, req.body.ids.map(Number), operator)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
@@ -119,21 +127,32 @@ export async function getPartners(req: Request, res: Response, next: NextFunctio
 
 export async function addPartners(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.addPartner(+req.params.id, +req.body.enterpriseId, req.body.role, req.body.tags || [])
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.addPartner(+req.params.id, +req.body.enterpriseId, req.body.role, req.body.tags || [], operator)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }
 
 export async function removePartners(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.removePartners(+req.params.id, req.body.ids.map(Number))
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.removePartners(+req.params.id, req.body.ids.map(Number), operator)
     res.json({ code: 0, message: 'ok', data: null })
+  } catch (err) { next(err) }
+}
+
+export async function updatePartner(req: Request, res: Response, next: NextFunction) {
+  try {
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    const item = await svc.updatePartner(+req.params.id, +req.params.relationId, req.body, operator)
+    res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }
 
 export async function savePartnerAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await svc.savePartnerAuth(+req.params.relationId, req.body)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    const item = await svc.savePartnerAuth(+req.params.relationId, req.body, operator)
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }

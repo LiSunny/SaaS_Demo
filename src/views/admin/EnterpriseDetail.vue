@@ -208,6 +208,11 @@
           </div>
         </div>
 
+        <!-- ===== Tab 内容：下级管理 ===== -->
+        <div v-else-if="activeTab === 'subordinateMgmt'" class="tab-content">
+          <SubordinateManage :enterprise-id="store.detail?.id || ''" />
+        </div>
+
         <!-- ===== Tab 内容：相关方管理 ===== -->
         <div v-else-if="activeTab === 'partnerMgmt'" class="tab-content">
           <PartnerManage :enterprise-id="store.detail?.id || ''" />
@@ -242,13 +247,14 @@ import { CopyDocument } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import AppIcon from '@/components/base/AppIcon.vue'
 import PartnerManage from './PartnerManage.vue'
+import SubordinateManage from './SubordinateManage.vue'
 import EnterpriseFormDrawer from '@/components/business/EnterpriseFormDrawer.vue'
 
 // ===== Store / Router（必须在最前面，后续 computed/watch 要用） =====
 const route = useRoute()
 const router = useRouter()
 const store = useEnterpriseStore()
-const { confirmDelete } = useConfirm()
+const { confirmDeleteWithInput } = useConfirm()
 
 // ===== 编辑抽屉 =====
 const drawerVisible = ref(false)
@@ -405,15 +411,18 @@ function handleEdit() {
 async function handleDelete() {
   if (!store.detail) return
   try {
-    await confirmDelete(
+    await confirmDeleteWithInput(
       store.detail.name,
       '删除后不可恢复。',
     )
     await store.handleBatchDelete([store.detail.id])
-    ElMessage.success('删除成功')
     router.push('/admin/enterpriseManagement/index')
-  } catch {
-    // 用户取消
+  } catch (e: any) {
+    // ElMessageBox 取消 / 关闭 → 静默忽略
+    if (e === 'cancel' || e === 'close') return
+    // API 错误 → 展示后端返回的错误信息
+    const msg = e?.response?.data?.message || e?.message || '删除失败'
+    ElMessage.error(msg)
   }
 }
 
@@ -576,6 +585,7 @@ onMounted(() => {
   justify-content: space-between;
   gap: 8px;
   padding: var(--spacing-md) 0;
+  flex: 1 1 0;
   min-width: 0;
 }
 
@@ -617,6 +627,8 @@ onMounted(() => {
   color: var(--text-tertiary);
   white-space: nowrap;
   line-height: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ========== 分隔线 ========== */
@@ -632,7 +644,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-xxl);
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
 }
 
@@ -640,7 +652,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 0 18px;
+  padding: 0 px;
   flex: 1 1 0;
   min-width: 0;
 }
@@ -670,7 +682,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: var(--font-body);
+  font-size: var(--font-small);
   color: var(--text-secondary);
   white-space: nowrap;
   line-height: normal;
@@ -803,16 +815,15 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--spacing-lg);
 }
-
 .form-label {
-  font-size: var(--font-body);
+  font-size: var(--font-small);
   color: var(--text-muted);
   white-space: nowrap;
   line-height: normal;
 }
 
 .form-value {
-  font-size: var(--font-h4);
+  font-size: var(--font-body);
   color: var(--text-primary);
   font-weight: 500;
   line-height: 25px;

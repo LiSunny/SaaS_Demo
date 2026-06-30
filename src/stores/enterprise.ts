@@ -164,12 +164,18 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
   // ===== 操作日志 =====
   const logs = ref<OperationLogItem[]>([])
   const logLoading = ref(false)
+  const logPage = ref(1)
+  const logSize = ref(10)
+  const logTotal = ref(0)
 
-  async function fetchLogs(enterpriseId: string) {
+  async function fetchLogs(enterpriseId: string, page?: number, size?: number) {
+    if (page !== undefined) logPage.value = page
+    if (size !== undefined) logSize.value = size
     logLoading.value = true
     try {
-      const r = await getOperationLogs(enterpriseId, { page: 1, size: 100 })
+      const r = await getOperationLogs(enterpriseId, { page: logPage.value, size: logSize.value })
       logs.value = r.data
+      logTotal.value = r.total
     } finally { logLoading.value = false }
   }
 
@@ -217,7 +223,7 @@ export const useEnterpriseStore = defineStore('enterprise', () => {
     handleLock, handleExtend, handleBatchDelete, handleSoftDelete, handleRecover, handleCreate, handleUpdate,
     subordinates, subLoading, fetchSubordinates, handleAddSubordinates, handleRemoveSubordinates,
     partners, partnerLoading, fetchPartners, handleAddPartner, handleRemovePartners, handleSavePartnerAuth,
-    logs, logLoading, fetchLogs,
+    logs, logLoading, logPage, logSize, logTotal, fetchLogs,
     qrcode, fetchQrcode, handleRegenerateQrcode,
     relationRoleDict, dictB, dictC, dictD, moduleTree, fetchDicts,
     searchEnterprisesRemote,

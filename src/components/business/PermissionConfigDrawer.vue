@@ -112,8 +112,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, computed } from 'vue'
+import { ElMessageBox } from 'element-plus'
 import { getPositionDetail } from '@/api/position-admin'
 import { usePositionStore } from '@/stores/position-admin'
 import {
