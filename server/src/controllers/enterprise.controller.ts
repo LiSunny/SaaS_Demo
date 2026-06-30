@@ -51,14 +51,16 @@ export async function lock(req: Request, res: Response, next: NextFunction) {
 
 export async function extend(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await svc.extend(+req.params.id, req.body.validTo)
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    const item = await svc.extend(+req.params.id, req.body.validTo, operator)
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }
 
 export async function batchDelete(req: Request, res: Response, next: NextFunction) {
   try {
-    await svc.batchDelete(req.body.ids.map(Number))
+    const operator = { id: req.user!.id, realName: req.user!.realName }
+    await svc.batchDelete(req.body.ids.map(Number), operator)
     res.json({ code: 0, message: 'ok', data: null })
   } catch (err) { next(err) }
 }

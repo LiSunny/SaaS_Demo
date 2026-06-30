@@ -155,8 +155,9 @@ export async function getDetail(id: number) {
 // ============================================
 // 新增（含自动初始化管理员 + 下级管理关联）
 // ============================================
-export async function create(form: any, _operator?: any) {
+export async function create(form: any, operator?: any) {
   const code = `QY${Date.now()}`
+  const opName = operator?.realName || '当前用户'
 
   // ① 创建企业记录
   const e = await db.enterprise.create({
@@ -181,7 +182,7 @@ export async function create(form: any, _operator?: any) {
       remark: form.remark || '',
       logo: form.logo || '',
       status: 1,
-      creatorName: form.creatorName || '当前用户',
+      creatorName: opName,
       // GIS 地图标注
       mapLng: parseFloat(form.mapLng) || 0,
       mapLat: parseFloat(form.mapLat) || 0,
@@ -219,7 +220,7 @@ export async function create(form: any, _operator?: any) {
           userId: user.id,
           enterpriseId: e.id,
           positions: JSON.stringify(['platform:org-admin']),
-          inviterName: form.creatorName || '平台运营方',
+          inviterName: opName,
         },
       })
     }
@@ -258,7 +259,7 @@ export async function create(form: any, _operator?: any) {
           relatedId: e.id,
           relatedName: e.name,
           dimALevel1: e.dimALevel1,
-          operatorName: form.creatorName || '当前用户',
+          operatorName: opName,
         },
       })
 
@@ -268,6 +269,17 @@ export async function create(form: any, _operator?: any) {
         data: { parentName: parent.name },
       })
     }
+  }
+
+  // ⑤ 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: e.id,
+      action: 'create',
+      actionLabel: '创建企业',
+      operator,
+      detailJson: JSON.stringify([{ label: '企业名称', value: form.name }]),
+    })
   }
 
   return {
@@ -301,7 +313,7 @@ async function checkCycle(ancestorId: number, childId: number): Promise<boolean>
 // ============================================
 // 更新
 // ============================================
-export async function update(id: number, form: any, _operator?: any) {
+export async function update(id: number, form: any, operator?: any) {
   const existing = await db.enterprise.findUnique({ where: { id } })
   if (!existing) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (existing.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
@@ -339,45 +351,120 @@ export async function update(id: number, form: any, _operator?: any) {
   if (form.mapAddress !== undefined) data.mapAddress = form.mapAddress
 
   const e = await db.enterprise.update({ where: { id }, data })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: id,
+      action: 'update',
+      actionLabel: '更新企业',
+      operator,
+      detailJson: JSON.stringify([{ label: '企业名称', value: form.name || existing.name }]),
+    })
+  }
+
   return toItem(e)
 }
 
 // ============================================
 // 锁定/解锁
 // ============================================
-export async function toggleLock(id: number, _operator?: any) {
+export async function toggleLock(id: number, operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (e.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
 
-  const newStatus = e.status === 1 ? 0 : 1
+  const isLocking = e.status === 1
+  const newStatus = isLocking ? 0 : 1
   await db.enterprise.update({ where: { id }, data: { status: newStatus } })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: id,
+      action: isLocking ? 'lock' : 'unlock',
+      actionLabel: isLocking ? '锁定企业' : '解锁企业',
+      operator,
+      detailJson: JSON.stringify([{ label: '企业名称', value: e.name }]),
+    })
+  }
+
   return toItem(await db.enterprise.findUnique({ where: { id } })!)
 }
 
 // ============================================
 // 延期
 // ============================================
-export async function extend(id: number, validTo: string) {
+export async function extend(id: number, validTo: string, operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (e.deletedAt) throw Object.assign(new Error('企业已被删除，无法操作'), { statusCode: 409 })
 
   await db.enterprise.update({ where: { id }, data: { validTo, status: 1 } })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: id,
+      action: 'extend',
+      actionLabel: '延期企业',
+      operator,
+      detailJson: JSON.stringify([{ label: '企业名称', value: e.name }, { label: '延期至', value: validTo }]),
+    })
+  }
+
   return toItem(await db.enterprise.findUnique({ where: { id } })!)
 }
 
 // ============================================
 // 批量删除
 // ============================================
-export async function batchDelete(ids: number[]) {
+export async function batchDelete(ids: number[], operator?: any) {
+  // 记录日志（删除前查询企业名称）
+  if (operator) {
+    const enterprises = await db.enterprise.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true },
+    })
+    for (const ent of enterprises) {
+      await writeLog({
+        enterpriseId: ent.id,
+        action: 'batch_delete',
+        actionLabel: '删除企业',
+        operator,
+        detailJson: JSON.stringify([{ label: '企业名称', value: ent.name }]),
+      })
+    }
+  }
+
+  // 级联清理关联数据，避免外键约束阻止删除
+  // ① 删除该企业下的用户-企业关联
+  await db.userEnterprise.deleteMany({ where: { enterpriseId: { in: ids } } })
+
+  // ② 删除该企业作为任一方的所有关系记录
+  await db.enterpriseRelation.deleteMany({
+    where: {
+      OR: [
+        { enterpriseId: { in: ids } },
+        { relatedId: { in: ids } },
+      ],
+    },
+  })
+
+  // ③ 删除操作日志
+  await db.enterpriseOperationLog.deleteMany({ where: { enterpriseId: { in: ids } } })
+
+  // ④ 删除该企业关联的工单
+  await db.workOrder.deleteMany({ where: { creatorOrgId: { in: ids } } })
+
+  // ⑤ 最后删除企业本体
   await db.enterprise.deleteMany({ where: { id: { in: ids } } })
 }
 
 // ============================================
 // 软删除
 // ============================================
-export async function softDelete(id: number, _operator?: any) {
+export async function softDelete(id: number, operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (e.deletedAt) throw Object.assign(new Error('企业已被删除'), { statusCode: 409 })
@@ -386,6 +473,17 @@ export async function softDelete(id: number, _operator?: any) {
     where: { id },
     data: { deletedAt: new Date() },
   })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: id,
+      action: 'delete',
+      actionLabel: '删除企业',
+      operator,
+      detailJson: JSON.stringify([{ label: '企业名称', value: e.name }]),
+    })
+  }
 
   // 级联：停用该企业下所有用户-企业关联
   await db.userEnterprise.updateMany({
@@ -407,7 +505,7 @@ export async function softDelete(id: number, _operator?: any) {
 // ============================================
 // 恢复软删除
 // ============================================
-export async function recover(id: number, _operator?: any) {
+export async function recover(id: number, operator?: any) {
   const e = await db.enterprise.findUnique({ where: { id } })
   if (!e) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
   if (!e.deletedAt) throw Object.assign(new Error('企业未被删除'), { statusCode: 409 })
@@ -416,6 +514,17 @@ export async function recover(id: number, _operator?: any) {
     where: { id },
     data: { deletedAt: null },
   })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: id,
+      action: 'recover',
+      actionLabel: '恢复企业',
+      operator,
+      detailJson: JSON.stringify([{ label: '企业名称', value: e.name }]),
+    })
+  }
 }
 
 // ============================================
@@ -472,9 +581,10 @@ export async function getSubordinates(enterpriseId: number, params: { keyword?: 
   }
 }
 
-export async function addSubordinates(enterpriseId: number, subordinateIds: number[], _operator?: any) {
+export async function addSubordinates(enterpriseId: number, subordinateIds: number[], operator?: any) {
   const enterprise = await db.enterprise.findUnique({ where: { id: enterpriseId } })
   if (!enterprise) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+  const opName = operator?.realName || '当前用户'
 
   for (const subId of subordinateIds) {
     const sub = await db.enterprise.findUnique({ where: { id: subId } })
@@ -490,13 +600,41 @@ export async function addSubordinates(enterpriseId: number, subordinateIds: numb
         relatedId: subId,
         relatedName: sub.name,
         dimALevel1: sub.dimALevel1,
-        operatorName: '当前用户',
+        operatorName: opName,
       },
     })
+
+    // 操作日志（按企业维度写日志时用 enterpriseId，而非 subId）
+    if (operator) {
+      await writeLog({
+        enterpriseId,
+        action: 'add_subordinate',
+        actionLabel: '添加下级',
+        operator,
+        detailJson: JSON.stringify([{ label: '下级企业', value: sub.name }]),
+      })
+    }
   }
 }
 
-export async function removeSubordinates(_enterpriseId: number, relationIds: number[], _operator?: any) {
+export async function removeSubordinates(enterpriseId: number, relationIds: number[], operator?: any) {
+  // 记录日志（删除前查询关系信息）
+  if (operator) {
+    const relations = await db.enterpriseRelation.findMany({
+      where: { id: { in: relationIds } },
+      select: { relatedName: true },
+    })
+    for (const r of relations) {
+      await writeLog({
+        enterpriseId,
+        action: 'remove_subordinate',
+        actionLabel: '移除下级',
+        operator,
+        detailJson: JSON.stringify([{ label: '下级企业', value: r.relatedName }]),
+      })
+    }
+  }
+
   await db.enterpriseRelation.deleteMany({ where: { id: { in: relationIds } } })
 }
 
@@ -541,7 +679,7 @@ export async function getPartners(enterpriseId: number, params: { keyword?: stri
   }
 }
 
-export async function addPartner(enterpriseId: number, partnerId: number, role?: string, tags: string[] = [], _operator?: any) {
+export async function addPartner(enterpriseId: number, partnerId: number, role?: string, tags: string[] = [], operator?: any) {
   const enterprise = await db.enterprise.findUnique({ where: { id: enterpriseId } })
   if (!enterprise) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
 
@@ -565,16 +703,44 @@ export async function addPartner(enterpriseId: number, partnerId: number, role?:
       dimALevel1: partner.dimALevel1,
       contactName: partner.contactName,
       contactPhone: partner.contactPhone,
-      operatorName: '当前用户',
+      operatorName: operator?.realName || '当前用户',
     },
   })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId,
+      action: 'add_partner',
+      actionLabel: '关联相关方',
+      operator,
+      detailJson: JSON.stringify([{ label: '相关方', value: partner.name }, { label: '角色', value: ROLE_MAP[role || ''] || role || '--' }]),
+    })
+  }
 }
 
-export async function removePartners(_enterpriseId: number, relationIds: number[], _operator?: any) {
+export async function removePartners(enterpriseId: number, relationIds: number[], operator?: any) {
+  // 记录日志（删除前查询关系信息）
+  if (operator) {
+    const relations = await db.enterpriseRelation.findMany({
+      where: { id: { in: relationIds } },
+      select: { relatedName: true },
+    })
+    for (const r of relations) {
+      await writeLog({
+        enterpriseId,
+        action: 'remove_partner',
+        actionLabel: '解除相关方',
+        operator,
+        detailJson: JSON.stringify([{ label: '相关方', value: r.relatedName }]),
+      })
+    }
+  }
+
   await db.enterpriseRelation.deleteMany({ where: { id: { in: relationIds } } })
 }
 
-export async function savePartnerAuth(relationId: number, data: { authUnits: string[]; allowOperation: boolean }, _operator?: any) {
+export async function savePartnerAuth(relationId: number, data: { authUnits: string[]; allowOperation: boolean }, operator?: any) {
   const r = await db.enterpriseRelation.update({
     where: { id: relationId },
     data: {
@@ -582,6 +748,21 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
       allowOperation: data.allowOperation,
     },
   })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId: r.enterpriseId,
+      action: 'partner_auth',
+      actionLabel: '配置相关方授权',
+      operator,
+      detailJson: JSON.stringify([
+        { label: '相关方', value: r.relatedName },
+        { label: '授权单元', value: data.authUnits.join('、') || '无' },
+      ]),
+    })
+  }
+
   return {
     id: String(r.id),
     enterpriseId: String(r.relatedId),
@@ -598,7 +779,7 @@ export async function savePartnerAuth(relationId: number, data: { authUnits: str
   }
 }
 
-export async function updatePartner(enterpriseId: number, relationId: number, data: any, _operator?: any) {
+export async function updatePartner(enterpriseId: number, relationId: number, data: any, operator?: any) {
   const r = await db.enterpriseRelation.findFirst({
     where: { id: relationId, enterpriseId, type: 'partner' },
   })
@@ -613,6 +794,17 @@ export async function updatePartner(enterpriseId: number, relationId: number, da
     where: { id: relationId },
     data: updateData,
   })
+
+  // 操作日志
+  if (operator) {
+    await writeLog({
+      enterpriseId,
+      action: 'update_partner',
+      actionLabel: '更新相关方',
+      operator,
+      detailJson: JSON.stringify([{ label: '相关方', value: updated.relatedName }]),
+    })
+  }
 
   return {
     id: String(updated.id),
@@ -763,9 +955,47 @@ export async function removeMember(enterpriseId: number, userId: number, operato
 // ============================================
 // 操作日志
 // ============================================
-export async function getOperationLogs(_enterpriseId: number, _params: { page: number; size: number }) {
-  // 简化版：返回空，后续实现
-  return { data: [], total: 0 }
+
+async function writeLog(params: {
+  enterpriseId: number
+  action: string
+  actionLabel: string
+  operator: { id: number; realName: string }
+  detailJson?: string
+}) {
+  await db.enterpriseOperationLog.create({
+    data: {
+      enterpriseId: params.enterpriseId,
+      action: params.action,
+      actionLabel: params.actionLabel,
+      operatorId: params.operator.id,
+      operatorName: params.operator.realName,
+      detailJson: params.detailJson || '[]',
+    },
+  })
+}
+
+export async function getOperationLogs(enterpriseId: number, params: { page: number; size: number }) {
+  const [data, total] = await Promise.all([
+    db.enterpriseOperationLog.findMany({
+      where: { enterpriseId },
+      orderBy: { createdAt: 'desc' },
+      skip: (params.page - 1) * params.size,
+      take: params.size,
+    }),
+    db.enterpriseOperationLog.count({ where: { enterpriseId } }),
+  ])
+  return {
+    data: data.map(log => ({
+      id: String(log.id),
+      action: log.actionLabel,
+      timestamp: log.createdAt,
+      operatorName: log.operatorName,
+      description: log.actionLabel,
+      details: JSON.parse(log.detailJson || '[]'),
+    })),
+    total,
+  }
 }
 
 // ============================================

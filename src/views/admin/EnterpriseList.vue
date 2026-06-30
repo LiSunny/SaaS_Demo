@@ -85,6 +85,12 @@
                   <button class="act-btn act-preview" title="查看详情" @click="$router.push(`/admin/enterpriseManagement/detail?id=${row.id}`)">
                     <AppIcon name="preview" class="act-icon" />
                   </button>
+                  <button class="act-btn" title="个性化配置" @click="openBranding(row)">
+                    <AppIcon name="setting" class="act-icon" />
+                  </button>
+                  <button class="act-btn" title="应用配置" @click="openAppConfig(row)">
+                    <AppIcon name="operation" class="act-icon" />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -116,6 +122,33 @@
       @saved="onDrawerSaved"
     />
 
+
+    <!-- ===== 个性化配置弹窗 ===== -->
+    <el-dialog v-model="brandingVisible" title="个性化设置" width="500px" :close-on-click-modal="false">
+      <el-form label-width="100px">
+        <el-form-item label="域名"><el-input v-model="brandingForm.domain" placeholder="如 tenant.platform.com" /></el-form-item>
+        <el-form-item label="版权公告"><el-input v-model="brandingForm.copyright" placeholder="如 © 2026 Company" /></el-form-item>
+        <el-form-item label="ICP备案"><el-input v-model="brandingForm.icp" placeholder="如 京ICP备XXXXXXXX号" /></el-form-item>
+        <el-form-item label="平台标题"><el-input v-model="brandingForm.title" placeholder="如 XX安全管理平台" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <button class="btn-default" @click="brandingVisible = false">取消</button>
+        <button class="btn-primary" @click="brandingVisible = false">确认</button>
+      </template>
+    </el-dialog>
+
+    <!-- ===== 应用配置弹窗 ===== -->
+    <el-dialog v-model="appConfigVisible" title="应用设置" width="700px" :close-on-click-modal="false">
+      <el-tabs v-model="appConfigTab">
+        <el-tab-pane v-for="tab in moduleTabs" :key="tab.key" :label="tab.label" :name="tab.key">
+          <el-tree :data="tab.children" show-checkbox node-key="key" default-expand-all :default-checked-keys="allModuleKeys" />
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <button class="btn-default" @click="appConfigVisible = false">取消</button>
+        <button class="btn-primary" @click="appConfigVisible = false">确定</button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -231,6 +264,28 @@ function statusLabel(row: EnterpriseItem): string {
   return '已过期'
 }
 
+
+// ===== 个性化配置 =====
+const brandingVisible = ref(false)
+const brandingForm = ref({ domain: '', copyright: '', icp: '', title: '' })
+function openBranding(_row: EnterpriseItem) { brandingVisible.value = true }
+
+// ===== 应用配置 =====
+const appConfigVisible = ref(false)
+const appConfigTab = ref('设备管理')
+const allModuleKeys = ['device-ledger', 'maintenance', 'monitor']
+const moduleTabs: { key: string; label: string; children: { key: string; label: string }[] }[] = [
+  { key: '设备管理', label: '设备管理', children: [
+    { key: 'device-ledger', label: '设备台账' }, { key: 'maintenance', label: '保养管理' }, { key: 'monitor', label: '运行监控' },
+  ]},
+  { key: 'IOT', label: 'IOT', children: [] },
+  { key: '远程值守', label: '远程值守', children: [{ key: 'alarm-center', label: '告警中心' }] },
+  { key: '巡查检查', label: '巡查检查', children: [] },
+  { key: '维保应用', label: '维保应用', children: [] },
+  { key: '数据可视化', label: '数据可视化', children: [] },
+  { key: '平台管理', label: '平台管理', children: [] },
+]
+function openAppConfig(_row: EnterpriseItem) { appConfigVisible.value = true }
 onMounted(async () => { await store.fetchList(); applyDateSort() })
 </script>
 

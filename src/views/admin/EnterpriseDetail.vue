@@ -218,6 +218,20 @@
           <PartnerManage :enterprise-id="store.detail?.id || ''" />
         </div>
 
+        <!-- ===== Tab 内容：操作日志 ===== -->
+        <div v-else-if="activeTab === 'operationLog'" class="tab-content">
+          <OperationLogsTab
+            :logs="store.logs"
+            :loading="store.logLoading"
+            :error="null"
+            :page="store.logPage"
+            :size="store.logSize"
+            :total="store.logTotal"
+            @refresh="store.fetchLogs(store.detail!.id)"
+            @page-change="(p: number, s: number) => store.fetchLogs(store.detail!.id, p, s)"
+          />
+        </div>
+
         <!-- ===== 其他 Tab 占位 ===== -->
         <div v-else class="tab-stub">
           <div class="stub-content">
@@ -249,6 +263,7 @@ import AppIcon from '@/components/base/AppIcon.vue'
 import PartnerManage from './PartnerManage.vue'
 import SubordinateManage from './SubordinateManage.vue'
 import EnterpriseFormDrawer from '@/components/business/EnterpriseFormDrawer.vue'
+import OperationLogsTab from '@/components/business/OperationLogsTab.vue'
 
 // ===== Store / Router（必须在最前面，后续 computed/watch 要用） =====
 const route = useRoute()
@@ -341,6 +356,13 @@ const tabs = [
 ] as const
 type TabKey = (typeof tabs)[number]['key']
 const activeTab = ref<TabKey>('enterpriseDetail')
+
+// 切换到操作日志 Tab 时自动拉取日志
+watch(activeTab, (tab) => {
+  if (tab === 'operationLog' && store.detail?.id) {
+    store.fetchLogs(store.detail.id)
+  }
+})
 
 // ===== dimB / dimD 字典 =====
 const DIM_B_MAP: Record<string, string> = {
@@ -461,7 +483,7 @@ onMounted(() => {
   padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxl);
+  gap: var(--spacing-xl);
   height: 100%;
 }
 
