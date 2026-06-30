@@ -652,7 +652,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 0 px;
+  padding: 0 24px;
   flex: 1 1 0;
   min-width: 0;
 }
