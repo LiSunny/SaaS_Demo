@@ -26,7 +26,7 @@
               :class="['es-option', { active: selectedEnterpriseId === group.enterpriseId && selectedPosition === pos }]"
               @click="select(group.enterpriseId, pos)"
             >
-              <span class="es-option-name">{{ pos }}</span>
+              <span class="es-option-name">{{ getPositionLabel(pos) }}</span>
               <span v-if="selectedEnterpriseId === group.enterpriseId && selectedPosition === pos" class="es-check">✓</span>
             </button>
           </div>
@@ -41,7 +41,18 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getMyEnterprises } from '@/api/user-admin'
+import { ALL_POSITIONS } from '@/config/positions'
 import type { UserEnterpriseItem } from '@/types/user-admin'
+
+/** 岗位 key → 中文名称映射 */
+const positionLabelMap: Record<string, string> = Object.fromEntries(
+  ALL_POSITIONS.map(p => [p.key, p.name])
+)
+
+/** 将英文岗位 key 转为中文，未知 key 原样返回 */
+function getPositionLabel(key: string): string {
+  return positionLabelMap[key] || key
+}
 
 const STORAGE_KEY_ENT = 'demo-enterprise-id'
 const STORAGE_KEY_POS = 'demo-position-name'
@@ -66,7 +77,7 @@ const currentLabel = computed(() => {
   if (!selectedEnterpriseId.value || !selectedPosition.value) return ''
   const ent = enterprises.value.find(e => e.enterpriseId === selectedEnterpriseId.value)
   if (!ent) return ''
-  return `${ent.enterpriseName} · ${selectedPosition.value}`
+  return `${ent.enterpriseName} · ${getPositionLabel(selectedPosition.value)}`
 })
 
 function loadSelectedEnterpriseId(): number {
