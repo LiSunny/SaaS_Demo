@@ -239,7 +239,14 @@ onMounted(async () => { await store.fetchList(); applyDateSort() })
 .content-card {
   background: var(--bg-card); border-radius: var(--radius-md, 8px);
   padding: var(--spacing-xl, 16px); display: flex; flex-direction: column;
-  height: 100%; gap: var(--spacing-lg, 12px); overflow: auto;
+  height: 100%; gap: var(--spacing-lg, 12px); overflow: hidden;
+}
+
+/* 固定表头 —— 仅 table-wrap 内滚动，thead 吸附在顶部 */
+.fi-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 /* ===== 引导说明卡片 ===== */
