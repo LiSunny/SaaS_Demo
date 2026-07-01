@@ -11,7 +11,7 @@
           <a v-for="l in navLinks" :key="l" :href="`#${l}`" class="nav-link" :class="{ scrolled }">{{ l }}</a>
         </div>
         <div class="nav-actions">
-          <a href="/login" target="_blank" class="nav-btn">去体验</a>
+          <button class="nav-btn" @click="handleGoExp">去体验</button>
         </div>
       </div>
     </nav>
@@ -199,6 +199,18 @@
         </div>
       </div>
     </footer>
+
+    <!-- ===== Mobile tip modal ===== -->
+    <div v-if="showMobileTip" class="mobile-tip-overlay" @click.self="showMobileTip = false">
+      <div class="mobile-tip-card">
+        <div class="mobile-tip-icon">💻</div>
+        <h3 class="mobile-tip-title">目前仅支持电脑端体验</h3>
+        <p class="mobile-tip-sub">请复制链接在电脑浏览器中打开</p>
+        <button class="mobile-tip-btn" @click="copyExpUrl">
+          {{ copied ? '复制成功，去体验吧' : '复制体验地址' }}
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -208,6 +220,37 @@ import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, F
 import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
 import scenarioIndustryImg from '@/assets/portal/scenario-industry.png'
 import scenarioEbikeImg from '@/assets/portal/scenario-ebike.png'
+
+// ===== Mobile detection =====
+const isMobile = () => window.innerWidth < 768
+
+// ===== Go experience =====
+const showMobileTip = ref(false)
+const copied = ref(false)
+
+const handleGoExp = () => {
+  if (isMobile()) {
+    showMobileTip.value = true
+  } else {
+    window.open('/login', '_blank')
+  }
+}
+
+const copyExpUrl = async () => {
+  const url = window.location.origin + '/login'
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
+    // fallback
+    const ta = document.createElement('textarea')
+    ta.value = url
+    ta.style.position = 'fixed'; ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select(); document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
+  copied.value = true
+}
 
 // ===== Scroll & Nav =====
 const scrolled = ref(false)
@@ -432,7 +475,7 @@ const FOOTER_COLS = [
 .nav-link.scrolled:hover { color: #3678E3; }
 .nav-actions { display: flex; align-items: center; gap: 8px; }
 @media (min-width: 640px) { .nav-actions { gap: 12px; } }
-.nav-btn { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; background: #3678E3; color: #fff; text-decoration: none; box-shadow: 0 2px 8px rgba(54,120,227,0.3); transition: background 0.2s; }
+.nav-btn { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: none; background: #3678E3; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(54,120,227,0.3); transition: background 0.2s; }
 @media (min-width: 640px) { .nav-btn { font-size: 14px; padding: 8px 20px; } }
 .nav-btn:hover { background: rgba(54,120,227,0.9); }
 
@@ -574,4 +617,13 @@ const FOOTER_COLS = [
 .ft-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 32px; font-size: 12px; color: rgba(255,255,255,0.5); }
 @media (min-width: 640px) { .ft-bottom { flex-direction: row; justify-content: space-between; } }
 .ft-icp { font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
+
+/* ===== Mobile tip modal ===== */
+.mobile-tip-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.mobile-tip-card { background: #fff; border-radius: 16px; padding: 40px 32px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.mobile-tip-icon { font-size: 48px; margin-bottom: 16px; }
+.mobile-tip-title { font-size: 18px; font-weight: 700; color: #101010; margin: 0 0 8px; }
+.mobile-tip-sub { font-size: 14px; color: #5E5E5E; margin: 0 0 24px; line-height: 1.6; }
+.mobile-tip-btn { width: 100%; padding: 12px 24px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; background: #3678E3; color: #fff; cursor: pointer; transition: background 0.2s; }
+.mobile-tip-btn:hover { background: rgba(54,120,227,0.9); }
 </style>
