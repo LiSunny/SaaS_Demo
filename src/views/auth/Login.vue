@@ -4,8 +4,11 @@
 
     <!-- 左上角：Logo + 品牌名 -->
     <header class="login-header">
-      <img class="brand-logo" src="/favicon.svg" alt="平台logo" />
-      <span class="brand-name">韧性云</span>
+      <div class="login-header-left">
+        <img class="brand-logo" src="/favicon.svg" alt="平台logo" />
+        <span class="brand-name">韧性云</span>
+      </div>
+      <a href="/portal" target="_blank" class="portal-entry">了解平台</a>
     </header>
 
     <!-- 中部：左右两栏 -->
@@ -246,8 +249,14 @@ async function handleLogin() {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: calc(28 * var(--h)) calc(27 * var(--w)) 0 calc(27 * var(--w));
+}
+
+.login-header-left {
+  display: flex;
+  align-items: center;
   gap: calc(18 * var(--w));
-  padding: calc(28 * var(--h)) 0 0 calc(27 * var(--w));
 }
 
 .brand-logo {
@@ -265,6 +274,16 @@ async function handleLogin() {
   white-space: nowrap;
   line-height: 1;
 }
+
+.portal-entry {
+  font-size: calc(16 * var(--min-scale));
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.portal-entry:hover { opacity: 0.75; }
 
 /* ============================================
    中部：双栏布局

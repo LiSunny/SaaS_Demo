@@ -18,6 +18,14 @@ const DefaultLayout = () => import('@/layouts/DefaultLayout.vue')
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // ===== 对外门户页（无布局，独立页面，无需登录） =====
+    {
+      path: '/portal',
+      name: 'Portal',
+      component: () => import('@/views/portal/PortalPage.vue'),
+      meta: { standalone: true },
+    },
+
     // ===== 登录页（无布局，独立页面） =====
     {
       path: '/login',
@@ -129,14 +137,14 @@ const router = createRouter({
 // ===== 全局路由守卫 =====
 router.beforeEach((to) => {
   const token = localStorage.getItem('auth_token')
-  const isLoginPage = to.path === '/login'
+  const isPublicPage = to.path === '/login' || to.path === '/portal'
 
-  if (!token && !isLoginPage) {
+  if (!token && !isPublicPage) {
     return { path: '/login', query: { redirect: to.fullPath } }
   }
 
   // 已登录访问登录页 → 跳转工作台
-  if (token && isLoginPage) {
+  if (token && to.path === '/login') {
     return { path: '/workbench' }
   }
 
