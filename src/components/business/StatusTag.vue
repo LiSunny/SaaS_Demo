@@ -42,6 +42,7 @@ const MAP: Record<string, { label: string; cls: string }> = {
   // 系统角色
   'platform-ops': { label: '运营管理', cls: 'success' },
   'platform-admin': { label: '技术管理', cls: 'purple' },
+  'platform-user': { label: '普通用户', cls: 'normal' },
 }
 
 const entry = computed(() => MAP[String(props.status)] || { label: props.status, cls: '' })

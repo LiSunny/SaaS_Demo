@@ -430,12 +430,14 @@ async function handleLogin() {
 
 /* 输入框 */
 .login-input :deep(.el-input__wrapper) {
+  height: calc(58 * var(--h));
   border: 1px solid var(--border-high, #d3d3d3) !important;
   border-radius: calc(8 * var(--min-scale)) !important;
   box-shadow: none !important;
   background: var(--bg-card, #fff) !important;
-  padding: calc(4 * var(--h)) calc(16 * var(--w)) !important;
+  padding: 0 calc(16 * var(--w)) !important;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .login-input :deep(.el-input__wrapper:hover) {
@@ -476,9 +478,9 @@ async function handleLogin() {
 /* 按钮 */
 .login-btn {
   width: 100%;
-  height: calc(38 * var(--h));
+  height: calc(58 * var(--h));
   border-radius: calc(8 * var(--min-scale));
-  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 500;
   margin-top: 0;
   --el-button-bg-color: var(--accent-primary, #3678E3);

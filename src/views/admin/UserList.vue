@@ -52,8 +52,7 @@
               <td class="fi-td col-name">{{ row.realName }}</td>
               <td class="fi-td col-email">{{ row.email || '—' }}</td>
               <td class="fi-td col-system-role">
-                <StatusTag v-if="row.systemRole" :status="row.systemRole" />
-                <span v-else class="text-muted">普通用户</span>
+                <StatusTag :status="row.systemRole || 'platform-user'" />
               </td>
               <td class="fi-td col-count">
                 <template v-if="row.systemRole">—</template>
