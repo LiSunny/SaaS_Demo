@@ -37,6 +37,7 @@
               <th class="fi-th col-phone"><span>手机号</span></th>
               <th class="fi-th col-name"><span>真实姓名</span></th>
               <th class="fi-th col-email"><span>邮箱</span></th>
+              <th class="fi-th col-system-role"><span>系统角色</span></th>
               <th class="fi-th col-count"><span>关联企业</span></th>
               <th class="fi-th col-date"><span>创建时间</span></th>
               <th class="fi-th col-actions"><span>操作</span></th>
@@ -50,8 +51,13 @@
               <td class="fi-td col-phone">{{ row.phone }}</td>
               <td class="fi-td col-name">{{ row.realName }}</td>
               <td class="fi-td col-email">{{ row.email || '—' }}</td>
+              <td class="fi-td col-system-role">
+                <StatusTag v-if="row.systemRole" :status="row.systemRole" />
+                <span v-else class="text-muted">普通用户</span>
+              </td>
               <td class="fi-td col-count">
-                <button class="btn-link" @click="openEnterprises(row)">{{ row.enterpriseCount }} 家</button>
+                <template v-if="row.systemRole">—</template>
+                <button v-else class="btn-link" @click="openEnterprises(row)">{{ row.enterpriseCount }} 家</button>
               </td>
               <td class="fi-td col-date">{{ row.createdAt.slice(0, 10) }}</td>
               <td class="fi-td col-actions">
@@ -72,7 +78,7 @@
               </td>
             </tr>
             <tr v-if="!store.loading && store.list.length === 0">
-              <td colspan="7" class="fi-td" style="text-align:center;color:var(--text-muted);padding:48px 0">暂无用户</td>
+              <td colspan="8" class="fi-td" style="text-align:center;color:var(--text-muted);padding:48px 0">暂无用户</td>
             </tr>
           </tbody>
         </table>
@@ -105,6 +111,13 @@
           <el-form-item label="初始密码" prop="password">
             <el-input v-model="createForm.password" type="password" show-password placeholder="至少6位" maxlength="20" />
           </el-form-item>
+          <el-form-item v-if="isOpsAdmin" label="系统角色">
+            <el-select v-model="createForm.systemRole" placeholder="普通用户" style="width:100%">
+              <el-option label="普通用户" :value="null" />
+              <el-option label="运营管理" value="platform-ops" />
+              <el-option label="技术管理" value="platform-admin" />
+            </el-select>
+          </el-form-item>
         </el-form>
         <template #footer>
           <el-button @click="showCreateDialog = false">取消</el-button>
@@ -123,6 +136,13 @@
           </el-form-item>
           <el-form-item label="邮箱" prop="email">
             <el-input v-model="editForm.email" placeholder="请输入邮箱（选填）" />
+          </el-form-item>
+          <el-form-item v-if="isOpsAdmin" label="系统角色">
+            <el-select v-model="editForm.systemRole" placeholder="普通用户" style="width:100%">
+              <el-option label="普通用户" :value="null" />
+              <el-option label="运营管理" value="platform-ops" />
+              <el-option label="技术管理" value="platform-admin" />
+            </el-select>
           </el-form-item>
         </el-form>
         <template #footer>
@@ -156,18 +176,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed, onMounted, h } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserAdminStore } from '@/stores/user-admin'
+import { useUserStore } from '@/stores/user'
 import type { UserItem } from '@/types/user-admin'
 import { ALL_POSITIONS } from '@/config/positions'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 const store = useUserAdminStore()
+const userStore = useUserStore()
 const { confirmDisable, confirmResetPwd } = useConfirm()
+
+// 仅运营管理员可见系统角色选择
+const isOpsAdmin = computed(() => userStore.systemRole === 'platform-ops')
 
 // ===== 岗位名称映射 =====
 const positionMap: Record<string, string> = {}
@@ -191,7 +216,7 @@ onMounted(() => store.fetchList())
 const showCreateDialog = ref(false)
 const creating = ref(false)
 const createFormRef = ref<FormInstance>()
-const createForm = reactive({ phone: '', realName: '', password: '' })
+const createForm = reactive<{ phone: string; realName: string; password: string; systemRole: string | null }>({ phone: '', realName: '', password: '', systemRole: null })
 const createRules: FormRules = {
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -214,6 +239,7 @@ async function submitCreate() {
     createForm.phone = ''
     createForm.realName = ''
     createForm.password = ''
+    createForm.systemRole = null
   } catch { /* error handled by interceptor */ } finally { creating.value = false }
 }
 
@@ -222,7 +248,7 @@ const showEditDialog = ref(false)
 const saving = ref(false)
 const editFormRef = ref<FormInstance>()
 const editingId = ref(0)
-const editForm = reactive({ phone: '', realName: '', email: '' })
+const editForm = reactive<{ phone: string; realName: string; email: string; systemRole: string | null }>({ phone: '', realName: '', email: '', systemRole: null })
 const editRules: FormRules = {
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   email: [{ type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }],
@@ -233,6 +259,7 @@ function openEditDialog(row: UserItem) {
   editForm.phone = row.phone
   editForm.realName = row.realName
   editForm.email = row.email
+  editForm.systemRole = row.systemRole
   showEditDialog.value = true
 }
 
@@ -241,7 +268,7 @@ async function submitEdit() {
   if (!valid) return
   saving.value = true
   try {
-    await store.handleUpdate(editingId.value, { realName: editForm.realName, email: editForm.email })
+    await store.handleUpdate(editingId.value, { realName: editForm.realName, email: editForm.email, systemRole: editForm.systemRole })
     showEditDialog.value = false
   } catch { /* */ } finally { saving.value = false }
 }
@@ -262,7 +289,27 @@ async function handleResetPwd(row: UserItem) {
     await confirmResetPwd()
   } catch { return }
   const newPwd = await store.handleResetPassword(row.id)
-  ElMessage.success(`密码已重置为: ${newPwd}`)
+  await ElMessageBox.alert(
+    h('div', { class: 'reset-pwd-dialog' }, [
+      h('p', null, `「${row.realName}」的密码已重置，新密码为：`),
+      h('div', { class: 'reset-pwd-card' }, [
+        h('span', { class: 'reset-pwd-value' }, newPwd),
+        h('button', {
+          class: 'reset-pwd-copy',
+          onClick: () => {
+            navigator.clipboard.writeText(newPwd)
+            ElMessage.success('已复制到剪贴板')
+          },
+        }, '复制'),
+      ]),
+      h('p', { class: 'reset-pwd-hint' }, '请将新密码告知用户，首次登录后建议修改密码。'),
+    ]),
+    '密码重置成功',
+    {
+      confirmButtonText: '我知道了',
+      type: 'success',
+    },
+  )
 }
 
 // ===== 关联企业 =====
@@ -279,7 +326,14 @@ async function openEnterprises(row: UserItem) {
 .content-card {
   background: var(--bg-card); border-radius: var(--radius-md, 8px);
   padding: var(--spacing-xl, 16px); display: flex; flex-direction: column;
-  height: 100%; gap: var(--spacing-lg, 12px); overflow: auto;
+  height: 100%; gap: var(--spacing-lg, 12px); overflow: hidden;
+}
+
+/* 固定表头 —— 仅 table-wrap 内滚动，thead 吸附在顶部 */
+.fi-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .btn-outline-primary {
@@ -297,11 +351,15 @@ async function openEnterprises(row: UserItem) {
 .col-phone { min-width: 140px; }
 .col-name { min-width: 120px; }
 .col-email { min-width: 160px; }
+.col-system-role { width: 100px; }
 .col-count { width: 100px; }
 .col-date { min-width: 120px; }
 .col-actions { width: 120px; white-space: nowrap; }
 
+.text-muted { color: var(--text-muted); }
+
 /* ===== 响应式 ===== */
+@media (max-width: 1350px) { .col-system-role { display: none !important; } }
 @media (max-width: 1250px) { .col-date { display: none !important; } }
 @media (max-width: 1050px) { .col-email { display: none !important; } }
 @media (max-width: 800px) {
@@ -317,4 +375,29 @@ async function openEnterprises(row: UserItem) {
 :deep(.el-pagination .el-select .el-select__wrapper) { background-color: var(--bg-card) !important; color: var(--text-secondary); border: 1px solid var(--border-high) !important; box-shadow: none !important; }
 :deep(.el-pagination .el-pagination__jump .el-input__wrapper) { background-color: var(--bg-card) !important; border: 1px solid var(--border-high) !important; box-shadow: none !important; }
 :deep(.el-pagination .el-pagination__jump .el-input__inner) { color: var(--text-primary) !important; background-color: var(--bg-card); }
+</style>
+
+<style>
+/* 重置密码弹窗（ElMessageBox teleport 到 body，需全局样式） */
+.reset-pwd-dialog p {
+  margin: 0 0 12px; font-size: 14px; color: var(--text-primary);
+}
+.reset-pwd-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-sub-card); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;
+}
+.reset-pwd-value {
+  font-size: 24px; font-weight: 700; font-family: monospace;
+  color: var(--accent-primary); letter-spacing: 4px; user-select: all;
+}
+.reset-pwd-copy {
+  flex-shrink: 0; padding: 4px 12px; border: 1px solid var(--accent-primary);
+  border-radius: 4px; background: transparent; color: var(--accent-primary);
+  font-size: 13px; cursor: pointer; transition: all .2s;
+}
+.reset-pwd-copy:hover { background: var(--accent-primary10); }
+.reset-pwd-hint {
+  margin: 0 !important; font-size: 12px !important; color: var(--text-muted) !important;
+}
 </style>

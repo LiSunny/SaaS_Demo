@@ -11,24 +11,6 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 开始填充种子数据...')
 
-  // 平台运营方企业
-  const platform = await prisma.enterprise.upsert({
-    where: { code: 'PLATFORM' },
-    update: {},
-    create: {
-      name: '平台运营方',
-      code: 'PLATFORM',
-      dimALevel1: 'platform_operator',
-      contactName: '赵启明',
-      contactPhone: '13800000000',
-      status: 1,
-      region: '杭州市',
-      address: '杭州市西湖区',
-      creatorName: '系统初始化',
-    },
-  })
-  console.log(`  ✅ 平台企业: ${platform.name}`)
-
   // 阳光物业（示例物业方）
   const property = await prisma.enterprise.upsert({
     where: { code: 'DEMO001' },
@@ -97,8 +79,7 @@ async function main() {
   })
   console.log(`  ✅ 示例企业: ${supervisor.name}`)
 
-  // 默认管理员（密码在 auth.service.ts 的 ensureDefaultAdmin() 中通过 bcrypt 处理）
-  // 此处 seed 不创建用户，由启动时的 ensureDefaultAdmin() 统一处理
+  // 平台管理员账号由服务启动时的 ensureDefaultAdmin() 创建（systemRole=platform-ops）
   console.log('  ℹ️  用户账号由服务启动时的 ensureDefaultAdmin() 创建')
 
   // ===== 平台内置岗位（9 个） =====

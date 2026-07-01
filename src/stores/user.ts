@@ -59,6 +59,20 @@ function removeUser(): void {
   localStorage.removeItem(USER_KEY)
 }
 
+const SYSTEM_ROLE_KEY = 'system-role'
+
+function loadSystemRole(): string | null {
+  return localStorage.getItem(SYSTEM_ROLE_KEY) || null
+}
+
+function saveSystemRole(role: string | null): void {
+  if (role) {
+    localStorage.setItem(SYSTEM_ROLE_KEY, role)
+  } else {
+    localStorage.removeItem(SYSTEM_ROLE_KEY)
+  }
+}
+
 // ===== Store =====
 
 export const useUserStore = defineStore('user', () => {
@@ -68,14 +82,20 @@ export const useUserStore = defineStore('user', () => {
 
   const isLoggedIn = computed(() => !!token.value)
 
+  /** 当前系统角色（null = 普通用户，platform-ops / platform-admin） */
+  const systemRole = ref<string | null>(loadSystemRole())
+
   /** 登录成功后设置 token 和用户信息 */
   function setLogin(newToken: string, newUser: any): void {
     token.value = newToken
     user.value = newUser
     saveToken(newToken)
     saveUser(newUser)
-    // 同步岗位
-    if (newUser.position && ALL_POSITIONS.some(p => p.key === newUser.position)) {
+    // 同步系统角色
+    systemRole.value = newUser.systemRole || null
+    saveSystemRole(newUser.systemRole || null)
+    // 系统角色用户不需要岗位
+    if (!newUser.systemRole && newUser.position && ALL_POSITIONS.some(p => p.key === newUser.position)) {
       currentPositionKey.value = newUser.position as PositionKey
       savePosition(newUser.position as PositionKey)
     }
@@ -85,20 +105,26 @@ export const useUserStore = defineStore('user', () => {
   function logout(): void {
     token.value = ''
     user.value = null
+    systemRole.value = null
     removeToken()
     removeUser()
+    localStorage.removeItem(SYSTEM_ROLE_KEY)
   }
 
   // ===== 岗位 =====
   const currentPositionKey = ref<PositionKey>(loadPosition())
 
-  /** 当前岗位完整定义 */
-  const currentPosition = computed<PositionDef>(
-    () => findPosition(currentPositionKey.value) || findPosition(DEFAULT_POSITION)!,
-  )
+  /** 当前岗位完整定义（系统角色用户返回 null） */
+  const currentPosition = computed<PositionDef | null>(() => {
+    if (systemRole.value) return null
+    return findPosition(currentPositionKey.value) || findPosition(DEFAULT_POSITION)!
+  })
 
-  /** 当前用户 */
-  const currentUser = computed(() => user.value || currentPosition.value.user)
+  /** 当前用户（系统角色用户返回真实登录用户，普通用户回退到 mock） */
+  const currentUser = computed(() => {
+    if (systemRole.value) return user.value
+    return user.value || currentPosition.value?.user
+  })
 
   /** 切换岗位 */
   function switchPosition(key: PositionKey): void {
@@ -115,6 +141,8 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     setLogin,
     logout,
+    // 系统角色
+    systemRole,
     // 岗位
     currentPositionKey,
     currentPosition,

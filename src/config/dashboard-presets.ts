@@ -70,11 +70,16 @@ export const dashboardPresets: Record<string, DashboardPreset> = {
         { id: 'wb-ss-3', type: 'placeholder',     size: 1, order: 2, config: { moduleName: '隐患概览', icon: 'warning' } },
         { id: 'wb-ss-4', type: 'placeholder',     size: 1, order: 3, config: { moduleName: '值守概览', icon: 'monitor' } },
       ],
-      // ===== 平台方 =====
+      // ===== 平台方（systemRole 用户） =====
+      'platform-ops': [
+        { id: 'wb-po-1', type: 'app-shortcuts',  size: 1, order: 0 },
+        { id: 'wb-po-2', type: 'placeholder',    size: 1, order: 1, config: { moduleName: '租户管理', icon: 'building' } },
+        { id: 'wb-po-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '系统概览', icon: 'dashboard' } },
+      ],
       'platform-admin': [
         { id: 'wb-pa-1', type: 'app-shortcuts',  size: 1, order: 0 },
-        { id: 'wb-pa-2', type: 'placeholder',    size: 1, order: 1, config: { moduleName: '租户管理', icon: 'building' } },
-        { id: 'wb-pa-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '系统概览', icon: 'dashboard' } },
+        { id: 'wb-pa-2', type: 'placeholder',    size: 1, order: 1, config: { moduleName: '系统健康', icon: 'monitor' } },
+        { id: 'wb-pa-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '升级管理', icon: 'upload' } },
       ],
     },
   },

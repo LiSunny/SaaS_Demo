@@ -1,5 +1,5 @@
 <template>
-  <div class="position-switcher">
+  <div v-if="currentPosition" class="position-switcher">
     <button class="ps-trigger" @click="open = !open">
       <span class="ps-org">{{ currentPosition.orgName }}</span>
       <span class="ps-sep">·</span>
@@ -42,7 +42,7 @@ import { groupPositionsByOrg, type PositionKey } from '@/config/positions'
 const userStore = useUserStore()
 const open = ref(false)
 
-const currentPosition = computed(() => userStore.currentPosition)
+const currentPosition = computed(() => userStore.currentPosition!)
 const orgGroups = computed(() => groupPositionsByOrg())
 
 function select(key: PositionKey): void {

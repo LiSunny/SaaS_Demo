@@ -13,7 +13,7 @@ export interface LoginResult {
     realName: string
     email: string
     status: number
-    position?: string
+    systemRole: string | null
   }
 }
 

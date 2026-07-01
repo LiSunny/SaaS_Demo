@@ -245,45 +245,37 @@
 | 系统管理域首页 | `/admin` | 📝 占位页 |
 
 ## 工作快照
-> 更新时间：2026-06-27
+> 更新时间：2026-07-01
 
 ### 当前阶段
-用户管理体系 — P0 实现完成（M0 用户账号管理），P1/P2 设计完成待实现。
+系统角色闭环 — `User.systemRole` 从框架到可管理。用户列表支持创建/编辑/展示系统角色。
 
 ### 已完成的工作
-- [x] 用户管理业务设计 v1.6（`docs/用户管理/biz-design.md`）
-- [x] 用户管理模块规划 v1.0（`docs/用户管理/module-plan.md`）
-- [x] M0 ai-spec 规格（`docs/用户管理/ai-spec/`）
-- [x] 后端 Schema 重构：User 表（phone 即账号）+ UserEnterprise 关联表
-- [x] 后端 Auth 改为手机号登录（`server/src/services/auth.service.ts`）
-- [x] M0 后端实现（`server/src/services/user.service.ts` + controller + routes）
-- [x] M0 前端实现（`src/views/admin/UserList.vue` + types/api/store）
-- [x] 登录页改为手机号登录（`src/views/auth/Login.vue`）
-- [x] 侧栏导航添加"用户管理"菜单（`src/config/navigation.ts`）
-- [x] Header 添加退出登录按钮（`src/layouts/DefaultLayout.vue`）
-- [x] 全流程 UI 测试通过（登录/退出/CRUD/停用/重置密码）
+- [x] 用户管理业务设计 v2.0（`docs/用户管理/biz-design.md`）
+- [x] 后端 Schema：User 表（phone 即账号 + systemRole）+ UserEnterprise 关联表
+- [x] 后端 systemRole 支持：create/update 接口支持 systemRole 参数；不能降级自己
+- [x] 后端路由保护：enterprise/user/position 路由加 requireSystemRole 中间件
+- [x] 前端导航重构：平台运营 + 平台管理两个独立分组
+- [x] 前端用户列表：系统角色列 + 新增/编辑时系统角色下拉（仅运营管理可见）
+- [x] 前端路由守卫：systemRole 与普通用户互斥路由保护
+- [x] 去掉平台运营方假企业
+- [x] 设计文档同步：平台岗位设计 v1.3 / 租户管理 v2.2 / 用户管理 v2.0
 
 ### 关键决策记录
-- **手机号即账号**：去掉 username，phone 唯一标识 + 登录凭证
-- **一对多模型**：User ↔ Enterprise 通过 UserEnterprise 关联，每企业独立岗位
-- **两层岗位体系**：平台内置岗（CRUD） + 企业自定义岗（CRUD）
-- **权限配置**：平台层定义模板，企业层可按需关闭（不可新增）
-- **软删除**：用户只能停用，不可物理删除
-- **M1 添加方式**：输入手机号 → 检索匹配/新建 → 直接关联（不做邀请确认）
+- **系统角色独立于企业岗位**：`User.systemRole`（`platform-ops` / `platform-admin`）
+- **运营管理 vs 技术管理**：运营管租户/用户/岗位/流程；技术管路/菜单/升级/参数（占位）
+- **运营管理可创建管理员**：用户列表新增/编辑时可选系统角色，`platform-ops` 下拉可见
+- **不能降级自己**：后端保护，编辑自己的 systemRole 时拒绝
 
 ### 待处理
 | 模块 | 优先级 | 状态 |
 |------|--------|------|
 | M1 企业用户管理 | P0 | 📝 设计完成，待实现 |
-| M2 权限配置（平台层） | P1 | 📝 设计完成，待实现 |
-| M3 企业权限微调 | P2 | 📝 设计完成 |
-| M4 企业切换 | P1 | 📝 设计完成 |
-| M5 操作日志 | P2 | 📝 设计完成 |
+| 平台管理分组菜单实现 | P2 | 📝 占位节点，待后续逐步实现 |
 
 ### 下次开始的建议动作
 1. 实现 M1 企业用户管理：`/gen-api M1 enterprise-users` + 前端对接
-2. 或先走 M1 的 ai-spec：生成 `docs/用户管理/ai-spec/企业用户列表.md`
-3. 或继续完善现有功能：给用户列表加搜索筛选交互细节
+2. 逐步填充平台管理分组（路由配置/菜单管理/升级管理）
 
 ### Skill 源仓库
 

@@ -209,49 +209,73 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 6. 平台管理 =====
+  // ===== 6. 平台运营（platform-ops 可见全部；org-admin 仅见企业管理） =====
   {
-    key: 'platform-admin',
-    label: '平台管理',
+    key: 'platform-ops',
+    label: '平台运营',
     icon: 'admin',
-    defaultOpen: false,
-    visibleTo: [
-      'platform-admin',
-      'org-admin',
-    ],
+    defaultOpen: true,
+    visibleTo: ['platform-ops', 'org-admin'],
     children: [
+      {
+        key: 'tenant-mgmt-group',
+        label: '租户管理',
+        icon: 'menuicon-43',
+        visibleTo: ['platform-ops'],
+        children: [
+          { key: 'tenant-mgmt', label: '企业列表', route: '/admin/enterpriseManagement/index' },
+        ],
+      },
+      {
+        key: 'user-mgmt-group',
+        label: '用户管理',
+        icon: 'menuicon-43',
+        visibleTo: ['platform-ops'],
+        children: [
+          { key: 'user-list', label: '用户列表', route: '/admin/users' },
+        ],
+      },
+      {
+        key: 'position-mgmt-group',
+        label: '岗位管理',
+        icon: 'menuicon-43',
+        visibleTo: ['platform-ops'],
+        children: [
+          { key: 'position-mgmt', label: '岗位列表', route: '/admin/positions' },
+        ],
+      },
       {
         key: 'process-mgmt',
         label: '流程管理',
         icon: 'menuicon-42',
+        visibleTo: ['platform-ops'],
         children: [
           { key: 'flow-template', label: '流程模板', route: '/system/template' },
-        ],
-      },
-      { key: 'platform-config', label: '平台配置', icon: 'menuicon-51', route: '/platform' },
-      {
-        key: 'admin-mgmt',
-        label: '系统管理',
-        icon: 'menuicon-33',
-        visibleTo: ['platform-admin'],
-        children: [
-          { key: 'tenant-mgmt', label: '租户管理', icon: 'menuicon-43', route: '/admin/enterpriseManagement/index' },
-          { key: 'user-mgmt', label: '用户管理', icon: 'menuicon-43', route: '/admin/users' },
-          { key: 'position-mgmt', label: '岗位管理', icon: 'menuicon-43', route: '/admin/positions' },
         ],
       },
       {
         key: 'enterprise-mgmt',
         label: '企业管理',
         icon: 'menuicon-33',
-        visibleTo: [
-          'platform-admin',
-          'org-admin',
-        ],
         children: [
           { key: 'enterprise-members', label: '企业成员', route: '/enterprise/members' },
         ],
       },
+    ],
+  },
+
+  // ===== 7. 平台管理（platform-admin 可见：技术配置，占位） =====
+  {
+    key: 'platform-admin',
+    label: '平台管理',
+    icon: 'admin',
+    defaultOpen: false,
+    visibleTo: ['platform-admin'],
+    children: [
+      { key: 'route-config', label: '路由配置' },
+      { key: 'menu-config', label: '菜单管理' },
+      { key: 'system-params', label: '系统参数' },
+      { key: 'upgrade-mgmt', label: '升级管理' },
     ],
   },
 ]
@@ -273,6 +297,8 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/platform': 'platform',
   '/admin': 'admin',
   '/admin/enterpriseManagement': 'tenant-mgmt',
+  '/admin/enterpriseManagement/index': 'tenant-mgmt',
+  '/admin/users': 'user-list',
   '/admin/positions': 'position-mgmt',
   '/enterprise/members': 'enterprise-members',
 }
@@ -290,7 +316,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'platform': '/platform',
   'admin': '/admin',
   'tenant-mgmt': '/admin/enterpriseManagement/index',
-  'user-mgmt': '/admin/users',
+  'user-list': '/admin/users',
   'position-mgmt': '/admin/positions',
   'enterprise-members': '/enterprise/members',
 }

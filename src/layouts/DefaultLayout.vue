@@ -12,7 +12,7 @@
         
         <ThemeToggle />
 
-        <EnterpriseSwitcher v-if="userStore.isLoggedIn" />
+        <EnterpriseSwitcher v-if="userStore.isLoggedIn && !userStore.systemRole" />
         
         <span v-if="userStore.isLoggedIn" class="user-name">{{ userStore.user?.realName }}</span>
         <button v-if="userStore.isLoggedIn" class="logout-btn" title="退出登录" @click="handleLogout">
@@ -292,7 +292,31 @@ function filterNode(node: NavNode, query: string): NavNode | null {
 }
 
 const filteredGroups = computed(() => {
-  // Step 1: 岗位过滤
+  // 系统角色用户 → 按 systemRole 过滤（忽略岗位）
+  const sysRole = userStore.systemRole
+  if (sysRole) {
+    const roleKey = sysRole // 'platform-ops' | 'platform-admin'
+    const roleFiltered = NAV_GROUPS
+      .filter(group => {
+        if (group.visibleTo && group.visibleTo.length > 0) {
+          return group.visibleTo.includes(roleKey)
+        }
+        return false // 系统角色用户只看有明确 visibleTo 的专属分组
+      })
+      .map(group => ({
+        ...group,
+        children: filterNodesByPosition(group.children, [roleKey]),
+      }))
+      .filter(g => g.children.length > 0)
+
+    const q = searchQuery.value.trim()
+    if (!q) return roleFiltered
+    return roleFiltered
+      .map(group => filterGroup(group, q))
+      .filter(g => g.children.length > 0)
+  }
+
+  // 普通用户 → 按岗位过滤（现有逻辑不变）
   const positionKeys = [userStore.currentPositionKey]
   const positionFiltered = NAV_GROUPS
     .filter(group => {

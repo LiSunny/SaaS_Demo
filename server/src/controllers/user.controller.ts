@@ -18,19 +18,19 @@ export async function getDetail(req: Request, res: Response, next: NextFunction)
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const { phone, realName, password } = req.body
+    const { phone, realName, password, systemRole } = req.body
     if (!phone || !realName || !password) {
       res.status(400).json({ code: 400, message: '手机号、姓名和密码不能为空', data: null })
       return
     }
-    const item = await svc.create({ phone, realName, password })
+    const item = await svc.create({ phone, realName, password, systemRole })
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await svc.update(+req.params.id, req.body)
+    const item = await svc.update(+req.params.id, req.body, req.user?.id)
     res.json({ code: 0, message: 'ok', data: item })
   } catch (err) { next(err) }
 }

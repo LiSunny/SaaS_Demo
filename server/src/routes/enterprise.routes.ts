@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import * as ctrl from '../controllers/enterprise.controller.js'
-import { authRequired } from '../middleware/auth.js'
+import { authRequired, requireSystemRole } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -16,6 +16,9 @@ router.get('/dict/relation-roles', ctrl.getRelationRoles)
 
 // ===== 以下需要登录 =====
 router.use(authRequired)
+
+// ===== 以下需要运营管理权限 =====
+router.use(requireSystemRole('platform-ops', 'platform-admin'))
 
 // CRUD
 router.get('/:id', ctrl.getDetail)

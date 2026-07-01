@@ -10,7 +10,8 @@ function toItem(u: any) {
     realName: u.realName,
     email: u.email || '',
     status: u.status,
-    enterpriseCount: u._count?.enterprises ?? u.enterpriseCount ?? 0,
+    systemRole: u.systemRole || null,
+    enterpriseCount: u.systemRole ? 0 : (u._count?.enterprises ?? u.enterpriseCount ?? 0),
     createdAt: formatDate(u.createdAt),
     lastLoginAt: u.lastLoginAt ? formatDate(u.lastLoginAt) : null,
     lastLoginIp: u.lastLoginIp || null,
@@ -62,7 +63,7 @@ export async function lookupByPhone(phone: string) {
   if (!u) return null
   return toItem(u)
 }
-export async function create(form: { phone: string; realName: string; password: string }) {
+export async function create(form: { phone: string; realName: string; password: string; systemRole?: string | null }) {
   const existing = await db.user.findUnique({ where: { phone: form.phone } })
   if (existing) {
     throw Object.assign(new Error('该手机号已被注册'), { statusCode: 409 })
@@ -75,6 +76,7 @@ export async function create(form: { phone: string; realName: string; password: 
       realName: form.realName,
       password: hashedPassword,
       status: 1,
+      systemRole: form.systemRole || null,
     },
     include: { _count: { select: { enterprises: true } } },
   })
@@ -82,13 +84,25 @@ export async function create(form: { phone: string; realName: string; password: 
 }
 
 // ===== 编辑 =====
-export async function update(id: number, form: { realName?: string; email?: string }) {
+export async function update(
+  id: number,
+  form: { realName?: string; email?: string; systemRole?: string | null },
+  operatorId?: number,
+) {
   const u = await db.user.findUnique({ where: { id } })
   if (!u) throw Object.assign(new Error('用户不存在'), { statusCode: 404 })
+
+  // 不允许降级自己
+  if (operatorId && operatorId === id && form.systemRole !== undefined) {
+    if (!form.systemRole && u.systemRole) {
+      throw Object.assign(new Error('不能移除自己的系统角色'), { statusCode: 403 })
+    }
+  }
 
   const data: any = {}
   if (form.realName !== undefined) data.realName = form.realName
   if (form.email !== undefined) data.email = form.email
+  if (form.systemRole !== undefined) data.systemRole = form.systemRole || null
 
   const updated = await db.user.update({
     where: { id },
@@ -126,6 +140,10 @@ export async function resetPassword(id: number) {
 
 // ===== 关联企业 =====
 export async function getUserEnterprises(userId: number) {
+  // 系统角色用户不展示企业关联
+  const user = await db.user.findUnique({ where: { id: userId }, select: { systemRole: true } })
+  if (user?.systemRole) return []
+
   const relations = await db.userEnterprise.findMany({
     where: { userId, status: 1 },
     include: { enterprise: true },

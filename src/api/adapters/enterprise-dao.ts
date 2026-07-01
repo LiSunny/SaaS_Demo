@@ -31,7 +31,7 @@ const MOCK_USERS: MockUser[] = [
 ]
 
 const MOCK_USER_ENTERPRISES: MockUserEnterprise[] = [
-  { id: 1, userId: 1, enterpriseId: 1, positions: ['platform:platform-admin'], status: 1, joinedAt: '2025-01-01 00:00:00', inviterName: '系统初始化', remark: '' },
+  { id: 1, userId: 1, enterpriseId: 1, positions: ['platform:org-admin'], status: 1, joinedAt: '2025-01-01 00:00:00', inviterName: '系统初始化', remark: '' },
   { id: 2, userId: 2, enterpriseId: 1, positions: ['platform:org-admin'], status: 1, joinedAt: '2025-06-01 00:00:00', inviterName: '孙文博', remark: '' },
 ]
 

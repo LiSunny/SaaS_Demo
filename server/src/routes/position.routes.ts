@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import * as ctrl from '../controllers/position.controller.js'
-import { authRequired } from '../middleware/auth.js'
+import { authRequired, requireSystemRole } from '../middleware/auth.js'
 
 const router = Router()
 router.use(authRequired)
+router.use(requireSystemRole('platform-ops', 'platform-admin'))
 
 router.get('/list', ctrl.getList)
 router.get('/:id', ctrl.getDetail)

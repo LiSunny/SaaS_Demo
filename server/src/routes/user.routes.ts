@@ -1,13 +1,18 @@
 import { Router } from 'express'
 import * as ctrl from '../controllers/user.controller.js'
-import { authRequired } from '../middleware/auth.js'
+import { authRequired, requireSystemRole } from '../middleware/auth.js'
 
 const router = Router()
 
 router.use(authRequired)
 
+// ===== 所有已登录用户可访问 =====
 router.get('/me/enterprises', ctrl.getMyEnterprises)
 router.get('/lookup', ctrl.lookupUser)
+
+// ===== 以下需要系统角色 =====
+router.use(requireSystemRole('platform-ops', 'platform-admin'))
+
 router.get('/list', ctrl.getList)
 router.get('/:id', ctrl.getDetail)
 router.post('/', ctrl.create)

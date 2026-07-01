@@ -18,7 +18,7 @@ export interface LoginResult {
     realName: string
     email: string
     status: number
-    position?: string
+    systemRole: string | null
   }
 }
 
@@ -54,6 +54,7 @@ export async function login(input: LoginInput): Promise<LoginResult> {
     phone: user.phone,
     realName: user.realName,
     status: user.status,
+    systemRole: user.systemRole,
   }
 
   const token = jwt.sign(payload, env.JWT_SECRET, {
@@ -68,8 +69,7 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       realName: user.realName,
       email: user.email,
       status: user.status,
-      // 默认管理员自动获得平台管理员岗位
-      position: user.phone === '13800000000' ? 'platform-admin' : undefined,
+      systemRole: user.systemRole,
     },
   }
 }
@@ -93,6 +93,7 @@ export async function getProfile(userId: number) {
     realName: user.realName,
     email: user.email,
     status: user.status,
+    systemRole: user.systemRole,
     enterprises: user.enterprises.map(e => ({
       enterpriseId: e.enterpriseId,
       positions: JSON.parse(e.positions),
@@ -109,48 +110,36 @@ export async function ensureDefaultAdmin(): Promise<void> {
   })
 
   if (existing) {
-    console.log('[Auth] 默认管理员已存在，跳过创建')
+    // 如果已存在但 systemRole 为空，补上
+    if (!existing.systemRole) {
+      await db.user.update({
+        where: { id: existing.id },
+        data: { systemRole: 'platform-ops' },
+      })
+      // 清理历史残留的 UserEnterprise 关联（系统角色用户不应关联企业）
+      const deleted = await db.userEnterprise.deleteMany({
+        where: { userId: existing.id },
+      })
+      if (deleted.count > 0) {
+        console.log(`[Auth] 已清理默认管理员的 ${deleted.count} 条历史企业关联`)
+      }
+      console.log('[Auth] 默认管理员已存在，已补充 systemRole 并清理企业关联')
+    } else {
+      console.log('[Auth] 默认管理员已存在，跳过创建')
+    }
     return
   }
 
   const hashedPassword = await bcrypt.hash('admin123', SALT_ROUNDS)
-  const user = await db.user.create({
+  await db.user.create({
     data: {
       phone: '13800000000',
       realName: '赵启明',
       password: hashedPassword,
       status: 1,
+      systemRole: 'platform-ops',
     },
   })
 
-  // 确保平台方企业存在
-  let platformOrg = await db.enterprise.findFirst({
-    where: { code: 'PLATFORM' },
-  })
-  if (!platformOrg) {
-    platformOrg = await db.enterprise.create({
-      data: {
-        name: '平台运营方',
-        code: 'PLATFORM',
-        dimALevel1: 'platform_operator',
-        contactName: '赵启明',
-        contactPhone: '13800000000',
-        status: 1,
-        region: '杭州市',
-        creatorName: '系统初始化',
-      },
-    })
-  }
-
-  // 关联到平台企业
-  await db.userEnterprise.create({
-    data: {
-      userId: user.id,
-      enterpriseId: platformOrg.id,
-      positions: JSON.stringify(['platform:platform-admin']),
-      inviterName: '系统初始化',
-    },
-  })
-
-  console.log('[Auth] ✅ 默认管理员已创建: 13800000000 / admin123')
+  console.log('[Auth] ✅ 默认管理员已创建: 13800000000 / admin123 (systemRole=platform-ops)')
 }

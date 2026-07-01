@@ -2,14 +2,14 @@
  * 平台岗位定义
  *
  * 消防安全管理多租户 SaaS 平台，四方协同场景。
- * 9 个岗位覆盖物业方、服务方、监管方、平台方。
+ * 8 个岗位覆盖物业方、服务方、监管方。平台管理员已迁移至 User.systemRole。
  *
  * @see docs/平台岗位设计.md v1.2
  */
 
 // ===== 类型定义 =====
 
-/** 岗位 key */
+/** 岗位 key（平台管理员已迁移至 User.systemRole，不再作为岗位存在） */
 export type PositionKey =
   | 'org-admin'
   | 'fire-safety-responsible'
@@ -19,7 +19,6 @@ export type PositionKey =
   | 'tech-lead'
   | 'maintenance-engineer'
   | 'safety-supervisor'
-  | 'platform-admin'
 
 /** 岗位定义 */
 export interface PositionDef {
@@ -105,20 +104,11 @@ export const ALL_POSITIONS: PositionDef[] = [
     description: '督办超时工单，核查验收，生成监管报告',
   },
 
-  // ===== 平台方 =====
-  {
-    key: 'platform-admin',
-    name: '平台管理员',
-    orgName: '平台运营方',
-    orgId: 0,
-    user: { id: 11, name: '赵启明' },
-    description: '租户管理，流程模板配置，全局参数',
-  },
-  // 通用岗位（新建企业时自动分配，不区分企业类型）
+  // ===== 通用企业岗位（新建企业时自动分配） =====
   {
     key: 'org-admin',
     name: '企业管理员',
-    orgName: '平台运营方',
+    orgName: '平台通用',
     orgId: 0,
     user: { id: 12, name: '系统默认' },
     description: '通用企业管理员，新建企业时自动分配',

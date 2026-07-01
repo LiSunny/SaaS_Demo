@@ -126,7 +126,7 @@ const router = createRouter({
   ],
 })
 
-// ===== 全局路由守卫：未登录 → 跳转登录页 =====
+// ===== 全局路由守卫 =====
 router.beforeEach((to) => {
   const token = localStorage.getItem('auth_token')
   const isLoginPage = to.path === '/login'
@@ -137,6 +137,26 @@ router.beforeEach((to) => {
 
   // 已登录访问登录页 → 跳转工作台
   if (token && isLoginPage) {
+    return { path: '/workbench' }
+  }
+
+  // 系统角色路由保护
+  const systemRole = localStorage.getItem('system-role')
+  const isAdminRoute = to.path.startsWith('/admin') || to.path.startsWith('/system/template')
+  const isBusinessRoute = to.path.startsWith('/system/monitor')
+    || to.path.startsWith('/system/order')
+    || to.path.startsWith('/system/dashboard')
+    || to.path.startsWith('/maintenance')
+    || to.path.startsWith('/device')
+    || to.path.startsWith('/iot')
+
+  if (systemRole && isBusinessRoute) {
+    // 系统角色用户不能访问业务域路由
+    return { path: '/workbench' }
+  }
+
+  if (!systemRole && isAdminRoute) {
+    // 普通用户不能访问管理路由
     return { path: '/workbench' }
   }
 })
