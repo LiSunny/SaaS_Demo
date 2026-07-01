@@ -51,7 +51,11 @@ const positionLabelMap: Record<string, string> = Object.fromEntries(
 
 /** 将英文岗位 key 转为中文，未知 key 原样返回 */
 function getPositionLabel(key: string): string {
-  return positionLabelMap[key] || key
+  // 直接匹配
+  if (positionLabelMap[key]) return positionLabelMap[key]
+  // 去掉命名空间前缀（如 "platform:org-admin" → "org-admin"）
+  const stripped = key.replace(/^[a-z]+:/, '')
+  return positionLabelMap[stripped] || key
 }
 
 const STORAGE_KEY_ENT = 'demo-enterprise-id'
