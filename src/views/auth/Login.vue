@@ -1,58 +1,38 @@
 <template>
   <div class="login-page">
-    <div class="login-layout">
-      <!-- 左侧：品牌形象区 -->
-      <div class="login-hero">
-        <div class="hero-illustration" aria-hidden="true">
-          <!-- 装饰圆环 -->
-          <div class="illu-ring illu-ring--1"></div>
-          <div class="illu-ring illu-ring--2"></div>
-          <div class="illu-ring illu-ring--3"></div>
-          <!-- 柱状图装饰 -->
-          <div class="illu-chart">
-            <div class="illu-chart__bar" style="height:45%"></div>
-            <div class="illu-chart__bar" style="height:72%"></div>
-            <div class="illu-chart__bar" style="height:58%"></div>
-            <div class="illu-chart__bar" style="height:88%"></div>
-            <div class="illu-chart__bar" style="height:35%"></div>
-            <div class="illu-chart__bar" style="height:65%"></div>
-          </div>
-          <!-- 数据卡片装饰 -->
-          <div class="illu-dashboard">
-            <div class="illu-dashboard__gauge">
-              <svg viewBox="0 0 80 80" class="gauge-svg">
-                <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(54,120,227,0.12)" stroke-width="6"/>
-                <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(54,120,227,0.5)" stroke-width="6"
-                  stroke-dasharray="160 200" stroke-linecap="round" transform="rotate(-90 40 40)"/>
-              </svg>
-              <span class="gauge-value">82<small>%</small></span>
-            </div>
-            <div class="illu-dashboard__dots">
-              <span class="dot"></span>
-              <span class="dot is-active"></span>
-              <span class="dot"></span>
-            </div>
-          </div>
-        </div>
+    <img class="bg-decoration" src="@/assets/land-bg.svg" alt="" aria-hidden="true" />
+
+    <!-- 左上角：Logo + 品牌名 -->
+    <header class="login-header">
+      <img class="brand-logo" src="/favicon.svg" alt="平台logo" />
+      <span class="brand-name">韧性云</span>
+    </header>
+
+    <!-- 中部：左右两栏 -->
+    <div class="login-body">
+      <!-- 左侧：品牌文案 + 功能卡片 -->
+      <section class="hero-section">
         <div class="hero-text">
-          <div class="hero-logo">
-            <svg viewBox="0 0 40 40" fill="none">
-              <rect x="4" y="16" width="5" height="20" rx="1.5" fill="currentColor" opacity="0.4"/>
-              <rect x="11" y="10" width="5" height="26" rx="1.5" fill="currentColor" opacity="0.55"/>
-              <rect x="18" y="3" width="5" height="33" rx="1.5" fill="currentColor" opacity="0.75"/>
-              <rect x="25" y="13" width="5" height="23" rx="1.5" fill="currentColor" opacity="0.55"/>
-              <rect x="32" y="19" width="5" height="17" rx="1.5" fill="currentColor" opacity="0.4"/>
-            </svg>
-          </div>
-          <h1 class="hero-title">维保安全管理平台</h1>
-          <p class="hero-desc">覆盖设备维护、安全履责、风险感知的一站式数字化管理</p>
+          <h1 class="hero-title">
+            <span class="hero-title--accent">人工智能+ </span>
+            <span class="hero-title--dark">公共安全管理平台</span>
+          </h1>
+          <p class="hero-subtitle">以AI观微知著 · 赋能韧性城市</p>
         </div>
-      </div>
+
+        <div class="feature-grid">
+          <div class="feature-card" v-for="card in featureCards" :key="card.title">
+            <img class="feature-icon" :src="card.image" :alt="card.title" />
+            <h3 class="feature-title">{{ card.title }}</h3>
+            <p class="feature-desc">{{ card.desc }}</p>
+          </div>
+        </div>
+      </section>
 
       <!-- 右侧：登录卡片 -->
       <div class="login-form-area">
         <div class="login-card">
-          <h2 class="card-title">账号登录</h2>
+          <h2 class="card-title">欢迎使用公共安全管理平台</h2>
 
           <el-form
             ref="formRef"
@@ -60,13 +40,13 @@
             :rules="rules"
             label-width="0"
             size="large"
+            class="login-form"
             @submit.prevent="handleLogin"
           >
             <el-form-item prop="phone">
               <el-input
                 v-model="form.phone"
                 placeholder="请输入手机号"
-                :prefix-icon="Phone"
                 clearable
                 maxlength="11"
                 class="login-input"
@@ -78,7 +58,6 @@
                 v-model="form.password"
                 type="password"
                 placeholder="请输入密码"
-                :prefix-icon="Lock"
                 show-password
                 class="login-input"
                 @keyup.enter="handleLogin"
@@ -92,15 +71,38 @@
                 class="login-btn"
                 @click="handleLogin"
               >
-                {{ loading ? '登录中...' : '登 录' }}
+                {{ loading ? '登录中...' : '开始体验' }}
               </el-button>
             </el-form-item>
           </el-form>
 
           <p class="login-error" v-if="errorMsg">{{ errorMsg }}</p>
+
+          <!-- 体验账号区 -->
+          <div class="demo-section">
+            <p class="demo-label">体验账号</p>
+            <div class="demo-grid">
+              <div
+                class="demo-card"
+                v-for="account in demoAccounts"
+                :key="account.role"
+                @click="fillDemo(account)"
+              >
+                <img
+                  :src="account.image"
+                  :alt="account.role"
+                  class="demo-illustration"
+                />
+                <span class="demo-role">{{ account.role }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 底部版权 -->
+    <footer class="login-footer">版权所有©️北京韧性科技2026</footer>
   </div>
 </template>
 
@@ -108,10 +110,17 @@
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Phone, Lock } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { loginApi } from '@/api/auth'
+import platformAdminImg from '@/assets/demo-roles/platform-admin.svg'
+import opsManagerImg from '@/assets/demo-roles/ops-manager.svg'
+import enterpriseAdminImg from '@/assets/demo-roles/enterprise-admin.svg'
+import normalUserImg from '@/assets/demo-roles/normal-user.svg'
+import featureMonitor from '@/assets/demo-roles/feature-monitor.svg'
+import featureHelmet from '@/assets/demo-roles/feature-helmet.svg'
+import featureCycle from '@/assets/demo-roles/feature-cycle.svg'
+import featureSlide from '@/assets/demo-roles/feature-slide.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -132,6 +141,45 @@ const rules: FormRules = {
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
   ],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+}
+
+// 左侧功能卡片
+const featureCards = [
+  {
+    image: featureMonitor,
+    title: '智能监测预警',
+    desc: '7×24 小时全域设备实时感知安全风险，依托 AI 智能研判告警，为应急处置提供科学决策支撑',
+  },
+  {
+    image: featureHelmet,
+    title: '安全履职管理',
+    desc: '全流程数字化留存安全工作台账，标准化规范岗位操作，推动企业安全主体责任落地见效。',
+  },
+  {
+    image: featureCycle,
+    title: '隐患闭环治理',
+    desc: '覆盖隐患上报、派发、整改、复查全流程，全程留痕追踪，实现安全隐患闭环管控。',
+  },
+  {
+    image: featureSlide,
+    title: '数据可视化分析',
+    desc: '整合多维度安全运行数据，可视化大屏直观展示，全域安全整体态势清晰可察。',
+  },
+]
+
+// 体验账号
+const demoAccounts = [
+  { role: '平台管理', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
+  { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
+  { role: '企业管理', phone: '13800000000', password: 'admin123!@#', image: enterpriseAdminImg },
+  { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
+]
+
+function fillDemo(account: typeof demoAccounts[0]) {
+  form.phone = account.phone
+  form.password = account.password
+  errorMsg.value = ''
+  handleLogin()
 }
 
 async function handleLogin() {
@@ -162,289 +210,334 @@ async function handleLogin() {
 
 <style scoped>
 /* ============================================
-   登录页 — 严格参照火山引擎 console 设计
+   登录页 — Figma 设计稿还原 (1920×1080)
+   窗口适配：CSS viewport-ratio scaling
    ============================================ */
-
-/* ---------- 满屏渐变背景 ---------- */
 .login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #e8f0fe 0%, #f0f4fb 30%, #f5f7fc 50%, #f8f9fb 70%, #fafbfc 100%);
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
-}
+  --dw: 1920;
+  --dh: 1080;
+  --w: calc(100vw / var(--dw));
+  --h: calc(100vh / var(--dh));
+  --min-scale: min(var(--w), var(--h));
 
-/* ---------- 居中布局容器（参照火山引擎 .layoutNew） ---------- */
-.login-layout {
-  display: flex;
-  width: 100%;
-  max-width: 1280px;
-  min-height: 720px;
-  align-items: stretch;
-}
-
-/* ============================================
-   左侧：品牌形象区（参照 .leftBanner）
-   flex:1 占满剩余空间
-   ============================================ */
-.login-hero {
-  flex: 1 1 0%;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  background: linear-gradient(180deg, #f0f6fd 0%, #f8f2fb 55.62%, #f6f5fc 100%);
   overflow: hidden;
-  padding: 60px 40px;
 }
 
-/* —— 插图装饰层 —— */
-.hero-illustration {
+/* ---------- 背景装饰层 ---------- */
+.bg-decoration {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   pointer-events: none;
 }
 
-/* 圆环 */
-.illu-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid rgba(54, 120, 227, 0.1);
-}
-.illu-ring--1 {
-  width: 500px; height: 500px;
-  top: -140px; right: -100px;
-}
-.illu-ring--2 {
-  width: 380px; height: 380px;
-  bottom: -120px; left: -60px;
-  border-color: rgba(54, 120, 227, 0.07);
-}
-.illu-ring--3 {
-  width: 220px; height: 220px;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  border-color: rgba(54, 120, 227, 0.05);
-  border-style: dashed;
-}
-
-/* 柱状图 */
-.illu-chart {
-  position: absolute;
-  bottom: 28%;
-  left: 15%;
-  display: flex;
-  align-items: flex-end;
-  gap: 5px;
-  width: 140px;
-  height: 90px;
-}
-.illu-chart__bar {
-  flex: 1;
-  border-radius: 3px 3px 0 0;
-  background: linear-gradient(180deg, rgba(54,120,227,0.45) 0%, rgba(54,120,227,0.1) 100%);
-}
-
-/* 仪表盘卡片 */
-.illu-dashboard {
-  position: absolute;
-  top: 24%;
-  right: 18%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.illu-dashboard__gauge {
+/* ============================================
+   Header — Logo + 品牌名
+   ============================================ */
+.login-header {
   position: relative;
-  width: 80px; height: 80px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: calc(18 * var(--w));
+  padding: calc(28 * var(--h)) 0 0 calc(27 * var(--w));
 }
-.gauge-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
+
+.brand-logo {
+  width: calc(60 * var(--min-scale));
+  height: calc(60 * var(--min-scale));
+  border-radius: calc(12 * var(--min-scale));
+  flex-shrink: 0;
 }
-.gauge-value {
-  font-size: 22px;
+
+.brand-name {
+  font-family: 'Alimama ShuHeiTi', 'PingFang SC', sans-serif;
   font-weight: 700;
-  color: #3678E3;
+  font-size: clamp(24px, calc(46 * var(--min-scale)), 46px);
+  color: var(--text-secondary, #2e2e2e);
+  white-space: nowrap;
   line-height: 1;
-}
-.gauge-value small {
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0.5;
-}
-.illu-dashboard__dots {
-  display: flex;
-  gap: 8px;
-}
-.illu-dashboard__dots .dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: rgba(54,120,227,0.18);
-}
-.illu-dashboard__dots .dot.is-active {
-  background: #22c55e;
-  box-shadow: 0 0 6px rgba(34,197,94,0.35);
-}
-
-/* —— 品牌文字 —— */
-.hero-text {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  max-width: 420px;
-}
-.hero-logo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px; height: 56px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #3678E3 0%, #5b8def 100%);
-  color: #fff;
-  margin-bottom: 24px;
-  box-shadow: 0 6px 20px rgba(54, 120, 227, 0.22);
-}
-.hero-title {
-  margin: 0 0 12px;
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a2e;
-  letter-spacing: 0.02em;
-  line-height: 1.3;
-}
-.hero-desc {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.65;
-  color: #5f6b7a;
 }
 
 /* ============================================
-   右侧：登录表单区（参照火山引擎右侧卡片）
-   卡片: 480px, radius 20px, shadow 0-5-15, padding 48-43-32
+   中部：双栏布局
    ============================================ */
-.login-form-area {
-  flex: 0 0 540px;
+.login-body {
+  position: relative;
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 40px;
+  justify-content: space-between;
+  padding: 0 calc(139 * var(--w)) 0 calc(215 * var(--w));
+  min-height: 0;
+}
+
+/* ============================================
+   左侧：品牌区
+   ============================================ */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(48 * var(--h));
+  padding-bottom: calc(87 * var(--h));
+}
+
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: calc(24 * var(--h));
+}
+
+.hero-title {
+  font-family: 'Source-KeynoteartHans', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  font-size: clamp(22px, calc(46 * var(--min-scale)), 46px);
+  line-height: 1.25;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.hero-title--accent {
+  color: #1c73ff;
+  white-space: nowrap;
+}
+
+.hero-title--dark {
+  color: var(--text-secondary, #2e2e2e);
+  white-space: nowrap;
+}
+
+.hero-subtitle {
+  font-size: clamp(16px, calc(24 * var(--min-scale)), 24px);
+  color: var(--text-tertiary, #454545);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ---------- 功能卡片 2x2 ---------- */
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(24 * var(--w));
+  width: calc(694 * var(--w));
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: calc(14 * var(--min-scale));
+  padding: calc(16 * var(--min-scale));
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--min-scale));
+  min-height: calc(194 * var(--h));
+}
+
+.feature-icon {
+  width: calc(28 * var(--min-scale));
+  height: calc(28 * var(--min-scale));
+  flex-shrink: 0;
+  display: block;
+}
+
+.feature-title {
+  font-size: clamp(14px, calc(20 * var(--min-scale)), 20px);
+  font-weight: 500;
+  color: var(--text-tertiary, #454545);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.feature-desc {
+  font-size: clamp(13px, calc(18 * var(--min-scale)), 18px);
+  color: var(--text-muted, #5e5e5e);
+  margin: 0;
+  line-height: 1.5;
+  flex: 1;
+}
+
+/* ============================================
+   右侧：登录卡片
+   ============================================ */
+.login-form-area {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .login-card {
-  width: 476px;
-  padding: 48px 43px 40px;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  width: 32vw;
+  min-width: 380px;
+  max-width: 520px;
+  padding: calc(48 * var(--min-scale));
+  background: var(--bg-card, #ffffff);
+  border-radius: calc(14 * var(--min-scale));
+  box-shadow: 0 0 calc(2 * var(--min-scale)) rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: calc(24 * var(--min-scale));
 }
 
 .card-title {
-  margin: 0 0 36px;
-  font-size: 22px;
-  font-weight: 600;
-  color: #1d2129;
-  letter-spacing: 0.02em;
+  font-size: clamp(16px, calc(24 * var(--min-scale)), 24px);
+  font-weight: 500;
+  color: var(--text-secondary, #2e2e2e);
+  margin: 0;
+  line-height: 1.3;
 }
 
-/* —— 输入框：标准边框风格 —— */
+/* ---------- 表单 ---------- */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.login-form :deep(.el-form-item) {
+  margin-bottom: calc(16 * var(--min-scale));
+}
+
+.login-form :deep(.el-form-item:last-child) {
+  margin-bottom: 0;
+}
+
+/* 输入框 */
 .login-input :deep(.el-input__wrapper) {
-  border: 1px solid #e5e6eb !important;
-  border-radius: 4px !important;
+  border: 1px solid var(--border-high, #d3d3d3) !important;
+  border-radius: calc(8 * var(--min-scale)) !important;
   box-shadow: none !important;
-  background: #fff !important;
-  padding: 4px 12px !important;
-  transition: border-color .2s;
-}
-.login-input :deep(.el-input__wrapper:hover) {
-  border-color: #c9cdd4 !important;
-}
-.login-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #3678E3 !important;
-  box-shadow: 0 0 0 2px rgba(54,120,227,0.1) !important;
-}
-.login-input :deep(.el-input__inner) {
-  color: #1d2129 !important;
-  font-size: 15px !important;
-}
-.login-input :deep(.el-input__inner::placeholder) {
-  color: #c9cdd4 !important;
-}
-.login-input :deep(.el-input__prefix) {
-  color: #a1a7b3;
-  margin-right: 4px;
+  background: var(--bg-card, #fff) !important;
+  padding: calc(4 * var(--h)) calc(16 * var(--w)) !important;
+  transition: border-color 0.2s;
 }
 
-/* —— 按钮 —— */
+.login-input :deep(.el-input__wrapper:hover) {
+  border-color: var(--accent-primary, #3678e3) !important;
+}
+
+.login-input :deep(.el-input__wrapper.is-focus) {
+  border-color: var(--accent-primary, #3678e3) !important;
+  box-shadow: 0 0 0 calc(2 * var(--min-scale)) rgba(54, 120, 227, 0.1) !important;
+}
+
+.login-input :deep(.el-input__inner) {
+  color: var(--text-primary, #101010) !important;
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px) !important;
+}
+
+/* 消除浏览器自动填充的淡蓝色背景 */
+.login-input :deep(.el-input__inner:-webkit-autofill),
+.login-input :deep(.el-input__inner:-webkit-autofill:hover),
+.login-input :deep(.el-input__inner:-webkit-autofill:focus) {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-card, #fff) inset !important;
+  -webkit-text-fill-color: var(--text-primary, #101010) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.login-input :deep(.el-input__inner::placeholder) {
+  color: var(--text-placeholder, #d9d9d9) !important;
+}
+
+.login-input :deep(.el-input__clear) {
+  color: var(--text-muted, #5e5e5e);
+}
+
+.login-input :deep(.el-input__suffix) {
+  color: var(--text-muted, #5e5e5e);
+}
+
+/* 按钮 */
 .login-btn {
   width: 100%;
-  height: 44px;
-  border-radius: 4px;
-  font-size: 15px;
+  height: calc(38 * var(--h));
+  border-radius: calc(8 * var(--min-scale));
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
   font-weight: 500;
-  letter-spacing: 0.05em;
-  margin-top: 8px;
+  margin-top: 0;
+  --el-button-bg-color: var(--accent-primary, #3678E3);
+  --el-button-border-color: var(--accent-primary, #3678E3);
+  --el-button-hover-bg-color: var(--accent-dark, #204785);
+  --el-button-hover-border-color: var(--accent-dark, #204785);
+  --el-button-text-color: #fff;
 }
 
 .login-error {
-  margin: 20px 0 0;
-  font-size: 13px;
+  margin: 0;
+  font-size: clamp(11px, calc(12 * var(--min-scale)), 12px);
   text-align: center;
-  color: #DC2626;
+  color: var(--danger, #dc2626);
 }
 
 /* ============================================
-   响应式
+   体验账号
    ============================================ */
-@media (max-width: 900px) {
-  .login-layout {
-    flex-direction: column;
-    min-height: auto;
-  }
+.demo-section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--min-scale));
+}
 
-  .login-hero {
-    flex: 0 0 auto;
-    padding: 48px 24px 20px;
-  }
+.demo-label {
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
+  color: var(--text-tertiary, #454545);
+  margin: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
 
-  .hero-text {
-    max-width: 100%;
-  }
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(12 * var(--w));
+}
 
-  .hero-logo {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    margin-bottom: 18px;
-  }
+.demo-card {
+  background: var(--bg-sub-card, #fbfbfb);
+  border: 1px solid var(--border-default, #dedede);
+  border-radius: calc(8 * var(--min-scale));
+  padding: calc(12 * var(--min-scale));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(6 * var(--min-scale));
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
 
-  .hero-title {
-    font-size: 20px;
-  }
+.demo-card:hover {
+  border-color: var(--accent-primary, #3678e3);
+  box-shadow: 0 0 0 calc(2 * var(--min-scale)) rgba(54, 120, 227, 0.1);
+}
 
-  .hero-desc {
-    font-size: 13px;
-  }
+.demo-illustration {
+  height: calc(72 * var(--h));
+  width: auto;
+  object-fit: contain;
+}
 
-  /* 隐藏装饰 */
-  .hero-illustration { display: none; }
+.demo-role {
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
+  color: var(--text-muted, #5e5e5e);
+  white-space: nowrap;
+}
 
-  .login-form-area {
-    flex: 0 0 auto;
-    padding: 0 20px 48px;
-  }
-
-  .login-card {
-    width: 100%;
-    max-width: 476px;
-    padding: 32px 24px 28px;
-  }
+/* ============================================
+   Footer
+   ============================================ */
+.login-footer {
+  position: relative;
+  text-align: center;
+  font-size: clamp(13px, calc(16 * var(--min-scale)), 16px);
+  color: var(--text-tertiary, #454545);
+  padding-bottom: calc(32 * var(--h));
+  white-space: nowrap;
 }
 </style>
