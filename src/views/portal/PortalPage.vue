@@ -205,6 +205,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, FileText, Activity, Phone, Mail } from 'lucide-vue-next'
+import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
+import scenarioIndustryImg from '@/assets/portal/scenario-industry.png'
+import scenarioEbikeImg from '@/assets/portal/scenario-ebike.png'
 
 // ===== Scroll & Nav =====
 const scrolled = ref(false)
@@ -288,19 +291,19 @@ const SCENARIOS = [
     title: '人工智能 + 平安校园', audience: '教育局 · 中小学（含寄宿制）', badge: '校端已落地', badgeColor: '#d97706',
     status: '港南二中 1 所学校已接入，205 台设备运行中',
     points: ['AI 防欺凌：音频感知与视觉识别，精准定位至宿舍号或区域', '电气火灾监测：用电指纹分析，违规电器接入实时预警', '明厨亮灶：AI 视觉识别鼠患与着装违规，全时监管后厨', '寄宿生管理：周界算法 + 人脸闸机联动，离宿实时轨迹预警', '红黑榜排名：量化巡检打卡率与隐患整改质量，倒逼责任落实'],
-    icon: FileText, image: '/src/assets/portal/scenario-campus.png',
+    icon: FileText, image: scenarioCampusImg,
   },
   {
     title: '工贸企业安全生产', audience: '应急管理局 · 规上 / 规下工贸企业', badge: '驾驶舱可演示', badgeColor: '#d97706',
     status: '驾驶舱开发完成、可演示，暂无客户接入',
     points: ['三级驾驶舱：应急局全域看板 → 规上企业驾驶舱 → 规下轻量化版本', '粉尘防爆预警：电流异常与粉尘浓度交叉分析，联动降尘系统', 'AI 视觉合规：吸烟、未戴安全帽等违规行为实时抓拍与音柱播报', '精准执法导航：企业风险自动画像，执法资源定向投放高风险目标'],
-    icon: Zap, image: '/src/assets/portal/scenario-industry.png',
+    icon: Zap, image: scenarioIndustryImg,
   },
   {
     title: '电动自行车安全监管', audience: '住建局 · 物业', badge: '大屏阶段', badgeColor: '#dc2626',
     status: '可视化大屏已完成，商务推广待启动',
     points: ['充电桩安全监管大屏，实时监测充电桩状态与异常事件', '隐患点位自动标记，充电区域消防联动', '面向住建局提供辖区电动自行车充电安全态势总览'],
-    icon: Activity, image: '/src/assets/portal/scenario-ebike.png',
+    icon: Activity, image: scenarioEbikeImg,
   },
 ]
 // Auto carousel
