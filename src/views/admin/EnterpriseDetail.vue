@@ -232,6 +232,70 @@
           />
         </div>
 
+        <!-- ===== Tab 内容：个性化配置 ===== -->
+        <div v-else-if="activeTab === 'branding'" class="tab-content">
+          <div class="tab-content-inner">
+            <div class="section">
+              <h3 class="section-title">品牌信息</h3>
+              <div class="branding-form-grid">
+                <div class="branding-field">
+                  <span class="branding-label">域名</span>
+                  <el-input v-model="brandingForm.domain" placeholder="如 tenant.platform.com" />
+                </div>
+                <div class="branding-field">
+                  <span class="branding-label">版权公告</span>
+                  <el-input v-model="brandingForm.copyright" placeholder="如 © 2026 Company" />
+                </div>
+                <div class="branding-field">
+                  <span class="branding-label">ICP 备案</span>
+                  <el-input v-model="brandingForm.icp" placeholder="如 京ICP备XXXXXXXX号" />
+                </div>
+                <div class="branding-field">
+                  <span class="branding-label">平台标题</span>
+                  <el-input v-model="brandingForm.title" placeholder="如 XX安全管理平台" />
+                </div>
+              </div>
+            </div>
+            <div class="save-bar">
+              <button class="btn-primary" @click="handleSaveBranding">保存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Tab 内容：应用配置 ===== -->
+        <div v-else-if="activeTab === 'appConfig'" class="tab-content">
+          <div class="tab-content-inner">
+            <template v-if="moduleTabs.length === 0">
+              <div class="empty-hint">暂无模块数据，请稍后再试</div>
+            </template>
+            <template v-else>
+              <el-tabs v-model="appConfigTab">
+                <el-tab-pane
+                  v-for="tab in moduleTabs"
+                  :key="tab.key"
+                  :label="tab.label"
+                  :name="tab.key"
+                  lazy
+                >
+                  <el-tree
+                    v-if="tab.children.length > 0"
+                    :ref="(el: any) => { if (el) treeRefs[tab.key] = el }"
+                    :data="tab.children"
+                    show-checkbox
+                    node-key="key"
+                    default-expand-all
+                    :default-checked-keys="getCheckedKeys(tab.key)"
+                  />
+                  <div v-else class="empty-hint">该分类暂无功能模块</div>
+                </el-tab-pane>
+              </el-tabs>
+              <div class="save-bar">
+                <button class="btn-primary" @click="handleSaveAppConfig">保存</button>
+              </div>
+            </template>
+          </div>
+        </div>
+
         <!-- ===== 其他 Tab 占位 ===== -->
         <div v-else class="tab-stub">
           <div class="stub-content">
@@ -259,6 +323,7 @@ import { ElMessage } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
 import { CopyDocument } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
+import type { ModuleTreeNode } from '@/types/enterprise'
 import AppIcon from '@/components/base/AppIcon.vue'
 import PartnerManage from './PartnerManage.vue'
 import SubordinateManage from './SubordinateManage.vue'
@@ -353,6 +418,8 @@ const tabs = [
   { key: 'subordinateMgmt', label: '下级管理' },
   { key: 'partnerMgmt', label: '相关方管理' },
   { key: 'operationLog', label: '操作日志' },
+  { key: 'branding', label: '个性化配置' },
+  { key: 'appConfig', label: '应用配置' },
 ] as const
 type TabKey = (typeof tabs)[number]['key']
 const activeTab = ref<TabKey>('enterpriseDetail')
@@ -362,7 +429,113 @@ watch(activeTab, (tab) => {
   if (tab === 'operationLog' && store.detail?.id) {
     store.fetchLogs(store.detail.id)
   }
+  // 应用配置 Tab：加载模块树字典
+  if (tab === 'appConfig' && store.moduleTree.length === 0) {
+    store.fetchDicts()
+  }
+  // 个性化配置 Tab：从企业数据回填表单
+  if (tab === 'branding' && store.detail) {
+    const d = store.detail as any
+    brandingForm.value.domain = d.brandingDomain || ''
+    brandingForm.value.copyright = d.brandingCopyright || ''
+    brandingForm.value.icp = d.brandingIcp || ''
+    brandingForm.value.title = d.brandingTitle || ''
+  }
 })
+
+// ===== 个性化配置 (Branding) =====
+const brandingForm = ref({
+  domain: '',
+  copyright: '',
+  icp: '',
+  title: '',
+})
+
+async function handleSaveBranding() {
+  if (!store.detail?.id) return
+  await store.handleUpdate(store.detail.id, {
+    brandingDomain: brandingForm.value.domain,
+    brandingCopyright: brandingForm.value.copyright,
+    brandingIcp: brandingForm.value.icp,
+    brandingTitle: brandingForm.value.title,
+  } as any)
+  // 同步本地 detail 使表单在切换 Tab 后仍能正确回填
+  const d = store.detail as any
+  d.brandingDomain = brandingForm.value.domain
+  d.brandingCopyright = brandingForm.value.copyright
+  d.brandingIcp = brandingForm.value.icp
+  d.brandingTitle = brandingForm.value.title
+}
+
+// ===== 应用配置 (App Config) =====
+const appConfigTab = ref('')
+const treeRefs = ref<Record<string, any>>({})
+
+// 静态模块树兜底数据（后端 /enterprise/dict/module-tree 未实现时使用）
+const FALLBACK_MODULE_TREE: ModuleTreeNode[] = [
+  { key: '设备管理', label: '设备管理', children: [
+    { key: 'device-ledger', label: '设备台账' }, { key: 'maintenance', label: '保养管理' }, { key: 'monitor', label: '运行监控' },
+  ]},
+  { key: 'IOT', label: 'IOT', children: [] },
+  { key: '远程值守', label: '远程值守', children: [
+    { key: 'alarm-center', label: '告警中心' }, { key: 'verify', label: '核实判定' },
+  ]},
+  { key: '巡查检查', label: '巡查检查', children: [
+    { key: 'patrol-plan', label: '巡查计划' }, { key: 'patrol-task', label: '巡查任务' },
+  ]},
+  { key: '维保应用', label: '维保应用', children: [] },
+  { key: '数据可视化', label: '数据可视化', children: [] },
+  { key: '平台管理', label: '平台管理', children: [] },
+  { key: '隐患管理', label: '隐患管理', children: [
+    { key: 'hazard-ledger', label: '隐患台账' },
+  ]},
+  { key: '项目管理', label: '项目管理', children: [] },
+  { key: '政务管理', label: '政务管理', children: [] },
+  { key: '培训与演练', label: '培训与演练', children: [] },
+  { key: '危险作业管理', label: '危险作业管理', children: [] },
+  { key: '食品安全管理', label: '食品安全管理', children: [] },
+  { key: '系统管理', label: '系统管理', children: [] },
+]
+
+const moduleTabs = computed(() => {
+  const source = store.moduleTree.length > 0 ? store.moduleTree : FALLBACK_MODULE_TREE
+  return source.map(node => ({
+    key: node.key,
+    label: node.label,
+    children: (node.children || []).filter(c => c.key && c.label),
+  }))
+})
+
+// 当 moduleTabs 准备好后设置默认激活 Tab
+watch(moduleTabs, (tabs) => {
+  if (!appConfigTab.value && tabs.length > 0) {
+    appConfigTab.value = tabs[0].key
+  }
+})
+
+function getCheckedKeys(domainKey: string): string[] {
+  if (!store.detail) return []
+  const appConfig = (store.detail as any).appConfig as Record<string, string[]> | undefined
+  if (!appConfig) return []
+  return appConfig[domainKey] || []
+}
+
+async function handleSaveAppConfig() {
+  if (!store.detail?.id) return
+  // 合并已有配置：未访问过的 tab 保留原配置
+  const existing = ((store.detail as any).appConfig || {}) as Record<string, string[]>
+  const appConfig: Record<string, string[]> = { ...existing }
+  for (const tab of moduleTabs.value) {
+    const tree = treeRefs.value[tab.key]
+    if (tree) {
+      const checkedKeys = tree.getCheckedKeys(true) as string[]
+      appConfig[tab.key] = checkedKeys
+    }
+  }
+  await store.handleUpdate(store.detail.id, { appConfig })
+  // 同步本地 detail 使树选中状态在切换 Tab 后保持不变
+  ;(store.detail as any).appConfig = appConfig
+}
 
 // ===== dimB / dimD 字典 =====
 const DIM_B_MAP: Record<string, string> = {
@@ -1009,6 +1182,42 @@ onMounted(() => {
 .stub-text {
   font-size: var(--font-body);
   color: var(--text-muted);
+}
+
+/* ========== 个性化配置表单 ========== */
+.branding-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 37px;
+}
+
+.branding-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.branding-label {
+  font-size: var(--font-small, 13px);
+  color: var(--text-muted, #5E5E5E);
+  white-space: nowrap;
+}
+
+/* ========== 保存按钮条 ========== */
+.save-bar {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: var(--spacing-lg, 12px);
+  border-top: 1px solid var(--border-default, #E9E9E9);
+  margin-top: var(--spacing-lg, 12px);
+}
+
+/* ========== 空状态提示 ========== */
+.empty-hint {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted, #5E5E5E);
+  font-size: var(--font-small, 14px);
 }
 
 /* ========== 响应式 ========== */
