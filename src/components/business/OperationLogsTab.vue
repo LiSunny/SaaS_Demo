@@ -33,7 +33,7 @@
           </thead>
           <tbody v-loading="loading">
             <tr v-for="log in sortedLogs" :key="log.id" class="fi-tbody-tr">
-              <td class="fi-td logs-col-time">{{ log.timestamp }}</td>
+              <td class="fi-td logs-col-time">{{ formatTime(log.timestamp) }}</td>
               <td class="fi-td logs-col-op">{{ log.operatorName }}</td>
               <td class="fi-td logs-col-desc">{{ log.description }}</td>
             </tr>
@@ -118,6 +118,20 @@ function toggleTimeSort() {
   else if (timeSortDir.value === 'desc') { timeSortDir.value = 'asc' }
   else { timeSortDir.value = 'none' }
 }
+
+/** 将 ISO 8601 / 日期字符串格式化为 YYYY-MM-DD HH:mm:ss */
+function formatTime(raw: string): string {
+  if (!raw) return '--'
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) return raw
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  return `${y}-${m}-${day} ${hh}:${mm}:${ss}`
+}
 </script>
 
 <style scoped>
@@ -169,5 +183,19 @@ function toggleTimeSort() {
 .logs-col-desc {
   width: auto;
   text-align: left;
+}
+
+/* ===== 分页器 ===== */
+:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); border: 1px solid var(--border-default); }
+:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; border: 1px solid var(--border-default); }
+:deep(.el-pagination .btn-prev.is-disabled), :deep(.el-pagination .btn-next.is-disabled) { color: var(--text-muted) !important; background-color: var(--pagi-bg) !important; }
+:deep(.el-pagination .el-select .el-select__wrapper) { background-color: var(--bg-card) !important; color: var(--text-secondary); border: 1px solid var(--border-high) !important; box-shadow: none !important; }
+:deep(.el-pagination .el-pagination__jump .el-input__wrapper) { background-color: var(--bg-card) !important; border: 1px solid var(--border-high) !important; box-shadow: none !important; }
+:deep(.el-pagination .el-pagination__jump .el-input__inner) { color: var(--text-primary) !important; background-color: var(--bg-card); }
+
+/* ===== 响应式 ===== */
+@media (max-width: 800px) {
+  .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; }
 }
 </style>

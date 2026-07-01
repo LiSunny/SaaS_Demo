@@ -437,6 +437,35 @@ list-page (height:100%)
 | v-model | `store.query.page` / `store.query.size` |
 | 总数文本 | `共 {{ store.total }} 条记录 第 {{ store.query.page }}/{{ Math.ceil(store.total / store.query.size) \|\| 1 }} 页` |
 
+### 分页 CSS 块（所有含 `<el-pagination>` 的组件必须照抄）
+
+> **不可协商。** 任何包含 `<el-pagination>` 的组件（列表页、Tab 内嵌表格、弹窗内表格等）都必须在 `<style scoped>` 末尾复制对应的 CSS 块。否则 Element Plus 默认蓝色主题会覆盖项目 Design Token，暗色模式也不跟随。
+
+**完整版**（含 page-size 下拉 + jumper 跳转，用于 `layout="sizes, prev, pager, next, jumper"`）：
+
+```css
+/* ===== 分页器（必须全部覆盖，各页面保持一致） ===== */
+:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); border: 1px solid var(--border-default); }
+:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; border: 1px solid var(--border-default); }
+:deep(.el-pagination .btn-prev.is-disabled), :deep(.el-pagination .btn-next.is-disabled) { color: var(--text-muted) !important; background-color: var(--pagi-bg) !important; }
+:deep(.el-pagination .el-select .el-select__wrapper) { background-color: var(--bg-card) !important; color: var(--text-secondary); border: 1px solid var(--border-high) !important; box-shadow: none !important; }
+:deep(.el-pagination .el-pagination__jump .el-input__wrapper) { background-color: var(--bg-card) !important; border: 1px solid var(--border-high) !important; box-shadow: none !important; }
+:deep(.el-pagination .el-pagination__jump .el-input__inner) { color: var(--text-primary) !important; background-color: var(--bg-card); }
+```
+
+**简化版**（仅页码 + 上下页，用于 `layout="prev, pager, next"`，无 el-select / jumper）：
+
+```css
+/* ===== 分页器 ===== */
+:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); border: 1px solid var(--border-default); }
+:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; border: 1px solid var(--border-default); }
+:deep(.el-pagination .btn-prev.is-disabled), :deep(.el-pagination .btn-next.is-disabled) { color: var(--text-muted) !important; background-color: var(--pagi-bg) !important; }
+```
+
+> `.pagi-total` 文字颜色必须使用 `var(--pagi-text)`（非 `--text-tertiary` 或其他）。全局 `style.css` 已定义 `.pagi-total { color: var(--pagi-text); }`，scoped 中不要用其他颜色覆盖。
+
 #### 代码模板
 
 ```vue
@@ -677,14 +706,7 @@ onMounted(async () => { await store.fetchList() })
   .help-illustration { width: 100%; }
 }
 
-/* ===== 分页器暗色模式（必须全部覆盖，各页面保持一致） ===== */
-:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); border: 1px solid var(--border-default); }
-:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
-:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; border: 1px solid var(--border-default); }
-:deep(.el-pagination .btn-prev.is-disabled), :deep(.el-pagination .btn-next.is-disabled) { color: var(--text-muted) !important; background-color: var(--pagi-bg) !important; }
-:deep(.el-pagination .el-select .el-select__wrapper) { background-color: var(--bg-card) !important; color: var(--text-secondary); border: 1px solid var(--border-high) !important; box-shadow: none !important; }
-:deep(.el-pagination .el-pagination__jump .el-input__wrapper) { background-color: var(--bg-card) !important; border: 1px solid var(--border-high) !important; box-shadow: none !important; }
-:deep(.el-pagination .el-pagination__jump .el-input__inner) { color: var(--text-primary) !important; background-color: var(--bg-card); }
+<!-- ⚠️ 分页器 CSS 块 — 从 §3.1 分页 CSS 块章节照抄，不可省略 -->
 </style>
 ```
 

@@ -94,7 +94,8 @@ description: "将 Markdown 设计文档 + Figma 设计稿转换为可商用的 V
 > | 搜索输入框 | `.search-input-wrap`, `.fi-input`, `.fi-clear`, `.fi-icon` | 搜索输入框+图标+清除按钮 | 同上 |
 > | 下拉选择 | `.fi-select-wrap`, `.fi-select` | el-select 包装器 | 同上 |
 > | 数据表格 | `.table-wrap`, `.fi-table`, `.fi-thead-tr`, `.fi-th`, `.fi-th-sort`, `.th-sort-icon`, `.fi-tbody-tr`, `.fi-td` | 原生 `<table>` 样式 | **使用原生 `<table class="fi-table">`，禁止用 `el-table` 替代** |
-> | 分页 | `.pagination-wrap`, `.pagi-total` | 分页器布局+总数文字 | 禁止 scoped 中重定义 |
+> | 分页容器 | `.pagination-wrap`, `.pagi-total` | 分页器布局+总数文字 | 禁止 scoped 中重定义 |
+> | **分页按钮覆盖** | `el-pagination` 的 `:deep()` 块 | 页码/上下页/下拉/跳转的颜色覆盖（暗色模式依赖） | **任何含 `<el-pagination>` 的组件必须复制 [code-templates.md §3.1 分页 CSS 块](references/code-templates.md)**，完整版 7 条或简化版 4 条 |
 > | 按钮 | `.btn-primary`, `.btn-danger`, `.btn-default`, `.btn-link` | 全局按钮类 | 禁止 scoped 中重定义 |
 > | 操作列 | `.action-cell`, `.act-btn`, `.act-icon`, `.act-preview`, `.act-edit`, `.act-delete`, `.act-copy` | 表格操作列按钮 | 禁止 scoped 中重定义 |
 >

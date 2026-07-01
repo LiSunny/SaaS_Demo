@@ -549,7 +549,7 @@ onMounted(() => {
 /* ========== 企业头部卡片 ========== */
 .header-card {
   background: var(--bg-card);
-  border: 1px solid #DEDEDE;
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
   flex-shrink: 0;
@@ -1093,9 +1093,9 @@ onMounted(() => {
 
 /* ===== 管理员账号卡片 ===== */
 .admin-account-card {
-  background: var(--bg-sub-card, #F8FAFD);
-  border: 1px solid var(--border-light, #E8ECF2);
-  border-radius: 8px;
+  background: var(--bg-sub-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   padding: 16px 20px;
 }
 .admin-account-row {
@@ -1135,7 +1135,7 @@ onMounted(() => {
 }
 .admin-hint {
   font-size: 12px;
-  color: var(--text-placeholder, #A0A0A0);
+  color: var(--text-tertiary);
   margin: 0;
   line-height: 1.6;
 }

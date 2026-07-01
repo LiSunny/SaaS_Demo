@@ -736,6 +736,12 @@ watch(() => props.enterpriseId, () => {
   color: var(--accent-primary);
 }
 
+/* ========== 分页器 ========== */
+:deep(.el-pagination .el-pager li) { background-color: var(--pagi-bg); color: var(--pagi-text); border: 1px solid var(--border-default); }
+:deep(.el-pagination .el-pager li.is-active) { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+:deep(.el-pagination .btn-prev), :deep(.el-pagination .btn-next) { background-color: var(--pagi-bg) !important; color: var(--pagi-text) !important; border: 1px solid var(--border-default); }
+:deep(.el-pagination .btn-prev.is-disabled), :deep(.el-pagination .btn-next.is-disabled) { color: var(--text-muted) !important; background-color: var(--pagi-bg) !important; }
+
 /* ========== 响应式列隐藏 ========== */
 @media (max-width: 1550px) {
   .resp-hide-1550 { display: none !important; }
