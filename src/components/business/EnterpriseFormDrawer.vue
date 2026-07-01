@@ -205,7 +205,7 @@
   >
     <div class="success-content">
       <div class="success-header">
-        <el-icon :size="48" color="#059669"><SuccessFilled /></el-icon>
+        <el-icon :size="36" color="#059669"><SuccessFilled /></el-icon>
         <p class="success-title">企业「{{ successInfo.name }}」创建成功！</p>
       </div>
 
