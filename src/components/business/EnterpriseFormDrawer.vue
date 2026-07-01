@@ -191,18 +191,66 @@
       @confirm="handleGisConfirm"
     />
   </el-drawer>
+
+  <!-- 创建成功弹窗 -->
+  <el-dialog
+    v-model="successDialogVisible"
+    title="企业创建成功"
+    width="460px"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    :show-close="false"
+    center
+    class="create-success-dialog"
+  >
+    <div class="success-content">
+      <div class="success-header">
+        <el-icon :size="48" color="#059669"><SuccessFilled /></el-icon>
+        <p class="success-title">企业「{{ successInfo.name }}」创建成功！</p>
+      </div>
+
+      <div class="admin-account-block">
+        <p class="admin-block-title">管理员账号信息</p>
+        <div class="admin-account-row">
+          <span class="admin-label">手机号</span>
+          <span class="admin-value">{{ successInfo.phone }}</span>
+        </div>
+        <div class="admin-account-row">
+          <span class="admin-label">初始密码</span>
+          <span class="admin-value">{{ successInfo.password }}</span>
+        </div>
+        <div class="admin-block-footer">
+          <p class="admin-tip">请妥善保管并交付给企业管理员，首次登录需修改密码。</p>
+          <button class="btn-copy" @click="copyAccountInfo">
+            <el-icon :size="14"><CopyDocument /></el-icon>
+            复制账号信息
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <button
+        class="confirm-btn"
+        :disabled="!confirmEnabled"
+        @click="handleSuccessConfirm"
+      >
+        {{ confirmEnabled ? '确定' : `确定 (${confirmCountdown}s)` }}
+      </button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
-import { MapLocation, UploadFilled, CircleCloseFilled } from '@element-plus/icons-vue'
+import { MapLocation, UploadFilled, CircleCloseFilled, SuccessFilled, CopyDocument } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
 import type { EnterpriseItem } from '@/types/enterprise'
 import GisMapPicker from './GisMapPicker.vue'
 
-const { confirmLeave, showSuccessAlert } = useConfirm()
+const { confirmLeave } = useConfirm()
 
 // ===== Props & Emits =====
 const props = defineProps<{
@@ -299,6 +347,62 @@ const regionOptions = [
   },
 ]
 
+// ===== 创建成功弹窗 =====
+const successDialogVisible = ref(false)
+const successInfo = reactive({
+  name: '',
+  phone: '',
+  password: '',
+})
+const confirmEnabled = ref(false)
+const confirmCountdown = ref(5)
+let countdownTimer: ReturnType<typeof setInterval> | null = null
+
+function showCreateSuccessDialog(name: string, phone: string, password: string) {
+  successInfo.name = name
+  successInfo.phone = phone
+  successInfo.password = password
+  confirmEnabled.value = false
+  confirmCountdown.value = 5
+  successDialogVisible.value = true
+
+  countdownTimer = setInterval(() => {
+    confirmCountdown.value--
+    if (confirmCountdown.value <= 0) {
+      clearInterval(countdownTimer!)
+      countdownTimer = null
+      confirmEnabled.value = true
+    }
+  }, 1000)
+}
+
+async function copyAccountInfo() {
+  const text = `手机号：${successInfo.phone}\n初始密码：${successInfo.password}`
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('账号信息已复制到剪贴板')
+  } catch {
+    ElMessage.warning('复制失败，请手动复制')
+  }
+}
+
+function handleSuccessConfirm() {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+  successDialogVisible.value = false
+  emit('saved')
+  emit('update:visible', false)
+}
+
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+})
+
 // ===== 操作 =====
 async function handleSave() {
   if (!validateForm()) return
@@ -329,18 +433,22 @@ async function handleSave() {
     }
     if (props.mode === 'edit' && props.editId) {
       await store.handleUpdate(props.editId, data)
+      emit('saved')
+      emit('update:visible', false)
     } else {
       const item = await store.handleCreate(data)
       // 新建企业时展示管理员账号信息
       if ((item as any)?.adminAccount?.isNewUser) {
-        await showSuccessAlert(
-          `企业「${item.name}」创建成功！\n\n已自动为企业负责人创建管理员账号：\n手机号：${(item as any).adminAccount.phone}\n初始密码：${(item as any).adminAccount.initialPassword}\n\n请妥善保管并交付给企业管理员，首次登录需修改密码。`,
-          '管理员账号已创建',
+        showCreateSuccessDialog(
+          item.name,
+          (item as any).adminAccount.phone,
+          (item as any).adminAccount.initialPassword,
         )
+        return // emit 在 handleSuccessConfirm 中执行
       }
+      emit('saved')
+      emit('update:visible', false)
     }
-    emit('saved')
-    emit('update:visible', false)
   } finally {
     submitting.value = false
   }
@@ -506,6 +614,129 @@ watch(() => props.visible, async (v) => {
 }
 .btn-save:hover { opacity: 0.85; }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== 创建成功弹窗 ===== */
+.success-content {
+  text-align: center;
+  padding: 0 8px;
+}
+
+.success-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.success-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #101010);
+  margin: 0;
+}
+
+.admin-account-block {
+  background: var(--bg-sub-card, #F7F8FA);
+  border: 1px solid var(--border-default, #E9E9E9);
+  border-radius: 8px;
+  padding: 16px 20px;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.admin-block-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #101010);
+  margin: 0 0 12px 0;
+}
+
+.admin-account-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.admin-account-row:last-of-type {
+  margin-bottom: 12px;
+}
+
+.admin-label {
+  font-size: 13px;
+  color: var(--text-tertiary, #454545);
+  min-width: 52px;
+}
+
+.admin-value {
+  font-size: 14px;
+  color: var(--text-primary, #101010);
+  font-weight: 500;
+}
+
+.admin-block-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-light, #DEDEDE);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  color: var(--text-secondary, #2E2E2E);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-copy:hover {
+  background: var(--bg-sub-card, #FBFBFB);
+}
+
+.admin-tip {
+  font-size: 12px;
+  color: var(--text-tertiary, #7A7A7A);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 40px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--semantic-info, #3678E3);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.confirm-btn:hover {
+  opacity: 0.85;
+}
+
+.confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>
 
 <style>
@@ -543,4 +774,17 @@ watch(() => props.visible, async (v) => {
 .clean-select .el-select__placeholder.is-transparent { color: #D9D9D9 !important; font-size: 14px; }
 .clean-select .el-select__selected-item:not(.is-transparent) { color: var(--text-primary, #101010); font-size: 14px; }
 .clean-select .el-select__input { font-size: 14px; color: var(--text-primary, #101010); }
+
+.create-success-dialog .el-dialog__header {
+  padding: 24px 24px 0 !important;
+}
+
+.create-success-dialog .el-dialog__body {
+  padding: 20px 24px 0 !important;
+}
+
+.create-success-dialog .el-dialog__footer {
+  padding: 20px 24px 24px !important;
+  text-align: center !important;
+}
 </style>
