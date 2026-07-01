@@ -652,7 +652,14 @@ onMounted(async () => { await store.fetchList() })
 .content-card {
   background: var(--bg-card); border-radius: var(--radius-md, 8px);
   padding: var(--spacing-xl, 16px); display: flex; flex-direction: column;
-  height: 100%; gap: var(--spacing-lg, 12px); overflow: auto;
+  height: 100%; gap: var(--spacing-lg, 12px); overflow: hidden;
+}
+
+/* 固定表头 —— table-wrap 有 flex:1 + overflow:auto，thead 吸附在顶部 */
+.fi-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 /* ===== 引导卡片（可选） ===== */

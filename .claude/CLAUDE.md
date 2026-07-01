@@ -34,6 +34,7 @@
 ## 开发规范
 
 - **列表页标准实现**：参考 `src/views/admin/EnterpriseList.vue`，代码模板见 `.claude/skills/md-figma-to-vue3/references/code-templates.md` §3.1
+- **列表表头固定**：`.content-card { overflow: hidden }` + `.fi-table thead { position: sticky; top: 0; z-index: 1 }`，仅 `.table-wrap`（`flex:1; overflow:auto`）内滚动，表头不随列表滚动
 
 ## 已生成的代码
 
