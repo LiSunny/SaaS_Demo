@@ -1,4 +1,4 @@
-# maintenance-demo — AI 安全管理平台（维保计划 Demo）
+# maintenance-demo — 人工智能+公共安全管理平台（产品 Demo）
 
 > Skill 调试验证项目。所有 11 个 skill 在此项目中迭代调试。
 
