@@ -109,6 +109,18 @@
               :records="currentRollCallRecords"
               @add-record="addRollCallRecord"
             />
+            <FireControlAlerts
+              v-show="activeTab === 'alerts'"
+              :enterprise="selectedEnterprise!"
+            />
+            <FireControlHandover
+              v-show="activeTab === 'handover'"
+              :enterprise="selectedEnterprise!"
+            />
+            <FireControlHostLedger
+              v-show="activeTab === 'host-ledger'"
+              :enterprise="selectedEnterprise!"
+            />
           </div>
         </div>
       </div>
@@ -125,6 +137,9 @@ import FireControlMonitoring from './components/yjj/FireControlMonitoring.vue'
 import FireControlDutyRecords from './components/yjj/FireControlDutyRecords.vue'
 import FireControlPersonnel from './components/yjj/FireControlPersonnel.vue'
 import FireControlRollCall from './components/yjj/FireControlRollCall.vue'
+import FireControlAlerts from './components/yjj/FireControlAlerts.vue'
+import FireControlHandover from './components/yjj/FireControlHandover.vue'
+import FireControlHostLedger from './components/yjj/FireControlHostLedger.vue'
 
 // ============================================================
 // Mock Data
@@ -158,10 +173,11 @@ interface DutyRecord {
   enterpriseId: number
   roomName: string
   personnelName: string
+  dutyType: 'check-in' | 'handover' | 'patrol'
   shiftDate: string
   checkInTime: string
   checkOutTime: string | null
-  status: 'on-time' | 'late' | 'absent'
+  status: 'on-time' | 'late' | 'absent' | 'missed'
   notes: string
 }
 
@@ -175,6 +191,9 @@ interface DutyPersonnel {
   certificationExpiry: string
   phone: string
   onDuty: boolean
+  leaveStatus: 'in-post' | 'on-leave' | 'off-duty'
+  leaveEndTime?: string
+  replacementName?: string
 }
 
 interface RollCallRecord {
@@ -186,6 +205,14 @@ interface RollCallRecord {
   responseTime: string | null
   status: 'responded' | 'timeout'
   responseMethod: 'video' | 'voice' | null
+  callMode: 'manual' | 'auto'
+  checkItems: {
+    hostStatus?: string
+    linkageDevices?: string[]
+    emergencyGear?: string[]
+    doorWindow?: string
+    certVerify?: boolean
+  } | null
 }
 
 // 摄像头截图资源（复用已有图片）
@@ -321,35 +348,36 @@ const enterprises: FireControlEnterprise[] = [
 
 // 值班人员
 const allPersonnel: DutyPersonnel[] = [
-  { id: 1, enterpriseId: 1, name: '张建国', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20240315001', certificationExpiry: '2027-03-15', phone: '138-1111-1001', onDuty: true },
-  { id: 2, enterpriseId: 1, name: '李明辉', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20230822002', certificationExpiry: '2026-08-22', phone: '138-1111-1002', onDuty: true },
-  { id: 3, enterpriseId: 1, name: '王海涛', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20240610003', certificationExpiry: '2026-12-10', phone: '138-1111-1003', onDuty: false },
-  { id: 4, enterpriseId: 1, name: '赵刚', roomName: '2#消控室', position: '消控值班长', certificationNo: 'XF20210905004', certificationExpiry: '2026-09-05', phone: '138-1111-1004', onDuty: false },
-  { id: 5, enterpriseId: 2, name: '刘强', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20250120005', certificationExpiry: '2028-01-20', phone: '139-2222-2001', onDuty: true },
-  { id: 6, enterpriseId: 2, name: '陈伟', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20231201006', certificationExpiry: '2026-12-01', phone: '139-2222-2002', onDuty: false },
-  { id: 7, enterpriseId: 2, name: '孙鹏', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20240715007', certificationExpiry: '2027-07-15', phone: '139-2222-2003', onDuty: true },
-  { id: 8, enterpriseId: 3, name: '杨帆', roomName: '1#消控室', position: '消控值班长', certificationNo: 'XF20220228008', certificationExpiry: '2027-02-28', phone: '137-3333-3001', onDuty: true },
-  { id: 9, enterpriseId: 3, name: '黄磊', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20241130009', certificationExpiry: '2027-11-30', phone: '137-3333-3002', onDuty: false },
-  { id: 10, enterpriseId: 3, name: '吴强', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20230518010', certificationExpiry: '2026-05-18', phone: '137-3333-3003', onDuty: true },
-  { id: 11, enterpriseId: 3, name: '何伟', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20240812011', certificationExpiry: '2027-08-12', phone: '137-3333-3004', onDuty: true },
-  { id: 12, enterpriseId: 4, name: '马超', roomName: '1#消控室', position: '消控值班长', certificationNo: 'XF20211020012', certificationExpiry: '2026-10-20', phone: '136-4444-4001', onDuty: true },
-  { id: 13, enterpriseId: 4, name: '林涛', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20250401013', certificationExpiry: '2028-04-01', phone: '136-4444-4002', onDuty: true },
-  { id: 14, enterpriseId: 4, name: '郑刚', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20230615014', certificationExpiry: '2026-06-15', phone: '136-4444-4003', onDuty: false },
-  { id: 15, enterpriseId: 4, name: '谢飞', roomName: '3#消控室', position: '消控值班员', certificationNo: 'XF20240908015', certificationExpiry: '2027-09-08', phone: '136-4444-4004', onDuty: true },
-  { id: 16, enterpriseId: 5, name: '钱进', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20240112016', certificationExpiry: '2027-01-12', phone: '135-5555-5001', onDuty: true },
-  { id: 17, enterpriseId: 5, name: '周明', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20230725017', certificationExpiry: '2026-07-25', phone: '135-5555-5002', onDuty: false },
-  { id: 18, enterpriseId: 5, name: '邓丽', roomName: '1#消控室', position: '消控值班长', certificationNo: 'XF20220830018', certificationExpiry: '2027-08-30', phone: '135-5555-5003', onDuty: true },
-  { id: 19, enterpriseId: 6, name: '彭涛', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20241201019', certificationExpiry: '2027-12-01', phone: '158-6666-6001', onDuty: true },
-  { id: 20, enterpriseId: 6, name: '郭海', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20230314020', certificationExpiry: '2026-03-14', phone: '158-6666-6002', onDuty: true },
-  { id: 21, enterpriseId: 6, name: '唐亮', roomName: '2#消控室', position: '消控值班长', certificationNo: 'XF20210622021', certificationExpiry: '2026-06-22', phone: '158-6666-6003', onDuty: false },
-  { id: 22, enterpriseId: 6, name: '杨帆', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20250910022', certificationExpiry: '2028-09-10', phone: '158-6666-6004', onDuty: true },
+  { id: 1, enterpriseId: 1, name: '张建国', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20240315001', certificationExpiry: '2027-03-15', phone: '138-1111-1001', onDuty: true, leaveStatus: 'in-post' },
+  { id: 2, enterpriseId: 1, name: '李明辉', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20230822002', certificationExpiry: '2026-08-22', phone: '138-1111-1002', onDuty: true, leaveStatus: 'on-leave', leaveEndTime: '2026-07-02T10:15:00', replacementName: '张建国' },
+  { id: 3, enterpriseId: 1, name: '王海涛', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20240610003', certificationExpiry: '2026-12-10', phone: '138-1111-1003', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 4, enterpriseId: 1, name: '赵刚', roomName: '2#消控室', position: '消控值班长', certificationNo: 'XF20210905004', certificationExpiry: '2026-09-05', phone: '138-1111-1004', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 5, enterpriseId: 2, name: '刘强', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20250120005', certificationExpiry: '2028-01-20', phone: '139-2222-2001', onDuty: true, leaveStatus: 'in-post' },
+  { id: 6, enterpriseId: 2, name: '陈伟', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20231201006', certificationExpiry: '2026-12-01', phone: '139-2222-2002', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 7, enterpriseId: 2, name: '孙鹏', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20240715007', certificationExpiry: '2027-07-15', phone: '139-2222-2003', onDuty: true, leaveStatus: 'in-post' },
+  { id: 8, enterpriseId: 3, name: '杨帆', roomName: '1#消控室', position: '消控值班长', certificationNo: 'XF20220228008', certificationExpiry: '2027-02-28', phone: '137-3333-3001', onDuty: true, leaveStatus: 'in-post' },
+  { id: 9, enterpriseId: 3, name: '黄磊', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20241130009', certificationExpiry: '2027-11-30', phone: '137-3333-3002', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 10, enterpriseId: 3, name: '吴强', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20230518010', certificationExpiry: '2026-05-18', phone: '137-3333-3003', onDuty: true, leaveStatus: 'in-post' },
+  { id: 11, enterpriseId: 3, name: '何伟', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20240812011', certificationExpiry: '2027-08-12', phone: '137-3333-3004', onDuty: true, leaveStatus: 'on-leave', leaveEndTime: '2026-07-02T09:00:00', replacementName: '吴强' },
+  { id: 12, enterpriseId: 4, name: '马超', roomName: '1#消控室', position: '消控值班长', certificationNo: 'XF20211020012', certificationExpiry: '2026-10-20', phone: '136-4444-4001', onDuty: true, leaveStatus: 'in-post' },
+  { id: 13, enterpriseId: 4, name: '林涛', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20250401013', certificationExpiry: '2028-04-01', phone: '136-4444-4002', onDuty: true, leaveStatus: 'in-post' },
+  { id: 14, enterpriseId: 4, name: '郑刚', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20230615014', certificationExpiry: '2026-06-15', phone: '136-4444-4003', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 15, enterpriseId: 4, name: '谢飞', roomName: '3#消控室', position: '消控值班员', certificationNo: 'XF20240908015', certificationExpiry: '2027-09-08', phone: '136-4444-4004', onDuty: true, leaveStatus: 'in-post' },
+  { id: 16, enterpriseId: 5, name: '钱进', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20240112016', certificationExpiry: '2027-01-12', phone: '135-5555-5001', onDuty: true, leaveStatus: 'in-post' },
+  { id: 17, enterpriseId: 5, name: '周明', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20230725017', certificationExpiry: '2026-07-25', phone: '135-5555-5002', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 18, enterpriseId: 5, name: '邓丽', roomName: '1#消控室', position: '消控值班长', certificationNo: 'XF20220830018', certificationExpiry: '2027-08-30', phone: '135-5555-5003', onDuty: true, leaveStatus: 'in-post' },
+  { id: 19, enterpriseId: 6, name: '彭涛', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20241201019', certificationExpiry: '2027-12-01', phone: '158-6666-6001', onDuty: true, leaveStatus: 'in-post' },
+  { id: 20, enterpriseId: 6, name: '郭海', roomName: '1#消控室', position: '消控值班员', certificationNo: 'XF20230314020', certificationExpiry: '2026-03-14', phone: '158-6666-6002', onDuty: true, leaveStatus: 'in-post' },
+  { id: 21, enterpriseId: 6, name: '唐亮', roomName: '2#消控室', position: '消控值班长', certificationNo: 'XF20210622021', certificationExpiry: '2026-06-22', phone: '158-6666-6003', onDuty: false, leaveStatus: 'off-duty' },
+  { id: 22, enterpriseId: 6, name: '杨帆', roomName: '2#消控室', position: '消控值班员', certificationNo: 'XF20250910022', certificationExpiry: '2028-09-10', phone: '158-6666-6004', onDuty: true, leaveStatus: 'in-post' },
 ]
 
-// 值班记录（每个企业 ~10 条，近几日）
+// 值班记录（每个企业 ~15 条，近几日，含三种打卡类型）
 function generateDutyRecords(): DutyRecord[] {
   const records: DutyRecord[] = []
   const names = ['张建国','李明辉','王海涛','赵刚','刘强','陈伟','孙鹏','杨帆','黄磊','吴强','何伟','马超','林涛','郑刚','谢飞','钱进','周明','邓丽','彭涛','郭海','唐亮','杨帆']
-  const statuses: DutyRecord['status'][] = ['on-time', 'on-time', 'on-time', 'on-time', 'late', 'on-time', 'on-time', 'absent', 'on-time', 'on-time']
+  const statuses: DutyRecord['status'][] = ['on-time', 'on-time', 'on-time', 'on-time', 'late', 'on-time', 'on-time', 'absent', 'on-time', 'missed']
+  const dutyTypes: DutyRecord['dutyType'][] = ['check-in', 'check-in', 'check-in', 'handover', 'patrol', 'check-in', 'patrol', 'check-in', 'handover', 'patrol']
   let id = 1
   enterprises.forEach(ent => {
     ent.rooms.forEach(room => {
@@ -358,16 +386,18 @@ function generateDutyRecords(): DutyRecord[] {
         date.setDate(date.getDate() - d)
         const ds = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
         const st = statuses[(ent.id + d) % statuses.length]
+        const dt = dutyTypes[(ent.id + d) % dutyTypes.length]
         records.push({
           id: id++,
           enterpriseId: ent.id,
           roomName: room.name,
           personnelName: names[(ent.id * 3 + d) % names.length],
+          dutyType: dt,
           shiftDate: ds,
           checkInTime: st === 'absent' ? '--' : `${String(7 + Math.floor(Math.random()*2)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`,
           checkOutTime: st === 'absent' ? '--' : `${String(19 + Math.floor(Math.random()*2)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`,
           status: st,
-          notes: st === 'late' ? '迟到12分钟' : st === 'absent' ? '未到岗' : '',
+          notes: st === 'late' ? '迟到12分钟' : st === 'absent' ? '未到岗' : st === 'missed' ? '巡检超时未完成' : '',
         })
       }
     })
@@ -375,15 +405,17 @@ function generateDutyRecords(): DutyRecord[] {
   return records
 }
 
-// 点名记录
+// 点名记录（含感点名 + 无感点名）
 function generateRollCallRecords(): RollCallRecord[] {
   const records: RollCallRecord[] = []
   const names = ['张建国','李明辉','刘强','孙鹏','杨帆','吴强','何伟','马超','林涛','谢飞','钱进','邓丽','彭涛','郭海','杨帆']
   const methods: RollCallRecord['responseMethod'][] = ['video', 'voice', 'voice', 'video', 'voice']
+  const hostOptions = ['正常', '正常', '正常', '有故障']
   let id = 1
   enterprises.forEach(ent => {
-    for (let i = 0; i < 5; i++) {
-      const responded = i < 4 // 4/5 应答
+    // 有感点名：3 条
+    for (let i = 0; i < 3; i++) {
+      const responded = i < 2
       records.push({
         id: id++,
         enterpriseId: ent.id,
@@ -393,6 +425,29 @@ function generateRollCallRecords(): RollCallRecord[] {
         responseTime: responded ? `2026-06-${String(20 - i).padStart(2,'0')} ${String(9 + Math.floor(Math.random()*8)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}` : null,
         status: responded ? 'responded' : 'timeout',
         responseMethod: responded ? methods[i % methods.length] : null,
+        callMode: 'manual',
+        checkItems: responded ? {
+          hostStatus: hostOptions[Math.floor(Math.random() * hostOptions.length)],
+          linkageDevices: ['喷淋泵', '消火栓泵'],
+          emergencyGear: ['对讲机', '灭火器', '应急灯'],
+          doorWindow: '正常',
+          certVerify: true,
+        } : null,
+      })
+    }
+    // 无感点名：2 条（AI 自动生成）
+    for (let i = 0; i < 2; i++) {
+      records.push({
+        id: id++,
+        enterpriseId: ent.id,
+        personnelName: names[(ent.id * 3 + i + 3) % names.length],
+        initiator: 'AI 自动点名',
+        callTime: `2026-06-${String(20 - i).padStart(2,'0')} ${String(9 + Math.floor(Math.random()*8)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`,
+        responseTime: `2026-06-${String(20 - i).padStart(2,'0')} ${String(9 + Math.floor(Math.random()*8)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`,
+        status: 'responded',
+        responseMethod: null,
+        callMode: 'auto',
+        checkItems: null,
       })
     }
   })
@@ -416,6 +471,9 @@ const tabs = [
   { key: 'duty-records', label: '值班记录' },
   { key: 'personnel', label: '值班人员' },
   { key: 'roll-call', label: '远程点名' },
+  { key: 'alerts', label: 'AI预警' },
+  { key: 'handover', label: '交接班' },
+  { key: 'host-ledger', label: '主机台账' },
 ]
 
 // ============================================================
