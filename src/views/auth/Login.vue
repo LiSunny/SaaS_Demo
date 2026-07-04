@@ -105,7 +105,11 @@
     </div>
 
     <!-- 底部版权 -->
-    <footer class="login-footer">版权所有©️北京韧性科技2026</footer>
+    <footer class="login-footer">
+      <span>版权所有©️北京韧性科技2026</span>
+      <span class="footer-divider">|</span>
+      <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
+    </footer>
   </div>
 </template>
 
@@ -559,6 +563,25 @@ async function handleLogin() {
   font-size: clamp(13px, calc(16 * var(--min-scale)), 16px);
   color: var(--text-tertiary, #454545);
   padding-bottom: calc(32 * var(--h));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(6 * var(--w));
   white-space: nowrap;
+}
+
+.footer-divider {
+  color: var(--text-muted, #5e5e5e);
+}
+
+.footer-icp {
+  color: var(--text-tertiary, #454545);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.footer-icp:hover {
+  color: var(--accent-primary, #3678E3);
 }
 </style>

@@ -195,7 +195,7 @@
         </div>
         <div class="ft-bottom">
           <span>© 2026 人工智能 + 公共安全管理平台. All rights reserved.</span>
-          <span class="ft-icp">冀ICP备2026XXXXXXXX号</span>
+          <a class="ft-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
         </div>
       </div>
     </footer>
@@ -616,7 +616,8 @@ const FOOTER_COLS = [
 .ft-col a:hover { color: rgba(255,255,255,0.85); }
 .ft-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 32px; font-size: 12px; color: rgba(255,255,255,0.5); }
 @media (min-width: 640px) { .ft-bottom { flex-direction: row; justify-content: space-between; } }
-.ft-icp { font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
+.ft-icp { font-family: 'Outfit', 'Noto Sans SC', sans-serif; color: rgba(255,255,255,0.5); text-decoration: none; cursor: pointer; transition: color 0.2s; }
+.ft-icp:hover { color: rgba(147,197,253,0.9); }
 
 /* ===== Mobile tip modal ===== */
 .mobile-tip-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
