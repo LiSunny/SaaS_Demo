@@ -311,6 +311,8 @@ function validateForm(): boolean {
   if (!form.name.trim()) { ElMessage.warning('请输入企业名称'); return false }
   if (!form.contactName.trim()) { ElMessage.warning('请输入负责人姓名'); return false }
   if (!form.contactPhone.trim()) { ElMessage.warning('请输入负责人手机号'); return false }
+  // DEBUG: 打印手机号实际值和长度
+  console.log('[validateForm] contactPhone:', JSON.stringify(form.contactPhone), 'length:', form.contactPhone.length)
   if (!/^1[3-9]\d{9}$/.test(form.contactPhone.trim())) { ElMessage.warning('请输入正确的手机号'); return false }
   return true
 }
