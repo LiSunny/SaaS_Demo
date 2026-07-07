@@ -8,7 +8,6 @@
         <img class="brand-logo" src="/favicon.svg" alt="平台logo" />
         <span class="brand-name">韧性云</span>
       </div>
-      <a href="/portal" target="_blank" class="portal-entry">了解平台</a>
     </header>
 
     <!-- 中部：左右两栏 -->
@@ -106,9 +105,12 @@
 
     <!-- 底部版权 -->
     <footer class="login-footer">
-      <span>版权所有©️北京韧性科技2026</span>
-      <span class="footer-divider">|</span>
-      <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
+      <a href="/portal" target="_blank" class="footer-portal">了解平台</a>
+      <div class="footer-copyright">
+        <span>版权所有©️北京韧性科技2026</span>
+        <span class="footer-divider">|</span>
+        <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
+      </div>
     </footer>
   </div>
 </template>
@@ -279,16 +281,6 @@ async function handleLogin() {
   line-height: 1;
 }
 
-.portal-entry {
-  font-size: calc(16 * var(--min-scale));
-  color: var(--accent-primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.2s;
-  flex-shrink: 0;
-}
-.portal-entry:hover { opacity: 0.75; }
-
 /* ============================================
    中部：双栏布局
    ============================================ */
@@ -341,6 +333,7 @@ async function handleLogin() {
 
 .hero-subtitle {
   font-size: clamp(16px, calc(24 * var(--min-scale)), 24px);
+  font-weight: 500;
   color: var(--text-tertiary, #454545);
   margin: 0;
   line-height: 1.4;
@@ -372,7 +365,7 @@ async function handleLogin() {
 }
 
 .feature-title {
-  font-size: clamp(14px, calc(20 * var(--min-scale)), 20px);
+  font-size: clamp(14px, calc(18 * var(--min-scale)), 20px);
   font-weight: 500;
   color: var(--text-tertiary, #454545);
   margin: 0;
@@ -577,13 +570,28 @@ async function handleLogin() {
 .login-footer {
   position: relative;
   text-align: center;
-  font-size: clamp(13px, calc(16 * var(--min-scale)), 16px);
-  color: var(--text-tertiary, #454545);
   padding-bottom: calc(32 * var(--h));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8 * var(--min-scale));
+}
+
+.footer-portal {
+  font-size: clamp(13px, calc(16 * var(--min-scale)), 16px);
+  color: var(--accent-primary, #3678e3);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.footer-portal:hover { opacity: 0.75; }
+
+.footer-copyright {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: calc(6 * var(--w));
+  font-size: clamp(13px, calc(16 * var(--min-scale)), 16px);
+  color: var(--text-tertiary, #454545);
   white-space: nowrap;
 }
 
