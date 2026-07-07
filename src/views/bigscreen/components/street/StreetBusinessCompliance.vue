@@ -115,7 +115,7 @@
               <circle cx="7" cy="7" r="5" />
               <line x1="11" y1="11" x2="14" y2="14" />
             </svg>
-            <span class="search-placeholder">搜索任务名称...</span>
+            <span class="search-placeholder">搜索商户名称...</span>
           </div>
           <div class="status-filter">
             <span>全部状态</span>
@@ -308,12 +308,18 @@ onBeforeUnmount(() => {
 
 // ===== 表格数据 =====
 const tableRows = [
-  { name: '盛邦木业', category: '木材加工', reportTime: '----', status: 'warning' },
-  { name: '南湖校区', category: '物业', reportTime: '-----', status: 'warning' },
-  { name: '江南商贸城', category: '商业', reportTime: '----', status: 'warning' },
-  { name: '生产计划执行与分配', category: '2025-10-14 09:00', reportTime: '2025-10-14 09:00', status: 'normal' },
-  { name: '生产计划执行与分配', category: '2025-10-14 09:00', reportTime: '2025-10-14 09:00', status: 'normal' },
-  { name: '生产计划执行与分配', category: '2025-10-14 09:00', reportTime: '2025-10-14 09:00', status: 'normal' },
+  { name: '星巴克咖啡', category: '餐饮美食', reportTime: '----', status: 'warning' },
+  { name: '海底捞火锅', category: '餐饮美食', reportTime: '2025-10-14 08:30', status: 'normal' },
+  { name: '优衣库', category: '服饰零售', reportTime: '2025-10-14 09:15', status: 'normal' },
+  { name: '华为旗舰店', category: '数码电子', reportTime: '2025-10-14 08:45', status: 'normal' },
+  { name: '名创优品', category: '生活百货', reportTime: '----', status: 'warning' },
+  { name: '屈臣氏', category: '美容护理', reportTime: '2025-10-14 10:00', status: 'normal' },
+  { name: '万达影城', category: '休闲娱乐', reportTime: '----', status: 'warning' },
+  { name: '麦当劳', category: '餐饮美食', reportTime: '2025-10-14 07:50', status: 'normal' },
+  { name: '顺丰速运', category: '物流快递', reportTime: '2025-10-14 09:30', status: 'normal' },
+  { name: 'Nike运动', category: '服饰零售', reportTime: '2025-10-14 10:20', status: 'normal' },
+  { name: '瑞幸咖啡', category: '餐饮美食', reportTime: '----', status: 'warning' },
+  { name: '海王星辰药店', category: '医药健康', reportTime: '2025-10-14 08:15', status: 'normal' },
 ]
 
 const pageSize = ref(10)
