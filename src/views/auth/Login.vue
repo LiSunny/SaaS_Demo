@@ -176,12 +176,20 @@ const featureCards = [
   },
 ]
 
-// 体验账号
+// 体验账号 测试
+// const demoAccounts = [
+//   { role: '平台管理', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
+//   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
+//   { role: '企业管理', phone: '13567890123', password: 'admin123!@#', image: enterpriseAdminImg },
+//   { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
+// ]
+
+// 体验账号 正式 
 const demoAccounts = [
-  { role: '平台管理', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
+  { role: '平台管理', phone: '17733550542', password: 'lrjndh', image: platformAdminImg },
   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-  { role: '企业管理', phone: '13567890123', password: 'admin123!@#', image: enterpriseAdminImg },
-  { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
+  { role: '监管机构', phone: '13567890123', password: 'admin123!@#', image: enterpriseAdminImg },
+  { role: '企业管理', phone: '13800000009', password: 'admin123!@#', image: enterpriseAdminImg },
 ]
 
 function fillDemo(account: typeof demoAccounts[0]) {
