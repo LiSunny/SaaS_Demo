@@ -264,8 +264,8 @@ async function handleLogin() {
 }
 
 .brand-logo {
-  width: calc(60 * var(--min-scale));
-  height: calc(60 * var(--min-scale));
+  width: calc(48 * var(--min-scale));
+  height: calc(48 * var(--min-scale));
   border-radius: calc(12 * var(--min-scale));
   flex-shrink: 0;
 }
@@ -273,7 +273,7 @@ async function handleLogin() {
 .brand-name {
   font-family: 'Alimama ShuHeiTi', 'PingFang SC', sans-serif;
   font-weight: 700;
-  font-size: clamp(24px, calc(46 * var(--min-scale)), 46px);
+  font-size: clamp(18px, calc(22 * var(--min-scale)), 26px);
   color: var(--text-secondary, #2e2e2e);
   white-space: nowrap;
   line-height: 1;
@@ -410,8 +410,8 @@ async function handleLogin() {
 }
 
 .card-title {
-  font-size: clamp(16px, calc(24 * var(--min-scale)), 24px);
-  font-weight: 500;
+  font-size: clamp(28px, calc(32 * var(--min-scale)), 38px);
+  font-weight: 800;
   color: var(--text-secondary, #2e2e2e);
   margin: 0;
   line-height: 1.3;
@@ -425,11 +425,28 @@ async function handleLogin() {
 }
 
 .login-form :deep(.el-form-item) {
-  margin-bottom: calc(16 * var(--min-scale));
+  margin-bottom: calc(28 * var(--min-scale));
+  position: relative;
+  padding-bottom: calc(18 * var(--min-scale));
+}
+
+.login-form :deep(.el-form-item.is-error) {
+  margin-bottom: calc(18 * var(--min-scale));
 }
 
 .login-form :deep(.el-form-item:last-child) {
   margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* 表单验证错误信息 */
+.login-form :deep(.el-form-item__error) {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  font-size: calc(14 * var(--min-scale));
+  line-height: calc(18 * var(--min-scale));
+  padding-top: calc(6 * var(--min-scale));
 }
 
 /* 输入框 */
