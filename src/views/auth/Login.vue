@@ -188,7 +188,7 @@ const featureCards = [
 const demoAccounts = [
   { role: '平台管理', phone: '17733550542', password: 'lrjndh', image: platformAdminImg },
   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-  { role: '监管机构', phone: '13567890123', password: 'admin123!@#', image: enterpriseAdminImg },
+  { role: '监管机构', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
   { role: '企业管理', phone: '13800000009', password: 'admin123!@#', image: enterpriseAdminImg },
 ]
 
