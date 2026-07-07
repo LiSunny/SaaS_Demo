@@ -195,7 +195,8 @@
         </div>
         <div class="ft-bottom">
           <span>© 2026 人工智能 + 公共安全管理平台. All rights reserved.</span>
-          <a class="ft-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
+          <span class="footer-divider">|</span>
+          <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
         </div>
       </div>
     </footer>

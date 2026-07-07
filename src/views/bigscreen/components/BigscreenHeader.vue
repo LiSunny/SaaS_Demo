@@ -90,6 +90,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { useConfirm } from '@/composables/useConfirm'
 
 /**
  * 大标题 / 顶部导航栏组件
@@ -107,6 +110,10 @@ const props = withDefaults(defineProps<{
   username: '王猛',
 })
 
+const router = useRouter()
+const userStore = useUserStore()
+const { confirmLogout } = useConfirm()
+
 const timeStr = ref('')
 const dateStr = ref('')
 
@@ -122,14 +129,24 @@ function updateTime(): void {
   })
 }
 
+async function handleLogout(): Promise<void> {
+  try {
+    await confirmLogout()
+  } catch { return }
+  userStore.logout()
+  router.replace('/login')
+}
+
 function handleCommand(command: string): void {
   switch (command) {
     case 'backend':
       window.open('/workbench', '_blank')
       break
+    case 'logout':
+      handleLogout()
+      break
     case 'voice':
     case 'alarm':
-    case 'logout':
       // 装饰项，暂无功能
       break
   }
