@@ -105,7 +105,7 @@
 
     <!-- 底部版权 -->
     <footer class="login-footer">
-      <a href="/portal" target="_blank" class="footer-portal">了解平台</a>
+      <a href="/portal" target="_blank" class="footer-portal">关于韧性云 | 人工智能+公共安全管理平台</a>
       <div class="footer-copyright">
         <span>版权所有©️北京韧性科技2026</span>
         <span class="footer-divider">|</span>
