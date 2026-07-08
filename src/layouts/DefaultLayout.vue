@@ -20,12 +20,6 @@
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        
-        <!-- <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" title="切换侧栏">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button> -->
       </div>
     </header>
 
@@ -33,12 +27,17 @@
     <div class="main-body">
       <aside :class="['left-sidebar', { collapsed: sidebarCollapsed }]">
 
-        <!-- 1. 搜索框 -->
-        <div class="sidebar-search">
-          <input v-model="searchQuery" class="search-input" placeholder="搜索菜单或功能..." />
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M15.5 15.5L19 19M5 11a6 6 0 1 0 12 0 6 6 0 0 0-12 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+        <!-- 1. 搜索栏 + 侧栏展开/折叠按钮（同一行） -->
+        <div class="sidebar-topbar">
+          <div class="sidebar-search">
+            <input v-model="searchQuery" class="search-input" placeholder="搜索菜单或功能..." />
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M15.5 15.5L19 19M5 11a6 6 0 1 0 12 0 6 6 0 0 0-12 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <button class="sidebar-toggle" @click="toggleSidebar" :title="sidebarCollapsed ? '展开侧栏' : '收起侧栏'">
+            <AppIcon :name="sidebarCollapsed ? 'menu-unfold' : 'menu-fold'" :size="20" />
+          </button>
         </div>
 
         <!-- 2. 工作台（固定项） -->
@@ -86,7 +85,12 @@
           :key="group.key"
           class="nav-group"
         >
-          <div class="section-header">
+          <div
+            class="section-header"
+            @mouseenter="openFlyout(group.label, group.children, $event)"
+            @mouseleave="scheduleHide"
+          >
+            <AppIcon v-if="sidebarCollapsed" :name="group.icon || 'menuicon'" class="side-icon" />
             <span class="section-label">{{ group.label }}</span>
           </div>
           <div class="section-body">
@@ -96,6 +100,8 @@
                 <button
                   :class="['side-item', { open: expandedKeys.includes(node.key) }]"
                   @click="toggleExpand(node.key)"
+                  @mouseenter="openFlyout(node.label, node.children || [], $event)"
+                  @mouseleave="scheduleHide"
                 >
                   <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
                   <span class="side-label">{{ node.label }}</span>
@@ -121,6 +127,8 @@
                 <button
                   :class="['side-item', { active: activeNavKey === node.key, open: expandedKeys.includes(node.key) }]"
                   @click="onMixedNodeClick(node)"
+                  @mouseenter="openFlyout(node.label, node.children || [], $event)"
+                  @mouseleave="scheduleHide"
                 >
                   <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
                   <span class="side-label">{{ node.label }}</span>
@@ -167,6 +175,27 @@
           </div>
         </div>
       </aside>
+
+      <!-- 折叠态悬浮菜单（flyout）：Teleport 到 body，避免被侧栏 overflow 裁剪 -->
+      <Teleport to="body">
+        <div
+          v-if="flyout"
+          class="nav-flyout"
+          :style="{ left: flyout.x + 'px', top: flyout.y + 'px' }"
+          @mouseenter="cancelHide"
+          @mouseleave="scheduleHide"
+        >
+          <div v-if="flyout.title" class="nav-flyout-title">{{ flyout.title }}</div>
+          <button
+            v-for="row in flyout.rows"
+            :key="row.node.key"
+            class="nav-flyout-item"
+            :class="{ 'is-parent': !row.node.route }"
+            :style="{ paddingLeft: 10 + row.depth * 16 + 'px' }"
+            @click="onFlyoutItemClick(row.node)"
+          >{{ row.node.label }}</button>
+        </div>
+      </Teleport>
 
       <main class="main-content">
         <router-view v-if="activeNavKey in NAV_KEY_TO_ROUTE || !activeNavKey" />
@@ -365,6 +394,82 @@ function onMixedNodeClick(node: NavNode): void {
   toggleExpand(node.key)
 }
 
+// ===== 折叠态悬浮菜单（flyout） =====
+interface FlyoutRow {
+  node: NavNode
+  depth: number
+}
+interface FlyoutState {
+  title: string
+  rows: FlyoutRow[]
+  x: number
+  y: number
+}
+const flyout = ref<FlyoutState | null>(null)
+let flyoutTimer: number | null = null
+
+/** 将子树拍平为带层级的行（父节点与子节点都作为可点击项） */
+function buildFlyoutRows(nodes: NavNode[], depth = 0): FlyoutRow[] {
+  const rows: FlyoutRow[] = []
+  for (const n of nodes) {
+    rows.push({ node: n, depth })
+    if (n.children && n.children.length) {
+      rows.push(...buildFlyoutRows(n.children, depth + 1))
+    }
+  }
+  return rows
+}
+
+/** 鼠标移入分组图标时打开悬浮面板，展示该分组的完整子树（仅折叠态生效） */
+function openFlyout(title: string, nodes: NavNode[], event: MouseEvent): void {
+  if (!sidebarCollapsed.value) return
+  if (!nodes || nodes.length === 0) return
+  if (flyoutTimer) { clearTimeout(flyoutTimer); flyoutTimer = null }
+  const el = event.currentTarget as HTMLElement
+  const rect = el.getBoundingClientRect()
+  flyout.value = { title, rows: buildFlyoutRows(nodes), x: rect.right + 4, y: rect.top }
+}
+
+/** 鼠标移出后延迟关闭，给移动到面板留出时间 */
+function scheduleHide(): void {
+  if (flyoutTimer) clearTimeout(flyoutTimer)
+  flyoutTimer = window.setTimeout(() => { flyout.value = null }, 120)
+}
+
+/** 鼠标进入面板时取消关闭 */
+function cancelHide(): void {
+  if (flyoutTimer) { clearTimeout(flyoutTimer); flyoutTimer = null }
+}
+
+/** 找到第一个带 route 的后代节点（用于无 route 的父节点导航） */
+function firstRouteNode(node: NavNode): NavNode | null {
+  if (node.route) return node
+  if (node.children) {
+    for (const c of node.children) {
+      const r = firstRouteNode(c)
+      if (r) return r
+    }
+  }
+  return null
+}
+
+/** 点击悬浮面板中的项：有 route 直接导航，否则导航到首个后代 route */
+function onFlyoutItemClick(item: NavNode): void {
+  const target = item.route ? item : firstRouteNode(item)
+  if (target && target.route) {
+    activeNavKey.value = target.key
+    router.push(target.route)
+  }
+  flyout.value = null
+  cancelHide()
+}
+
+// ===== 侧栏手动展开/收起 =====
+function toggleSidebar(): void {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  if (!sidebarCollapsed.value) flyout.value = null
+}
+
 // ===== 路由 → 菜单同步 =====
 function syncMenuFromRoute(): void {
   const path = router.currentRoute.value.path
@@ -452,9 +557,8 @@ if (typeof window !== 'undefined') {
 .sidebar-toggle {
   display: flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
-  width: 32px; height: 32px;
+  width: 38px; height: 38px; flex-shrink: 0;
   border-radius: var(--radius-sm, 6px); color: var(--text-secondary);
-  flex-shrink: 0;
 }
 .sidebar-toggle:hover { background: var(--accent-primary10); color: var(--accent-primary); }
 
@@ -479,13 +583,17 @@ if (typeof window !== 'undefined') {
 .left-sidebar.collapsed .side-sub,
 .left-sidebar.collapsed .section-chevron,
 .left-sidebar.collapsed .section-body,
+.left-sidebar.collapsed .section-label,
 .left-sidebar.collapsed .search-input,
 .left-sidebar.collapsed .search-icon,
 .left-sidebar.collapsed .sidebar-divider,
 .left-sidebar.collapsed .pinned-section,
 .left-sidebar.collapsed .no-results,
 .left-sidebar.collapsed .pin-icon { display: none !important; }
+/* 折叠态：分组标题仅显示图标并居中，作为悬浮入口 */
+.left-sidebar.collapsed .section-header { justify-content: center; padding: 8px 0; }
 .left-sidebar.collapsed .sidebar-search { display: none; }
+.left-sidebar.collapsed .sidebar-topbar { justify-content: center; margin-bottom: 0; }
 .left-sidebar.collapsed .workbench-item {
   justify-content: center; padding: 0; min-height: 45px;
 }
@@ -493,9 +601,15 @@ if (typeof window !== 'undefined') {
   justify-content: center; padding: 0; gap: 0; height: 45px;
 }
 
+/* ===== 搜索栏 + 切换按钮 同一行 ===== */
+.sidebar-topbar {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: var(--spacing-md, 8px); flex-shrink: 0;
+}
+
 /* ===== 搜索框 ===== */
 .sidebar-search {
-  position: relative; margin-bottom: var(--spacing-md, 8px);
+  position: relative; flex: 1; min-width: 0;
 }
 .search-input {
   width: 100%; height: 38px; padding: 0 36px 0 12px;
@@ -514,14 +628,16 @@ if (typeof window !== 'undefined') {
 .workbench-item {
   display: flex; align-items: center; gap: 10px;
   width: 100%; min-height: 45px; padding: 0 10px;
-  border: none; background: var(--accent-primary10); cursor: pointer;
+  border: none; background: none; cursor: pointer;
   border-radius: var(--radius-md, 8px);
-  font-size: var(--font-h4, 16px); font-weight: 500; color: var(--accent-primary);
+  font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-secondary);
   text-align: left; flex-shrink: 0;
   transition: background .15s, color .15s;
 }
-.workbench-item:hover { background: var(--accent-primary); color: #fff; }
-.workbench-item.active { background: var(--accent-primary); color: #fff; }
+.workbench-item:hover { background: var(--accent-primary10); color: var(--accent-primary); }
+.workbench-item:hover .side-icon { color: var(--accent-primary); }
+.workbench-item.active { background: var(--accent-primary10); color: var(--accent-primary); }
+.workbench-item.active .side-icon { color: var(--accent-primary); }
 
 /* ===== 分隔线 ===== */
 .sidebar-divider {
@@ -558,17 +674,17 @@ if (typeof window !== 'undefined') {
   color: var(--text-secondary); text-align: left; flex-shrink: 0;
   transition: background .15s;
 }
-.side-item:hover { background: var(--accent-primary10); }
-.side-item.active { background: var(--accent-primary); color: #FFFFFF; }
-.side-item.active .side-arrow path { stroke: #FFFFFF; }
-.side-item.active .nav-entry-arrow path { stroke: #FFFFFF; }
-.side-item.active .pin-icon { color: rgba(255,255,255,0.7); }
+.side-item:hover { background: var(--accent-primary10); color: var(--accent-primary); }
+.side-item.active { background: var(--accent-primary10); color: var(--accent-primary); }
+.side-item.active .side-arrow path { stroke: var(--accent-primary); }
+.side-item.active .nav-entry-arrow path { stroke: var(--accent-primary); }
+.side-item.active .pin-icon { color: var(--accent-primary); }
 .side-item-placeholder {
   cursor: default; opacity: 0.5;
 }
 
 .side-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-muted); }
-.side-item.active .side-icon { color: #FFFFFF; }
+.side-item.active .side-icon { color: var(--accent-primary); }
 .side-item:hover .side-icon { color: var(--accent-primary); }
 .side-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -591,7 +707,7 @@ if (typeof window !== 'undefined') {
   transition: background .15s;
 }
 .side-sub-item:hover { color: var(--accent-primary); }
-.side-sub-item.active { background: var(--accent-primary); color: #FFFFFF; }
+.side-sub-item.active { background: var(--accent-primary10); color: var(--accent-primary); }
 
 /* ===== 钉选 ===== */
 .pin-icon {
@@ -625,29 +741,8 @@ if (typeof window !== 'undefined') {
 
 /* ===== 响应式 ===== */
 
-/* 1280px: 侧栏收起为图标模式 */
+/* 1280px: 侧栏收起为图标模式（仅作用于 .collapsed，允许手动展开覆盖） */
 @media (max-width: 1280px) {
-  .left-sidebar { width: 72px; padding: 12px var(--spacing-md, 8px); }
-  .left-sidebar .side-label,
-  .left-sidebar .side-arrow,
-  .left-sidebar .nav-entry-arrow,
-  .left-sidebar .side-sub,
-  .left-sidebar .section-chevron,
-  .left-sidebar .section-body,
-  .left-sidebar .search-input,
-  .left-sidebar .search-icon,
-  .left-sidebar .sidebar-divider,
-  .left-sidebar .pinned-section,
-  .left-sidebar .no-results,
-  .left-sidebar .pin-icon { display: none !important; }
-  .left-sidebar .sidebar-search { display: none; }
-  .left-sidebar .workbench-item {
-    justify-content: center; padding: 0; min-height: 45px;
-  }
-  .left-sidebar .side-item {
-    justify-content: center; padding: 0; gap: 0; height: 45px;
-  }
-  .left-sidebar.collapsed { width: 72px; }
   .logo-area { width: auto; }
 }
 
@@ -662,6 +757,29 @@ if (typeof window !== 'undefined') {
   .layout { min-width: auto; }
   .top-header { gap: 8px; }
 }
+
+/* ===== 折叠态悬浮菜单（flyout） ===== */
+.nav-flyout {
+  position: fixed; z-index: 2000;
+  min-width: 180px; max-width: 280px; max-height: 70vh; overflow-y: auto;
+  background: var(--bg-card); border: 1px solid var(--border-high);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+.nav-flyout-title {
+  font-size: 12px; color: var(--text-muted);
+  padding: 4px 10px; font-weight: 600; white-space: nowrap;
+}
+.nav-flyout-item {
+  display: flex; align-items: center; width: 100%;
+  min-height: 36px; padding: 0 10px; border: none; background: none;
+  border-radius: var(--radius-sm, 6px); cursor: pointer;
+  font-size: 14px; color: var(--text-secondary); text-align: left;
+  white-space: nowrap;
+}
+.nav-flyout-item.is-parent { font-weight: 500; color: var(--text-primary); }
+.nav-flyout-item:hover { background: var(--accent-primary10); color: var(--accent-primary); }
 
 /* ===== 分页器 ===== */
 :deep(.el-pagination .el-pager li) {

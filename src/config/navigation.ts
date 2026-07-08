@@ -55,7 +55,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'monitor-duty',
     label: '监控与值守',
-    icon: 'monitor',
+    icon: 'dashboard',
     defaultOpen: true,
     children: [
       {
@@ -117,7 +117,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'patrol-hazard',
     label: '巡查与隐患',
-    icon: 'patrol',
+    icon: 'map',
     defaultOpen: true,
     children: [
       {
@@ -155,7 +155,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'compliance',
     label: '合规与管理',
-    icon: 'compliance',
+    icon: 'certificate',
     defaultOpen: false,
     children: [
       {
@@ -193,7 +193,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'training',
     label: '培训与知识',
-    icon: 'training',
+    icon: 'file',
     defaultOpen: false,
     children: [
       {
@@ -209,11 +209,11 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 6. 平台运营（platform-ops 可见全部；org-admin 仅见企业管理） =====
+  // ===== 6. 运营管理（platform-ops 可见全部；org-admin 仅见企业管理） =====
   {
     key: 'platform-ops',
-    label: '平台运营',
-    icon: 'admin',
+    label: '运营管理',
+    icon: 'setting',
     defaultOpen: true,
     visibleTo: ['platform-ops', 'org-admin'],
     children: [
@@ -223,7 +223,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'menuicon-43',
         visibleTo: ['platform-ops'],
         children: [
-          { key: 'tenant-mgmt', label: '企业列表', route: '/admin/enterpriseManagement/index' },
+          { key: 'tenant-mgmt', label: '租户列表', route: '/admin/enterpriseManagement/index' },
         ],
       },
       {
@@ -269,7 +269,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'platform-admin',
     label: '平台管理',
-    icon: 'admin',
+    icon: 'server',
     defaultOpen: false,
     visibleTo: ['platform-admin'],
     children: [

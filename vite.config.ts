@@ -34,7 +34,8 @@ export default defineConfig({
     port: 3200,
     proxy: {
       '/api': {
-        target: 'http://localhost:3201',
+        // 测试时可通过 VITE_API_TARGET 覆盖后端端口（E2E 测试用 3202）
+        target: process.env.VITE_API_TARGET || 'http://localhost:3201',
         changeOrigin: true,
       },
     },
