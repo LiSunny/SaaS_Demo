@@ -5,6 +5,7 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -81,6 +82,27 @@ async function main() {
 
   // 平台管理员账号由服务启动时的 ensureDefaultAdmin() 创建（systemRole=platform-ops）
   console.log('  ℹ️  用户账号由服务启动时的 ensureDefaultAdmin() 创建')
+
+  // 体验账号（与前端 Login.vue demoAccounts 对应，供 E2E / 手动体验使用）
+  // 注意：13800000000 已被 ensureDefaultAdmin 占用（普通用户 demo 与之冲突，故不在此 seed）
+  const demoUsers = [
+    { phone: '13800000001', realName: '测试运营', password: '3xkxr4', systemRole: 'platform-ops' },
+  ]
+  for (const u of demoUsers) {
+    const hashed = await bcrypt.hash(u.password, 10)
+    await prisma.user.upsert({
+      where: { phone: u.phone },
+      update: {},
+      create: {
+        phone: u.phone,
+        realName: u.realName,
+        password: hashed,
+        status: 1,
+        systemRole: u.systemRole,
+      },
+    })
+    console.log(`  ✅ 体验账号: ${u.realName} (${u.phone}, ${u.systemRole})`)
+  }
 
   // ===== 平台内置岗位（9 个） =====
   const defaultPermissions = JSON.stringify({

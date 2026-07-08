@@ -6,11 +6,11 @@
  */
 import { Page } from '@playwright/test'
 
-/** 默认管理员凭证（由 ensureDefaultAdmin() 在服务启动时自动创建，测试库唯一可登录账号） */
+/** 运营管理体验账号（由 prisma/seed.ts 写入测试库，systemRole=platform-ops） */
 const ADMIN = {
-  phone: '13800000000',
-  password: 'admin123',
-  realName: '赵启明',
+  phone: '13800000001',
+  password: '3xkxr4',
+  realName: '测试运营',
   systemRole: 'platform-ops',
 }
 
