@@ -6,11 +6,11 @@
  */
 import { Page } from '@playwright/test'
 
-/** 默认管理员凭证（由 ensureDefaultAdmin() 在服务启动时自动创建） */
+/** 默认管理员凭证（由 ensureDefaultAdmin() 在服务启动时自动创建，测试库唯一可登录账号） */
 const ADMIN = {
-  phone: '13800000001',
-  password: '3xkxr4',
-  realName: '测试运营',
+  phone: '13800000000',
+  password: 'admin123',
+  realName: '赵启明',
   systemRole: 'platform-ops',
 }
 
@@ -22,7 +22,7 @@ export async function loginAsAdmin(page: Page) {
   await page.locator('input[placeholder="请输入手机号"]').fill(ADMIN.phone)
   await page.locator('input[type="password"]').fill(ADMIN.password)
   await page.locator('button:has-text("开始体验")').click()
-  await page.waitForURL('/workbench', { timeout: 10000 })
+  await page.waitForURL(/\/workbench/, { timeout: 10000 })
 }
 
 /**
