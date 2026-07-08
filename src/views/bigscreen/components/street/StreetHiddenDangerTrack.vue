@@ -1,242 +1,146 @@
 <template>
-  <div class="hidden-danger-track">
-    <!-- ===== 左右分栏 ===== -->
-    <div class="content-area">
-      <!-- ===== 左侧面板 ===== -->
-      <div class="left-panel">
-        <!-- 数据概览 -->
-        <div class="panel-section">
-          <div class="section-title">
-            <div class="title-bar" />
-            <span class="title-text">数据概览</span>
+  <BigscreenDataPanel
+    search-placeholder="搜索隐患名称..."
+    filter-placeholder="全部状态"
+    :filter-options="filterOpts"
+    :table-rows="tableRows"
+    :page-size="10"
+    timeline-title="实时动态"
+  >
+    <!-- ===== 左侧：数据概览 ===== -->
+    <template #overview>
+      <div class="overview-body">
+        <div class="overview-metrics">
+          <div class="metric-item">
+            <span class="metric-label">今日隐患总数</span>
+            <div class="metric-value-row">
+              <span class="metric-value">47</span>
+              <span class="metric-unit">条</span>
+            </div>
           </div>
-          <div class="overview-body">
-            <!-- 左侧指标列 -->
-            <div class="overview-metrics">
-              <!-- 今日隐患总数 -->
-              <div class="metric-item">
-                <span class="metric-label">今日隐患总数</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">47</span>
-                  <span class="metric-unit">条</span>
-                </div>
-              </div>
-              <!-- 分隔线 -->
-              <div class="metric-divider" />
-              <!-- 二列子指标 -->
-              <div class="sub-metrics-row">
-                <div class="metric-item">
-                  <span class="metric-label">已整改</span>
-                  <div class="metric-value-row">
-                    <span class="metric-value metric-value--alert">38</span>
-                    <span class="metric-unit">条</span>
-                  </div>
-                </div>
-                <div class="metric-item">
-                  <span class="metric-label">未整改</span>
-                  <div class="metric-value-row">
-                    <span class="metric-value metric-value--warning">6</span>
-                    <span class="metric-unit">条</span>
-                  </div>
-                </div>
+          <div class="metric-divider" />
+          <div class="sub-metrics-row">
+            <div class="metric-item">
+              <span class="metric-label">已整改</span>
+              <div class="metric-value-row">
+                <span class="metric-value metric-value--alert">38</span>
+                <span class="metric-unit">条</span>
               </div>
             </div>
-            <!-- 右侧环形图 + 整改率 -->
-            <div class="overview-ring">
-              <div class="ring-chart-wrapper">
-                <v-chart :option="rectifyRateRingOption" autoresize />
-                <div class="ring-center-text">
-                  <span class="ring-label">今日整改率</span>
-                  <span class="ring-value">81%</span>
-                </div>
+            <div class="metric-item">
+              <span class="metric-label">未整改</span>
+              <div class="metric-value-row">
+                <span class="metric-value metric-value--warning">6</span>
+                <span class="metric-unit">条</span>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- 整改完成率Top5 -->
-        <div class="panel-section">
-          <div class="section-title">
-            <div class="title-bar" />
-            <span class="title-text">整改完成率Top5</span>
-          </div>
-          <div class="rank-list">
-            <div v-for="(item, index) in rankList" :key="item.name" class="rank-item">
-              <div class="rank-info">
-                <div class="rank-header">
-                  <span class="rank-index">{{ String(index + 1).padStart(2, '0') }}</span>
-                  <span class="rank-name">{{ item.name }}</span>
-                </div>
-                <div class="rank-progress">
-                  <div class="rank-progress-bg" />
-                  <div class="rank-progress-fill" :style="{ width: item.rate + '%' }" />
-                </div>
-              </div>
-              <span class="rank-percent">{{ item.rate }}%</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 实时动态 -->
-        <div class="panel-section panel-section--grow">
-          <div class="section-title">
-            <div class="title-bar" />
-            <span class="title-text">实时动态</span>
-          </div>
-          <div class="timeline-list">
-            <div v-for="(item, index) in dynamicList" :key="item.id" class="timeline-item">
-              <!-- 时间轴线和圆点 -->
-              <div class="timeline-line">
-                <div class="timeline-dot timeline-dot--normal" />
-                <div v-if="index < dynamicList.length - 1" class="timeline-connector" />
-              </div>
-              <!-- 内容 -->
-              <div class="timeline-content">
-                <div class="timeline-header">
-                  <span class="timeline-time">{{ item.time }}</span>
-                </div>
-                <div class="timeline-body">
-                  <span class="timeline-shop">{{ item.name }}</span>
-                  <span class="timeline-sep">·</span>
-                  <span class="timeline-alert">{{ item.action }}</span>
-                </div>
-              </div>
+        <div class="overview-ring">
+          <div class="ring-chart-wrapper">
+            <v-chart :option="rectifyRateRingOption" autoresize />
+            <div class="ring-center-text">
+              <span class="ring-label">今日整改率</span>
+              <span class="ring-value">81%</span>
             </div>
           </div>
         </div>
       </div>
+    </template>
 
-      <!-- ===== 右侧面板 ===== -->
-      <div class="right-panel">
-        <!-- 搜索/筛选栏 -->
-        <div class="search-bar">
-          <div class="search-input">
-            <svg class="search-icon-svg" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c1c1c1" stroke-width="1.5">
-              <circle cx="7" cy="7" r="5" />
-              <line x1="11" y1="11" x2="14" y2="14" />
-            </svg>
-            <span class="search-placeholder">搜索隐患名称...</span>
-          </div>
-          <div class="status-filter">
-            <span>全部状态</span>
-            <svg class="filter-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c1c1c1" stroke-width="1.5">
-              <polyline points="4 6 8 10 12 6" />
-            </svg>
-          </div>
-          <button class="query-btn">查询</button>
-        </div>
+    <!-- ===== 左侧：整改完成率Top5 ===== -->
+    <template #ranking>
+      <RankingTop5 title="整改完成率Top5" :items="rankList" />
+    </template>
 
-        <!-- 数据表格 -->
-        <div class="table-wrapper">
-          <!-- 表头 -->
-          <div class="table-header">
-            <div class="th th-status">
-              <span>隐患状态</span>
-              <div class="sort-icons">
-                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
-              </div>
-            </div>
-            <div class="th th-name">隐患名称</div>
-            <div class="th th-name">商户名称</div>
-            <!-- <div class="th th-category">
-              <span>隐患类型</span>
-              <div class="sort-icons">
-                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
-              </div>
-            </div> -->
-            <div class="th th-time">
-              <span>上报时间</span>
-              <div class="sort-icons">
-                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 3L2 8h8z" fill="#cecece" /></svg>
-                <svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 9l-4-5h8z" fill="#cecece" /></svg>
-              </div>
-            </div>
-            <div class="th th-action">操作</div>
+    <!-- ===== 左侧：实时动态时间轴 ===== -->
+    <template #timeline>
+      <div class="timeline-list">
+        <div v-for="(item, index) in dynamicList" :key="item.id" class="timeline-item">
+          <div class="timeline-line">
+            <div class="timeline-dot timeline-dot--normal" />
+            <div v-if="index < dynamicList.length - 1" class="timeline-connector" />
           </div>
-          <!-- 表体 -->
-          <div class="table-body">
-            <div v-for="(row, idx) in paginatedRows" :key="idx" class="table-row">
-              <div class="td td-status">
-                <span class="status-tag" :class="row.status === 'danger' ? 'status-tag--danger' : row.status === 'warning' ? 'status-tag--warning' : 'status-tag--normal'">
-                  {{ row.status === 'danger' ? '逾期未改' : row.status === 'warning' ? '未整改' : '已整改' }}
-                </span>
-              </div>
-              <div class="td td-name">{{ row.name }}</div>
-              <div class="td td-name">{{ row.shopName }}</div>
-              <!-- <div class="td td-category">{{ row.category }}</div> -->
-              <div class="td td-time">{{ row.reportTime }}</div>
-              <div class="td td-action">
-                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="action-icon">
-                  <circle cx="3" cy="3" r="1.5" />
-                  <circle cx="3" cy="8" r="1.5" />
-                  <circle cx="3" cy="13" r="1.5" />
-                  <line x1="7" y1="3" x2="14" y2="3" />
-                  <line x1="7" y1="8" x2="14" y2="8" />
-                  <line x1="7" y1="13" x2="11" y2="13" />
-                </svg>
-              </div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <span class="timeline-time">{{ item.time }}</span>
             </div>
-          </div>
-        </div>
-
-        <!-- 分页栏 -->
-        <div class="pagination">
-          <div class="page-info">
-            <span class="page-info-label">每页显示</span>
-            <div class="page-size-select">
-              <span>10 条</span>
-              <svg class="page-size-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#f2fbff" stroke-width="1.5">
-                <polyline points="4 6 8 10 12 6" />
-              </svg>
+            <div class="timeline-body">
+              <span class="timeline-shop">{{ item.name }}</span>
+              <span class="timeline-sep">·</span>
+              <span class="timeline-alert">{{ item.action }}</span>
             </div>
-            <span class="page-info-label">共 {{ tableRows.length }} 条数据</span>
-          </div>
-          <div class="page-controls">
-            <button class="page-btn page-btn--nav" :disabled="currentPage <= 1" @click="prevPage">上一页</button>
-            <button
-              v-for="p in totalPages"
-              :key="p"
-              class="page-btn page-btn--num"
-              :class="{ 'page-btn--active': p === currentPage }"
-              @click="currentPage = p"
-            >{{ p }}</button>
-            <button class="page-btn page-btn--nav" :disabled="currentPage >= totalPages" @click="nextPage">下一页</button>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+
+    <!-- ===== 右侧：表格列定义 ===== -->
+    <template #table-columns>
+      <el-table-column prop="status" label="隐患状态" width="118">
+        <template #default="{ row }">
+          <span
+            class="status-tag"
+            :class="row.status === 'danger' ? 'status-tag--danger' : row.status === 'warning' ? 'status-tag--warning' : 'status-tag--normal'"
+          >
+            {{ row.status === 'danger' ? '逾期未改' : row.status === 'warning' ? '未整改' : '已整改' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="name" label="隐患名称" min-width="100" />
+      <el-table-column prop="shopName" label="商户名称" min-width="90" />
+      <el-table-column prop="reportTime" label="上报时间" min-width="140" sortable />
+      <el-table-column label="操作" width="48">
+        <template #default>
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" class="action-icon">
+            <circle cx="3" cy="3" r="1.5" />
+            <circle cx="3" cy="8" r="1.5" />
+            <circle cx="3" cy="13" r="1.5" />
+            <line x1="7" y1="3" x2="14" y2="3" />
+            <line x1="7" y1="8" x2="14" y2="8" />
+            <line x1="7" y1="13" x2="11" y2="13" />
+          </svg>
+        </template>
+      </el-table-column>
+    </template>
+  </BigscreenDataPanel>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { PieChart } from 'echarts/charts'
 import { CanvasRenderer } from 'echarts/renderers'
+import BigscreenDataPanel from '../BigscreenDataPanel.vue'
+import RankingTop5 from '../RankingTop5.vue'
 
 use([CanvasRenderer, PieChart])
 
+// ===== 筛选选项 =====
+const filterOpts = [
+  { label: '全部状态', value: '' },
+  { label: '已整改', value: 'normal' },
+  { label: '未整改', value: 'warning' },
+  { label: '逾期未改', value: 'danger' },
+]
+
 // ===== 环形图 =====
 const rectifyRateRingOption = computed(() => ({
-  series: [
-    {
-      type: 'pie',
-      radius: ['65%', '85%'],
-      center: ['50%', '50%'],
-      startAngle: 90,
-      silent: true,
-      label: { show: false },
-      labelLine: { show: false },
-      emphasis: { disabled: true },
-      data: [
-        { value: 81, name: '已整改', itemStyle: { color: '#148DFF' } },
-        { value: 19, name: '未整改', itemStyle: { color: '#0151A4' } },
-      ],
-    },
-  ],
+  series: [{
+    type: 'pie',
+    radius: ['65%', '85%'],
+    center: ['50%', '50%'],
+    startAngle: 90,
+    silent: true,
+    label: { show: false },
+    labelLine: { show: false },
+    emphasis: { disabled: true },
+    data: [
+      { value: 81, name: '已整改', itemStyle: { color: '#148DFF' } },
+      { value: 19, name: '未整改', itemStyle: { color: '#0151A4' } },
+    ],
+  }],
 }))
 
 // ===== 整改完成率Top5 =====
@@ -248,7 +152,7 @@ const rankList = [
   { name: '沸腾鱼庄', rate: 55 },
 ]
 
-// ===== 实时动态（时间轴） =====
+// ===== 实时动态 =====
 interface DynamicTimelineItem {
   id: number
   time: string
@@ -264,37 +168,28 @@ const dynamicList = ref<DynamicTimelineItem[]>([])
 let nextId = 1
 function generateTimelineItem(): DynamicTimelineItem {
   const now = new Date()
-  const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const dd = String(now.getDate()).padStart(2, '0')
-  const hh = String(now.getHours()).padStart(2, '0')
-  const m = String(now.getMinutes()).padStart(2, '0')
-  const ss = String(now.getSeconds()).padStart(2, '0')
+  const pad = (n: number) => String(n).padStart(2, '0')
   return {
     id: nextId++,
-    time: `${now.getFullYear()}-${mm}-${dd} ${hh}:${m}:${ss}`,
+    time: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
     name: shopPool[Math.floor(Math.random() * shopPool.length)],
     action: actionPool[Math.floor(Math.random() * actionPool.length)],
   }
 }
 
-// 初始化几条历史记录
 function initTimeline() {
   dynamicList.value = Array.from({ length: 6 }, () => generateTimelineItem())
 }
 
-let timelineTimer: ReturnType<typeof setInterval> | null = null
+let timelineTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
   initTimeline()
-  // 不定时插入新记录（4-8 秒随机间隔）
   function scheduleNext() {
     const delay = 4000 + Math.random() * 4000
     timelineTimer = setTimeout(() => {
       dynamicList.value.unshift(generateTimelineItem())
-      // 保留最近 50 条
-      if (dynamicList.value.length > 50) {
-        dynamicList.value.length = 50
-      }
+      if (dynamicList.value.length > 50) dynamicList.value.length = 50
       scheduleNext()
     }, delay)
   }
@@ -302,119 +197,22 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (timelineTimer) {
-    clearTimeout(timelineTimer)
-    timelineTimer = null
-  }
+  if (timelineTimer) { clearTimeout(timelineTimer); timelineTimer = null }
 })
 
 // ===== 表格数据 =====
 const tableRows = [
-  { name: '消防通道堵塞', shopName: '盛邦木业', category: '消防安全', reportTime: '2025-10-15 08:30', status: 'warning' },
-  { name: '电线裸露老化', shopName: '南湖校区', category: '电气安全', reportTime: '2025-10-15 09:15', status: 'warning' },
-  { name: '燃气阀门泄漏', shopName: '江南商贸城', category: '燃气安全', reportTime: '2025-10-15 10:00', status: 'warning' },
-  { name: '仓库结构裂缝', shopName: '东北饭庄', category: '建筑结构', reportTime: '2025-10-14 14:20', status: 'warning' },
-  { name: '灭火器过期未检', shopName: '柳州螺蛳粉', category: '消防安全', reportTime: '2025-10-14 11:10', status: 'normal' },
-  { name: '安全出口标识损坏', shopName: '沸腾鱼庄', category: '消防安全', reportTime: '2025-10-14 09:45', status: 'normal' },
+  { name: '消防通道堵塞', shopName: '盛邦木业', reportTime: '2025-10-15 08:30', status: 'warning' },
+  { name: '电线裸露老化', shopName: '南湖校区', reportTime: '2025-10-15 09:15', status: 'warning' },
+  { name: '燃气阀门泄漏', shopName: '江南商贸城', reportTime: '2025-10-15 10:00', status: 'warning' },
+  { name: '仓库结构裂缝', shopName: '东北饭庄', reportTime: '2025-10-14 14:20', status: 'warning' },
+  { name: '灭火器过期未检', shopName: '柳州螺蛳粉', reportTime: '2025-10-14 11:10', status: 'normal' },
+  { name: '安全出口标识损坏', shopName: '沸腾鱼庄', reportTime: '2025-10-14 09:45', status: 'normal' },
 ]
-
-const pageSize = ref(10)
-const currentPage = ref(1)
-
-const totalPages = computed(() => Math.max(1, Math.ceil(tableRows.length / pageSize.value)))
-
-const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return tableRows.slice(start, start + pageSize.value)
-})
-
-function prevPage() {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
 </script>
 
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
-
-/* ===== 容器 ===== */
-.hidden-danger-track {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ===== 内容区：左右分栏 ===== */
-.content-area {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  gap: vw(48);
-  min-height: 0;
-  overflow: hidden;
-  padding: vh(18) vw(18);
-}
-
-/* ===== 左侧面板 ===== */
-.left-panel {
-  flex-shrink: 0;
-  width: vw(423);
-  display: flex;
-  flex-direction: column;
-  gap: vh(32);
-  padding: vh(12) 0;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden auto;
-}
-
-.left-panel::-webkit-scrollbar { width: 4px; }
-.left-panel::-webkit-scrollbar-track { background: transparent; }
-.left-panel::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
-
-.panel-section {
-  display: flex;
-  flex-direction: column;
-  gap: vh(12);
-  flex-shrink: 0;
-}
-
-.panel-section--grow {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ===== 小节标题（蓝色竖条 + 文字） ===== */
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: vw(12);
-  flex-shrink: 0;
-}
-
-.title-bar {
-  width: 4px;
-  height: 18px;
-  background: #2584ab;
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(37, 132, 171, 0.36);
-  flex-shrink: 0;
-}
-
-.title-text {
-  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(14px, calc(18 * var(--min-scale)), 20px);
-  font-weight: 500;
-  color: #ffffff;
-  line-height: normal;
-  white-space: nowrap;
-}
 
 /* ===== 数据概览 ===== */
 .overview-body {
@@ -433,7 +231,6 @@ function nextPage() {
   min-width: 0;
 }
 
-/* 指标项 */
 .metric-item {
   display: flex;
   flex-direction: column;
@@ -491,7 +288,6 @@ function nextPage() {
   line-height: normal;
 }
 
-/* 分隔线 */
 .metric-divider {
   width: 100%;
   height: 1px;
@@ -504,7 +300,6 @@ function nextPage() {
   );
 }
 
-/* 二列子指标水平排列 */
 .sub-metrics-row {
   display: flex;
   align-items: center;
@@ -512,11 +307,9 @@ function nextPage() {
   width: 100%;
 }
 
-.sub-metrics-row .metric-item {
-  flex: 1;
-}
+.sub-metrics-row .metric-item { flex: 1; }
 
-/* ===== 环形图区域 ===== */
+/* ===== 环形图 ===== */
 .overview-ring {
   display: flex;
   flex-direction: column;
@@ -568,93 +361,6 @@ function nextPage() {
   line-height: normal;
 }
 
-/* ===== 整改完成率Top5 ===== */
-.rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: vh(4);
-}
-
-.rank-item {
-  display: flex;
-  align-items: center;
-  gap: vw(18);
-  height: vh(38);
-}
-
-.rank-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: vh(4);
-}
-
-.rank-header {
-  display: flex;
-  align-items: center;
-  gap: vw(19);
-}
-
-.rank-index {
-  width: vw(30);
-  height: vh(16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(10px, calc(12 * var(--min-scale)), 14px);
-  font-weight: 700;
-  color: #ffffff;
-  background: rgba(60, 211, 215, 0.15);
-  border: 1px solid rgba(60, 211, 215, 0.2);
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-
-.rank-name {
-  font-family: 'PingFang SC', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 400;
-  color: #ffffff;
-  white-space: nowrap;
-}
-
-.rank-progress {
-  display: grid;
-  grid-template-rows: max-content;
-  width: 100%;
-}
-
-.rank-progress-bg {
-  grid-column: 1;
-  grid-row: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: #003063;
-}
-
-.rank-progress-fill {
-  grid-column: 1;
-  grid-row: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(175.85deg, rgb(32, 92, 169) 9.38%, rgb(0, 114, 255) 90.5%);
-}
-
-.rank-percent {
-  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(14px, calc(18 * var(--min-scale)), 22px);
-  font-weight: 700;
-  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  white-space: nowrap;
-  flex-shrink: 0;
-  line-height: normal;
-}
-
 /* ===== 实时动态（时间轴） ===== */
 .timeline-list {
   flex: 1;
@@ -664,11 +370,11 @@ function nextPage() {
   overflow-y: auto;
   padding: vh(6) vw(6) vh(6) 0;
   min-height: 0;
-}
 
-.timeline-list::-webkit-scrollbar { width: 2px; }
-.timeline-list::-webkit-scrollbar-track { background: transparent; }
-.timeline-list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+  &::-webkit-scrollbar { width: 2px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.2); border-radius: 1px; }
+}
 
 .timeline-item {
   display: flex;
@@ -676,7 +382,6 @@ function nextPage() {
   min-height: vh(60);
 }
 
-/* 时间轴线 */
 .timeline-line {
   display: flex;
   flex-direction: column;
@@ -705,7 +410,6 @@ function nextPage() {
   margin-top: vh(4);
 }
 
-/* 时间轴内容 */
 .timeline-content {
   flex: 1;
   min-width: 0;
@@ -759,202 +463,7 @@ function nextPage() {
   min-width: 0;
 }
 
-/* ===== 右侧面板 ===== */
-.right-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: vh(12);
-  padding: vh(12) 0;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ===== 搜索/筛选栏 ===== */
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: vw(18);
-  flex-shrink: 0;
-}
-
-.search-input {
-  display: flex;
-  align-items: center;
-  gap: vw(12);
-  height: vh(36);
-  padding: vh(4) vw(12);
-  background: rgba(3, 74, 173, 0);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-  width: vw(203);
-}
-
-.search-icon-svg {
-  flex-shrink: 0;
-}
-
-.search-placeholder {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #c1c1c1;
-  line-height: normal;
-  white-space: nowrap;
-}
-
-.status-filter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: vh(36);
-  width: vw(140);
-  padding: 1px vw(13);
-  background: rgba(3, 74, 173, 0);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  border-radius: 8px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.status-filter span {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #c1c1c1;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-.filter-arrow {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.query-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: vh(36);
-  padding: vh(8) vw(18);
-  background: #0095ff;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 500;
-  color: #ffffff;
-  text-align: center;
-  line-height: 20px;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* ===== 数据表格 ===== */
-.table-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* 表头 */
-.table-header {
-  display: flex;
-  align-items: center;
-  gap: vw(6);
-  padding: vh(8) vw(6);
-  background: #0457a7;
-  flex-shrink: 0;
-}
-
-.th {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: vw(6);
-  height: 21px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 500;
-  color: #bcd9ff;
-  line-height: 21px;
-  white-space: nowrap;
-}
-
-.th-status { width: vw(118); flex-shrink: 0; }
-.th-name { flex: 1; min-width: 0; justify-content: flex-start; }
-.th-category { flex: 1; min-width: 0; }
-.th-time { flex: 1; min-width: 0; }
-.th-action { width: vw(48); flex-shrink: 0; }
-
-.sort-icons {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: 12px;
-  height: 20px;
-  opacity: 0.4;
-  flex-shrink: 0;
-}
-
-.sort-icons svg {
-  display: block;
-}
-
-.sort-icons svg:last-child {
-  margin-top: -4px;
-}
-
-/* 表体 */
-.table-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.table-body::-webkit-scrollbar { width: 4px; }
-.table-body::-webkit-scrollbar-track { background: transparent; }
-.table-body::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.3); border-radius: 2px; }
-
-.table-row {
-  display: flex;
-  align-items: center;
-  gap: vw(6);
-  padding: 0 vw(6);
-  border-top: 1px solid rgba(168, 178, 255, 0.08);
-  flex-shrink: 0;
-}
-
-.td {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: vh(10) 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
-  font-weight: 400;
-  color: #f2fbff;
-  line-height: 21px;
-}
-
-.td-status { width: vw(118); flex-shrink: 0; }
-.td-name { flex: 1; min-width: 0; justify-content: flex-start; }
-.td-category { flex: 1; min-width: 0; }
-.td-time { flex: 1; min-width: 0; }
-.td-action { width: vw(48); flex-shrink: 0; }
-
-/* 状态标签 */
+/* ===== 状态标签 ===== */
 .status-tag {
   display: inline-flex;
   align-items: center;
@@ -984,114 +493,12 @@ function nextPage() {
   color: #0072ff;
 }
 
+/* ===== 操作图标 ===== */
 .action-icon {
   color: rgba(137, 181, 255, 0.6);
   cursor: pointer;
   flex-shrink: 0;
-}
 
-.action-icon:hover {
-  color: #3cd3d7;
-}
-
-/* ===== 分页栏 ===== */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 vw(12);
-  flex-shrink: 0;
-}
-
-.page-info {
-  display: flex;
-  align-items: center;
-  gap: vw(12);
-  height: vh(36);
-}
-
-.page-info-label {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 400;
-  color: #f2fbff;
-  line-height: 21px;
-  white-space: nowrap;
-}
-
-.page-size-select {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: vh(36);
-  width: vw(82);
-  padding: 1px vw(13);
-  background: rgba(3, 74, 173, 0);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.page-size-select span {
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 400;
-  color: #f2fbff;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-.page-size-arrow {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.page-controls {
-  display: flex;
-  align-items: center;
-  gap: vw(8);
-  height: 32px;
-}
-
-.page-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: vh(6) vw(10);
-  background: none;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
-  font-weight: 500;
-  color: #ffffff;
-  line-height: 20px;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-}
-
-.page-btn--nav {
-  background: rgba(1, 101, 178, 0.3);
-}
-
-.page-btn--nav:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.page-btn--num {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background: transparent;
-  color: #bebebe;
-}
-
-.page-btn--active {
-  background: rgba(32, 92, 194, 0.56);
-  border: 1px solid rgba(0, 84, 201, 0.67);
-  color: #f2fbff;
+  &:hover { color: #3cd3d7; }
 }
 </style>

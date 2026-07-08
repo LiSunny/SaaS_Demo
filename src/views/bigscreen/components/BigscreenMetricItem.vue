@@ -55,6 +55,7 @@ withDefaults(defineProps<{
   height: calc(66 * var(--min-scale));
   flex-shrink: 0;
   display: block;
+  overflow: hidden;
 }
 
 /* ===== 右侧文字区 ===== */

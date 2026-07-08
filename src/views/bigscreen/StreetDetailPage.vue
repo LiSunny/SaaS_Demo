@@ -9,66 +9,28 @@
       <div class="page-header">
         <div class="page-header__left">
           <h1 class="page-title">示范街专题</h1>
-          <!-- 商业街下拉选 -->
-          <div class="street-select" v-click-outside="closeStreetDropdown">
-            <button ref="streetTriggerRef" class="street-select__trigger" @click="toggleStreetDropdown">
-              <span class="street-select__text">{{ selectedStreet.name }}</span>
-              <svg
-                class="street-select__chevron"
-                :class="{ rotated: streetDropdownOpen }"
-                width="12" height="12" viewBox="0 0 24 24" fill="none"
-              >
-                <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </button>
-            <Teleport to="body">
-              <div v-if="streetDropdownOpen" class="street-select__overlay" @click="streetDropdownOpen = false" />
-              <div v-if="streetDropdownOpen" class="street-select__dropdown" :style="streetDropdownStyle" @click.stop>
-                <div class="street-select__search">
-                  <svg class="street-select__search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-                    <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                  <input
-                    ref="streetSearchInputRef"
-                    v-model="streetSearch"
-                    class="street-select__search-input"
-                    placeholder="搜索商业街..."
-                    @keydown.stop
-                  />
-                </div>
-                <div class="street-select__list">
-                  <button
-                    v-for="street in filteredStreets"
-                    :key="street.name"
-                    class="street-select__option"
-                    :class="{ active: selectedStreet.name === street.name }"
-                    @click="selectStreet(street)"
-                  >
-                    <span class="street-select__option-icon">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </span>
-                    <div class="street-select__option-info">
-                      <span class="street-select__option-name">{{ street.name }}</span>
-                      <span class="street-select__option-stats">{{ street.shops }}家商铺 · {{ street.devices }}台设备</span>
-                    </div>
-                    <span v-if="selectedStreet.name === street.name" class="street-select__check">✓</span>
-                  </button>
-                  <div v-if="filteredStreets.length === 0" class="street-select__empty">无匹配结果</div>
-                </div>
+          <!-- 商业街下拉选 → el-select filterable -->
+          <el-select
+            v-model="selectedStreetName"
+            class="street-select-el"
+            popper-class="bigscreen-el-select-dropdown"
+            filterable
+            @change="onStreetChange"
+          >
+            <el-option
+              v-for="street in streets"
+              :key="street.name"
+              :label="street.name"
+              :value="street.name"
+            >
+              <div class="street-option">
+                <span class="street-option__name">{{ street.name }}</span>
+                <span class="street-option__stats">{{ street.shops }}家商铺 · {{ street.devices }}台设备</span>
               </div>
-            </Teleport>
-          </div>
+            </el-option>
+          </el-select>
         </div>
-        <button class="back-btn" title="返回大屏首页" @click="goBack">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+        <el-button class="back-btn-el" :icon="Close" @click="goBack" />
       </div>
 
       <!-- 统计指标行 -->
@@ -79,23 +41,25 @@
           :label="stat.label"
           :value="stat.value"
           :unit="stat.unit"
+          :hex-src="stat.icon"
         />
       </div>
 
       <!-- 分类数据展示区 -->
       <div class="page-content">
-        <!-- Seg 分段控制器 -->
-        <div class="page-seg">
-          <div
+        <!-- Seg 分段控制器 → el-tabs -->
+        <el-tabs
+          v-model="activeTab"
+          class="page-seg-el"
+          @tab-change="onTabChange"
+        >
+          <el-tab-pane
             v-for="tab in tabs"
             :key="tab.key"
-            class="page-seg__item"
-            :class="{ 'is-active': activeTab === tab.key }"
-            @click="switchTab(tab.key)"
-          >
-            {{ tab.label }}
-          </div>
-        </div>
+            :label="tab.label"
+            :name="tab.key"
+          />
+        </el-tabs>
 
         <!-- Seg 下方内容面板 -->
         <div class="page-content__panel">
@@ -149,8 +113,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { Close } from '@element-plus/icons-vue'
 import BigscreenHeader from './components/BigscreenHeader.vue'
 import BigscreenMetricItem from './components/BigscreenMetricItem.vue'
 import StreetBusinessCompliance from './components/street/StreetBusinessCompliance.vue'
@@ -161,23 +126,8 @@ import StreetShopList from './components/street/StreetShopList.vue'
 const router = useRouter()
 const route = useRoute()
 
-// 根据路由 query 自动选中商业街
-function syncStreetFromQuery() {
-  const targetName = route.query.street
-  if (targetName && typeof targetName === 'string') {
-    const found = streets.find((s) => s.name === targetName)
-    if (found) {
-      selectedStreet.value = found
-    }
-  }
-}
-
-function goBack() {
-  router.push({ name: 'BigscreenLanding' })
-}
-
 // ============================================================
-// 商业街数据 & 下拉选
+// 商业街数据 & el-select
 // ============================================================
 interface StreetData {
   name: string
@@ -190,102 +140,30 @@ interface StreetData {
 }
 
 const streets: StreetData[] = [
-  {
-    name: '示范街',
-    shops: 286,
-    devices: 1536,
-    onlineRate: 98.6,
-    dutyRate: 92,
-    alerts: 6,
-    hazards: 12,
-  },
-  {
-    name: '江南商业街',
-    shops: 198,
-    devices: 1120,
-    onlineRate: 96.3,
-    dutyRate: 88,
-    alerts: 3,
-    hazards: 5,
-  },
-  {
-    name: '桥圩商业街',
-    shops: 152,
-    devices: 896,
-    onlineRate: 97.1,
-    dutyRate: 85,
-    alerts: 8,
-    hazards: 9,
-  },
-  {
-    name: '新塘商业街',
-    shops: 95,
-    devices: 560,
-    onlineRate: 99.2,
-    dutyRate: 94,
-    alerts: 1,
-    hazards: 2,
-  },
+  { name: '示范街', shops: 286, devices: 1536, onlineRate: 98.6, dutyRate: 92, alerts: 6, hazards: 12 },
+  { name: '江南商业街', shops: 198, devices: 1120, onlineRate: 96.3, dutyRate: 88, alerts: 3, hazards: 5 },
+  { name: '桥圩商业街', shops: 152, devices: 896, onlineRate: 97.1, dutyRate: 85, alerts: 8, hazards: 9 },
+  { name: '新塘商业街', shops: 95, devices: 560, onlineRate: 99.2, dutyRate: 94, alerts: 1, hazards: 2 },
 ]
 
-const selectedStreet = ref<StreetData>(streets[0])
-const streetDropdownOpen = ref(false)
-const streetSearch = ref('')
-const streetSearchInputRef = ref<HTMLInputElement | null>(null)
-const streetTriggerRef = ref<HTMLButtonElement | null>(null)
-const streetDropdownStyle = ref<Record<string, string>>({})
+const selectedStreetName = ref(streets[0].name)
+const selectedStreet = computed(() => streets.find(s => s.name === selectedStreetName.value) ?? streets[0])
 
-const filteredStreets = computed(() => {
-  const keyword = streetSearch.value.trim().toLowerCase()
-  if (!keyword) return streets
-  return streets.filter((s) => s.name.toLowerCase().includes(keyword))
-})
-
-function selectStreet(street: StreetData) {
-  selectedStreet.value = street
-  streetDropdownOpen.value = false
-  streetSearch.value = ''
-}
-
-function closeStreetDropdown() {
-  streetDropdownOpen.value = false
-}
-
-function toggleStreetDropdown() {
-  streetDropdownOpen.value = !streetDropdownOpen.value
-  if (streetDropdownOpen.value && streetTriggerRef.value) {
-    const rect = streetTriggerRef.value.getBoundingClientRect()
-    streetDropdownStyle.value = {
-      top: `${rect.bottom + 4}px`,
-      left: `${rect.left}px`,
-    }
+// 根据路由 query 自动选中商业街
+function syncStreetFromQuery() {
+  const targetName = route.query.street
+  if (targetName && typeof targetName === 'string') {
+    const found = streets.find((s) => s.name === targetName)
+    if (found) selectedStreetName.value = found.name
   }
 }
 
-// 打开下拉时自动聚焦搜索框
-watch(streetDropdownOpen, (open) => {
-  if (open) {
-    streetSearch.value = ''
-    nextTick(() => {
-      streetSearchInputRef.value?.focus()
-    })
-  }
-})
+function onStreetChange() {
+  // el-select 已更新 selectedStreetName，selectedStreet 自动响应
+}
 
-// v-click-outside 自定义指令
-const vClickOutside = {
-  mounted(el: HTMLElement, binding: any) {
-    const handler = (event: MouseEvent) => {
-      if (!(el === event.target || el.contains(event.target as Node))) {
-        binding.value()
-      }
-    }
-    ;(el as any).__clickOutsideHandler = handler
-    document.addEventListener('click', handler)
-  },
-  unmounted(el: HTMLElement) {
-    document.removeEventListener('click', (el as any).__clickOutsideHandler)
-  },
+function goBack() {
+  router.push({ name: 'BigscreenLanding' })
 }
 
 // ============================================================
@@ -295,22 +173,32 @@ interface StatItem {
   label: string
   value: string | number
   unit: string
+  icon?: string
 }
+
+const metricIcons = [
+  new URL('@/assets/bigscreen/metric-icon-shops.svg', import.meta.url).href,
+  new URL('@/assets/bigscreen/metric-icon-devices.svg', import.meta.url).href,
+  new URL('@/assets/bigscreen/metric-icon-online.svg', import.meta.url).href,
+  new URL('@/assets/bigscreen/metric-icon-duty.svg', import.meta.url).href,
+  new URL('@/assets/bigscreen/metric-icon-alert.svg', import.meta.url).href,
+  new URL('@/assets/bigscreen/metric-icon-hazard.svg', import.meta.url).href,
+]
 
 const statsData = computed<StatItem[]>(() => {
   const s = selectedStreet.value
   return [
-    { label: '纳管商铺', value: s.shops, unit: '家' },
-    { label: '纳管设备', value: s.devices, unit: '台' },
-    { label: '设备在线率', value: s.onlineRate, unit: '%' },
-    { label: '今日履职率', value: s.dutyRate, unit: '%' },
-    { label: '今日告警', value: s.alerts, unit: '次' },
-    { label: '未闭环隐患', value: s.hazards, unit: '项' },
+    { label: '纳管商铺', value: s.shops, unit: '家', icon: metricIcons[0] },
+    { label: '纳管设备', value: s.devices, unit: '台', icon: metricIcons[1] },
+    { label: '设备在线率', value: s.onlineRate, unit: '%', icon: metricIcons[2] },
+    { label: '今日履职率', value: s.dutyRate, unit: '%', icon: metricIcons[3] },
+    { label: '今日告警', value: s.alerts, unit: '次', icon: metricIcons[4] },
+    { label: '未闭环隐患', value: s.hazards, unit: '项', icon: metricIcons[5] },
   ]
 })
 
 // ============================================================
-// Seg 切换标签
+// Seg → el-tabs 切换
 // ============================================================
 interface TabItem {
   key: string
@@ -327,18 +215,18 @@ const tabs: TabItem[] = [
 
 const activeTab = ref('safety-map')
 
-function switchTab(key: string) {
-  if (activeTab.value === 'safety-map' && key !== 'safety-map') {
+function onTabChange(key: string | number) {
+  const k = String(key)
+  if (activeTab.value === 'safety-map' && k !== 'safety-map') {
     destroyMap()
   }
-  activeTab.value = key
-  if (key === 'safety-map') {
+  if (k === 'safety-map') {
     nextTick(() => initSafetyMap())
   }
 }
 
 // ============================================================
-// 安全一张图：高德 3D 地图
+// 安全一张图：高德 3D 地图（保持不变）
 // ============================================================
 
 type ShopCategory = 'normal' | 'device-abnormal' | 'duty-overdue' | 'smoke-alarm' | 'device-offline'
@@ -678,187 +566,45 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-/* ===== 商业街下拉选 ===== */
-.street-select {
-  position: relative;
+/* ===== 商业街 el-select ===== */
+.street-select-el {
+  width: vw(200);
   flex-shrink: 0;
 }
 
-.street-select__trigger {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid rgba(71, 132, 232, 0.35);
-  border-radius: 4px;
-  background: rgba(2, 20, 50, 0.55);
-  color: #89b5ff;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: clamp(11px, calc(13 * var(--min-scale)), 15px);
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.street-select__trigger:hover {
-  border-color: rgba(71, 132, 232, 0.65);
-  background: rgba(71, 132, 232, 0.15);
-  color: #b3d4ff;
-}
-
-.street-select__text {
-  font-weight: 500;
-}
-
-.street-select__chevron {
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-.street-select__chevron.rotated {
-  transform: rotate(180deg);
-}
-
-/* 遮罩层 */
-.street-select__overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-}
-
-/* 下拉面板 */
-.street-select__dropdown {
-  position: fixed;
-  z-index: 2001;
-  width: 240px;
-  max-height: 300px;
-  background: rgba(2, 21, 56, 0.98);
-  border: 1px solid rgba(71, 132, 232, 0.45);
-  border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(71, 132, 232, 0.15);
-  overflow: hidden;
-}
-
-/* 搜索框 */
-.street-select__search {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(71, 132, 232, 0.18);
-}
-
-.street-select__search-icon {
-  color: rgba(137, 181, 255, 0.5);
-  flex-shrink: 0;
-}
-
-.street-select__search-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: #89b5ff;
-  font-family: inherit;
-  font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
-  padding: 0;
-}
-.street-select__search-input::placeholder {
-  color: rgba(137, 181, 255, 0.35);
-}
-
-/* 选项列表 */
-.street-select__list {
-  max-height: 220px;
-  overflow-y: auto;
-  padding: 4px;
-}
-.street-select__list::-webkit-scrollbar { width: 3px; }
-.street-select__list::-webkit-scrollbar-track { background: transparent; }
-.street-select__list::-webkit-scrollbar-thumb { background: rgba(71, 132, 232, 0.25); border-radius: 2px; }
-
-.street-select__option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 10px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: 4px;
-  font-family: inherit;
-  text-align: left;
-  transition: background 0.15s;
-}
-.street-select__option:hover {
-  background: rgba(71, 132, 232, 0.15);
-}
-.street-select__option.active {
-  background: rgba(71, 132, 232, 0.2);
-}
-
-.street-select__option-icon {
-  color: #4784e8;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.street-select__option-info {
+.street-option {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 0;
 }
 
-.street-select__option-name {
-  font-size: clamp(12px, calc(13 * var(--min-scale)), 15px);
+.street-option__name {
+  font-size: 13px;
   font-weight: 500;
   color: #f2fbff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.street-select__option-stats {
-  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+.street-option__stats {
+  font-size: 11px;
   color: rgba(137, 181, 255, 0.55);
-  white-space: nowrap;
 }
 
-.street-select__check {
-  color: #3cd3d7;
-  font-weight: 700;
-  font-size: 13px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.street-select__empty {
-  padding: 20px 10px;
-  text-align: center;
-  font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
-  color: rgba(137, 181, 255, 0.4);
-}
-
-.back-btn {
+/* ===== 返回按钮 ===== */
+.back-btn-el {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
-  padding: 0;
-  border: 1px solid rgba(71, 132, 232, 0.4);
-  border-radius: 4px;
-  background: rgba(2, 20, 50, 0.6);
-  color: #89b5ff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.back-btn:hover {
-  background: rgba(71, 132, 232, 0.25);
-  border-color: rgba(71, 132, 232, 0.7);
-  color: #3cd3d7;
+  border: 1px solid rgba(71, 132, 232, 0.4) !important;
+  border-radius: 4px !important;
+  background: rgba(2, 20, 50, 0.6) !important;
+  color: #89b5ff !important;
+  padding: 0 !important;
+
+  &:hover {
+    background: rgba(71, 132, 232, 0.25) !important;
+    border-color: rgba(71, 132, 232, 0.7) !important;
+    color: #3cd3d7 !important;
+  }
 }
 
 /* ===== 统计指标行 ===== */
@@ -885,37 +631,12 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 
-/* ===== Seg 分段控制器 ===== */
-.page-seg {
-  display: flex;
-  gap: vw(18);
+/* ===== el-tabs (Seg 替代) ===== */
+.page-seg-el {
   flex-shrink: 0;
 }
 
-.page-seg__item {
-  flex-shrink: 0;
-  padding: vh(12) vw(18);
-  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(15px, calc(18 * var(--min-scale)), 18px);
-  font-weight: 700;
-  text-align: center;
-  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  cursor: pointer;
-  transition: background 0.25s ease;
-  position: relative;
-}
-
-.page-seg__item.is-active {
-  background: rgba(22, 70, 145, 0.51);
-  -webkit-text-fill-color: #ffffff;
-  color: #ffffff;
-  border-radius: 8px 8px 0 0;
-}
-
-/* ===== Seg 下方内容面板 ===== */
+/* ===== 内容面板 ===== */
 .page-content__panel {
   flex: 1;
   min-height: 0;
@@ -926,7 +647,7 @@ onBeforeUnmount(() => {
   padding: vh(12) vw(12);
 }
 
-/* ===== 内容区 ===== */
+/* ===== 内容区容器 ===== */
 .page-content__area {
   flex: 1;
   min-height: 200px;

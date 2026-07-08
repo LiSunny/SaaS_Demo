@@ -10,6 +10,7 @@ import formCreate from '@form-create/element-ui'
 import App from './App.vue'
 import router from './router'
 import './style.css'
+import './styles/bigscreen-ep.scss'
 
 const app = createApp(App)
 
