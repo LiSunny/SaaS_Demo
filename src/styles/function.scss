@@ -1,0 +1,23 @@
+@use "sass:math";
+
+// 设计稿基准尺寸（与 StandaloneLayout 的 --dw/--dh 保持一致）
+$design-width: 1920;
+$design-height: 1080;
+
+// 将设计稿像素转换为视口宽度单位
+// 用法：width: vw(448);  ->  23.333vw
+@function vw($px) {
+  @return math.div($px, $design-width) * 100vw;
+}
+
+// 将设计稿像素转换为视口高度单位
+// 用法：height: vh(89);  ->  8.2417vh
+@function vh($px) {
+  @return math.div($px, $design-height) * 100vh;
+}
+
+// 等比缩放因子：取宽高较小边，避免圆形 / 图标 / 字体在非 16:9 屏下变形
+// 用法：size: vmin(40);
+@function vmin($px) {
+  @return math.div($px, math.min($design-width, $design-height)) * 100vmin;
+}

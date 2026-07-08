@@ -174,7 +174,7 @@ const columns: BsColumn[] = [
   { key: 'handoverTime', label: '交接时间' },
   { key: 'fromPersonnel', label: '交班人' },
   { key: 'toPersonnel', label: '接班人' },
-  { key: 'violations', label: '违规', width: 'calc(70 * var(--w))' },
+  { key: 'violations', label: '违规', width: 'vw(70)' },
   { key: 'status', label: '状态' },
 ]
 
@@ -189,15 +189,17 @@ const violationCount = computed(() => allRecords.value.filter(r => r.violations.
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-handover {
-  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(10 * var(--h));
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: vh(10);
 }
 
 /* 异常告警条 */
 .fc-handover__alert {
-  display: flex; align-items: center; gap: calc(8 * var(--w));
-  padding: calc(8 * var(--h)) calc(12 * var(--w));
+  display: flex; align-items: center; gap: vw(8);
+  padding: vh(8) vw(12);
   background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 4px; color: #fca5a5;
   font-size: clamp(11px, calc(13 * var(--min-scale)), 15px);
@@ -208,10 +210,10 @@ const violationCount = computed(() => allRecords.value.filter(r => r.violations.
 
 /* 筛选 */
 .fc-handover__filter {
-  display: flex; gap: calc(8 * var(--w)); flex-shrink: 0;
+  display: flex; gap: vw(8); flex-shrink: 0;
 }
 .fc-handover__filter-btn {
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  padding: vh(4) vw(12);
   border: 1px solid rgba(71, 132, 232, 0.35); border-radius: 4px;
   background: rgba(2, 20, 50, 0.55); color: #89b5ff;
   cursor: pointer; font-family: inherit;
@@ -249,13 +251,13 @@ const violationCount = computed(() => allRecords.value.filter(r => r.violations.
 /* 详情展开 */
 .fc-handover__detail {
   flex-shrink: 0;
-  max-height: calc(200 * var(--h)); overflow-y: auto;
-  padding: calc(10 * var(--h)) calc(12 * var(--w));
+  max-height: vh(200); overflow-y: auto;
+  padding: vh(10) vw(12);
   background: linear-gradient(135deg, rgba(13, 33, 55, 0.9) 0%, rgba(8, 22, 42, 0.9) 100%);
   border: 1px solid rgba(71, 132, 232, 0.3); border-radius: 6px;
 }
 .handover-detail__header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: calc(8 * var(--h));
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: vh(8);
 }
 .handover-detail__title {
   font-size: clamp(13px, calc(15 * var(--min-scale)), 17px); font-weight: 700; color: #3cd3d7;
@@ -265,16 +267,16 @@ const violationCount = computed(() => allRecords.value.filter(r => r.violations.
   cursor: pointer; font-size: 16px;
 }
 .handover-detail__close:hover { color: #ef4444; }
-.handover-detail__body { display: flex; flex-direction: column; gap: calc(8 * var(--h)); }
+.handover-detail__body { display: flex; flex-direction: column; gap: vh(8); }
 .handover-detail__section h4 {
-  margin: 0 0 calc(4 * var(--h)) 0;
+  margin: 0 0 vh(4) 0;
   font-size: clamp(11px, calc(13 * var(--min-scale)), 15px); color: #89b5ff;
 }
 .handover-detail__section p {
   margin: 0 0 2px 0;
   font-size: clamp(11px, calc(12 * var(--min-scale)), 14px); color: rgba(255, 255, 255, 0.7);
 }
-.handover-detail__grid { display: flex; gap: calc(12 * var(--w)); }
+.handover-detail__grid { display: flex; gap: vw(12); }
 .handover-detail__item {
   font-size: clamp(11px, calc(12 * var(--min-scale)), 14px); color: rgba(255, 255, 255, 0.8);
 }

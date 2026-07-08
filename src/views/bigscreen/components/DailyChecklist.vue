@@ -59,9 +59,9 @@ const ringOption = {
 }
 
 const columns: BsColumn[] = [
-  { key: 'status', label: '履职打卡', width: 'calc(90 * var(--w))' },
+  { key: 'status', label: '履职打卡', width: 'vw(90)' },
   { key: 'company', label: '企业名称' },
-  { key: 'person', label: '负责人', width: 'calc(90 * var(--w))' },
+  { key: 'person', label: '负责人', width: 'vw(90)' },
 ]
 
 const records = [
@@ -78,14 +78,16 @@ const records = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .daily-checklist {
   height: 100%;
   overflow: hidden;
-  padding: calc(8 * var(--h)) calc(8 * var(--w));
+  padding: vh(8) vw(8);
   display: flex;
   flex-direction: column;
-  gap: calc(16 * var(--h));
+  gap: vh(16);
 }
 
 /* ===== 履职概览 ===== */
@@ -93,15 +95,15 @@ const records = [
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 calc(8 * var(--w));
-  height: calc(80 * var(--h));
+  padding: 0 vw(8);
+  height: vh(80);
 }
 .dc-summary-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(4 * var(--h));
-  width: calc(80 * var(--w));
+  gap: vh(4);
+  width: vw(80);
 }
 .dc-summary-item.right {
   align-items: center;
@@ -159,13 +161,13 @@ const records = [
 .dc-ring-sub {
   font-size: clamp(6px, calc(10 * var(--min-scale)), 14px);
   color: rgba(137, 181, 255, 0.5);
-  margin-top: calc(2 * var(--h));
+  margin-top: vh(2);
 }
 
 /* ===== 履职状态标签 ===== */
 .dc-duty-badge {
   display: inline-block;
-  padding: calc(2 * var(--h)) calc(6 * var(--w));
+  padding: vh(2) vw(6);
   border-radius: 2px;
   font-size: clamp(7px, calc(11 * var(--min-scale)), 14px);
   font-weight: 600;

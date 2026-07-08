@@ -156,10 +156,10 @@ const typeOptions = [
 
 const columns: BsColumn[] = [
   { key: 'alertTime', label: '信号时间' },
-  { key: 'signalType', label: '类型', width: 'calc(70 * var(--w))' },
+  { key: 'signalType', label: '类型', width: 'vw(70)' },
   { key: 'pointNo', label: '点位编号' },
   { key: 'location', label: '位置' },
-  { key: 'status', label: '处置状态', width: 'calc(80 * var(--w))' },
+  { key: 'status', label: '处置状态', width: 'vw(80)' },
   { key: 'handlerName', label: '处置人' },
   { key: 'dutyPersonnel', label: '当班值班员' },
 ]
@@ -204,19 +204,21 @@ function statusLabel(s: string): string {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-host-ledger {
-  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(10 * var(--h));
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: vh(10);
 }
 
 /* 统计卡片 */
 .fc-host-ledger__stats {
-  display: flex; gap: calc(10 * var(--w)); flex-shrink: 0;
+  display: flex; gap: vw(10); flex-shrink: 0;
 }
 .signal-stat-card {
   flex: 1; min-width: 0;
-  display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--h));
-  padding: calc(10 * var(--h)) calc(8 * var(--w));
+  display: flex; flex-direction: column; align-items: center; gap: vh(4);
+  padding: vh(10) vw(8);
   border: 1px solid rgba(71, 132, 232, 0.25); border-radius: 6px;
   background: linear-gradient(135deg, rgba(13, 33, 55, 0.85) 0%, rgba(8, 22, 42, 0.85) 100%);
   cursor: pointer; font-family: inherit; transition: all 0.2s;
@@ -244,10 +246,10 @@ function statusLabel(s: string): string {
 
 /* 筛选 */
 .fc-host-ledger__filter {
-  display: flex; gap: calc(8 * var(--w)); flex-shrink: 0;
+  display: flex; gap: vw(8); flex-shrink: 0;
 }
 .fc-host-ledger__filter-btn {
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  padding: vh(4) vw(12);
   border: 1px solid rgba(71, 132, 232, 0.35); border-radius: 4px;
   background: rgba(2, 20, 50, 0.55); color: #89b5ff;
   cursor: pointer; font-family: inherit;

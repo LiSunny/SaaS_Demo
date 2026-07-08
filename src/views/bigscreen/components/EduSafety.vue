@@ -72,24 +72,26 @@ const warningItems = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .edu-safety {
-  padding: calc(8 * var(--h)) calc(8 * var(--w));
+  padding: vh(8) vw(8);
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
 }
 
 /* ===== 分段 Tab ===== */
 .edu-segments {
   display: flex;
-  gap: calc(16 * var(--w));
-  padding: calc(2 * var(--h)) calc(8 * var(--w));
+  gap: vw(16);
+  padding: vh(2) vw(8);
 }
 .edu-seg {
   flex: 1;
   position: relative;
-  height: calc(32 * var(--h));
+  height: vh(32);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -143,14 +145,14 @@ const warningItems = [
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: calc(12 * var(--h));
-  padding: 0 calc(8 * var(--w));
+  gap: vh(12);
+  padding: 0 vw(8);
 }
 
 .edu-warning-row {
   display: flex;
   align-items: center;
-  gap: calc(16 * var(--w));
+  gap: vw(16);
   flex: 1;
 }
 
@@ -162,14 +164,14 @@ const warningItems = [
 /* ===== 右侧：寄宿制/非寄宿制分解 ===== */
 .edu-breakdown {
   display: flex;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   flex: 1;
 }
 
 .edu-bd-item {
   display: flex;
   flex-direction: column;
-  gap: calc(12 * var(--h));
+  gap: vh(12);
   flex: 1;
 }
 

@@ -59,7 +59,7 @@ export interface BsColumn {
   key: string
   /** 列表头文字 */
   label: string
-  /** 可选固定宽度（CSS 值，如 "90px" 或 "calc(90 * var(--w))"），不设则弹性等分 */
+  /** 可选固定宽度（CSS 值，如 "90px" 或 "vw(90)"），不设则弹性等分 */
   width?: string
   /** 可选最小宽度（CSS 值），保证文字不被截断；设 width 时也生效 */
   minWidth?: string
@@ -157,7 +157,9 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .bs-list-table {
   width: 100%;
   height: 100%;
@@ -177,7 +179,7 @@ onUnmounted(() => {
 .bs-header-cell {
   flex: 1 0 0;
   min-width: 0;
-  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  padding: vh(6) vw(10);
   font-family: 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(10px, calc(14 * var(--min-scale)), 18px);
   font-weight: 400;
@@ -213,7 +215,7 @@ onUnmounted(() => {
 .bs-cell {
   flex: 1 0 0;
   min-width: 0;
-  padding: calc(12 * var(--h)) calc(10 * var(--w));
+  padding: vh(12) vw(10);
   font-family: 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(14px, calc(14 * var(--min-scale)), 16px);
   font-weight: 400;
@@ -226,7 +228,7 @@ onUnmounted(() => {
 
 /* ===== 空状态 ===== */
 .bs-empty {
-  padding: calc(24 * var(--h)) calc(8 * var(--w));
+  padding: vh(24) vw(8);
   text-align: center;
   font-size: clamp(8px, calc(12 * var(--min-scale)), 16px);
   color: rgba(255, 255, 255, 0.3);

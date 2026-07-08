@@ -40,11 +40,13 @@ withDefaults(defineProps<{
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .metric-item {
   display: flex;
   align-items: center;
-  gap: calc(16 * var(--w));
+  gap: vw(16);
 }
 
 /* ===== 六边形图标区 ===== */
@@ -59,7 +61,7 @@ withDefaults(defineProps<{
 .metric-text {
   display: flex;
   flex-direction: column;
-  gap: calc(12 * var(--h));
+  gap: vh(12);
   min-width: 0;
 }
 
@@ -74,8 +76,8 @@ withDefaults(defineProps<{
 .metric-label-line {
   grid-column: 1;
   grid-row: 1;
-  height: calc(13 * var(--h));
-  margin-top: calc(10 * var(--h));
+  height: vh(13);
+  margin-top: vh(10);
   width: 100%;
   background: linear-gradient(
     79.92deg,
@@ -108,7 +110,7 @@ withDefaults(defineProps<{
   line-height: 0;
   display: flex;
   align-items: baseline;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
 }
 .metric-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;

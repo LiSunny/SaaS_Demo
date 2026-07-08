@@ -53,11 +53,13 @@ const metrics: MetricItem[] = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .metrics-bar {
   display: flex;
-  gap: calc(10 * var(--w));
-  padding: calc(10 * var(--h)) calc(14 * var(--w));
+  gap: vw(10);
+  padding: vh(10) vw(14);
   height: 100%;
   align-items: center;
 }
@@ -66,8 +68,8 @@ const metrics: MetricItem[] = [
   flex: 1;
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
-  padding: calc(8 * var(--h)) calc(10 * var(--w));
+  gap: vw(8);
+  padding: vh(8) vw(10);
   background: rgba(2, 30, 80, 0.45);
   border: 1px solid rgba(71, 132, 232, 0.25);
   border-radius: 6px;
@@ -106,7 +108,7 @@ const metrics: MetricItem[] = [
 .metric-content {
   display: flex;
   flex-direction: column;
-  gap: calc(2 * var(--h));
+  gap: vh(2);
   min-width: 0;
 }
 
@@ -119,7 +121,7 @@ const metrics: MetricItem[] = [
 .metric-value-row {
   display: flex;
   align-items: baseline;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
 }
 
 .metric-value {
@@ -153,7 +155,7 @@ const metrics: MetricItem[] = [
 .metric-delta {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
   font-size: clamp(8px, calc(10 * var(--min-scale)), 12px);
 }
 

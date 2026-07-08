@@ -86,10 +86,10 @@ const columns: BsColumn[] = [
   { key: 'shiftDate', label: '值班日期' },
   { key: 'roomName', label: '消控室' },
   { key: 'personnelName', label: '值班人员' },
-  { key: 'dutyType', label: '打卡类型', width: 'calc(80 * var(--w))' },
-  { key: 'checkInTime', label: '到岗', width: 'calc(55 * var(--w))' },
-  { key: 'checkOutTime', label: '离岗', width: 'calc(55 * var(--w))' },
-  { key: 'status', label: '状态', width: 'calc(70 * var(--w))' },
+  { key: 'dutyType', label: '打卡类型', width: 'vw(80)' },
+  { key: 'checkInTime', label: '到岗', width: 'vw(55)' },
+  { key: 'checkOutTime', label: '离岗', width: 'vw(55)' },
+  { key: 'status', label: '状态', width: 'vw(70)' },
   { key: 'notes', label: '备注' },
 ]
 
@@ -188,24 +188,26 @@ function statusLabel(s: string): string {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-duty-records {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--h));
+  gap: vh(10);
 }
 
 .fc-duty-records__filter {
   display: flex;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   flex-shrink: 0;
   align-items: center;
 }
 
 .fc-duty-records__filter-btn {
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  padding: vh(4) vw(12);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 4px;
   background: rgba(2, 20, 50, 0.55);
@@ -227,7 +229,7 @@ function statusLabel(s: string): string {
 
 .fc-duty-records__select {
   margin-left: auto;
-  padding: calc(4 * var(--h)) calc(10 * var(--w));
+  padding: vh(4) vw(10);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 4px;
   background: rgba(2, 20, 50, 0.55);

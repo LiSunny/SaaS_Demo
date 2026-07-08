@@ -58,14 +58,16 @@ const industries: IndustryItem[] = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 /* ===== 容器：撑满父级 + 内边距 ===== */
 .compliance-overview {
   position: relative;
   width: 100%;
   height: 100%;
   /* 与父容器四周留有边距 */
-  padding: calc(10 * var(--h)) calc(12 * var(--w));
+  padding: vh(10) vw(12);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -80,7 +82,7 @@ const industries: IndustryItem[] = [
 .overview-bg {
   position: absolute;
   /* 覆盖 padded 区域 */
-  inset: calc(10 * var(--h)) calc(12 * var(--w));
+  inset: vh(10) vw(12);
   /* 占位示意：深色底 + 虚线框 + 中央淡色提示 */
   background: url('@/assets/bigscreen/circle_bg.svg') center / contain no-repeat;
   pointer-events: none;
@@ -109,7 +111,7 @@ const industries: IndustryItem[] = [
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: calc(4 * var(--h));
+  gap: vh(4);
   z-index: 2;
 }
 
@@ -138,21 +140,21 @@ const industries: IndustryItem[] = [
 /* ===== 四角行业卡片 ===== */
 .industry-card {
   position: absolute;
-  width: calc(119 * var(--w));
-  height: calc(72 * var(--h));
+  width: vw(119);
+  height: vh(72);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: calc(8 * var(--h));
-  padding: calc(6 * var(--h)) calc(6 * var(--w));
+  gap: vh(8);
+  padding: vh(6) vw(6);
   z-index: 3;
 }
 
 /* -- 左上：工贸企业 -- */
 .card--tl {
-  left: calc(12 * var(--w));
-  top: calc(34 * var(--h));
+  left: vw(12);
+  top: vh(34);
   background: linear-gradient(-83deg, #014692 3.46%, #0457a7 96.54%);
   border-left: 1px solid #4784e8;
   border-bottom: 1px solid #4784e8;
@@ -162,8 +164,8 @@ const industries: IndustryItem[] = [
 
 /* -- 右上：教育行业 -- */
 .card--tr {
-  right: calc(12 * var(--w));
-  top: calc(34 * var(--h));
+  right: vw(12);
+  top: vh(34);
   background: linear-gradient(-83deg, #0457a7 3.46%, #014692 96.54%);
   border-right: 1px solid #4784e8;
   border-bottom: 1px solid #4784e8;
@@ -173,8 +175,8 @@ const industries: IndustryItem[] = [
 
 /* -- 左下：社区物业 -- */
 .card--bl {
-  left: calc(12 * var(--w));
-  bottom: calc(34 * var(--h));
+  left: vw(12);
+  bottom: vh(34);
   background: linear-gradient(-83deg, #014692 3.46%, #0457a7 96.54%);
   border-left: 1px solid #4784e8;
   border-bottom: 1px solid #4784e8;
@@ -184,8 +186,8 @@ const industries: IndustryItem[] = [
 
 /* -- 右下：其他 -- */
 .card--br {
-  right: calc(12 * var(--w));
-  bottom: calc(34 * var(--h));
+  right: vw(12);
+  bottom: vh(34);
   background: linear-gradient(-83deg, #0457a7 3.46%, #014692 96.54%);
   border-right: 1px solid #024792;
   border-bottom: 1px solid #024792;
@@ -196,7 +198,7 @@ const industries: IndustryItem[] = [
 .card-row {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
   width: 100%;
 }
 

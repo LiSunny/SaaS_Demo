@@ -19,10 +19,10 @@ import BigscreenListTable from './BigscreenListTable.vue'
 import type { BsColumn } from './BigscreenListTable.vue'
 
 const columns: BsColumn[] = [
-  { key: 'status', label: '整改状态', width: 'calc(82 * var(--w))' },
+  { key: 'status', label: '整改状态', width: 'vw(82)' },
   { key: 'content', label: '隐患内容' },
-  { key: 'company', label: '上报企业', width: 'calc(82 * var(--w))' },
-  { key: 'time', label: '上报时间', width: 'calc(100 * var(--w))' },
+  { key: 'company', label: '上报企业', width: 'vw(82)' },
+  { key: 'time', label: '上报时间', width: 'vw(100)' },
 ]
 
 const rows = [
@@ -39,17 +39,19 @@ const rows = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .hidden-danger {
   height: 100%;
   overflow: hidden;
-  padding: calc(8 * var(--h)) calc(8 * var(--w));
+  padding: vh(8) vw(8);
 }
 
 /* ===== 状态标签 ===== */
 .hd-status {
   display: inline-block;
-  padding: calc(2 * var(--h)) calc(8 * var(--w));
+  padding: vh(2) vw(8);
   border-radius: 2px;
   font-size: clamp(7px, calc(11 * var(--min-scale)), 14px);
   font-weight: 600;

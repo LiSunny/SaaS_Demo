@@ -46,7 +46,9 @@ import RiskApproval from './components/RiskApproval.vue'
 import EduSafety from './components/EduSafety.vue'
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 
 .bigscreen {
   position: relative;
@@ -60,13 +62,13 @@ import EduSafety from './components/EduSafety.vue'
 /* ===== 内容区 ===== */
 .bigscreen-content {
   position: absolute;
-  top: calc(89 * var(--h));
+  top: vh(89);
   left: 0;
   right: 0;
-  bottom: calc(16 * var(--h));
+  bottom: vh(16);
   display: flex;
-  gap: calc(16 * var(--w));
-  padding: 0 calc(16 * var(--w));
+  gap: vw(16);
+  padding: 0 vw(16);
 }
 
 /* ===== 三列统一：高度 100%，子组件 flex 填充 ===== */
@@ -76,12 +78,12 @@ import EduSafety from './components/EduSafety.vue'
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: calc(16 * var(--h));
+  gap: vh(16);
 }
 
 .col-left,
 .col-right {
-  width: calc(448 * var(--w));
+  width: vw(448);
   flex-shrink: 0;
 }
 
@@ -105,12 +107,14 @@ import EduSafety from './components/EduSafety.vue'
 
 .center-bottom {
   display: flex;
-  gap: calc(16 * var(--w));
+  gap: vw(16);
   flex: 1;
   min-height: 0;
 }
 
 .center-bottom > * {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 </style>

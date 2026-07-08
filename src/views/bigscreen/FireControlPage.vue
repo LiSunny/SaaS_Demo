@@ -552,7 +552,9 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 /* ===== 全屏容器 ===== */
 .bigscreen {
   position: relative;
@@ -566,15 +568,15 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 /* ===== 内容区 ===== */
 .page-body {
   position: absolute;
-  top: calc(89 * var(--h));
+  top: vh(89);
   left: 0;
   right: 0;
   bottom: 0;
   overflow-y: auto;
-  padding: calc(18 * var(--h)) calc(18 * var(--w));
+  padding: vh(18) vw(18);
   display: flex;
   flex-direction: column;
-  gap: calc(18 * var(--h));
+  gap: vh(18);
   background: #002C62;
 }
 
@@ -593,7 +595,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 .page-header__left {
   display: flex;
   align-items: center;
-  gap: calc(12 * var(--w));
+  gap: vw(12);
   min-width: 0;
 }
 
@@ -634,8 +636,8 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 /* ===== 统计指标行 ===== */
 .stats-row {
   display: flex;
-  gap: calc(16 * var(--w));
-  padding: calc(16 * var(--h)) calc(16 * var(--w));
+  gap: vw(16);
+  padding: vh(16) vw(16);
   background: rgba(22, 70, 145, 0.51);
   border-radius: 6px;
   flex-shrink: 0;
@@ -650,13 +652,13 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 .page-content {
   flex: 1;
   display: flex;
-  gap: calc(16 * var(--w));
+  gap: vw(16);
   min-height: 0;
 }
 
 /* ===== 左侧企业列表 ===== */
 .enterprise-list-panel {
-  flex: 0 0 calc(320 * var(--w));
+  flex: 0 0 vw(320);
   max-width: 360px;
   min-width: 260px;
   display: flex;
@@ -670,7 +672,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: calc(10 * var(--h)) calc(10 * var(--w));
+  padding: vh(10) vw(10);
   border-bottom: 1px solid rgba(71, 132, 232, 0.18);
   flex-shrink: 0;
 }
@@ -698,7 +700,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 .enterprise-list__body {
   flex: 1;
   overflow-y: auto;
-  padding: calc(6 * var(--h)) calc(8 * var(--w));
+  padding: vh(6) vw(8);
 }
 .enterprise-list__body::-webkit-scrollbar { width: 3px; }
 .enterprise-list__body::-webkit-scrollbar-track { background: transparent; }
@@ -707,9 +709,9 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 .enterprise-card {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   width: 100%;
-  padding: calc(10 * var(--h)) calc(10 * var(--w));
+  padding: vh(10) vw(10);
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
@@ -717,7 +719,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
   font-family: inherit;
   text-align: left;
   transition: all 0.2s;
-  margin-bottom: calc(4 * var(--h));
+  margin-bottom: vh(4);
 }
 .enterprise-card:hover {
   background: rgba(71, 132, 232, 0.15);
@@ -786,16 +788,16 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
   background: rgba(22, 70, 145, 0.51);
   border-radius: 6px;
   overflow: hidden;
-  padding: calc(12 * var(--h)) calc(14 * var(--w));
+  padding: vh(12) vw(14);
   gap: 0;
 }
 
 .detail-panel__ent-header {
   display: flex;
   align-items: baseline;
-  gap: calc(12 * var(--w));
+  gap: vw(12);
   flex-shrink: 0;
-  padding-bottom: calc(10 * var(--h));
+  padding-bottom: vh(10);
   border-bottom: 1px solid rgba(71, 132, 232, 0.2);
 }
 
@@ -818,14 +820,14 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 /* ===== Seg 分段控制器 ===== */
 .page-seg {
   display: flex;
-  gap: calc(18 * var(--w));
+  gap: vw(18);
   flex-shrink: 0;
-  padding: calc(10 * var(--h)) 0;
+  padding: vh(10) 0;
 }
 
 .page-seg__item {
   flex-shrink: 0;
-  padding: calc(8 * var(--h)) calc(16 * var(--w));
+  padding: vh(8) vw(16);
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;

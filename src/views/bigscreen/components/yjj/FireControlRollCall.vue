@@ -269,11 +269,11 @@ const modeOptions = [
 const columns: BsColumn[] = [
   { key: 'callTime', label: '点名时间' },
   { key: 'personnelName', label: '被点名人' },
-  { key: 'callMode', label: '模式', width: 'calc(56 * var(--w))' },
+  { key: 'callMode', label: '模式', width: 'vw(56)' },
   { key: 'initiator', label: '发起人' },
   { key: 'responseTime', label: '响应时间' },
-  { key: 'status', label: '状态', width: 'calc(64 * var(--w))' },
-  { key: 'responseMethod', label: '应答', width: 'calc(56 * var(--w))' },
+  { key: 'status', label: '状态', width: 'vw(64)' },
+  { key: 'responseMethod', label: '应答', width: 'vw(56)' },
   { key: 'checkItems', label: '核验' },
 ]
 
@@ -391,21 +391,23 @@ function sleep(ms: number): Promise<void> {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-roll-call {
   flex: 1;
   min-height: 0;
   display: flex;
-  gap: calc(12 * var(--w));
+  gap: vw(12);
 }
 
 /* ===== 左侧：人员列表 ===== */
 .fc-roll-call__left {
-  flex: 0 0 calc(240 * var(--w));
+  flex: 0 0 vw(240);
   max-width: 280px;
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
   min-height: 0;
 }
 
@@ -422,7 +424,7 @@ function sleep(ms: number): Promise<void> {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: calc(4 * var(--h));
+  gap: vh(4);
 }
 .fc-roll-call__personnel-list::-webkit-scrollbar { width: 3px; }
 .fc-roll-call__personnel-list::-webkit-scrollbar-track { background: transparent; }
@@ -431,8 +433,8 @@ function sleep(ms: number): Promise<void> {
 .roll-call-person {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
-  padding: calc(7 * var(--h)) calc(8 * var(--w));
+  gap: vw(6);
+  padding: vh(7) vw(8);
   border: 1px solid transparent;
   border-radius: 4px;
   background: rgba(13, 33, 55, 0.5);
@@ -475,7 +477,7 @@ function sleep(ms: number): Promise<void> {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(12 * var(--h));
+  gap: vh(12);
   min-height: 0;
 }
 
@@ -483,13 +485,13 @@ function sleep(ms: number): Promise<void> {
 .fc-roll-call__action {
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
   flex-shrink: 0;
-  padding: calc(10 * var(--h)) calc(10 * var(--w));
+  padding: vh(10) vw(10);
   background: linear-gradient(135deg, rgba(13, 33, 55, 0.7) 0%, rgba(8, 22, 42, 0.7) 100%);
   border: 1px solid rgba(71, 132, 232, 0.2);
   border-radius: 6px;
-  max-height: calc(340 * var(--h));
+  max-height: vh(340);
   overflow-y: auto;
 }
 
@@ -512,12 +514,12 @@ function sleep(ms: number): Promise<void> {
 .selected-tags--empty {
   font-size: clamp(10px, calc(11 * var(--min-scale)), 13px);
   color: rgba(137, 181, 255, 0.35);
-  padding: calc(6 * var(--h)) 0;
+  padding: vh(6) 0;
 }
 
 .roll-call-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: calc(8 * var(--h)) calc(16 * var(--w));
+  padding: vh(8) vw(16);
   border: 1px solid rgba(60, 211, 215, 0.5); border-radius: 4px;
   background: linear-gradient(135deg, rgba(60, 211, 215, 0.2) 0%, rgba(60, 211, 215, 0.1) 100%);
   color: #3cd3d7; cursor: pointer; font-family: inherit;
@@ -541,7 +543,7 @@ function sleep(ms: number): Promise<void> {
 .call-results { display: flex; flex-direction: column; gap: 4px; }
 .call-result {
   display: flex; align-items: center; gap: 6px;
-  padding: calc(4 * var(--h)) calc(8 * var(--w));
+  padding: vh(4) vw(8);
   font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
   border-radius: 4px;
 }
@@ -579,8 +581,8 @@ function sleep(ms: number): Promise<void> {
 .check-form {
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
-  padding: calc(10 * var(--h)) calc(10 * var(--w));
+  gap: vh(8);
+  padding: vh(10) vw(10);
   background: rgba(13, 33, 55, 0.5);
   border: 1px solid rgba(71, 132, 232, 0.3);
   border-radius: 4px;
@@ -593,19 +595,19 @@ function sleep(ms: number): Promise<void> {
 .check-form__body {
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
 }
 .check-form__field {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   flex-wrap: wrap;
   font-size: clamp(10px, calc(11 * var(--min-scale)), 13px);
   color: rgba(137, 181, 255, 0.8);
 }
 .check-form__field > span:first-child {
   flex-shrink: 0;
-  min-width: calc(110 * var(--w));
+  min-width: vw(110);
 }
 .check-form__select {
   padding: 2px 8px;
@@ -632,7 +634,7 @@ function sleep(ms: number): Promise<void> {
 }
 .check-form__submit {
   align-self: flex-start;
-  padding: calc(4 * var(--h)) calc(14 * var(--w));
+  padding: vh(4) vw(14);
   border: 1px solid rgba(34, 197, 94, 0.4);
   border-radius: 3px;
   background: rgba(34, 197, 94, 0.1);
@@ -657,15 +659,15 @@ function sleep(ms: number): Promise<void> {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
 }
 .fc-roll-call__filter {
   display: flex;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   flex-shrink: 0;
 }
 .fc-roll-call__filter-btn {
-  padding: calc(3 * var(--h)) calc(10 * var(--w));
+  padding: vh(3) vw(10);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 4px;
   background: rgba(2, 20, 50, 0.55);

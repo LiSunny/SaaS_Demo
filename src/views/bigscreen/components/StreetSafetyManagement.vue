@@ -179,12 +179,14 @@ function viewDetail(streetName: string) {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .street-safety {
-  padding: calc(10 * var(--h)) calc(12 * var(--w));
+  padding: vh(10) vw(12);
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--h));
+  gap: vh(10);
   height: 100%;
   box-sizing: border-box;
 }
@@ -193,9 +195,9 @@ function viewDetail(streetName: string) {
 .safety-overview {
   display: flex;
   justify-content: space-between;
-  padding: calc(12 * var(--h)) calc(16 * var(--w));
+  padding: vh(12) vw(16);
   flex-shrink: 0;
-  gap: calc(16 * var(--w));
+  gap: vw(16);
 }
 
 /* ===== 商业街滚动区 ===== */
@@ -206,7 +208,7 @@ function viewDetail(streetName: string) {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
 }
 
 .street-track {
@@ -227,10 +229,10 @@ function viewDetail(streetName: string) {
   flex: 1;
   background: rgba(0, 57, 114, 0.68);
   border-radius: calc(6 * var(--min-scale));
-  padding: calc(12 * var(--h)) calc(12 * var(--w));
+  padding: vh(12) vw(12);
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--h));
+  gap: vh(10);
   transition: border-color 0.2s ease;
   min-height: 0;
 }
@@ -245,7 +247,7 @@ function viewDetail(streetName: string) {
 .street-card__title-row {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
 }
 
 .street-card__icon {
@@ -284,15 +286,15 @@ function viewDetail(streetName: string) {
 .street-card__metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: calc(6 * var(--h)) calc(6 * var(--w));
+  gap: vh(6) vw(6);
 }
 
 .metric-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(4 * var(--h));
-  padding: calc(4 * var(--h)) calc(4 * var(--w));
+  gap: vh(4);
+  padding: vh(4) vw(4);
   min-width: 0;
 }
 
@@ -319,7 +321,7 @@ function viewDetail(streetName: string) {
   font-size: clamp(10px, calc(14 * var(--min-scale)), 16px);
   font-weight: 500;
   color: rgba(241, 241, 241, 0.7);
-  margin-left: calc(2 * var(--w));
+  margin-left: vw(2);
 }
 
 /* ===== 分页指示器 ===== */

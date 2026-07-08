@@ -275,7 +275,9 @@ function exitFullscreen() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .center-map {
   height: 100%;
   position: relative;
@@ -289,10 +291,10 @@ function exitFullscreen() {
 /* ===== 全屏态 ===== */
 .center-map.is-fullscreen {
   position: fixed;
-  top: calc(97 * var(--h));
+  top: vh(97);
   left: 0;
   right: 0;
-  bottom: calc(16 * var(--h));
+  bottom: vh(16);
   z-index: 200;
   border-radius: 0;
   border: none;
@@ -306,12 +308,12 @@ function exitFullscreen() {
 /* ===== 地图控件区 ===== */
 .map-controls {
   position: absolute;
-  top: calc(8 * var(--h));
-  right: calc(8 * var(--w));
+  top: vh(8);
+  right: vw(8);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: calc(4 * var(--h));
+  gap: vh(4);
 }
 
 .control-btn {
@@ -343,14 +345,14 @@ function exitFullscreen() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(2 * var(--h));
+  gap: vh(2);
   z-index: 10;
   pointer-events: none;
 }
-.map-label-tl { left: calc(20 * var(--w)); top: calc(20 * var(--h)); }
-.map-label-tr { right: calc(20 * var(--w)); top: calc(20 * var(--h)); }
-.map-label-bl { left: calc(20 * var(--w)); bottom: calc(20 * var(--h)); }
-.map-label-br { right: calc(20 * var(--w)); bottom: calc(20 * var(--h)); }
+.map-label-tl { left: vw(20); top: vh(20); }
+.map-label-tr { right: vw(20); top: vh(20); }
+.map-label-bl { left: vw(20); bottom: vh(20); }
+.map-label-br { right: vw(20); bottom: vh(20); }
 .ml-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(12px, calc(20 * var(--min-scale)), 24px);
@@ -365,14 +367,14 @@ function exitFullscreen() {
 /* ===== 图例 ===== */
 .map-legend {
   position: absolute;
-  top: calc(8 * var(--h));
-  left: calc(8 * var(--w));
+  top: vh(8);
+  left: vw(8);
   height: 28px;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
-  padding: 0 calc(8 * var(--w));
+  gap: vw(8);
+  padding: 0 vw(8);
   background: rgba(10,26,46,0.92);
   border: 1px solid rgba(71,132,232,0.4);
   border-radius: 4px;
@@ -383,7 +385,7 @@ function exitFullscreen() {
 .legend-item {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
 }
 
 .legend-icon {
@@ -404,7 +406,9 @@ function exitFullscreen() {
 </style>
 
 <!-- InfoWindow 挂载在 body 下，scoped 样式无法命中，故使用全局样式 -->
-<style>
+<style lang="scss">
+@use "@/styles/function.scss" as *;
+
 .map-tooltip {
   min-width: 200px;
   background: linear-gradient(135deg, rgba(13,33,55,0.98) 0%, rgba(8,22,42,0.98) 100%);

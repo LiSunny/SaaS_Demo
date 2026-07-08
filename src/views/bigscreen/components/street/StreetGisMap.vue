@@ -180,7 +180,9 @@ const stats = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .street-gis-map {
   height: 100%;
   display: flex;
@@ -245,7 +247,7 @@ const stats = [
   position: absolute;
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
   cursor: pointer;
   z-index: 2;
   transition: transform 0.2s ease;
@@ -306,12 +308,12 @@ const stats = [
 /* 底部图例 */
 .gis-legend {
   position: absolute;
-  bottom: calc(8 * var(--h));
+  bottom: vh(8);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: calc(12 * var(--w));
-  padding: calc(4 * var(--h)) calc(8 * var(--w));
+  gap: vw(12);
+  padding: vh(4) vw(8);
   background: rgba(2, 20, 55, 0.7);
   border: 1px solid rgba(71, 132, 232, 0.3);
   border-radius: 6px;
@@ -321,7 +323,7 @@ const stats = [
 .legend-item {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
 }
 
 .legend-dot {
@@ -339,12 +341,12 @@ const stats = [
 
 /* ===== 右侧统计面板 ===== */
 .gis-stats-panel {
-  width: calc(160 * var(--w));
+  width: vw(160);
   flex-shrink: 0;
-  padding: calc(12 * var(--h)) calc(10 * var(--w));
+  padding: vh(12) vw(10);
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
   border-left: 1px solid rgba(71, 132, 232, 0.2);
   overflow-y: auto;
   background: rgba(2, 20, 55, 0.4);
@@ -355,13 +357,13 @@ const stats = [
   font-size: clamp(10px, calc(14 * var(--min-scale)), 17px);
   font-weight: 700;
   color: #89b5ff;
-  margin-bottom: calc(4 * var(--h));
+  margin-bottom: vh(4);
 }
 
 .gis-stat-item {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
 }
 
 .stat-dot {
@@ -392,21 +394,21 @@ const stats = [
 /* ===== 选中商铺弹窗 ===== */
 .gis-shop-popup {
   position: absolute;
-  width: calc(200 * var(--w));
+  width: vw(200);
   background: rgba(2, 20, 55, 0.95);
   border: 1px solid rgba(71, 132, 232, 0.4);
   border-radius: 8px;
   z-index: 10;
-  padding: calc(10 * var(--h)) calc(12 * var(--w));
+  padding: vh(10) vw(12);
   backdrop-filter: blur(8px);
 }
 
 .popup-header {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
-  margin-bottom: calc(8 * var(--h));
-  padding-bottom: calc(6 * var(--h));
+  gap: vw(6);
+  margin-bottom: vh(8);
+  padding-bottom: vh(6);
   border-bottom: 1px solid rgba(71, 132, 232, 0.2);
 }
 
@@ -416,7 +418,7 @@ const stats = [
   color: #fff;
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
   flex: 1;
 }
 
@@ -459,7 +461,7 @@ const stats = [
 .popup-body {
   display: flex;
   flex-direction: column;
-  gap: calc(4 * var(--h));
+  gap: vh(4);
 }
 
 .popup-row {
@@ -481,13 +483,13 @@ const stats = [
 .text--danger { color: #ef4444 !important; }
 
 .popup-footer {
-  margin-top: calc(8 * var(--h));
+  margin-top: vh(8);
   display: flex;
   justify-content: flex-end;
 }
 
 .popup-btn {
-  padding: calc(4 * var(--h)) calc(10 * var(--w));
+  padding: vh(4) vw(10);
   font-size: clamp(8px, calc(11 * var(--min-scale)), 13px);
   color: #89b5ff;
   background: rgba(59, 130, 246, 0.15);

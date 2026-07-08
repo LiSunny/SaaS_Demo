@@ -98,23 +98,25 @@ const ringOption = {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .emergency-plan {
-  padding: calc(8 * var(--h)) calc(8 * var(--w));
+  padding: vh(8) vw(8);
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
 }
 
 .ep-segments {
   display: flex;
-  gap: calc(16 * var(--w));
-  padding: calc(6 * var(--h)) calc(16 * var(--w));
+  gap: vw(16);
+  padding: vh(6) vw(16);
 }
 .ep-seg {
   flex: 1;
   position: relative;
-  height: calc(32 * var(--h));
+  height: vh(32);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -165,8 +167,8 @@ const ringOption = {
 .ep-content {
   display: flex;
   align-items: center;
-  gap: calc(16 * var(--w));
-  padding: 0 calc(8 * var(--w));
+  gap: vw(16);
+  padding: 0 vw(8);
   flex: 1;
 }
 
@@ -188,14 +190,14 @@ const ringOption = {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: calc(18 * var(--h));
+  gap: vh(18);
 }
 
 /* 顶部汇总标题 */
 .ep-types-header {
   display: flex;
   align-items: baseline;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
 }
 .ep-types-header-label {
   font-family: 'Alibaba PuHuiTi', sans-serif;
@@ -221,17 +223,17 @@ const ringOption = {
 .ep-types-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: calc(18 * var(--h)) calc(18 * var(--w));
+  gap: vh(18) vw(18);
 }
 .ep-type-cell {
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
 }
 .ep-type-cell-top {
   display: flex;
   align-items: center;
-  gap: calc(3 * var(--w));
+  gap: vw(3);
 }
 /* 等比元素 */
 .ep-type-dot {
@@ -249,7 +251,7 @@ const ringOption = {
 .ep-type-cell-bottom {
   display: flex;
   align-items: baseline;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
 }
 .ep-type-num {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;

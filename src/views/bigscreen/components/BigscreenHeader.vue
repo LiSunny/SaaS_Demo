@@ -162,14 +162,16 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 /* ===== 容器 ===== */
 .bigscreen-header {
   position: absolute;
   top: 0;
   left: 0;
   width: 100vw;
-  height: calc(70 * var(--h));
+  height: vh(70);
   z-index: 100;
   pointer-events: auto;
 }
@@ -179,69 +181,69 @@ onUnmounted(() => {
   position: absolute;
   left: 0;
   top: 0;
-  width: calc(960 * var(--w));
-  height: calc(70 * var(--h));
+  width: vw(960);
+  height: vh(70);
   background: linear-gradient(180deg, #03448F 0%, #02387B 100%);
 }
 .header-bg-right {
   position: absolute;
-  left: calc(960 * var(--w));
+  left: vw(960);
   top: 0;
-  width: calc(960 * var(--w));
-  height: calc(70 * var(--h));
+  width: vw(960);
+  height: vh(70);
   background: linear-gradient(180deg, #03448F 0%, #02387B 100%);
 }
 
 /* ===== Layer 1: 中部装饰叠加图形 ===== */
 .overlay-center-1 {
   position: absolute;
-  left: calc(388 * var(--w));
+  left: vw(388);
   top: 0;
-  width: calc(1144 * var(--w));
-  height: calc(59 * var(--h));
+  width: vw(1144);
+  height: vh(59);
   pointer-events: none;
 }
 .overlay-center-2 {
   position: absolute;
-  left: calc(428 * var(--w));
+  left: vw(428);
   top: 0;
-  width: calc(1064 * var(--w));
-  height: calc(60 * var(--h));
+  width: vw(1064);
+  height: vh(60);
   pointer-events: none;
 }
 .overlay-center-3 {
   position: absolute;
-  left: calc(456 * var(--w));
+  left: vw(456);
   top: 0;
-  width: calc(1008 * var(--w));
-  height: calc(70 * var(--h));
+  width: vw(1008);
+  height: vh(70);
   pointer-events: none;
 }
 .bottom-glow {
   position: absolute;
-  left: calc(721 * var(--w));
-  top: calc(64 * var(--h));
-  width: calc(478 * var(--w));
-  height: calc(7 * var(--h));
+  left: vw(721);
+  top: vh(64);
+  width: vw(478);
+  height: vh(7);
   pointer-events: none;
 }
 
 /* ===== Layer 2: 左侧天气区 ===== */
 .weather-area {
   position: absolute;
-  left: calc(15 * var(--w));
-  top: calc(14 * var(--h));
+  left: vw(15);
+  top: vh(14);
   display: flex;
   align-items: flex-start;
-  gap: calc(11 * var(--w));
+  gap: vw(11);
 }
 .time-info {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: space-between;
-  padding: calc(2 * var(--h)) 0;
-  width: calc(95 * var(--w));
+  padding: vh(2) 0;
+  width: vw(95);
 }
 .time-text {
   font-family: 'DingTalk JinBuTi', 'Alibaba PuHuiTi', sans-serif;
@@ -315,19 +317,19 @@ onUnmounted(() => {
 /* ===== Layer 3: 右侧用户区 ===== */
 .user-area {
   position: absolute;
-  left: calc(1744 * var(--w));
-  top: calc(10 * var(--h));
+  left: vw(1744);
+  top: vh(10);
   display: flex;
   align-items: flex-start;
-  gap: calc(11 * var(--w));
-  height: calc(46 * var(--h));
+  gap: vw(11);
+  height: vh(46);
 }
 .user-text {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: calc(2 * var(--h)) 0;
-  width: calc(95 * var(--w));
+  padding: vh(2) 0;
+  width: vw(95);
   height: 100%;
 }
 .user-name {
@@ -358,18 +360,18 @@ onUnmounted(() => {
 /* ===== Layer 4: 底部边线 ===== */
 .bottom-line {
   position: absolute;
-  height: calc(11 * var(--h));
+  height: vh(11);
   pointer-events: none;
 }
 .left-line {
-  left: calc(1 * var(--w));
-  top: calc(60 * var(--h));
-  width: calc(495 * var(--w));
+  left: vw(1);
+  top: vh(60);
+  width: vw(495);
 }
 .right-line {
-  left: calc(1425 * var(--w));
-  top: calc(60 * var(--h));
-  width: calc(495 * var(--w));
+  left: vw(1425);
+  top: vh(60);
+  width: vw(495);
   transform: scaleX(-1);
 }
 
@@ -379,7 +381,7 @@ onUnmounted(() => {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: calc(889 * var(--w));
+  width: vw(889);
   text-align: center;
 }
 .platform-title {
@@ -391,6 +393,6 @@ onUnmounted(() => {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
-  line-height: calc(43 * var(--h));
+  line-height: vh(43);
 }
 </style>

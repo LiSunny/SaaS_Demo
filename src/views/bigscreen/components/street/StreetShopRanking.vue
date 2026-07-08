@@ -43,12 +43,12 @@ import SectionCard from '../SectionCard.vue'
 import BigscreenListTable, { type BsColumn } from '../BigscreenListTable.vue'
 
 const columns: BsColumn[] = [
-  { key: 'rank', label: '排名', width: 'calc(40 * var(--w))' },
-  { key: 'name', label: '商铺名称', width: 'calc(100 * var(--w))' },
-  { key: 'alarms', label: '告警(近30天)', width: 'calc(70 * var(--w))' },
-  { key: 'hazards', label: '隐患(未整改)', width: 'calc(70 * var(--w))' },
-  { key: 'dutyRate', label: '履职完成率', width: 'calc(90 * var(--w))' },
-  { key: 'score', label: '安全评分', width: 'calc(60 * var(--w))' },
+  { key: 'rank', label: '排名', width: 'vw(40)' },
+  { key: 'name', label: '商铺名称', width: 'vw(100)' },
+  { key: 'alarms', label: '告警(近30天)', width: 'vw(70)' },
+  { key: 'hazards', label: '隐患(未整改)', width: 'vw(70)' },
+  { key: 'dutyRate', label: '履职完成率', width: 'vw(90)' },
+  { key: 'score', label: '安全评分', width: 'vw(60)' },
 ]
 
 const shopRows = [
@@ -65,9 +65,11 @@ const shopRows = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .shop-ranking {
-  padding: calc(8 * var(--h)) calc(12 * var(--w));
+  padding: vh(8) vw(12);
   height: 100%;
   overflow: hidden;
 }
@@ -111,7 +113,7 @@ const shopRows = [
 .duty-rate-cell {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
 }
 
 .duty-bar-bg {

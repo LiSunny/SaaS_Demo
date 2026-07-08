@@ -104,13 +104,15 @@ const paginatedShopRows = computed(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .shop-list {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: calc(12 * var(--h)) 0;
+  padding: vh(12) 0;
 }
 
 /* ---- 搜索/筛选栏 ---- */
@@ -119,26 +121,26 @@ const paginatedShopRows = computed(() => {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  margin-bottom: calc(12 * var(--h));
+  margin-bottom: vh(12);
 }
 
 .shop-list__filters {
   display: flex;
   align-items: center;
-  gap: calc(18 * var(--w));
+  gap: vw(18);
 }
 
 .shop-list__search {
   display: flex;
   align-items: center;
-  gap: calc(12 * var(--w));
-  height: calc(36 * var(--h));
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  gap: vw(12);
+  height: vh(36);
+  padding: vh(4) vw(12);
   background: rgba(3, 74, 173, 0);
   border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
   overflow: hidden;
-  width: calc(220 * var(--w));
+  width: vw(220);
   flex-shrink: 0;
   cursor: text;
 }
@@ -160,9 +162,9 @@ const paginatedShopRows = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: calc(36 * var(--h));
-  width: calc(130 * var(--w));
-  padding: 1px calc(13 * var(--w));
+  height: vh(36);
+  width: vw(130);
+  padding: 1px vw(13);
   background: rgba(3, 74, 173, 0);
   border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
@@ -187,8 +189,8 @@ const paginatedShopRows = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(36 * var(--h));
-  padding: calc(8 * var(--h)) calc(18 * var(--w));
+  height: vh(36);
+  padding: vh(8) vw(18);
   background: #0095ff;
   border: none;
   border-radius: 8px;
@@ -224,8 +226,8 @@ const paginatedShopRows = computed(() => {
 .shop-list__table-header {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
-  padding: calc(8 * var(--h)) calc(6 * var(--w));
+  gap: vw(6);
+  padding: vh(8) vw(6);
   background: #0457a7;
   flex-shrink: 0;
 }
@@ -245,8 +247,8 @@ const paginatedShopRows = computed(() => {
 .shop-list__table-row {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
-  padding: 0 calc(6 * var(--w));
+  gap: vw(6);
+  padding: 0 vw(6);
   border-top: 1px solid rgba(168, 178, 255, 0.08);
   flex-shrink: 0;
 }
@@ -268,7 +270,7 @@ const paginatedShopRows = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(10 * var(--h)) 0;
+  padding: vh(10) 0;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
@@ -278,7 +280,7 @@ const paginatedShopRows = computed(() => {
 
 .shop-list__th--index,
 .shop-list__td--index {
-  width: calc(60 * var(--w));
+  width: vw(60);
   flex-shrink: 0;
 }
 
@@ -303,13 +305,13 @@ const paginatedShopRows = computed(() => {
 
 .shop-list__th--status,
 .shop-list__td--status {
-  width: calc(120 * var(--w));
+  width: vw(120);
   flex-shrink: 0;
 }
 
 .shop-list__th--action,
 .shop-list__td--action {
-  width: calc(48 * var(--w));
+  width: vw(48);
   flex-shrink: 0;
 }
 
@@ -318,7 +320,7 @@ const paginatedShopRows = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: calc(2 * var(--h)) calc(6 * var(--w));
+  padding: vh(2) vw(6);
   border-radius: 4px;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(11px, calc(14 * var(--min-scale)), 16px);
@@ -353,16 +355,16 @@ const paginatedShopRows = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 calc(12 * var(--w));
+  padding: 0 vw(12);
   flex-shrink: 0;
-  margin-top: calc(12 * var(--h));
+  margin-top: vh(12);
 }
 
 .shop-list__page-info {
   display: flex;
   align-items: center;
-  gap: calc(12 * var(--w));
-  height: calc(36 * var(--h));
+  gap: vw(12);
+  height: vh(36);
 }
 
 .shop-list__page-label {
@@ -378,9 +380,9 @@ const paginatedShopRows = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: calc(36 * var(--h));
-  width: calc(82 * var(--w));
-  padding: 1px calc(13 * var(--w));
+  height: vh(36);
+  width: vw(82);
+  padding: 1px vw(13);
   background: rgba(3, 74, 173, 0);
   border: 1px solid rgba(0, 84, 201, 0.67);
   border-radius: 8px;
@@ -399,7 +401,7 @@ const paginatedShopRows = computed(() => {
 .shop-list__page-controls {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   height: 32px;
 }
 
@@ -407,7 +409,7 @@ const paginatedShopRows = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  padding: vh(6) vw(10);
   background: none;
   border: none;
   border-radius: 8px;

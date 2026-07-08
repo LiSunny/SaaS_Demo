@@ -130,7 +130,9 @@ onMounted(() => startAutoScroll())
 onUnmounted(() => { if (timer) clearInterval(timer) })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .risk-control {
   height: 100%;
   padding: 16px;

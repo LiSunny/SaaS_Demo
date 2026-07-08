@@ -102,7 +102,9 @@ onMounted(() => { timer = setInterval(() => { timestamp.value = formatTs() }, 10
 onUnmounted(() => { if (timer) clearInterval(timer) })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-monitoring {
   flex: 1;
   min-height: 0;
@@ -127,20 +129,20 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 .fc-monitoring__rooms {
   display: flex;
   flex-direction: column;
-  gap: calc(14 * var(--h));
+  gap: vh(14);
 }
 
 .fc-room__cameras {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(calc(220 * var(--w)), 1fr));
-  gap: calc(10 * var(--w));
-  margin-top: calc(8 * var(--h));
+  grid-template-columns: repeat(auto-fill, minmax(vw(220), 1fr));
+  gap: vw(10);
+  margin-top: vh(8);
 }
 
 .fc-camera {
   display: flex;
   flex-direction: column;
-  gap: calc(4 * var(--h));
+  gap: vh(4);
   min-width: 0;
 }
 

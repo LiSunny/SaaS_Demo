@@ -617,7 +617,9 @@ onBeforeUnmount(() => {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 /* ===== 全屏容器 ===== */
 .bigscreen {
   position: relative;
@@ -631,15 +633,15 @@ onBeforeUnmount(() => {
 /* ===== 内容区 ===== */
 .page-body {
   position: absolute;
-  top: calc(89 * var(--h));
+  top: vh(89);
   left: 0;
   right: 0;
   bottom: 0;
   overflow-y: auto;
-  padding: calc(18 * var(--h)) calc(18 * var(--w));
+  padding: vh(18) vw(18);
   display: flex;
   flex-direction: column;
-  gap: calc(18 * var(--h));
+  gap: vh(18);
   background: #002C62;
 }
 
@@ -659,7 +661,7 @@ onBeforeUnmount(() => {
 .page-header__left {
   display: flex;
   align-items: center;
-  gap: calc(12 * var(--w));
+  gap: vw(12);
   min-width: 0;
 }
 
@@ -862,8 +864,8 @@ onBeforeUnmount(() => {
 /* ===== 统计指标行 ===== */
 .stats-row {
   display: flex;
-  gap: calc(16 * var(--w));
-  padding: calc(16 * var(--h)) calc(16 * var(--w));
+  gap: vw(16);
+  padding: vh(16) vw(16);
   background: rgba(22, 70, 145, 0.51);
   border-radius: 6px;
   flex-shrink: 0;
@@ -886,13 +888,13 @@ onBeforeUnmount(() => {
 /* ===== Seg 分段控制器 ===== */
 .page-seg {
   display: flex;
-  gap: calc(18 * var(--w));
+  gap: vw(18);
   flex-shrink: 0;
 }
 
 .page-seg__item {
   flex-shrink: 0;
-  padding: calc(12 * var(--h)) calc(18 * var(--w));
+  padding: vh(12) vw(18);
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(15px, calc(18 * var(--min-scale)), 18px);
   font-weight: 700;
@@ -921,7 +923,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   background: rgba(22, 70, 145, 0.51);
   border-radius: 6px;
-  padding: calc(12 * var(--h)) calc(12 * var(--w));
+  padding: vh(12) vw(12);
 }
 
 /* ===== 内容区 ===== */
@@ -967,12 +969,12 @@ onBeforeUnmount(() => {
 /* ===== 右上角统计悬浮窗口 ===== */
 .safety-stats-panel {
   position: absolute;
-  top: calc(10 * var(--h));
-  right: calc(10 * var(--w));
+  top: vh(10);
+  right: vw(10);
   z-index: 10;
-  width: calc(160 * var(--w));
+  width: vw(160);
   max-width: 180px;
-  padding: calc(10 * var(--h)) calc(10 * var(--w));
+  padding: vh(10) vw(10);
   background: linear-gradient(135deg, rgba(2, 20, 55, 0.95) 0%, rgba(8, 22, 42, 0.95) 100%);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 6px;
@@ -986,16 +988,16 @@ onBeforeUnmount(() => {
   font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
   font-weight: 700;
   color: #89b5ff;
-  margin-bottom: calc(8 * var(--h));
-  padding-bottom: calc(6 * var(--h));
+  margin-bottom: vh(8);
+  padding-bottom: vh(6);
   border-bottom: 1px solid rgba(71, 132, 232, 0.2);
 }
 
 .safety-stats-panel__item {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
-  padding: calc(3 * var(--h)) 0;
+  gap: vw(6);
+  padding: vh(3) 0;
 }
 
 .safety-stats-panel__dot {
@@ -1026,13 +1028,13 @@ onBeforeUnmount(() => {
 /* ===== 底部图例 ===== */
 .safety-legend {
   position: absolute;
-  bottom: calc(8 * var(--h));
+  bottom: vh(8);
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
   display: flex;
-  gap: calc(10 * var(--w));
-  padding: calc(4 * var(--h)) calc(10 * var(--w));
+  gap: vw(10);
+  padding: vh(4) vw(10);
   background: rgba(2, 20, 55, 0.85);
   border: 1px solid rgba(71, 132, 232, 0.3);
   border-radius: 6px;
@@ -1043,7 +1045,7 @@ onBeforeUnmount(() => {
 .safety-legend__item {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
 }
 
 .safety-legend__dot {
@@ -1062,7 +1064,9 @@ onBeforeUnmount(() => {
 </style>
 
 <!-- InfoWindow 全局样式（非 scoped，InfoWindow 挂载在 body 下） -->
-<style>
+<style lang="scss">
+@use "@/styles/function.scss" as *;
+
 .safety-tooltip {
   min-width: 200px;
   background: linear-gradient(135deg, rgba(13,33,55,0.98) 0%, rgba(8,22,42,0.98) 100%);

@@ -189,10 +189,10 @@ const previewImage = ref('')
 
 const columns: BsColumn[] = [
   { key: 'alertTime', label: '预警时间' },
-  { key: 'alertType', label: '预警类型', width: 'calc(70 * var(--w))' },
+  { key: 'alertType', label: '预警类型', width: 'vw(70)' },
   { key: 'roomName', label: '消控室' },
-  { key: 'snapshotUrl', label: '截图', width: 'calc(70 * var(--w))' },
-  { key: 'status', label: '处置状态', width: 'calc(80 * var(--w))' },
+  { key: 'snapshotUrl', label: '截图', width: 'vw(70)' },
+  { key: 'status', label: '处置状态', width: 'vw(80)' },
   { key: 'handlerName', label: '处置人' },
   { key: 'handledAt', label: '处置时间' },
 ]
@@ -265,19 +265,21 @@ function previewSnapshot(row: AlertRecord) {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-alerts {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--h));
+  gap: vh(10);
 }
 
 /* ===== 统计卡片行 ===== */
 .fc-alerts__stats {
   display: flex;
-  gap: calc(10 * var(--w));
+  gap: vw(10);
   flex-shrink: 0;
 }
 
@@ -287,8 +289,8 @@ function previewSnapshot(row: AlertRecord) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(4 * var(--h));
-  padding: calc(10 * var(--h)) calc(8 * var(--w));
+  gap: vh(4);
+  padding: vh(10) vw(8);
   border: 1px solid rgba(71, 132, 232, 0.25);
   border-radius: 6px;
   background: linear-gradient(135deg, rgba(13, 33, 55, 0.85) 0%, rgba(8, 22, 42, 0.85) 100%);
@@ -341,12 +343,12 @@ function previewSnapshot(row: AlertRecord) {
 /* ===== 处置状态筛选 ===== */
 .fc-alerts__filter {
   display: flex;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   flex-shrink: 0;
 }
 
 .fc-alerts__filter-btn {
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  padding: vh(4) vw(12);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 4px;
   background: rgba(2, 20, 50, 0.55);

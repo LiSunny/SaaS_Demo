@@ -35,7 +35,9 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .section-card {
   display: flex;
   flex-direction: column;

@@ -267,23 +267,25 @@ function confirmReturn(p: DutyPersonnel) {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .fc-personnel {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--h));
+  gap: vh(10);
 }
 
 .fc-personnel__filter {
   display: flex;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
   flex-shrink: 0;
 }
 
 .fc-personnel__filter-btn {
-  padding: calc(4 * var(--h)) calc(12 * var(--w));
+  padding: vh(4) vw(12);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 4px;
   background: rgba(2, 20, 50, 0.55);
@@ -307,8 +309,8 @@ function confirmReturn(p: DutyPersonnel) {
   flex: 1;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(calc(220 * var(--w)), 1fr));
-  gap: calc(10 * var(--w));
+  grid-template-columns: repeat(auto-fill, minmax(vw(220), 1fr));
+  gap: vw(10);
   align-content: start;
 }
 .fc-personnel__grid::-webkit-scrollbar { width: 3px; }
@@ -328,10 +330,10 @@ function confirmReturn(p: DutyPersonnel) {
   background: linear-gradient(135deg, rgba(13, 33, 55, 0.85) 0%, rgba(8, 22, 42, 0.85) 100%);
   border: 1px solid rgba(71, 132, 232, 0.25);
   border-radius: 6px;
-  padding: calc(10 * var(--h)) calc(10 * var(--w));
+  padding: vh(10) vw(10);
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
   transition: all 0.2s;
 }
 .personnel-card:hover { border-color: rgba(71, 132, 232, 0.45); }
@@ -350,7 +352,7 @@ function confirmReturn(p: DutyPersonnel) {
 .personnel-card__header {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
 }
 
 .personnel-card__status {
@@ -382,10 +384,10 @@ function confirmReturn(p: DutyPersonnel) {
   border-color: rgba(107, 114, 128, 0.3);
 }
 
-.personnel-card__body { display: flex; flex-direction: column; gap: calc(4 * var(--h)); }
-.personnel-card__row { display: flex; align-items: center; gap: calc(6 * var(--w)); }
+.personnel-card__body { display: flex; flex-direction: column; gap: vh(4); }
+.personnel-card__row { display: flex; align-items: center; gap: vw(6); }
 .personnel-card__label {
-  flex-shrink: 0; width: calc(62 * var(--w));
+  flex-shrink: 0; width: vw(62);
   font-size: clamp(10px, calc(11 * var(--min-scale)), 13px);
   color: rgba(137, 181, 255, 0.6);
 }
@@ -405,7 +407,7 @@ function confirmReturn(p: DutyPersonnel) {
 
 .personnel-card__leave-info {
   display: flex; flex-direction: column; gap: 2px;
-  padding: calc(4 * var(--h)) calc(8 * var(--w));
+  padding: vh(4) vw(8);
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.2);
   border-radius: 4px;
@@ -414,11 +416,11 @@ function confirmReturn(p: DutyPersonnel) {
 }
 
 .personnel-card__actions {
-  display: flex; gap: calc(6 * var(--w));
+  display: flex; gap: vw(6);
 }
 .personnel-card__btn {
   flex: 1;
-  padding: calc(3 * var(--h)) calc(8 * var(--w));
+  padding: vh(3) vw(8);
   border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
@@ -455,8 +457,8 @@ function confirmReturn(p: DutyPersonnel) {
   background: linear-gradient(135deg, #0d2137 0%, #08162a 100%);
   border: 1px solid rgba(71, 132, 232, 0.4);
   border-radius: 8px;
-  padding: calc(16 * var(--h)) calc(16 * var(--w));
-  display: flex; flex-direction: column; gap: calc(12 * var(--h));
+  padding: vh(16) vw(16);
+  display: flex; flex-direction: column; gap: vh(12);
 }
 .leave-dialog__title {
   margin: 0;
@@ -465,23 +467,23 @@ function confirmReturn(p: DutyPersonnel) {
   color: #ffffff;
 }
 .leave-dialog__body {
-  display: flex; flex-direction: column; gap: calc(10 * var(--h));
+  display: flex; flex-direction: column; gap: vh(10);
 }
 .leave-dialog__field {
-  display: flex; flex-direction: column; gap: calc(4 * var(--h));
+  display: flex; flex-direction: column; gap: vh(4);
   font-size: clamp(11px, calc(13 * var(--min-scale)), 15px);
   color: #89b5ff;
 }
 .leave-dialog__field .required { color: #ef4444; font-style: normal; }
 .leave-dialog__value {
   color: #ffffff; font-weight: 600;
-  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  padding: vh(6) vw(10);
   background: rgba(71, 132, 232, 0.15);
   border-radius: 4px;
   font-size: clamp(12px, calc(14 * var(--min-scale)), 16px);
 }
 .leave-dialog__input, .leave-dialog__select {
-  padding: calc(6 * var(--h)) calc(10 * var(--w));
+  padding: vh(6) vw(10);
   border: 1px solid rgba(71, 132, 232, 0.35);
   border-radius: 4px;
   background: rgba(2, 20, 50, 0.55);
@@ -493,7 +495,7 @@ function confirmReturn(p: DutyPersonnel) {
 .leave-dialog__input::placeholder { color: rgba(137, 181, 255, 0.35); }
 .leave-dialog__select option { background: #0d2137; color: #ffffff; }
 .leave-dialog__warn {
-  padding: calc(8 * var(--h)) calc(10 * var(--w));
+  padding: vh(8) vw(10);
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 4px;
@@ -501,10 +503,10 @@ function confirmReturn(p: DutyPersonnel) {
   color: #ef4444;
 }
 .leave-dialog__actions {
-  display: flex; gap: calc(8 * var(--w)); justify-content: flex-end;
+  display: flex; gap: vw(8); justify-content: flex-end;
 }
 .leave-dialog__btn {
-  padding: calc(6 * var(--h)) calc(16 * var(--w));
+  padding: vh(6) vw(16);
   border-radius: 4px;
   cursor: pointer;
   font-family: inherit;

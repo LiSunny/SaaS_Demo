@@ -117,13 +117,15 @@ function generateArea(data: number[], maxHeight: number): string {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .trend-analysis {
-  padding: calc(8 * var(--h)) calc(12 * var(--w));
+  padding: vh(8) vw(12);
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
   overflow: hidden;
 }
 
@@ -134,7 +136,7 @@ function generateArea(data: number[], maxHeight: number): string {
   background: rgba(2, 20, 50, 0.5);
   border: 1px solid rgba(71, 132, 232, 0.2);
   border-radius: 6px;
-  padding: calc(6 * var(--h)) calc(8 * var(--w));
+  padding: vh(6) vw(8);
   min-height: 0;
   overflow: hidden;
 }
@@ -143,7 +145,7 @@ function generateArea(data: number[], maxHeight: number): string {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: calc(2 * var(--h));
+  margin-bottom: vh(2);
   flex-shrink: 0;
 }
 
@@ -156,7 +158,7 @@ function generateArea(data: number[], maxHeight: number): string {
 .trend-compare {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
+  gap: vw(6);
 }
 
 .compare-today {
@@ -193,15 +195,15 @@ function generateArea(data: number[], maxHeight: number): string {
 .trend-legend {
   display: flex;
   justify-content: center;
-  gap: calc(10 * var(--w));
-  padding-top: calc(2 * var(--h));
+  gap: vw(10);
+  padding-top: vh(2);
   flex-shrink: 0;
 }
 
 .legend-line {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
   font-size: clamp(7px, calc(9 * var(--min-scale)), 11px);
   color: rgba(224, 234, 250, 0.6);
 }

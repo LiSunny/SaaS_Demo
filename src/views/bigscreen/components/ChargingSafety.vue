@@ -44,7 +44,9 @@ const industryData: CategoryStatItem[] = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .charging-safety {
   padding: 16px;
   display: flex;

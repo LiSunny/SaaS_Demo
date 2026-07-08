@@ -83,7 +83,9 @@ const gridStyle = computed(() => ({
 }))
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 /* ===== 2×2 网格容器 ===== */
 .category-stat-grid {
   display: grid;
@@ -97,7 +99,7 @@ const gridStyle = computed(() => ({
   padding: calc(8 * var(--min-scale));
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
   min-width: 0;
 }
 
@@ -105,7 +107,7 @@ const gridStyle = computed(() => ({
 .csg-header {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
 }
 
 /* 等比元素：图标（使用外部图片） */
@@ -139,7 +141,7 @@ const gridStyle = computed(() => ({
 .csg-body {
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
 }
 
 /* ===== 履职数量行 ===== */
@@ -153,7 +155,7 @@ const gridStyle = computed(() => ({
   display: flex;
   flex: 1 0 0;
   align-items: center;
-  gap: calc(14 * var(--w));
+  gap: vw(14);
   min-width: 0;
 }
 
@@ -210,7 +212,7 @@ const gridStyle = computed(() => ({
 /* ===== 进度条 ===== */
 .csg-bar-track {
   display: flex;
-  height: calc(8 * var(--h));
+  height: vh(8);
   overflow: hidden;
 }
 
@@ -219,7 +221,7 @@ const gridStyle = computed(() => ({
   height: 100%;
   min-width: 0;
   flex-shrink: 1;
-  margin-right: calc(-6 * var(--w));
+  margin-right: vw(-6);
   position: relative;
   z-index: 1;
   background: linear-gradient(

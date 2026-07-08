@@ -40,8 +40,8 @@ const topStats = [
 ]
 
 const columns: BsColumn[] = [
-  { key: 'status', label: '审批状态', width: 'calc(100 * var(--w))', minWidth: '80px' },
-  { key: 'type', label: '作业类型', width: 'calc(100 * var(--w))', minWidth: '80px' },
+  { key: 'status', label: '审批状态', width: 'vw(100)', minWidth: '80px' },
+  { key: 'type', label: '作业类型', width: 'vw(100)', minWidth: '80px' },
   { key: 'company', label: '上报企业', minWidth: '80px' },
   { key: 'time', label: '上报时间', minWidth: '90px' },
 ]
@@ -60,7 +60,9 @@ const records = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .risk-approval {
   height: 100%;
   overflow: hidden;
@@ -82,7 +84,7 @@ const records = [
 /* ===== 状态标签 ===== */
 .ra-status {
   display: inline-block;
-  padding: calc(2 * var(--h)) calc(6 * var(--w));
+  padding: vh(2) vw(6);
   border-radius: 2px;
   font-size: clamp(7px, calc(10 * var(--min-scale)), 14px);
   font-weight: 600;

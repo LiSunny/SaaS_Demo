@@ -96,20 +96,22 @@ const recentAlerts = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .risk-focus {
-  padding: calc(8 * var(--h)) calc(10 * var(--w));
+  padding: vh(8) vw(10);
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: calc(8 * var(--h));
+  gap: vh(8);
   overflow: hidden;
 }
 
 .risk-section {
   display: flex;
   flex-direction: column;
-  gap: calc(6 * var(--h));
+  gap: vh(6);
 }
 
 .risk-section--grow {
@@ -122,7 +124,7 @@ const recentAlerts = [
   font-size: clamp(9px, calc(12 * var(--min-scale)), 15px);
   font-weight: 700;
   color: #89b5ff;
-  padding-left: calc(6 * var(--w));
+  padding-left: vw(6);
   border-left: 2px solid #3b82f6;
 }
 
@@ -130,15 +132,15 @@ const recentAlerts = [
 .alert-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: calc(4 * var(--h)) calc(6 * var(--w));
+  gap: vh(4) vw(6);
 }
 
 .alert-stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(2 * var(--h));
-  padding: calc(6 * var(--h)) calc(4 * var(--w));
+  gap: vh(2);
+  padding: vh(6) vw(4);
   background: rgba(2, 30, 80, 0.45);
   border: 1px solid rgba(71, 132, 232, 0.2);
   border-radius: 6px;
@@ -180,7 +182,7 @@ const recentAlerts = [
 .donut-chart {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--w));
+  gap: vw(8);
 }
 
 .donut-svg {
@@ -192,14 +194,14 @@ const recentAlerts = [
 .donut-legend {
   display: flex;
   flex-direction: column;
-  gap: calc(4 * var(--h));
+  gap: vh(4);
   flex: 1;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--w));
+  gap: vw(4);
 }
 
 .legend-dot {
@@ -233,7 +235,7 @@ const recentAlerts = [
 .alert-stream {
   display: flex;
   flex-direction: column;
-  gap: calc(3 * var(--h));
+  gap: vh(3);
   overflow-y: auto;
   flex: 1;
 }
@@ -245,8 +247,8 @@ const recentAlerts = [
 .alert-stream-item {
   display: flex;
   align-items: center;
-  gap: calc(6 * var(--w));
-  padding: calc(4 * var(--h)) calc(6 * var(--w));
+  gap: vw(6);
+  padding: vh(4) vw(6);
   background: rgba(2, 20, 50, 0.4);
   border-radius: 4px;
   transition: background 0.2s;

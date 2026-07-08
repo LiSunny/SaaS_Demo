@@ -105,11 +105,13 @@ defineEmits<{
 const gradientId = nextGradientId()
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/styles/function.scss" as *;
+
 .module-title-bar {
   position: relative;
   width: 100%;
-  height: calc(40 * var(--h));
+  height: vh(40);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -125,8 +127,8 @@ const gradientId = nextGradientId()
 /* ===== 三色装饰点（Figma SVG 矢量 + 滤镜辉光 1:1 导出） ===== */
 .title-dots {
   position: absolute;
-  left: calc(1 * var(--w));
-  top: calc(1 * var(--h));
+  left: vw(1);
+  top: vh(1);
   width: calc(29 * var(--min-scale));
   height: calc(31 * var(--min-scale));
   pointer-events: none;
@@ -138,7 +140,7 @@ const gradientId = nextGradientId()
   left: 0;
   bottom: 0;
   width: 100%;
-  height: calc(2 * var(--h));
+  height: vh(2);
   background: linear-gradient(
     to right,
     #014c8e 0%,
@@ -154,8 +156,8 @@ const gradientId = nextGradientId()
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: calc(38 * var(--w));
-  padding-right: calc(12 * var(--w));
+  padding-left: vw(38);
+  padding-right: vw(12);
   pointer-events: none;
 }
 
@@ -165,7 +167,7 @@ const gradientId = nextGradientId()
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(12px, calc(20 * var(--min-scale)), 24px);
   font-weight: 400;
-  line-height: calc(29 * var(--h));
+  line-height: vh(29);
   background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -197,7 +199,7 @@ const gradientId = nextGradientId()
 /* ===== 放大按钮 ===== */
 .zoom-btn {
   position: absolute;
-  right: calc(12 * var(--w));
+  right: vw(12);
   top: 50%;
   transform: translateY(-50%);
   display: flex;
