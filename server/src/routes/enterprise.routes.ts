@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import * as ctrl from '../controllers/enterprise.controller.js'
-import { authRequired, requireSystemRole } from '../middleware/auth.js'
+import { authRequired, requireSystemRole, requireEnterpriseRole } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -16,6 +16,12 @@ router.get('/dict/relation-roles', ctrl.getRelationRoles)
 
 // ===== 以下需要登录 =====
 router.use(authRequired)
+
+// M1 企业用户管理（系统角色 + 该企业管理员均可访问）
+router.get('/:id/users', requireEnterpriseRole('org-admin'), ctrl.getMembers)
+router.post('/:id/users', requireEnterpriseRole('org-admin'), ctrl.addMember)
+router.put('/:id/users/:userId', requireEnterpriseRole('org-admin'), ctrl.updateMember)
+router.delete('/:id/users/:userId', requireEnterpriseRole('org-admin'), ctrl.removeMember)
 
 // ===== 以下需要运营管理权限 =====
 router.use(requireSystemRole('platform-ops', 'platform-admin'))
@@ -34,12 +40,6 @@ router.post('/:id/extend', ctrl.extend)
 router.get('/:id/subordinates', ctrl.getSubordinates)
 router.post('/:id/subordinates', ctrl.addSubordinates)
 router.delete('/:id/subordinates', ctrl.removeSubordinates)
-
-// M1 企业用户管理
-router.get('/:id/users', ctrl.getMembers)
-router.post('/:id/users', ctrl.addMember)
-router.put('/:id/users/:userId', ctrl.updateMember)
-router.delete('/:id/users/:userId', ctrl.removeMember)
 
 // 相关方
 router.get('/:id/partners', ctrl.getPartners)

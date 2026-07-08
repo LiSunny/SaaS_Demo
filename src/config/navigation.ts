@@ -257,6 +257,7 @@ export const NAV_GROUPS: NavGroup[] = [
         key: 'enterprise-mgmt',
         label: '企业管理',
         icon: 'menuicon-33',
+        visibleTo: ['org-admin'],
         children: [
           { key: 'enterprise-members', label: '企业成员', route: '/enterprise/members' },
         ],

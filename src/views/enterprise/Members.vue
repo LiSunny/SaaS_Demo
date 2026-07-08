@@ -199,22 +199,32 @@ async function resolveEnterprise() {
   if (eid) {
     enterpriseId.value = +eid
   } else {
-    // 从用户 profile 获取关联企业
+    // 从 /admin/users/me/enterprises 获取关联企业（org-admin 可访问）
     try {
-      const res = await request.get('/auth/profile')
+      const res = await request.get('/admin/users/me/enterprises')
       const data = (res as any).data
-      if (data?.enterprises?.length) {
-        enterpriseId.value = data.enterprises[0].enterpriseId
+      if (data?.length) {
+        enterpriseId.value = data[0].enterpriseId
+        enterpriseName.value = data[0].enterpriseName || ''
       }
-    } catch { /* fallback to 1 */ }
+    } catch { /* fallthrough */ }
+
+    // 兜底：从 EnterpriseSwitcher 的 localStorage 读取当前选中企业
+    if (enterpriseId.value === 1) {
+      const storedId = localStorage.getItem('demo-enterprise-id')
+      if (storedId) enterpriseId.value = +storedId
+      // 也尝试读取企业名称（EnterpriseSwitcher 不存名称，这里忽略）
+    }
   }
 
-  // 加载企业名称
-  try {
-    const res = await request.get(`/enterprise/${enterpriseId.value}`)
-    const data = (res as any).data
-    enterpriseName.value = data?.name || ''
-  } catch { /* ignore */ }
+  // 如果企业名称仍未获取到，尝试从企业详情接口加载
+  if (!enterpriseName.value) {
+    try {
+      const res = await request.get(`/enterprise/${enterpriseId.value}`)
+      const data = (res as any).data
+      enterpriseName.value = data?.name || ''
+    } catch { /* ignore - org-admin 无权限访问此接口 */ }
+  }
   enterpriseResolved.value = true
 }
 

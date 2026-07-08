@@ -49,6 +49,21 @@ export async function login(input: LoginInput): Promise<LoginResult> {
     data: { lastLoginAt: new Date() },
   })
 
+  // 非系统角色用户：查询岗位
+  let position: string | null = null
+  if (!user.systemRole) {
+    const ue = await db.userEnterprise.findFirst({
+      where: { userId: user.id, status: 1 },
+    })
+    if (ue) {
+      const positions: string[] = JSON.parse(ue.positions)
+      if (positions.length > 0) {
+        // 去掉 "platform:" 前缀，匹配前端 PositionKey
+        position = positions[0].replace(/^[a-z]+:/, '')
+      }
+    }
+  }
+
   const payload = {
     id: user.id,
     phone: user.phone,
@@ -70,6 +85,15 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       email: user.email,
       status: user.status,
       systemRole: user.systemRole,
+      position,
+    } as {
+      id: number
+      phone: string
+      realName: string
+      email: string
+      status: number
+      systemRole: string | null
+      position: string | null
     },
   }
 }

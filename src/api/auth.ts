@@ -14,6 +14,7 @@ export interface LoginResult {
     email: string
     status: number
     systemRole: string | null
+    position?: string | null  // 岗位 key（非系统角色用户）
   }
 }
 

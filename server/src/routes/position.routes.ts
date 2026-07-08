@@ -4,9 +4,13 @@ import { authRequired, requireSystemRole } from '../middleware/auth.js'
 
 const router = Router()
 router.use(authRequired)
+
+// 列表查询（所有登录用户可访问，企业成员页需要展示岗位标签）
+router.get('/list', ctrl.getList)
+
+// ===== 以下需要系统角色 =====
 router.use(requireSystemRole('platform-ops', 'platform-admin'))
 
-router.get('/list', ctrl.getList)
 router.get('/:id', ctrl.getDetail)
 router.post('/', ctrl.create)
 router.put('/:id', ctrl.update)
