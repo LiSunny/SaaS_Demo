@@ -74,3 +74,29 @@ export async function getMyEnterprises(req: Request, res: Response, next: NextFu
     res.json({ code: 0, message: 'ok', data: list })
   } catch (err) { next(err) }
 }
+
+export async function addUserEnterprise(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { enterpriseId, positions } = req.body
+    if (!enterpriseId || !positions || !Array.isArray(positions)) {
+      res.status(400).json({ code: 400, message: '企业ID和岗位列表不能为空', data: null })
+      return
+    }
+    const item = await svc.addUserEnterprise(+req.params.id, { enterpriseId, positions })
+    res.json({ code: 0, message: 'ok', data: item })
+  } catch (err) { next(err) }
+}
+
+export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    await svc.deleteUser(+req.params.id, req.user?.id)
+    res.json({ code: 0, message: 'ok', data: null })
+  } catch (err) { next(err) }
+}
+
+export async function removeUserEnterprise(req: Request, res: Response, next: NextFunction) {
+  try {
+    await svc.removeUserEnterprise(+req.params.userId, +req.params.enterpriseId)
+    res.json({ code: 0, message: 'ok', data: null })
+  } catch (err) { next(err) }
+}

@@ -41,6 +41,7 @@ onMounted(async () => {
       description: p.description,
       userCount: 0,
       isBuiltin: true,
+      enterpriseId: null,              // null = 系统级岗位
       createdAt: '',
     }))
   }

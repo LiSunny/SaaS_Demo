@@ -25,13 +25,16 @@ function formatDate(d: Date | string): string {
 
 // ===== 列表 =====
 export async function getList(params: { page: number; size: number; keyword?: string }) {
-  const where: any = {}
+  const and: any[] = [{ deletedAt: null }]
   if (params.keyword) {
-    where.OR = [
-      { phone: { contains: params.keyword } },
-      { realName: { contains: params.keyword } },
-    ]
+    and.push({
+      OR: [
+        { phone: { contains: params.keyword } },
+        { realName: { contains: params.keyword } },
+      ],
+    })
   }
+  const where: any = { AND: and }
 
   const [data, total] = await Promise.all([
     db.user.findMany({
@@ -156,4 +159,70 @@ export async function getUserEnterprises(userId: number) {
     positions: JSON.parse(r.positions),
     joinedAt: formatDate(r.joinedAt),
   }))
+}
+
+// ===== 添加用户关联企业 =====
+export async function addUserEnterprise(userId: number, form: { enterpriseId: number; positions: string[] }) {
+  const enterpriseId = +form.enterpriseId
+
+  // 校验用户存在且非系统角色
+  const user = await db.user.findUnique({ where: { id: userId }, select: { id: true, systemRole: true } })
+  if (!user) throw Object.assign(new Error('用户不存在'), { statusCode: 404 })
+  if (user.systemRole) throw Object.assign(new Error('系统角色用户不支持关联企业'), { statusCode: 400 })
+
+  // 校验企业存在
+  const enterprise = await db.enterprise.findUnique({ where: { id: enterpriseId }, select: { id: true, name: true } })
+  if (!enterprise) throw Object.assign(new Error('企业不存在'), { statusCode: 404 })
+
+  // 检查是否已关联
+  const existing = await db.userEnterprise.findUnique({
+    where: { userId_enterpriseId: { userId, enterpriseId } },
+  })
+  if (existing) {
+    throw Object.assign(new Error('该用户已关联此企业'), { statusCode: 409 })
+  }
+
+  const relation = await db.userEnterprise.create({
+    data: {
+      userId,
+      enterpriseId,
+      positions: JSON.stringify(form.positions),
+      status: 1,
+    },
+    include: { enterprise: true },
+  })
+
+  return {
+    enterpriseId: relation.enterpriseId,
+    enterpriseName: relation.enterprise.name,
+    positions: JSON.parse(relation.positions),
+    joinedAt: formatDate(relation.joinedAt),
+  }
+}
+
+// ===== 删除用户（软删除） =====
+export async function deleteUser(id: number, operatorId?: number) {
+  const u = await db.user.findUnique({ where: { id } })
+  if (!u) throw Object.assign(new Error('用户不存在'), { statusCode: 404 })
+  if (u.deletedAt) throw Object.assign(new Error('用户已被删除'), { statusCode: 400 })
+
+  // 不允许删除自己
+  if (operatorId && operatorId === id) {
+    throw Object.assign(new Error('不能删除自己'), { statusCode: 403 })
+  }
+
+  await db.user.update({ where: { id }, data: { deletedAt: new Date() } })
+}
+
+// ===== 移除用户关联企业（软删除） =====
+export async function removeUserEnterprise(userId: number, enterpriseId: number) {
+  const relation = await db.userEnterprise.findUnique({
+    where: { userId_enterpriseId: { userId, enterpriseId: +enterpriseId } },
+  })
+  if (!relation) throw Object.assign(new Error('关联不存在'), { statusCode: 404 })
+
+  await db.userEnterprise.update({
+    where: { id: relation.id },
+    data: { status: 0 },
+  })
 }

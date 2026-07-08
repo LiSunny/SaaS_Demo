@@ -39,6 +39,11 @@ export interface UserEnterpriseItem {
   joinedAt: string
 }
 
+export interface AddUserEnterpriseForm {
+  enterpriseId: number
+  positions: string[]
+}
+
 export interface PaginatedData<T> {
   data: T[]
   total: number

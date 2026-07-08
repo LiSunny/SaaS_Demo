@@ -16,6 +16,7 @@ function toItem(p: any) {
     description: p.description || '',
     userCount: p._userCount ?? 0,
     isBuiltin: p.isBuiltin === 1,
+    enterpriseId: p.enterpriseId ?? null,
     createdAt: formatDate(p.createdAt),
   }
 }
@@ -47,14 +48,26 @@ function formatDate(d: Date | string): string {
 
 // ===== 列表 =====
 
-export async function getList(params: { page: number; size: number; keyword?: string }) {
-  const where: any = { isBuiltin: 1 }
-  if (params.keyword) {
-    where.OR = [
-      { name: { contains: params.keyword } },
-      { key: { contains: params.keyword } },
-    ]
+export async function getList(params: { page: number; size: number; keyword?: string; enterpriseId?: number }) {
+  // 组合过滤条件
+  const and: any[] = []
+  if (params.enterpriseId !== undefined) {
+    and.push({
+      OR: [
+        { enterpriseId: null },
+        { enterpriseId: params.enterpriseId },
+      ],
+    })
   }
+  if (params.keyword) {
+    and.push({
+      OR: [
+        { name: { contains: params.keyword } },
+        { key: { contains: params.keyword } },
+      ],
+    })
+  }
+  const where: any = and.length > 0 ? { AND: and } : {}
 
   const [data, total] = await Promise.all([
     db.position.findMany({
@@ -89,10 +102,19 @@ export async function getDetail(id: number) {
 
 // ===== 新增 =====
 
-export async function create(form: { name: string; key: string; description?: string }) {
-  const key = form.key.replace(/^platform:/, '')
+export async function create(form: { name: string; key: string; description?: string; enterpriseId?: number | null }) {
+  // 系统级岗位 key 自动加 platform: 前缀，企业级加 ent:{id}: 前缀
+  let key: string
+  if (form.enterpriseId) {
+    // 企业自定义岗位
+    const raw = form.key.replace(/^ent:\d+:/, '')
+    key = `ent:${form.enterpriseId}:${raw}`
+  } else {
+    // 系统级岗位
+    key = `platform:${form.key.replace(/^platform:/, '')}`
+  }
 
-  const existing = await db.position.findUnique({ where: { key: `platform:${key}` } })
+  const existing = await db.position.findUnique({ where: { key } })
   if (existing) {
     throw Object.assign(new Error('岗位 Key 已存在'), { statusCode: 409 })
   }
@@ -100,11 +122,12 @@ export async function create(form: { name: string; key: string; description?: st
   const p = await db.position.create({
     data: {
       name: form.name,
-      key: `platform:${key}`,
+      key,
       description: form.description || '',
       permissions: DEFAULT_PERMISSIONS,
       isBuiltin: 1,
       status: 1,
+      enterpriseId: form.enterpriseId || null,
     },
   })
   return toItem(p)

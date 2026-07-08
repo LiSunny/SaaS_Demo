@@ -7,6 +7,7 @@ export interface PositionItem {
   description: string
   userCount: number
   isBuiltin: boolean       // M2 列表固定 true
+  enterpriseId: number | null  // null=系统级岗位，非 null=企业自定义岗位
   createdAt: string        // YYYY-MM-DD HH:mm
 }
 
@@ -14,6 +15,7 @@ export interface PositionQuery {
   keyword?: string
   page: number
   size: number
+  enterpriseId?: number    // 过滤：系统级 + 指定企业自定义岗位
 }
 
 export interface PositionForm {

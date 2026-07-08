@@ -73,11 +73,14 @@
                   <button class="act-btn" title="重置密码" @click="handleResetPwd(row)">
                     <AppIcon name="refresh" class="act-icon" />
                   </button>
+                  <button class="act-btn act-delete" title="删除" @click="handleDelete(row)">
+                    <AppIcon name="delete" class="act-icon" />
+                  </button>
                 </div>
               </td>
             </tr>
             <tr v-if="!store.loading && store.list.length === 0">
-              <td colspan="8" class="fi-td" style="text-align:center;color:var(--text-muted);padding:48px 0">暂无用户</td>
+              <td colspan="8" class="fi-td empty-cell">暂无用户</td>
             </tr>
           </tbody>
         </table>
@@ -119,8 +122,8 @@
           </el-form-item>
         </el-form>
         <template #footer>
-          <el-button @click="showCreateDialog = false">取消</el-button>
-          <el-button type="primary" :loading="creating" @click="submitCreate">保存</el-button>
+          <button class="btn-default" @click="showCreateDialog = false">取消</button>
+          <button class="btn-primary" :disabled="creating" @click="submitCreate">{{ creating ? '保存中...' : '保存' }}</button>
         </template>
       </el-dialog>
 
@@ -145,30 +148,94 @@
           </el-form-item>
         </el-form>
         <template #footer>
-          <el-button @click="showEditDialog = false">取消</el-button>
-          <el-button type="primary" :loading="saving" @click="submitEdit">保存</el-button>
+          <button class="btn-default" @click="showEditDialog = false">取消</button>
+          <button class="btn-primary" :disabled="saving" @click="submitEdit">{{ saving ? '保存中...' : '保存' }}</button>
         </template>
       </el-dialog>
 
       <!-- ===== 关联企业抽屉 ===== -->
-      <el-drawer v-model="showEnterprisesDrawer" title="关联企业" size="480px">
+      <el-drawer v-model="showEnterprisesDrawer" title="关联企业" size="520px">
+        <!-- 现有企业列表 -->
         <template v-if="store.enterprisesLoading">
           <el-skeleton :rows="4" animated />
         </template>
-        <el-table v-else :data="store.enterprises" style="width:100%">
-          <el-table-column prop="enterpriseName" label="企业名称" />
-          <el-table-column label="岗位">
-            <template #default="{ row: e }">
-              <el-tag v-for="p in e.positions" :key="p" size="small" style="margin-right:4px">{{ positionMap[p] || p }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="joinedAt" label="加入时间" width="160">
-            <template #default="{ row: e }">{{ e.joinedAt?.slice(0, 10) }}</template>
-          </el-table-column>
-        </el-table>
-        <div v-if="!store.enterprisesLoading && store.enterprises.length === 0" style="text-align:center;color:var(--text-muted);padding:48px 0">
-          该用户尚未加入任何企业
+        <div v-else>
+          <table v-if="store.enterprises.length > 0" class="fi-table">
+            <thead>
+              <tr class="fi-thead-tr">
+                <th class="fi-th drawer-col-left"><span>企业名称</span></th>
+                <th class="fi-th drawer-col-left"><span>岗位</span></th>
+                <th class="fi-th drawer-col-center"><span>加入时间</span></th>
+                <th class="fi-th drawer-col-narrow"><span>操作</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="e in store.enterprises" :key="e.enterpriseId" class="fi-tbody-tr">
+                <td class="fi-td drawer-col-left">{{ e.enterpriseName }}</td>
+                <td class="fi-td drawer-col-left">
+                  <span class="position-tags">
+                    <StatusTag v-for="p in e.positions" :key="p" status="in_progress" :label="positionMap[p] || p" />
+                  </span>
+                </td>
+                <td class="fi-td drawer-col-center">{{ e.joinedAt?.slice(0, 10) }}</td>
+                <td class="fi-td drawer-col-narrow">
+                  <button class="act-btn act-delete" title="移除关联" @click="handleRemoveEnterprise(e)">
+                    <AppIcon name="delete" class="act-icon" />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="store.enterprises.length === 0" class="empty-cell">
+            该用户尚未加入任何企业
+          </div>
         </div>
+
+        <!-- 添加关联区域 -->
+        <el-divider style="margin:var(--spacing-xxl) 0" />
+        <h4 class="drawer-section-title">添加关联</h4>
+        <el-form ref="addEnterpriseFormRef" :model="addEnterpriseForm" :rules="addEnterpriseRules" label-width="80px" size="default">
+          <el-form-item label="选择企业" prop="enterpriseId">
+            <el-select
+              v-model="addEnterpriseForm.enterpriseId"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="搜索企业名称"
+              :remote-method="searchEnterprises"
+              :loading="enterpriseSearching"
+              style="width:100%"
+              clearable
+              @change="onEnterpriseSelected"
+            >
+              <el-option
+                v-for="e in enterpriseSearchOptions"
+                :key="e.id"
+                :label="e.name"
+                :value="e.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="分配岗位" prop="positions">
+            <el-select
+              v-model="addEnterpriseForm.positions"
+              multiple
+              placeholder="选择岗位"
+              style="width:100%"
+            >
+              <el-option
+                v-for="p in positionOptions"
+                :key="p.key"
+                :label="p.name"
+                :value="p.key"
+              />
+            </el-select>
+          </el-form-item>
+          <div class="form-actions">
+            <button class="btn-primary" :disabled="addingEnterprise" @click="submitAddEnterprise">{{ addingEnterprise ? '保存中...' : '保存' }}</button>
+            <button class="btn-default" @click="resetAddEnterpriseForm">取消</button>
+          </div>
+        </el-form>
       </el-drawer>
     </div>
   </div>
@@ -183,6 +250,8 @@ import { useUserAdminStore } from '@/stores/user-admin'
 import { useUserStore } from '@/stores/user'
 import type { UserItem } from '@/types/user-admin'
 import { ALL_POSITIONS } from '@/config/positions'
+import { getPositionList } from '@/api/position-admin'
+import request from '@/utils/request'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
@@ -311,12 +380,106 @@ async function handleResetPwd(row: UserItem) {
   )
 }
 
+// ===== 删除用户 =====
+async function handleDelete(row: UserItem) {
+  try {
+    await ElMessageBox.confirm(
+      `确定删除用户「${row.realName}」吗？删除后可在数据库中恢复。`,
+      '删除确认',
+      { confirmButtonText: '确定删除', cancelButtonText: '取消', type: 'warning' },
+    )
+  } catch { return }
+  await store.handleDelete(row.id)
+}
+
+// ===== 移除关联企业 =====
+async function handleRemoveEnterprise(e: { enterpriseId: number; enterpriseName: string }) {
+  try {
+    await ElMessageBox.confirm(
+      `确定移除「${e.enterpriseName}」的关联吗？`,
+      '移除确认',
+      { confirmButtonText: '确定移除', cancelButtonText: '取消', type: 'warning' },
+    )
+  } catch { return }
+  await store.handleRemoveEnterprise(currentViewUserId.value, e.enterpriseId)
+}
+
 // ===== 关联企业 =====
 const showEnterprisesDrawer = ref(false)
 
 async function openEnterprises(row: UserItem) {
   showEnterprisesDrawer.value = true
+  // 记录当前查看的用户 ID，供添加关联使用
+  currentViewUserId.value = row.id
+  resetAddEnterpriseForm()
   await store.fetchEnterprises(row.id)
+}
+
+// ===== 添加关联企业 =====
+const currentViewUserId = ref(0)
+const addEnterpriseFormRef = ref<FormInstance>()
+const addingEnterprise = ref(false)
+const enterpriseSearching = ref(false)
+const enterpriseSearchOptions = ref<{ id: number; name: string }[]>([])
+const positionOptions = ref<{ key: string; name: string }[]>([])
+
+const addEnterpriseForm = reactive<{ enterpriseId: number | null; positions: string[] }>({
+  enterpriseId: null,
+  positions: [],
+})
+
+const addEnterpriseRules: FormRules = {
+  enterpriseId: [{ required: true, message: '请选择企业', trigger: 'change' }],
+  positions: [{ required: true, message: '请至少选择一个岗位', trigger: 'change' }],
+}
+
+async function loadPositionOptions(enterpriseId?: number) {
+  try {
+    const r = await getPositionList({ page: 1, size: 100, enterpriseId })
+    positionOptions.value = r.data.map((p: any) => ({ key: p.key, name: p.name }))
+  } catch { /* ignore */ }
+}
+
+async function searchEnterprises(keyword: string) {
+  if (!keyword) { enterpriseSearchOptions.value = []; return }
+  enterpriseSearching.value = true
+  try {
+    const res: any = await request.get('/enterprise/search', { params: { keyword } })
+    const list = res.data || res
+    enterpriseSearchOptions.value = Array.isArray(list) ? list.map((e: any) => ({ id: e.id, name: e.name })) : []
+  } catch { enterpriseSearchOptions.value = [] }
+  finally { enterpriseSearching.value = false }
+}
+
+function onEnterpriseSelected(val: any) {
+  // 切换企业时重新加载该企业可用的岗位（系统级 + 企业自定义）
+  addEnterpriseForm.positions = []
+  if (val) {
+    loadPositionOptions(Number(val))
+  } else {
+    positionOptions.value = []
+  }
+}
+
+function resetAddEnterpriseForm() {
+  addEnterpriseForm.enterpriseId = null
+  addEnterpriseForm.positions = []
+  enterpriseSearchOptions.value = []
+  addEnterpriseFormRef.value?.resetFields()
+}
+
+async function submitAddEnterprise() {
+  const valid = await addEnterpriseFormRef.value?.validate().catch(() => false)
+  if (!valid) return
+  addingEnterprise.value = true
+  try {
+    await store.handleAddEnterprise(currentViewUserId.value, {
+      enterpriseId: addEnterpriseForm.enterpriseId!,
+      positions: [...addEnterpriseForm.positions],
+    })
+    resetAddEnterpriseForm()
+  } catch { /* error handled by interceptor */ }
+  finally { addingEnterprise.value = false }
 }
 </script>
 
@@ -336,7 +499,7 @@ async function openEnterprises(row: UserItem) {
 }
 
 .btn-outline-primary {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-md);
   height: 37px; padding: 8px 12px; border-radius: 8px;
   font-size: var(--font-small, 14px); font-weight: 500;
   background: var(--info-bg); color: var(--accent-primary);
@@ -356,6 +519,13 @@ async function openEnterprises(row: UserItem) {
 .col-actions { width: 120px; white-space: nowrap; }
 
 .text-muted { color: var(--text-muted); }
+
+/* ===== 空数据 ===== */
+.empty-cell {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--spacing-xxl) 0;
+}
 
 /* ===== 响应式 ===== */
 @media (max-width: 1350px) { .col-system-role { display: none !important; } }
@@ -379,24 +549,63 @@ async function openEnterprises(row: UserItem) {
 <style>
 /* 重置密码弹窗（ElMessageBox teleport 到 body，需全局样式） */
 .reset-pwd-dialog p {
-  margin: 0 0 12px; font-size: 14px; color: var(--text-primary);
+  margin: 0 0 var(--spacing-lg);
+  font-size: var(--font-small);
+  color: var(--text-primary);
 }
 .reset-pwd-card {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: var(--spacing-lg);
   background: var(--bg-sub-card); border: 1px solid var(--border-default);
-  border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;
+  border-radius: var(--radius-md); padding: var(--spacing-lg) var(--spacing-xl); margin-bottom: var(--spacing-lg);
 }
 .reset-pwd-value {
-  font-size: 24px; font-weight: 700; font-family: monospace;
+  font-size: var(--font-h1); font-weight: 700; font-family: monospace;
   color: var(--accent-primary); letter-spacing: 4px; user-select: all;
 }
 .reset-pwd-copy {
-  flex-shrink: 0; padding: 4px 12px; border: 1px solid var(--accent-primary);
-  border-radius: 4px; background: transparent; color: var(--accent-primary);
-  font-size: 13px; cursor: pointer; transition: all .2s;
+  flex-shrink: 0; padding: var(--spacing-xs) var(--spacing-lg);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm); background: transparent; color: var(--accent-primary);
+  font-size: var(--font-small); cursor: pointer; transition: all .2s;
 }
 .reset-pwd-copy:hover { background: var(--accent-primary10); }
 .reset-pwd-hint {
-  margin: 0 !important; font-size: 12px !important; color: var(--text-muted) !important;
+  margin: 0 !important; font-size: var(--font-xs) !important; color: var(--text-muted) !important;
+}
+
+/* ===== 抽屉区域标题 ===== */
+.drawer-section-title {
+  margin: 0 0 var(--spacing-lg);
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ===== 抽屉表格列：头尾同策略 ===== */
+.drawer-col-left.fi-th,
+.drawer-col-left.fi-td { text-align: left; }
+.drawer-col-center.fi-th,
+.drawer-col-center.fi-td { text-align: center; white-space: nowrap; }
+.drawer-col-narrow.fi-th,
+.drawer-col-narrow.fi-td { width: 1%; text-align: center; white-space: nowrap; }
+
+/* ===== 岗位标签行 ===== */
+.position-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+/* ===== 表单/弹窗按钮区：右对齐 + 按钮间距 ===== */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+:deep(.el-dialog__footer) {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-lg);
 }
 </style>

@@ -2,6 +2,11 @@
 
 所有模板统一使用 Composition API + TypeScript + Element Plus。
 
+> **范式参考**：
+> - 列表页 → `src/views/admin/EnterpriseList.vue`
+> - 表单 → `src/components/business/EnterpriseFormDrawer.vue`
+> - UI 组件规范 → `references/ui-patterns.md`
+
 ---
 
 # 第一部分：目录约定

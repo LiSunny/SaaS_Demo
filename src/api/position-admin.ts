@@ -5,7 +5,10 @@ const BASE = '/admin/positions'
 
 export async function getPositionList(query: PositionQuery): Promise<PaginatedData<PositionItem>> {
   const res = await request.get(`${BASE}/list`, { params: query })
-  return (res as any).data
+  const result = res as any
+  // 兼容有些接口直接返回数组的情况
+  if (Array.isArray(result)) return { data: result, total: result.length }
+  return result.data ?? result
 }
 
 export async function getPositionDetail(id: number): Promise<PositionDetail> {

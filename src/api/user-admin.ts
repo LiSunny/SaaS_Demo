@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { UserItem, UserQuery, CreateUserForm, UpdateUserForm, UserEnterpriseItem, PaginatedData } from '@/types/user-admin'
+import type { UserItem, UserQuery, CreateUserForm, UpdateUserForm, UserEnterpriseItem, AddUserEnterpriseForm, PaginatedData } from '@/types/user-admin'
 
 const BASE = '/admin/users'
 
@@ -36,6 +36,19 @@ export async function resetUserPassword(id: number): Promise<{ password: string 
 export async function getUserEnterprises(id: number): Promise<UserEnterpriseItem[]> {
   const res = await request.get(`${BASE}/${id}/enterprises`)
   return (res as any).data
+}
+
+export async function addUserEnterprise(userId: number, form: AddUserEnterpriseForm): Promise<UserEnterpriseItem> {
+  const res = await request.post(`${BASE}/${userId}/enterprises`, form)
+  return (res as any).data
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  await request.delete(`${BASE}/${id}`)
+}
+
+export async function removeUserEnterprise(userId: number, enterpriseId: number): Promise<void> {
+  await request.delete(`${BASE}/${userId}/enterprises/${enterpriseId}`)
 }
 
 export async function getMyEnterprises(): Promise<UserEnterpriseItem[]> {

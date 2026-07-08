@@ -156,6 +156,7 @@ src/api/adapters/
 
 - **列表页标准实现**：参考 `src/views/admin/EnterpriseList.vue`，代码模板见 `.claude/skills/md-figma-to-vue3/references/code-templates.md` §3.1
 - **列表表头固定**：`.content-card { overflow: hidden }` + `.fi-table thead { position: sticky; top: 0; z-index: 1 }`，仅 `.table-wrap`（`flex:1; overflow:auto`）内滚动
+- **UI 实现范式**：写 UI 前必须先读 `.claude/references/ui-patterns.md`，按范式实现。场景不匹配 → 提问让用户决定，不要猜测
 
 ## 七、工作快照
 

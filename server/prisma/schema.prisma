@@ -28,6 +28,7 @@ model User {
   lastLoginAt DateTime?
   lastLoginIp  String?
   systemRole  String?                     // null=普通用户, platform-ops=运营管理, platform-admin=技术管理
+  deletedAt  DateTime?                    // 软删除标记，非空表示已删除
 
   enterprises UserEnterprise[]
 }
@@ -55,15 +56,18 @@ model UserEnterprise {
 // 内置岗位 → 对应 src/types/position-admin.ts PositionItem / PositionDetail
 // ============================================================
 model Position {
-  id          Int      @id @default(autoincrement())
-  name        String                                     // 岗位名称，如"消防安全管理人"
-  key         String   @unique                           // 岗位唯一标识，如"platform:fire-safety-manager"
-  description String   @default("")                      // 岗位说明
-  permissions String   @default("{}")                    // JSON: PermissionConfig { moduleAccess, dataOperations, managementOperations }
-  isBuiltin   Int      @default(1)                       // 1=内置岗位（M2 场景全为 1）
-  status      Int      @default(1)                       // 1=启用, 0=停用
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String                                     // 岗位名称，如"消防安全管理人"
+  key          String   @unique                           // 岗位唯一标识，系统级如"platform:fire-safety-manager"，企业级如"ent:4:custom"
+  description  String   @default("")                      // 岗位说明
+  permissions  String   @default("{}")                    // JSON: PermissionConfig { moduleAccess, dataOperations, managementOperations }
+  isBuiltin    Int      @default(1)                       // 1=内置岗位（M2 场景全为 1）
+  status       Int      @default(1)                       // 1=启用, 0=停用
+  enterpriseId Int?                                       // null=系统级岗位（全体企业继承），非 null=企业自定义岗位
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id])
 }
 
 // ============================================================
@@ -110,6 +114,7 @@ model Enterprise {
   subordinates    EnterpriseRelation[]      @relation("superior")
   partnersOf      EnterpriseRelation[]      @relation("partnerOf")
   userEnterprises UserEnterprise[]
+  positions       Position[]
 }
 
 // 企业关联（Subordinate / Partner 统一表）

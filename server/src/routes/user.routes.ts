@@ -20,5 +20,8 @@ router.put('/:id', ctrl.update)
 router.post('/:id/toggle-status', ctrl.toggleStatus)
 router.post('/:id/reset-password', ctrl.resetPassword)
 router.get('/:id/enterprises', ctrl.getUserEnterprises)
+router.post('/:id/enterprises', ctrl.addUserEnterprise)
+router.delete('/:userId/enterprises/:enterpriseId', ctrl.removeUserEnterprise)
+router.delete('/:id', ctrl.deleteUser)
 
 export { router as userRouter }
