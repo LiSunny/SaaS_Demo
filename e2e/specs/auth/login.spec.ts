@@ -10,6 +10,12 @@
 import { test, expect } from '@playwright/test'
 import { loginAsAdmin, clearAuth, ADMIN } from '../../fixtures/auth'
 
+/** 与 playwright.config.ts 中的 baseURL 保持一致 */
+const BASE_URL = 'http://localhost:3200'
+
+/** 转义正则特殊字符（含 host 中的 . 和 :） */
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 test.describe('登录页 & 路由守卫（P0）', () => {
 
   // =============================================
@@ -59,7 +65,8 @@ test.describe('登录页 & 路由守卫（P0）', () => {
 
       // 导航到目标页面，路由守卫不应重定向（否则说明无访问权限）
       await page.goto(pageInfo.url)
-      await expect(page).toHaveURL(new RegExp(`^${pageInfo.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`))
+      // 注意：toHaveURL 用正则时匹配的是完整 URL（含 host），需拼上 BASE_URL
+      await expect(page).toHaveURL(new RegExp(`^${escapeRegex(BASE_URL + pageInfo.url)}$`))
 
       // 验证页面内容已渲染
       await expect(page.locator(pageInfo.content).first()).toBeVisible({ timeout: 8000 })
