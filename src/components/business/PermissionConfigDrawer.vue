@@ -115,6 +115,7 @@
 import { ref, computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { getPositionDetail } from '@/api/position-admin'
+import { getEnterprisePositionDetail, saveEnterprisePositionPermissions } from '@/api/enterprise-positions'
 import { usePositionStore } from '@/stores/position-admin'
 import {
   MODULE_GROUPS, DATA_OPERATIONS, MANAGEMENT_OPERATIONS,
@@ -127,6 +128,8 @@ const props = defineProps<{
   visible: boolean
   positionId: number
   positionName: string
+  /** 企业级场景：传入 enterpriseId 后使用企业级 API，否则使用平台级 API */
+  enterpriseId?: number
 }>()
 
 const emit = defineEmits<{
@@ -177,7 +180,12 @@ async function fetchDetail() {
   if (!props.positionId) return
   loading.value = true
   try {
-    const d = await getPositionDetail(props.positionId)
+    let d
+    if (props.enterpriseId) {
+      d = await getEnterprisePositionDetail(props.enterpriseId, props.positionId)
+    } else {
+      d = await getPositionDetail(props.positionId)
+    }
     detail.value = d
     moduleAccess.value = [...(d.permissions.moduleAccess || [])]
     dataOps.value = JSON.parse(JSON.stringify(d.permissions.dataOperations || {}))
@@ -302,7 +310,11 @@ async function handleSave() {
       dataOperations: JSON.parse(JSON.stringify(dataOps.value)),
       managementOperations: [...managementOps.value],
     }
-    await store.handleSavePermissions(props.positionId, config)
+    if (props.enterpriseId) {
+      await saveEnterprisePositionPermissions(props.enterpriseId, props.positionId, config)
+    } else {
+      await store.handleSavePermissions(props.positionId, config)
+    }
     emit('saved')
   } catch {
     // API 错误由拦截器统一处理

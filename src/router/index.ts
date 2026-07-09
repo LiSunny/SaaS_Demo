@@ -119,6 +119,7 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         { path: 'members', name: 'EnterpriseMembers', component: () => import('@/views/enterprise/Members.vue') },
+        { path: 'positions', name: 'EnterprisePositions', component: () => import('@/views/enterprise/PositionManage.vue') },
       ],
     },
 

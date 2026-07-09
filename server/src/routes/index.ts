@@ -3,6 +3,7 @@ import { authRouter } from './auth.routes.js'
 import { enterpriseRouter } from './enterprise.routes.js'
 import { userRouter } from './user.routes.js'
 import { positionRouter } from './position.routes.js'
+import { enterprisePositionRouter } from './enterprise-positions.routes.js'
 
 const router = Router()
 
@@ -31,6 +32,9 @@ router.get('/api/health', (_req, res) => {
 
 // ========== 认证 ==========
 router.use('/api/auth', authRouter)
+
+// ========== 企业级岗位管理（org-admin 视角，必须在 /api/enterprise 之前注册，否则会被前缀匹配拦截） ==========
+router.use('/api/enterprise/:id/positions', enterprisePositionRouter)
 
 // ========== 租户管理 ==========
 router.use('/api/enterprise', enterpriseRouter)

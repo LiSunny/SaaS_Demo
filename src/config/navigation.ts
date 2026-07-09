@@ -260,6 +260,7 @@ export const NAV_GROUPS: NavGroup[] = [
         visibleTo: ['org-admin'],
         children: [
           { key: 'enterprise-members', label: '企业成员', route: '/enterprise/members' },
+          { key: 'enterprise-positions', label: '岗位管理', route: '/enterprise/positions' },
         ],
       },
     ],
@@ -302,6 +303,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/admin/users': 'user-list',
   '/admin/positions': 'position-mgmt',
   '/enterprise/members': 'enterprise-members',
+  '/enterprise/positions': 'enterprise-positions',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -320,6 +322,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'user-list': '/admin/users',
   'position-mgmt': '/admin/positions',
   'enterprise-members': '/enterprise/members',
+  'enterprise-positions': '/enterprise/positions',
 }
 
 // ===== 工具函数 =====
