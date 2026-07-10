@@ -83,19 +83,36 @@
           <!-- 体验账号区 -->
           <div class="demo-section">
             <p class="demo-label">体验账号</p>
-            <div class="demo-grid">
-              <div
-                class="demo-card"
-                v-for="account in demoAccounts"
-                :key="account.role"
-                @click="fillDemo(account)"
-              >
-                <img
-                  :src="account.image"
-                  :alt="account.role"
-                  class="demo-illustration"
-                />
-                <span class="demo-role">{{ account.role }}</span>
+            <div class="demo-rows">
+              <div class="demo-row">
+                <div
+                  class="demo-card"
+                  v-for="account in demoRow1"
+                  :key="account.role"
+                  @click="fillDemo(account)"
+                >
+                  <img
+                    :src="account.image"
+                    :alt="account.role"
+                    class="demo-illustration"
+                  />
+                  <span class="demo-role">{{ account.role }}</span>
+                </div>
+              </div>
+              <div class="demo-row">
+                <div
+                  class="demo-card"
+                  v-for="account in demoRow2"
+                  :key="account.role"
+                  @click="fillDemo(account)"
+                >
+                  <img
+                    :src="account.image"
+                    :alt="account.role"
+                    class="demo-illustration"
+                  />
+                  <span class="demo-role">{{ account.role }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -122,8 +139,11 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { loginApi } from '@/api/auth'
+import { getUserDefaultBigscreen } from '@/api/bigscreen'
+import { getBigscreenRoute } from '@/config/bigscreen-templates'
 import platformAdminImg from '@/assets/demo-roles/platform-admin.svg'
 import opsManagerImg from '@/assets/demo-roles/ops-manager.svg'
+import supervisionAdminImg from '@/assets/demo-roles/supervision-admin.svg'
 import enterpriseAdminImg from '@/assets/demo-roles/enterprise-admin.svg'
 import normalUserImg from '@/assets/demo-roles/normal-user.svg'
 import featureMonitor from '@/assets/demo-roles/feature-monitor.svg'
@@ -178,19 +198,25 @@ const featureCards = [
 
 // 体验账号 测试
 const demoAccounts = [
-  { role: '平台管理', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
+  { role: '系统运维', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-  { role: '企业管理', phone: '13567890123', password: 'admin123!@#', image: enterpriseAdminImg },
+  { role: '监督管理', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
+  { role: '企业管理', phone: '13600000001', password: 'admin123!@#', image: enterpriseAdminImg },
   { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
 ]
 
-// 体验账号 正式 
+// 体验账号 正式
 // const demoAccounts = [
-//   { role: '平台管理', phone: '17733550542', password: 'lrjndh', image: platformAdminImg },
+//   { role: '系统运维', phone: '17733550542', password: 'lrjndh', image: platformAdminImg },
 //   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-//   { role: '监管机构', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
+//   { role: '监督管理', phone: '13900000002', password: 'admin123!@#', image: supervisionAdminImg },
 //   { role: '企业管理', phone: '13800000009', password: 'admin123!@#', image: enterpriseAdminImg },
+//   { role: '普通用户', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
 // ]
+
+// 将 5 个账号拆为两行：第一行 3 个、第二行 2 个
+const demoRow1 = demoAccounts.slice(0, 3)
+const demoRow2 = demoAccounts.slice(3)
 
 function fillDemo(account: typeof demoAccounts[0]) {
   form.phone = account.phone
@@ -215,8 +241,30 @@ async function handleLogin() {
     userStore.setLogin(res.token, res.user)
     ElMessage.success('登录成功')
 
-    const redirect = (route.query.redirect as string) || '/workbench'
-    router.replace(redirect)
+    // 1. 有 ?redirect= 参数 → 优先使用
+    const redirect = route.query.redirect as string
+    if (redirect && redirect !== '/login') {
+      router.replace(redirect)
+      return
+    }
+
+    // 2. 系统角色 → 工作台
+    if (res.user.systemRole) {
+      router.replace('/workbench')
+      return
+    }
+
+    // 3. 企业用户 → 查默认大屏
+    try {
+      const defaultScreen = await getUserDefaultBigscreen()
+      if (defaultScreen) {
+        router.replace(getBigscreenRoute(defaultScreen.type, defaultScreen.id))
+        return
+      }
+    } catch { /* 静默降级 */ }
+
+    // 4. 无大屏 → 工作台
+    router.replace('/workbench')
   } catch (err: any) {
     errorMsg.value = err?.response?.data?.message || err?.message || '登录失败，请重试'
   } finally {
@@ -536,10 +584,20 @@ async function handleLogin() {
   white-space: nowrap;
 }
 
-.demo-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.demo-rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--min-scale));
+}
+
+.demo-row {
+  display: flex;
   gap: calc(12 * var(--w));
+}
+
+.demo-row .demo-card {
+  flex: 1 0 0;
+  min-width: 0;
 }
 
 .demo-card {

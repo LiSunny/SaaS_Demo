@@ -1,0 +1,1795 @@
+openapi: "3.0.3"
+info:
+  title: 韧性云 - 公共安全管理平台 API
+  description: |
+    韧性云公共安全管理平台后端接口文档。
+
+    ## 认证
+    除登录接口外，大部分接口需 Bearer Token（JWT），在请求头中携带：
+    ```
+    Authorization: Bearer <token>
+    ```
+
+    ## 统一响应格式
+    ```json
+    { "code": 0, "message": "ok", "data": <具体数据> }
+    ```
+    - `code: 0` 成功，`code: 400` 参数错误，`code: 401` 未登录
+  version: "1.0.0"
+  contact:
+    name: 韧性云开发团队
+
+servers:
+  - url: http://localhost:3201
+    description: 本地开发环境
+  - url: /api
+    description: 前端代理（Vite proxy → :3201）
+
+tags:
+  - name: 系统
+    description: 健康检查
+  - name: 认证
+    description: 登录与用户身份
+  - name: 租户管理
+    description: 企业/租户 CRUD、下级管理、相关方、成员、操作日志、二维码
+  - name: 用户管理
+    description: 平台用户 CRUD、企业关联、状态管理
+  - name: 岗位管理
+    description: 岗位 CRUD、权限配置
+
+# ============================================================
+# 公共 Schemas
+# ============================================================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ---- 通用分页 ----
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: 当前页码
+        size:
+          type: integer
+          description: 每页条数
+        total:
+          type: integer
+          description: 总条数
+
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 0=成功
+        message:
+          type: string
+        data:
+          description: 响应数据
+
+    # ---- 企业/租户 ----
+    EnterpriseItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          description: 企业名称
+        code:
+          type: string
+          description: 企业编码
+        dimALevel1:
+          type: string
+          description: 维度A一级分类（supervisor|manager|social_unit|service_unit|platform_operator）
+        dimALevel2:
+          type: string
+          description: 维度A二级分类
+        dimALevel3:
+          type: string
+          description: 维度A三级分类
+        dimB:
+          type: string
+        dimCCode:
+          type: string
+        dimCName:
+          type: string
+        dimD:
+          type: string
+        region:
+          type: string
+          description: 所属区域
+        contactName:
+          type: string
+          description: 联系人
+        contactPhone:
+          type: string
+          description: 联系电话
+        status:
+          type: integer
+          description: 1=有效, 0=已锁定, 2=已过期
+        validFrom:
+          type: string
+        validTo:
+          type: string
+        parentId:
+          type: integer
+        parentName:
+          type: string
+        address:
+          type: string
+        remark:
+          type: string
+        logo:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        mapLng:
+          type: number
+          description: 经度
+        mapLat:
+          type: number
+          description: 纬度
+        mapAddress:
+          type: string
+        staffCount:
+          type: integer
+        unitCount:
+          type: integer
+        relCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EnterpriseCreate:
+      type: object
+      required:
+        - name
+        - code
+        - dimALevel1
+      properties:
+        name:
+          type: string
+          description: 企业名称
+        code:
+          type: string
+          description: 企业编码（唯一）
+        dimALevel1:
+          type: string
+          description: 维度A一级分类
+        dimALevel2:
+          type: string
+        dimALevel3:
+          type: string
+        dimB:
+          type: string
+        dimCCode:
+          type: string
+        dimCName:
+          type: string
+        dimD:
+          type: string
+        region:
+          type: string
+        contactName:
+          type: string
+        contactPhone:
+          type: string
+        validFrom:
+          type: string
+        validTo:
+          type: string
+        address:
+          type: string
+        remark:
+          type: string
+        logo:
+          type: string
+        mapLng:
+          type: number
+        mapLat:
+          type: number
+        mapAddress:
+          type: string
+
+    EnterpriseUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        dimALevel1:
+          type: string
+        dimALevel2:
+          type: string
+        dimALevel3:
+          type: string
+        dimB:
+          type: string
+        dimCCode:
+          type: string
+        dimCName:
+          type: string
+        dimD:
+          type: string
+        region:
+          type: string
+        contactName:
+          type: string
+        contactPhone:
+          type: string
+        validFrom:
+          type: string
+        validTo:
+          type: string
+        address:
+          type: string
+        remark:
+          type: string
+        logo:
+          type: string
+        mapLng:
+          type: number
+        mapLat:
+          type: number
+        mapAddress:
+          type: string
+
+    # ---- 企业关联 ----
+    EnterpriseRelation:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          description: subordinate|partner
+        enterpriseId:
+          type: integer
+        enterpriseName:
+          type: string
+        relatedId:
+          type: integer
+        relatedName:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        role:
+          type: string
+        roleLabel:
+          type: string
+        contactName:
+          type: string
+        contactPhone:
+          type: string
+        authUnits:
+          type: array
+          items:
+            type: string
+        allowOperation:
+          type: boolean
+
+    # ---- 企业成员 ----
+    EnterpriseMember:
+      type: object
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        phone:
+          type: string
+        positions:
+          type: array
+          items:
+            type: string
+          description: 岗位 key 列表
+        status:
+          type: integer
+        joinedAt:
+          type: string
+          format: date-time
+
+    MemberAddBody:
+      type: object
+      required:
+        - userId
+        - positions
+      properties:
+        userId:
+          type: integer
+          description: 用户 ID
+        positions:
+          type: array
+          items:
+            type: string
+          description: 岗位 key 列表
+
+    # ---- 用户 ----
+    UserItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+          description: 手机号（账号）
+        realName:
+          type: string
+          description: 真实姓名
+        email:
+          type: string
+        status:
+          type: integer
+          description: 1=启用, 0=停用
+        systemRole:
+          type: string
+          description: platform-ops|platform-admin|null
+        lastLoginAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserCreate:
+      type: object
+      required:
+        - phone
+        - realName
+        - password
+      properties:
+        phone:
+          type: string
+          description: 手机号
+        realName:
+          type: string
+          description: 真实姓名
+        password:
+          type: string
+          description: 密码
+        systemRole:
+          type: string
+          description: platform-ops|platform-admin
+
+    UserUpdate:
+      type: object
+      properties:
+        realName:
+          type: string
+        email:
+          type: string
+        systemRole:
+          type: string
+          description: 不能降级自己
+
+    UserEnterpriseAdd:
+      type: object
+      required:
+        - enterpriseId
+        - positions
+      properties:
+        enterpriseId:
+          type: integer
+          description: 企业 ID
+        positions:
+          type: array
+          items:
+            type: string
+          description: 岗位 key 列表
+
+    # ---- 登录 ----
+    LoginRequest:
+      type: object
+      required:
+        - phone
+        - password
+      properties:
+        phone:
+          type: string
+          description: 手机号
+        password:
+          type: string
+          description: 密码
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+        realName:
+          type: string
+        systemRole:
+          type: string
+        enterprises:
+          type: array
+          items:
+            type: object
+            properties:
+              enterpriseId:
+                type: integer
+              enterpriseName:
+                type: string
+              positions:
+                type: array
+                items:
+                  type: string
+
+    # ---- 岗位 ----
+    PositionItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          description: 岗位名称
+        key:
+          type: string
+          description: 岗位唯一标识
+        description:
+          type: string
+        isBuiltin:
+          type: integer
+          description: 1=内置岗位
+        status:
+          type: integer
+          description: 1=启用, 0=停用
+        enterpriseId:
+          type: integer
+          nullable: true
+          description: null=系统级, 非null=企业自定义
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PositionCreate:
+      type: object
+      required:
+        - name
+        - key
+      properties:
+        name:
+          type: string
+          description: 岗位名称
+        key:
+          type: string
+          description: 岗位唯一标识
+        description:
+          type: string
+        enterpriseId:
+          type: integer
+          nullable: true
+          description: 企业 ID（企业自定义岗位时传入）
+
+    PositionUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        key:
+          type: string
+        description:
+          type: string
+        status:
+          type: integer
+
+    PermissionConfig:
+      type: object
+      properties:
+        moduleAccess:
+          type: array
+          items:
+            type: string
+          description: 可访问模块 key 列表
+        dataOperations:
+          type: array
+          items:
+            type: string
+        managementOperations:
+          type: array
+          items:
+            type: string
+
+    # ---- 操作日志 ----
+    OperationLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        enterpriseId:
+          type: integer
+        action:
+          type: string
+          description: 操作标识
+        actionLabel:
+          type: string
+          description: 中文展示
+        operatorId:
+          type: integer
+        operatorName:
+          type: string
+        detailJson:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              value:
+                type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    # ---- 二维码 ----
+    QrcodeInfo:
+      type: object
+      properties:
+        url:
+          type: string
+        enterpriseId:
+          type: integer
+
+# ============================================================
+# 路径定义
+# ============================================================
+paths:
+  /api/admin/positions:
+    post:
+      tags:
+        - 岗位管理
+      summary: 创建岗位
+      operationId: createPosition
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionCreate'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: 岗位名称和 Key 不能为空
+
+  /api/admin/positions/list:
+    get:
+      tags:
+        - 岗位管理
+      summary: 岗位列表
+      description: 获取岗位列表（所有登录用户可访问）
+      operationId: getPositionList
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: enterpriseId
+          in: query
+          schema:
+            type: integer
+          description: 筛选企业级岗位
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/positions/{id}:
+    get:
+      tags:
+        - 岗位管理
+      summary: 岗位详情
+      description: 获取岗位详细信息及权限配置（需系统角色）
+      operationId: getPositionDetail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+    put:
+      tags:
+        - 岗位管理
+      summary: 更新岗位
+      operationId: updatePosition
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionUpdate'
+      responses:
+        "200":
+          description: OK
+
+    delete:
+      tags:
+        - 岗位管理
+      summary: 删除岗位
+      operationId: deletePosition
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/positions/{id}/permissions:
+    put:
+      tags:
+        - 岗位管理
+      summary: 保存岗位权限
+      description: 配置岗位的模块访问、数据操作和管理操作权限
+      operationId: savePositionPermissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionConfig'
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/users:
+    post:
+      tags:
+        - 用户管理
+      summary: 创建用户
+      operationId: createUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: 手机号、姓名和密码不能为空
+
+  /api/admin/users/list:
+    get:
+      tags:
+        - 用户管理
+      summary: 用户列表
+      description: 获取平台用户分页列表（需系统角色）
+      operationId: getUserList
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/users/lookup:
+    get:
+      tags:
+        - 用户管理
+      summary: 查询用户
+      description: 按手机号查找用户，用于添加成员前确认用户是否存在
+      operationId: lookupUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: 手机号不能为空
+
+  /api/admin/users/me/enterprises:
+    get:
+      tags:
+        - 用户管理
+      summary: 我的企业列表
+      description: 获取当前登录用户所属的企业列表
+      operationId: getMyEnterprises
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/users/{id}:
+    get:
+      tags:
+        - 用户管理
+      summary: 用户详情
+      operationId: getUserDetail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户
+      description: 修改用户信息，不能降级自己的系统角色
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        "200":
+          description: OK
+
+    delete:
+      tags:
+        - 用户管理
+      summary: 删除用户
+      description: 软删除用户，不能删除自己
+      operationId: deleteUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  # ========== 岗位管理 ==========
+  /api/admin/users/{id}/enterprises:
+    get:
+      tags:
+        - 用户管理
+      summary: 用户所属企业列表
+      operationId: getUserEnterprises
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+    post:
+      tags:
+        - 用户管理
+      summary: 添加用户到企业
+      description: 将用户关联到指定企业并分配岗位
+      operationId: addUserEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEnterpriseAdd'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: 企业ID和岗位列表不能为空
+
+  /api/admin/users/{id}/reset-password:
+    post:
+      tags:
+        - 用户管理
+      summary: 重置密码
+      description: 管理员重置用户密码，返回新密码
+      operationId: resetPassword
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/users/{id}/toggle-status:
+    post:
+      tags:
+        - 用户管理
+      summary: 切换用户启用状态
+      operationId: toggleUserStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/admin/users/{userId}/enterprises/{enterpriseId}:
+    delete:
+      tags:
+        - 用户管理
+      summary: 移除用户企业关联
+      operationId: removeUserEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: enterpriseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/auth/login:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      description: 手机号 + 密码登录，返回 JWT Token 和用户信息
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+        "400":
+          description: 手机号或密码为空
+
+  /api/auth/profile:
+    get:
+      tags:
+        - 认证
+      summary: 获取当前用户信息
+      description: 获取已登录用户的详细信息，包含所属企业列表
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+
+  # ========== 租户管理 ==========
+  /api/enterprise:
+    post:
+      tags:
+        - 租户管理
+      summary: 创建企业
+      operationId: createEnterprise
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnterpriseCreate'
+      responses:
+        "200":
+          description: 创建成功
+
+  /api/enterprise/batch-delete:
+    post:
+      tags:
+        - 租户管理
+      summary: 批量删除企业
+      operationId: batchDeleteEnterprise
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: 企业 ID 列表
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/dict/a:
+    get:
+      tags:
+        - 租户管理
+      summary: 维度A字典
+      description: 获取维度A（单位分类）的字典数据
+      operationId: getDictA
+      security: []
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/dict/b:
+    get:
+      tags:
+        - 租户管理
+      summary: 维度B字典
+      operationId: getDictB
+      security: []
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/dict/c:
+    get:
+      tags:
+        - 租户管理
+      summary: 维度C字典
+      operationId: getDictC
+      security: []
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/dict/d:
+    get:
+      tags:
+        - 租户管理
+      summary: 维度D字典
+      operationId: getDictD
+      security: []
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/dict/module-tree:
+    get:
+      tags:
+        - 租户管理
+      summary: 模块树字典
+      description: 获取系统模块树结构
+      operationId: getModuleTree
+      security: []
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/dict/relation-roles:
+    get:
+      tags:
+        - 租户管理
+      summary: 关联角色字典
+      description: 获取企业关联关系中的角色选项
+      operationId: getRelationRoles
+      security: []
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/list:
+    get:
+      tags:
+        - 租户管理
+      summary: 企业列表
+      description: 获取企业分页列表，支持关键词搜索和多维筛选
+      operationId: getEnterpriseList
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 搜索关键词
+        - name: dimALevel1
+          in: query
+          schema:
+            type: string
+          description: 维度A一级筛选
+        - name: dimB
+          in: query
+          schema:
+            type: string
+        - name: dimC
+          in: query
+          schema:
+            type: string
+        - name: dimD
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: includeDeleted
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/partners/{relationId}/auth:
+    put:
+      tags:
+        - 租户管理
+      summary: 保存相关方权限
+      operationId: savePartnerAuth
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: relationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authUnits:
+                  type: array
+                  items:
+                    type: string
+                allowOperation:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/search:
+    get:
+      tags:
+        - 租户管理
+      summary: 搜索企业
+      description: 按关键词模糊搜索企业，用于下拉选择等场景
+      operationId: searchEnterprise
+      security: []
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}:
+    get:
+      tags:
+        - 租户管理
+      summary: 企业详情
+      description: 获取企业完整信息（需运营管理或技术管理权限）
+      operationId: getEnterpriseDetail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+    put:
+      tags:
+        - 租户管理
+      summary: 更新企业
+      operationId: updateEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnterpriseUpdate'
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/delete:
+    post:
+      tags:
+        - 租户管理
+      summary: 软删除企业
+      operationId: softDeleteEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/extend:
+    post:
+      tags:
+        - 租户管理
+      summary: 企业延期
+      description: 延长企业有效期
+      operationId: extendEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - validTo
+              properties:
+                validTo:
+                  type: string
+                  description: 新的有效期截止日期
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/lock:
+    post:
+      tags:
+        - 租户管理
+      summary: 锁定/解锁企业
+      operationId: toggleLockEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/logs:
+    get:
+      tags:
+        - 租户管理
+      summary: 企业操作日志
+      operationId: getEnterpriseLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/partners:
+    get:
+      tags:
+        - 租户管理
+      summary: 相关方列表
+      operationId: getPartners
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+    post:
+      tags:
+        - 租户管理
+      summary: 添加相关方
+      operationId: addPartner
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - enterpriseId
+                - role
+              properties:
+                enterpriseId:
+                  type: integer
+                  description: 相关方企业 ID
+                role:
+                  type: string
+                  description: 关联角色
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: OK
+
+    delete:
+      tags:
+        - 租户管理
+      summary: 移除相关方
+      operationId: removePartners
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/partners/{relationId}:
+    put:
+      tags:
+        - 租户管理
+      summary: 更新相关方信息
+      operationId: updatePartner
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: relationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: string
+                contactName:
+                  type: string
+                contactPhone:
+                  type: string
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/qrcode:
+    get:
+      tags:
+        - 租户管理
+      summary: 获取企业二维码
+      operationId: getEnterpriseQrcode
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/qrcode/regenerate:
+    post:
+      tags:
+        - 租户管理
+      summary: 重新生成二维码
+      operationId: regenerateQrcode
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  # ========== 用户管理 ==========
+  /api/enterprise/{id}/recover:
+    post:
+      tags:
+        - 租户管理
+      summary: 恢复已删除企业
+      operationId: recoverEnterprise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/subordinates:
+    get:
+      tags:
+        - 租户管理
+      summary: 下级企业列表
+      operationId: getSubordinates
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+    post:
+      tags:
+        - 租户管理
+      summary: 添加下级企业
+      operationId: addSubordinates
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: 下级企业 ID 列表
+      responses:
+        "200":
+          description: OK
+
+    delete:
+      tags:
+        - 租户管理
+      summary: 移除下级企业
+      operationId: removeSubordinates
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/users:
+    get:
+      tags:
+        - 租户管理
+      summary: 企业成员列表
+      description: 获取指定企业的成员（需企业管理员权限）
+      operationId: getEnterpriseMembers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: positionKey
+          in: query
+          schema:
+            type: string
+          description: 按岗位筛选
+      responses:
+        "200":
+          description: OK
+
+    post:
+      tags:
+        - 租户管理
+      summary: 添加企业成员
+      operationId: addEnterpriseMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberAddBody'
+      responses:
+        "200":
+          description: OK
+
+  /api/enterprise/{id}/users/{userId}:
+    put:
+      tags:
+        - 租户管理
+      summary: 更新企业成员
+      description: 修改成员岗位等信息
+      operationId: updateEnterpriseMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                positions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: OK
+
+    delete:
+      tags:
+        - 租户管理
+      summary: 移除企业成员
+      operationId: removeEnterpriseMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+
+  /api/health:
+    get:
+      tags:
+        - 系统
+      summary: 健康检查
+      description: 返回服务运行状态
+      operationId: healthCheck
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                          uptime:
+                            type: number
+                          timestamp:
+                            type: string
+                          env:
+                            type: string
+
+  # ========== 认证 ==========

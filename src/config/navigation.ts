@@ -245,6 +245,15 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
+        key: 'bigscreen-config',
+        label: '大屏配置',
+        icon: 'menuicon-43',
+        visibleTo: ['platform-ops'],
+        children: [
+          { key: 'bigscreen-list', label: '大屏管理', route: '/admin/bigscreens' },
+        ],
+      },
+      {
         key: 'process-mgmt',
         label: '流程管理',
         icon: 'menuicon-42',
@@ -302,6 +311,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/admin/enterpriseManagement/index': 'tenant-mgmt',
   '/admin/users': 'user-list',
   '/admin/positions': 'position-mgmt',
+  '/admin/bigscreens': 'bigscreen-list',
   '/enterprise/members': 'enterprise-members',
   '/enterprise/positions': 'enterprise-positions',
 }
@@ -321,6 +331,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'tenant-mgmt': '/admin/enterpriseManagement/index',
   'user-list': '/admin/users',
   'position-mgmt': '/admin/positions',
+  'bigscreen-list': '/admin/bigscreens',
   'enterprise-members': '/enterprise/members',
   'enterprise-positions': '/enterprise/positions',
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="bigscreen">
     <!-- 顶部导航条 -->
-    <BigscreenHeader />
+    <BigscreenHeader :bigscreens="bigscreens" :current-relation-id="currentRelationId" :current-bigscreen-id="currentBigscreenId" />
 
     <!-- 内容区：三列布局 -->
     <div class="bigscreen-content">
@@ -34,6 +34,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import BigscreenHeader from './components/BigscreenHeader.vue'
 import ComplianceOverview from './components/ComplianceOverview.vue'
 import RiskControl from './components/RiskControl.vue'
@@ -44,6 +46,37 @@ import EmergencyPlan from './components/EmergencyPlan.vue'
 import DailyChecklist from './components/DailyChecklist.vue'
 import RiskApproval from './components/RiskApproval.vue'
 import EduSafety from './components/EduSafety.vue'
+import { getUserBigscreens } from '@/api/bigscreen'
+import type { UserBigscreenItem } from '@/types/bigscreen'
+
+const router = useRouter()
+const route = useRoute()
+const bigscreens = ref<UserBigscreenItem[]>([])
+const currentRelationId = ref(0)
+const currentBigscreenId = ref(Number(route.query.bigscreenId) || 0)
+
+onMounted(async () => {
+  // 优先从 URL query 中获取 bigscreenId
+  const qId = Number(route.query.bigscreenId)
+  if (qId) currentBigscreenId.value = qId
+
+  try {
+    const screens = await getUserBigscreens()
+    if (!screens || screens.length === 0) {
+      router.replace('/workbench')
+      return
+    }
+    bigscreens.value = screens
+    // 根据 URL 中的 bigscreenId 定位当前大屏，找不到则用默认/第一个
+    const current = screens.find(s => s.id === currentBigscreenId.value)
+      || screens.find(s => s.isDefault)
+      || screens[0]
+    currentRelationId.value = current.relationId
+    currentBigscreenId.value = current.id
+  } catch {
+    router.replace('/workbench')
+  }
+})
 </script>
 
 <style lang="scss" scoped>

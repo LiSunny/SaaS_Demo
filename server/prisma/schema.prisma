@@ -113,8 +113,9 @@ model Enterprise {
   workOrders      WorkOrder[]               @relation("creatorOrg")
   subordinates    EnterpriseRelation[]      @relation("superior")
   partnersOf      EnterpriseRelation[]      @relation("partnerOf")
-  userEnterprises UserEnterprise[]
-  positions       Position[]
+  userEnterprises       UserEnterprise[]
+  positions             Position[]
+  bigscreenEnterprises  BigscreenEnterprise[]
 }
 
 // 企业关联（Subordinate / Partner 统一表）
@@ -297,4 +298,46 @@ model MaintenancePlan {
   enabled          Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+// ============================================================
+// 可视化大屏 → 对应 src/types/bigscreen.ts BigscreenItem
+// POC 阶段：标识 + 缩略图，不做复杂内容配置
+// ============================================================
+model Bigscreen {
+  id          Int      @id @default(autoincrement())
+  name        String                          // 大屏名称，唯一标识
+  type        String   @default("landing")    // 大屏类型: landing | fire-control | street-detail
+  scenario    String   @default("")           // 应用场景: 消防监控 | 街道治理 | 应急指挥 | 维保调度
+  thumbnail   String   @default("")           // 缩略图 URL / 本地路径
+  description String   @default("")           // 描述说明
+  tags        String   @default("[]")         // JSON 标签数组，如 ["消防","实时监控"]
+  status      Int      @default(1)            // 1=启用, 0=停用
+  sortOrder   Int      @default(0)            // 排序
+  createdBy   Int                             // 创建人 userId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enterprises  BigscreenEnterprise[]
+
+  @@unique([name])
+}
+
+// ============================================================
+// 大屏-企业关联（多对多，参照 UserEnterprise 模式）
+// ============================================================
+model BigscreenEnterprise {
+  id           Int      @id @default(autoincrement())
+  bigscreenId  Int
+  enterpriseId Int
+  isDefault    Boolean  @default(false)       // 是否该企业的默认大屏
+  status       Int      @default(1)           // 1=正常, 0=已移除（软删除）
+  createdAt    DateTime @default(now())
+
+  bigscreen    Bigscreen  @relation(fields: [bigscreenId], references: [id], onDelete: Cascade)
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+
+  @@unique([bigscreenId, enterpriseId])
+  @@index([enterpriseId])
+  @@index([enterpriseId, isDefault])
 }

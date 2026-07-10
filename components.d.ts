@@ -68,6 +68,7 @@ declare module 'vue' {
     NodePropertyPanel: typeof import('./src/components/business/NodePropertyPanel.vue')['default']
     OperationLogsTab: typeof import('./src/components/business/OperationLogsTab.vue')['default']
     OrderProgress: typeof import('./src/components/business/OrderProgress.vue')['default']
+    OssUpload: typeof import('./src/components/business/OssUpload.vue')['default']
     PermissionConfigDrawer: typeof import('./src/components/business/PermissionConfigDrawer.vue')['default']
     PersonSelector: typeof import('./src/components/business/PersonSelector.vue')['default']
     PlaceholderWidget: typeof import('./src/components/business/PlaceholderWidget.vue')['default']

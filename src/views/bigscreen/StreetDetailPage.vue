@@ -1,7 +1,7 @@
 <template>
   <div class="bigscreen">
     <!-- 顶部导航条 -->
-    <BigscreenHeader />
+    <BigscreenHeader :bigscreens="bigscreens" :current-bigscreen-id="currentBigscreenId" />
 
     <!-- 内容区 -->
     <div class="page-body">
@@ -117,6 +117,8 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Close } from '@element-plus/icons-vue'
 import BigscreenHeader from './components/BigscreenHeader.vue'
+import { getUserBigscreens } from '@/api/bigscreen'
+import type { UserBigscreenItem } from '@/types/bigscreen'
 import BigscreenMetricItem from './components/BigscreenMetricItem.vue'
 import StreetBusinessCompliance from './components/street/StreetBusinessCompliance.vue'
 import StreetHiddenDangerTrack from './components/street/StreetHiddenDangerTrack.vue'
@@ -125,6 +127,8 @@ import StreetShopList from './components/street/StreetShopList.vue'
 
 const router = useRouter()
 const route = useRoute()
+const bigscreens = ref<UserBigscreenItem[]>([])
+const currentBigscreenId = ref(Number(route.query.bigscreenId) || 0)
 
 // ============================================================
 // 商业街数据 & el-select
@@ -492,11 +496,15 @@ function destroyMap() {
 }
 
 // 页面挂载时初始化地图，卸载时销毁
-onMounted(() => {
+onMounted(async () => {
   syncStreetFromQuery()
   if (activeTab.value === 'safety-map') {
     nextTick(() => initSafetyMap())
   }
+  try {
+    const screens = await getUserBigscreens()
+    bigscreens.value = screens
+  } catch { /* 大屏列表加载失败，仍可显示页面 */ }
 })
 
 onBeforeUnmount(() => {

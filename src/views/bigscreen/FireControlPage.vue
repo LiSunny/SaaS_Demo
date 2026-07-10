@@ -1,6 +1,6 @@
 <template>
   <div class="bigscreen">
-    <BigscreenHeader />
+    <BigscreenHeader :bigscreens="bigscreens" :current-bigscreen-id="currentBigscreenId" />
 
     <div class="page-body">
       <!-- 标题行 -->
@@ -129,9 +129,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import BigscreenHeader from './components/BigscreenHeader.vue'
+import { getUserBigscreens } from '@/api/bigscreen'
+import type { UserBigscreenItem } from '@/types/bigscreen'
 import BigscreenMetricItem from './components/BigscreenMetricItem.vue'
 import FireControlMonitoring from './components/yjj/FireControlMonitoring.vue'
 import FireControlDutyRecords from './components/yjj/FireControlDutyRecords.vue'
@@ -462,6 +464,16 @@ const allRollCallRecords = ref<RollCallRecord[]>(generateRollCallRecords())
 // ============================================================
 
 const router = useRouter()
+const route = useRoute()
+const bigscreens = ref<UserBigscreenItem[]>([])
+const currentBigscreenId = ref(Number(route.query.bigscreenId) || 0)
+
+onMounted(async () => {
+  try {
+    const screens = await getUserBigscreens()
+    bigscreens.value = screens
+  } catch { /* 大屏列表加载失败，仍可显示页面 */ }
+})
 const selectedEnterprise = ref<FireControlEnterprise>(enterprises[0])
 const enterpriseSearch = ref('')
 const activeTab = ref('monitoring')

@@ -43,6 +43,7 @@ const router = createRouter({
         { path: 'landing', name: 'BigscreenLanding', component: () => import('@/views/bigscreen/BigscreenLanding.vue') },
         { path: 'landing/street-detail', name: 'StreetDetail', component: () => import('@/views/bigscreen/StreetDetailPage.vue') },
         { path: 'landing/fire-control', name: 'FireControlDetail', component: () => import('@/views/bigscreen/FireControlPage.vue') },
+        { path: 'gongmao', name: 'BigscreenGongmao', component: () => import('@/views/bigscreen/BigscreenGongmao.vue') },
       ],
     },
 
@@ -110,6 +111,7 @@ const router = createRouter({
         { path: 'enterpriseManagement/detail', name: 'EnterpriseDetail', component: () => import('@/views/admin/EnterpriseDetail.vue'), meta: { hidden: true } },
         { path: 'users', name: 'UserList', component: () => import('@/views/admin/UserList.vue') },
         { path: 'positions', name: 'PositionList', component: () => import('@/views/admin/PositionList.vue') },
+        { path: 'bigscreens', name: 'BigscreenList', component: () => import('@/views/admin/BigscreenList.vue') },
       ],
     },
 
@@ -161,6 +163,11 @@ router.beforeEach((to) => {
 
   if (systemRole && isBusinessRoute) {
     // 系统角色用户不能访问业务域路由
+    return { path: '/workbench' }
+  }
+
+  // 系统角色用户访问根路由（大屏）→ 工作台
+  if (systemRole && (to.path === '/' || to.path.startsWith('/landing') || to.path.startsWith('/gongmao'))) {
     return { path: '/workbench' }
   }
 

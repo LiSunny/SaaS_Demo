@@ -4,6 +4,8 @@ import { enterpriseRouter } from './enterprise.routes.js'
 import { userRouter } from './user.routes.js'
 import { positionRouter } from './position.routes.js'
 import { enterprisePositionRouter } from './enterprise-positions.routes.js'
+import { bigscreenAdminRouter, bigscreenUserRouter } from './bigscreen.routes.js'
+import { uploadRouter } from './upload.routes.js'
 
 const router = Router()
 
@@ -44,6 +46,13 @@ router.use('/api/admin/users', userRouter)
 
 // ========== 岗位管理 ==========
 router.use('/api/admin/positions', positionRouter)
+
+// ========== 文件上传 ==========
+router.use('/api/upload', uploadRouter)
+
+// ========== 大屏配置 ==========
+router.use('/api/admin/bigscreens', bigscreenAdminRouter)
+router.use('/api/user/bigscreens', bigscreenUserRouter)
 
 // ========== 模块路由（后续逐步添加） ==========
 // import { workflowRouter } from './workflow.routes.js'
