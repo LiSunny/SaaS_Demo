@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 286 8" fill="none" preserveAspectRatio="none">
+  <!-- Figma: Frame 323, 286×8, 顶部右侧装饰条, 左边斜切 -->
+  <path d="M285.9 0C285.955 0 286 0.0448 286 0.1V7.9C286 7.9552 285.955 8 285.9 8H8.041C8.015 8 7.989 7.9895 7.971 7.9707L0.171 0.1707C0.108 0.1077 0.152 0 0.241 0H285.9Z" fill="url(#g)" fill-opacity="0.48"/>
+  <defs>
+    <linearGradient id="g" x1="6.947" y1="4" x2="286" y2="4" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2A79FF"/>
+      <stop offset="1" stop-color="#023289"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="485 14 79 25" fill="none" preserveAspectRatio="none">
+  <!-- Figma: Group 23 (Rectangle 56 + Rectangle 57), 徽章边框, 79×25 -->
+  <!-- 徽章外框 -->
+  <path d="M563.833 14.5V31.7637L555.646 38.5H485.833V14.5H563.833Z" stroke="url(#g)" stroke-width="1"/>
+  <!-- 左下角小三角装饰 -->
+  <path d="M561.294 36.5L564.333 34V39H558.256L561.294 36.5Z" fill="url(#g2)"/>
+  <defs>
+    <radialGradient id="g" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(524.63 27) scale(40.1077 0.143922)">
+      <stop stop-color="#001C4D"/>
+      <stop offset="0.418269" stop-color="#2162D3" stop-opacity="0.56"/>
+      <stop offset="0.730769" stop-color="#0082C3" stop-opacity="0.56"/>
+    </radialGradient>
+    <linearGradient id="g2" x1="564.13" y1="39" x2="561.186" y2="35.4221" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#234E8F" stop-opacity="0.56"/>
+      <stop offset="0.288462" stop-color="#094898" stop-opacity="0.56"/>
+      <stop offset="1" stop-color="#075C95"/>
+    </linearGradient>
+  </defs>
+</svg>
