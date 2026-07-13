@@ -1,6 +1,6 @@
 <template>
   <div class="gongmao-section-card" :style="height ? { height } : {}">
-    <GongmaoModuleTitle :title="title" />
+    <GongmaoModuleTitle :title="title" :badge="badge" />
     <div class="card-body">
       <slot />
     </div>
@@ -12,6 +12,8 @@ import GongmaoModuleTitle from './GongmaoModuleTitle.vue'
 
 defineProps<{
   title: string
+  /** 右侧徽章文字（可选），如"责任状"。不传则不显示徽章 */
+  badge?: string
   height?: string
 }>()
 </script>

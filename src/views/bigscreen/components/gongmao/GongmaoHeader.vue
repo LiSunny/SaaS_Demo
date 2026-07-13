@@ -487,7 +487,7 @@ onUnmounted(() => {
   left: vw(1748);
   top: vh(56);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: vw(11);
 }
 .user-text {

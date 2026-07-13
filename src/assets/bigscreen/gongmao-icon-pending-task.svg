@@ -1,0 +1,56 @@
+<svg width="91" height="84" viewBox="0 0 91 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="f0" x="0" y="0" width="90.6" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="bg"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="bg" result="shape"/>
+      <feGaussianBlur stdDeviation="7.5" result="blur"/>
+    </filter>
+    <linearGradient id="pg0" x1="45.3" y1="15" x2="45.3" y2="83.6" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0454AE"/>
+      <stop offset="1" stop-color="#015AAD"/>
+    </linearGradient>
+    <linearGradient id="pg1" x1="45.3" y1="15" x2="45.3" y2="83.6" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5FBCFF"/>
+      <stop offset="0.197" stop-color="#3677B1"/>
+      <stop offset="0.486" stop-color="#005BAB"/>
+      <stop offset="0.771" stop-color="#3677B1"/>
+      <stop offset="1" stop-color="#5FBCFF"/>
+    </linearGradient>
+    <linearGradient id="pg2" x1="45" y1="21.9" x2="45" y2="76.7" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0059F7" stop-opacity="0.86"/>
+      <stop offset="0.609" stop-color="#0866D9" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#005BFF" stop-opacity="0.86"/>
+    </linearGradient>
+    <linearGradient id="pg3" x1="45" y1="21.9" x2="45" y2="76.7" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#98C6FF"/>
+      <stop offset="0.168" stop-color="#4892EC"/>
+      <stop offset="0.803" stop-color="#0C60C8"/>
+      <stop offset="1" stop-color="#98C6FF"/>
+    </linearGradient>
+    <radialGradient id="pg4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(45.3 15) rotate(90) scale(20.6 27.5)">
+      <stop stop-color="#DFF2FF" stop-opacity="0.68"/>
+      <stop offset="0.243" stop-color="#0799E8" stop-opacity="0.56"/>
+      <stop offset="1" stop-color="#079DE8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pg5" x1="45" y1="38.1" x2="45" y2="58.9" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D1EDFB"/>
+      <stop offset="1" stop-color="#84D6FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 外六边形 -->
+  <path d="M74.624 32.734V65.87l-29.312 16.585L16 65.87V32.733L45.312 16.148l29.312 16.586z" fill="url(#pg0)" stroke="url(#pg1)" stroke-width="2"/>
+
+  <!-- 六边形左右角装饰 -->
+  <rect x="15" y="45.18" width="2.82" height="8.23" fill="#2BA86D"/>
+  <rect x="72.8" y="45.18" width="2.82" height="8.23" fill="#2BA86D"/>
+
+  <!-- 内六边形 -->
+  <path d="M68.279 36.168v26.273L44.96 75.598l-23.32-13.157V36.168L44.96 23.012l23.32 13.156z" fill="url(#pg2)" stroke="url(#pg3)" stroke-width="2"/>
+
+  <!-- 顶部发光 -->
+  <path d="M75.624 39.012H15v-6.86l30.312-17.152 30.312 17.151v6.861z" fill="url(#pg4)" filter="url(#f0)"/>
+
+  <!-- 扳手图标 -->
+  <path d="M55.395 44.333c0 3.452-2.798 6.25-6.25 6.25a6.22 6.22 0 0 1-2.922-.724l-9.057 9.057-2.604-2.604 9.057-9.057a6.24 6.24 0 0 1-.724-2.922c0-3.452 2.799-6.25 6.25-6.25 1.056 0 2.05.262 2.922.724l-3.963 3.964 2.604 2.604 3.964-3.964c.462.872.723 1.867.723 2.922z" fill="url(#pg5)" stroke="url(#pg5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

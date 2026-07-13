@@ -8,11 +8,11 @@
 
     <!-- 内容区：三列布局 -->
     <div class="bigscreen-content">
-      <!-- 左侧列 -->
+      <!-- 左侧列：压实车间/电气设备填充上方，应急安全文化建设完整显示在最下方 -->
       <div class="col-left">
-        <GongmaoWorkshopDuty />
-        <GongmaoRiskUnitDuty />
-        <GongmaoSafetyManagement />
+        <GongmaoWorkshopDuty class="col-left-fill" />
+        <GongmaoRiskUnitDuty class="col-left-fill" />
+        <GongmaoSafetyManagement class="col-left-fixed" />
       </div>
 
       <!-- 中间列 -->
@@ -104,7 +104,7 @@ onMounted(async () => {
   right: 0;
   bottom: vh(21);
   display: flex;
-  gap: vw(24);
+  gap: vw(16);
   padding: 0 vw(74);
 }
 
@@ -117,7 +117,17 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: vh(24);
+  gap: vh(16);
+}
+
+/* 左侧列：应急安全文化建设完整显示，其余两个模块填充剩余空间 */
+.col-left-fixed {
+  flex-shrink: 0;
+}
+
+.col-left-fill {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ===== 侧边装饰 (Figma: Component 17, 41×795px) ===== */
