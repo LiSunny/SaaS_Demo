@@ -3,9 +3,15 @@
 /** 企业状态 */
 export type EnterpriseStatus = 1 | 0 | 2 // 有效 | 已锁定 | 已过期
 
-/** 维度 C 行业分类 */
+/** 维度 C 行业分类（GB/T 4754-2017 门类 → 大类） */
 export interface DimC {
+  /** 门类代码，如 "C" */
+  sectionCode: string
+  /** 门类名称，如 "制造业" */
+  sectionName: string
+  /** 大类代码，如 "26" */
   code: string
+  /** 大类名称，如 "化学原料和化学制品制造业" */
   name: string
 }
 
@@ -83,7 +89,8 @@ export interface EnterpriseForm {
   remark: string
   logo: string
   dimB: string
-  dimC: string
+  /** 行业分类级联路径 [门类代码, 大类代码]，如 ['C', '26'] */
+  dimC: string[]
   dimD: string
   // GIS 地图标注
   mapLng: number | string

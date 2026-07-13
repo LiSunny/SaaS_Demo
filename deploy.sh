@@ -45,7 +45,7 @@ deploy_backend() {
 
   echo ""
   echo "🔄 重启后端..."
-  ssh "${SERVER}" "pm2 restart myapp-backend"
+  ssh "${SERVER}" "pm2 restart myapp-backend --update-env"
 
   echo ""
   echo "✅ 后端更新完成"

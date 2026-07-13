@@ -82,9 +82,11 @@ model Enterprise {
   dimALevel2    String   @default("")
   dimALevel3    String   @default("")
   dimB          String   @default("")
-  dimCCode      String   @default("")
-  dimCName      String   @default("")
-  dimD          String   @default("")
+  dimCCode          String   @default("")
+  dimCName          String   @default("")
+  dimCSectionCode   String   @default("")   // 行业分类门类代码，如 "C"
+  dimCSectionName   String   @default("")   // 行业分类门类名称，如 "制造业"
+  dimD              String   @default("")
   region        String   @default("")
   contactName   String   @default("")
   contactPhone  String   @default("")

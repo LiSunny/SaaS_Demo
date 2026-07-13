@@ -19,8 +19,8 @@ export function useConfirm() {
    */
   async function confirmDelete(name: string, extra?: string): Promise<void> {
     const message = extra
-      ? `确认删除「${name}」？${extra}`
-      : `确认删除「${name}」？`
+      ? `确认删除 ${name} ？${extra}`
+      : `确认删除 ${name} ？`
     await ElMessageBox.confirm(message, '删除确认', {
       type: 'error',
       confirmButtonText: '确定删除',

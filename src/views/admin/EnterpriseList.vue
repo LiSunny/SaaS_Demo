@@ -74,7 +74,7 @@
                 <StatusTag :status="entStatusKey(row)" :label="statusLabel(row)" />
               </td>
               <td class="fi-td col-name">{{ row.name }}</td>
-              <td class="fi-td col-cat">{{ row.dimC.name || '—' }}</td>
+              <td class="fi-td col-cat">{{ dimCFullLabel(row.dimC) }}</td>
               <td class="fi-td col-fire">{{ dimBLabel(row.dimB) }}</td>
               <td class="fi-td col-admin">{{ row.contactName }}</td>
               <td class="fi-td col-phone">{{ row.contactPhone }}</td>
@@ -122,7 +122,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
-import type { EnterpriseItem } from '@/types/enterprise'
+import type { EnterpriseItem, DimC } from '@/types/enterprise'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import TableSortIcon from '@/components/base/TableSortIcon.vue'
@@ -214,6 +214,12 @@ const DIM_B_MAP: Record<string, string> = {
 }
 function dimBLabel(code: string): string {
   return DIM_B_MAP[code] || code || '—'
+}
+
+function dimCFullLabel(dimC?: DimC | null): string {
+  if (!dimC?.code) return '—'
+  const parts = [dimC.sectionName, dimC.name].filter(Boolean)
+  return parts.join(' > ') || '—'
 }
 
 // ===== 企业状态键映射 =====

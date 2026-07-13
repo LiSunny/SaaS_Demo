@@ -44,27 +44,22 @@
         </div>
       </div>
 
-      <!-- 企业类别（维度 B） -->
-      <div class="form-row">
-        <div class="form-label">
-          <span class="label-text">消防类别</span>
-        </div>
-        <div class="form-control">
-          <el-select v-model="form.dimB" placeholder="请选择企业类别（建议填写）" filterable clearable class="clean-select">
-            <el-option v-for="o in dictB" :key="o.value" :label="`${o.value} ${o.label}`" :value="o.value" />
-          </el-select>
-        </div>
-      </div>
-
       <!-- 行业分类（维度 C） -->
       <div class="form-row">
         <div class="form-label">
           <span class="label-text">行业分类</span>
         </div>
         <div class="form-control">
-          <el-select v-model="form.dimC" placeholder="请选择企业所在行业分类" filterable clearable class="clean-select">
-            <el-option v-for="o in dictC" :key="o.value" :label="`${o.value} ${o.label}`" :value="o.value" />
-          </el-select>
+          <el-cascader
+            v-model="form.dimC"
+            :options="dictC"
+            :props="{ expandTrigger: 'hover', value: 'value', label: 'label', children: 'children' }"
+            placeholder="请选择企业所在行业分类"
+            filterable
+            clearable
+            class="clean-cascader"
+            :teleported="false"
+          />
         </div>
       </div>
 
@@ -76,6 +71,18 @@
         <div class="form-control">
           <el-select v-model="form.dimD" placeholder="请选择场所类型（建议填写）" filterable clearable class="clean-select">
             <el-option v-for="o in dictD" :key="o.value" :label="o.label" :value="o.value" />
+          </el-select>
+        </div>
+      </div>
+
+      <!-- 企业类别（维度 B） -->
+      <div class="form-row">
+        <div class="form-label">
+          <span class="label-text">消防类别</span>
+        </div>
+        <div class="form-control">
+          <el-select v-model="form.dimB" placeholder="请选择企业类别（建议填写）" filterable clearable class="clean-select">
+            <el-option v-for="o in dictB" :key="o.value" :label="`${o.value} ${o.label}`" :value="o.value" />
           </el-select>
         </div>
       </div>
@@ -100,6 +107,20 @@
         </div>
       </div>
 
+      <!-- Gis标注 -->
+      <div class="form-row">
+        <div class="form-label">
+          <span class="label-text">Gis标注</span>
+        </div>
+        <div class="form-control form-control-group">
+          <el-input :model-value="gisAddress || form.mapLocation" placeholder="请在地图上标注企业位置" readonly class="clean-input flex-1" />
+          <button type="button" class="locate-btn" @click="handleLocate">
+            <el-icon :size="20"><MapLocation /></el-icon>
+            <span>标注位置</span>
+          </button>
+        </div>
+      </div>
+
       <!-- 行政区划 -->
       <div class="form-row">
         <div class="form-label">
@@ -117,20 +138,6 @@
         </div>
         <div class="form-control">
           <el-input v-model="form.address" placeholder="请录入详细地址" maxlength="200" class="clean-input" />
-        </div>
-      </div>
-
-      <!-- Gis标注 -->
-      <div class="form-row">
-        <div class="form-label">
-          <span class="label-text">Gis标注</span>
-        </div>
-        <div class="form-control form-control-group">
-          <el-input :model-value="gisAddress || form.mapLocation" placeholder="请在地图上标注企业位置" readonly class="clean-input flex-1" />
-          <button type="button" class="locate-btn" @click="handleLocate">
-            <el-icon :size="20"><MapLocation /></el-icon>
-            <span>标注位置</span>
-          </button>
         </div>
       </div>
 
@@ -276,13 +283,32 @@ function handleLocate() {
   gisPickerVisible.value = true
 }
 
-// GisMapPicker 确认标注：同步经度、纬度、地址到表单
-function handleGisConfirm(payload: { location: string; address: string; lng: number; lat: number }) {
+// GisMapPicker 确认标注：同步经度、纬度、地址到表单，并自动填充行政区划和详细地址
+function handleGisConfirm(payload: { location: string; address: string; lng: number; lat: number; addressComponent?: { province: string; city: string; district: string; township: string; street: string; streetNumber: string } }) {
   form.mapLocation = payload.location
   form.mapLng = payload.lng
   form.mapLat = payload.lat
   form.mapAddress = payload.address
   gisAddress.value = payload.address
+
+  // 从逆地理编码的结构化地址组件中自动填充行政区划和详细地址
+  const ac = payload.addressComponent
+  if (ac) {
+    // 行政区划级联：省 → 市（直辖市的 city 可能为空）→ 区
+    const regionParts: string[] = []
+    if (ac.province) regionParts.push(ac.province)
+    if (ac.city && ac.city !== ac.province) regionParts.push(ac.city)
+    if (ac.district) regionParts.push(ac.district)
+    if (regionParts.length > 0) {
+      // 动态确保级联选项树中存在该路径，再赋值 v-model
+      ensureRegionPath(regionParts)
+      form.regionArr = regionParts
+    }
+
+    // 详细地址：街道 + 门牌号（用户可在此基础上补充楼栋、单元等信息）
+    const detail = [ac.street, ac.streetNumber].filter(Boolean).join('')
+    if (detail) form.address = detail
+  }
 }
 
 // ===== 表单 =====
@@ -302,7 +328,7 @@ const form = reactive({
   mapLat: '' as number | string,
   mapAddress: '',
   dimB: '',
-  dimC: '',
+  dimC: [] as string[],
   dimD: '',
 })
 
@@ -332,10 +358,16 @@ async function searchParent(kw: string) {
 
 // ===== 字典 =====
 const dictB = ref<{ value: string; label: string }[]>([])
-const dictC = ref<{ value: string; label: string }[]>([])
+const dictC = ref<{ value: string; label: string; children?: { value: string; label: string }[] }[]>([])
 const dictD = ref<{ value: string; label: string }[]>([])
 
-const regionOptions = [
+interface RegionNode {
+  value: string
+  label: string
+  children?: RegionNode[]
+}
+
+const regionOptions = ref<RegionNode[]>([
   {
     value: '北京市', label: '北京市',
     children: [{ value: '朝阳区', label: '朝阳区' }, { value: '海淀区', label: '海淀区' }],
@@ -347,7 +379,25 @@ const regionOptions = [
       children: [{ value: '港南区', label: '港南区' }],
     }],
   },
-]
+])
+
+/** 确保级联选项树中存在指定路径，动态补全缺失节点 */
+function ensureRegionPath(parts: string[]) {
+  let nodes = regionOptions.value
+  for (let i = 0; i < parts.length; i++) {
+    const val = parts[i]
+    let node = nodes.find(n => n.value === val)
+    if (!node) {
+      node = { value: val, label: val }
+      if (i < parts.length - 1) node.children = []
+      nodes.push(node)
+    }
+    if (i < parts.length - 1) {
+      if (!node.children) node.children = []
+      nodes = node.children
+    }
+  }
+}
 
 // ===== 创建成功弹窗 =====
 const successDialogVisible = ref(false)
@@ -470,7 +520,7 @@ function resetForm() {
     tags: [], validRange: [], regionArr: [],
     parentId: '', address: '', remark: '', logo: '', mapLocation: '',
     mapLng: '', mapLat: '', mapAddress: '',
-    dimB: '', dimC: '', dimD: '',
+    dimB: '', dimC: [], dimD: '',
   })
   gisAddress.value = ''
 }
@@ -503,7 +553,7 @@ watch(() => props.visible, async (v) => {
         mapLat: d.mapLat ?? (d.mapLocation ? parseFloat(d.mapLocation.split(',')[1]) || '' : ''),
         mapAddress: d.mapAddress || '',
         dimB: d.dimB || '',
-        dimC: d.dimC?.code || d.dimC || '',
+        dimC: [d.dimC?.sectionCode, d.dimC?.code].filter(Boolean),
         dimD: d.dimD || '',
       })
       // 编辑回填 GIS 地址显示
@@ -536,14 +586,15 @@ watch(() => props.visible, async (v) => {
 .label-required { font-size: 18px; font-weight: 500; color: var(--semantic-danger, #DC2626); line-height: 1; flex-shrink: 0; }
 .label-text { font-size: var(--font-body, 16px); font-weight: 400; color: var(--text-tertiary, #454545); white-space: nowrap; line-height: 1; }
 
-.form-control { flex: 1; min-width: 0; }
+.form-control { flex: 1; min-width: 0; position: relative; }
 .form-control-group { display: flex; gap: 10px; align-items: center; }
 .flex-1 { flex: 1; min-width: 0; }
 
 .clean-input, .clean-select, .clean-cascader, .clean-datepicker { width: 100% !important; }
 
 .clean-input :deep(.el-input__wrapper),
-.clean-select :deep(.el-select__wrapper) {
+.clean-select :deep(.el-select__wrapper),
+.clean-cascader :deep(.el-cascader__wrapper) {
   min-height: 36px; height: 36px; border: 1px solid #DEDEDE; border-radius: 8px;
   box-shadow: none; background: var(--bg-card, #fff); padding: 0 18px;
   display: flex; align-items: center; box-sizing: border-box;
@@ -552,6 +603,10 @@ watch(() => props.visible, async (v) => {
 .clean-select :deep(.el-select__wrapper:hover) { border-color: var(--accent-primary, #3678E3); }
 .clean-input :deep(.el-input__wrapper.is-focus),
 .clean-select :deep(.el-select__wrapper.is-focus) { border-color: var(--accent-primary, #3678E3); box-shadow: none; }
+
+/* 级联选择器下拉面板定位稳定性：固定菜单最小宽度，避免子菜单展开时面板宽度突变导致横向位移 */
+.clean-cascader :deep(.el-cascader-menu) { min-width: 170px; flex-shrink: 0; }
+.clean-cascader :deep(.el-cascader__dropdown) { left: 0 !important; }
 
 .clean-input :deep(.el-input__inner),
 .clean-select :deep(.el-input__inner),

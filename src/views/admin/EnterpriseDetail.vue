@@ -123,7 +123,7 @@
               </div>
               <div class="form-field">
                 <span class="form-label">行业分类</span>
-                <span class="form-value">{{ store.detail.dimC?.name || '--' }}</span>
+                <span class="form-value">{{ dimCFullLabel(store.detail.dimC) }}</span>
               </div>
               <div class="form-field">
                 <span class="form-label">场所类型</span>
@@ -323,7 +323,7 @@ import { ElMessage } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
 import { CopyDocument } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
-import type { ModuleTreeNode } from '@/types/enterprise'
+import type { ModuleTreeNode, DimC } from '@/types/enterprise'
 import AppIcon from '@/components/base/AppIcon.vue'
 import PartnerManage from './PartnerManage.vue'
 import SubordinateManage from './SubordinateManage.vue'
@@ -555,6 +555,12 @@ const DIM_D_MAP: Record<string, string> = {
 }
 
 // ===== 计算属性 =====
+function dimCFullLabel(dimC?: DimC | null): string {
+  if (!dimC?.code) return '--'
+  const parts = [dimC.sectionName, dimC.name].filter(Boolean)
+  return parts.join(' > ') || '--'
+}
+
 const dimBLabel = computed(() => {
   if (!store.detail?.dimB) return '----'
   return DIM_B_MAP[store.detail.dimB] || store.detail.dimB

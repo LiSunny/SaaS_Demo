@@ -207,10 +207,10 @@ const demoAccounts = [
 
 // 体验账号 正式
 // const demoAccounts = [
-//   { role: '系统运维', phone: '17733550542', password: 'lrjndh', image: platformAdminImg },
+//   { role: '系统运维', phone: '17733550542', password: 'yvdi2f', image: platformAdminImg },
 //   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-//   { role: '监督管理', phone: '13900000002', password: 'admin123!@#', image: supervisionAdminImg },
-//   { role: '企业管理', phone: '13800000009', password: 'admin123!@#', image: enterpriseAdminImg },
+//   { role: '监督管理', phone: '13567890123', password: 'pkwlo6', image: supervisionAdminImg },
+//   { role: '企业管理', phone: '13000000009', password: 'admin123!@#', image: enterpriseAdminImg },
 //   { role: '普通用户', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
 // ]
 

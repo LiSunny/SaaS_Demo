@@ -103,11 +103,20 @@ const props = withDefaults(defineProps<Props>(), {
   location: '',
 })
 
+export interface AddressComponent {
+  province: string
+  city: string
+  district: string
+  township: string
+  street: string
+  streetNumber: string
+}
+
 const emit = defineEmits<{
   'update:visible': [value: boolean]
   'update:location': [value: string]
   'update:address': [value: string]
-  'confirm': [payload: { location: string; address: string; lng: number; lat: number }]
+  'confirm': [payload: { location: string; address: string; lng: number; lat: number; addressComponent?: AddressComponent }]
 }>()
 
 // ===== 状态 =====
@@ -116,6 +125,8 @@ const searchKeyword = ref('')
 const searchTips = ref<{ name: string; district: string; location: { lng: number; lat: number } }[]>([])
 const address = ref('')
 const position = reactive({ lng: 0, lat: 0 })
+/** 结构化地址组件，供外部自动填充行政区划和详细地址 */
+const currentAddressComponent = ref<AddressComponent | null>(null)
 
 let mapInstance: any = null
 let placeSearch: any = null
@@ -143,6 +154,7 @@ function handleConfirm() {
       address: address.value,
       lng: position.lng,
       lat: position.lat,
+      addressComponent: currentAddressComponent.value || undefined,
     })
   }
   emit('update:visible', false)
@@ -158,6 +170,16 @@ function reverseGeocode(lng: number, lat: number) {
     geocoder.getAddress([lng, lat], (status: string, result: any) => {
       if (status === 'complete' && result?.info === 'OK' && result?.regeocode?.formattedAddress) {
         address.value = result.regeocode.formattedAddress
+        // 保存结构化地址组件
+        const ac = result.regeocode.addressComponent || {}
+        currentAddressComponent.value = {
+          province: ac.province || '',
+          city: ac.city || '',
+          district: ac.district || '',
+          township: ac.township || '',
+          street: ac.street || '',
+          streetNumber: ac.streetNumber || '',
+        }
         emit('update:address', address.value)
       } else {
         console.warn('[GisMapPicker] 逆地理编码失败', { status, info: result?.info })
@@ -307,8 +329,18 @@ function destroyMap() {
     searchTimer = null
   }
   if (mapInstance) {
+    // 先取下自定义 DOM 元素，避免被 AMap destroy() 清空
+    const pin = mapContainer.value?.querySelector('.gis-center-pin') as HTMLElement | null
+    const hint = mapContainer.value?.querySelector('.gis-tip-hint') as HTMLElement | null
+    if (pin) pin.remove()
+    if (hint) hint.remove()
+
     mapInstance.destroy()
     mapInstance = null
+
+    // 恢复自定义 DOM 元素，供下次 initMap 使用
+    if (pin && mapContainer.value) mapContainer.value.appendChild(pin)
+    if (hint && mapContainer.value) mapContainer.value.appendChild(hint)
   }
   placeSearch = null
   geocoder = null

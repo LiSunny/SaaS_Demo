@@ -1,5 +1,6 @@
 import db from '../config/db.js'
 import bcrypt from 'bcrypt'
+import { INDUSTRY_CATEGORIES, resolveIndustryPath } from '../data/gbt4754-2017.js'
 
 const SALT_ROUNDS = 10
 
@@ -42,7 +43,7 @@ function toItem(e: any) {
       level3: e.dimALevel3 || null,
     },
     dimB: e.dimB,
-    dimC: { code: e.dimCCode, name: e.dimCName },
+    dimC: { sectionCode: e.dimCSectionCode, sectionName: e.dimCSectionName, code: e.dimCCode, name: e.dimCName },
     dimD: e.dimD,
     region: e.region,
     contactName: e.contactName,
@@ -168,8 +169,10 @@ export async function create(form: any, operator?: any) {
       dimALevel2: form.dimA?.level2 || '',
       dimALevel3: form.dimA?.level3 || '',
       dimB: form.dimB || '',
-      dimCCode: typeof form.dimC === 'string' ? form.dimC : form.dimC?.code || '',
-      dimCName: typeof form.dimC === 'string' ? resolveDimCName(form.dimC) : form.dimC?.name || '',
+      dimCCode: Array.isArray(form.dimC) ? (form.dimC[1] || '') : (typeof form.dimC === 'string' ? form.dimC : form.dimC?.code || ''),
+      dimCName: Array.isArray(form.dimC) ? resolveIndustryPath(form.dimC).divisionName : (typeof form.dimC === 'string' ? resolveDimCName(form.dimC) : form.dimC?.name || ''),
+      dimCSectionCode: Array.isArray(form.dimC) ? resolveIndustryPath(form.dimC).sectionCode : '',
+      dimCSectionName: Array.isArray(form.dimC) ? resolveIndustryPath(form.dimC).sectionName : '',
       dimD: form.dimD || '',
       region: form.region || '',
       contactName: form.contactName || '',
@@ -332,7 +335,13 @@ export async function update(id: number, form: any, operator?: any) {
   }
   if (form.dimB !== undefined) data.dimB = form.dimB
   if (form.dimC !== undefined) {
-    if (typeof form.dimC === 'string') {
+    if (Array.isArray(form.dimC)) {
+      const path = resolveIndustryPath(form.dimC)
+      data.dimCCode = path.divisionCode
+      data.dimCName = path.divisionName
+      data.dimCSectionCode = path.sectionCode
+      data.dimCSectionName = path.sectionName
+    } else if (typeof form.dimC === 'string') {
       data.dimCCode = form.dimC
       data.dimCName = resolveDimCName(form.dimC)
     } else {
@@ -1061,22 +1070,6 @@ const DIM_B_OPTIONS = [
   { value: '27', label: '党政机关' }, { value: '28', label: '其他重点单位' },
 ]
 
-const DIM_C_OPTIONS = [
-  { value: '01', label: '农业' }, { value: '06', label: '煤炭开采和洗选业' },
-  { value: '13', label: '农副食品加工业' }, { value: '17', label: '纺织业' },
-  { value: '25', label: '石油、煤炭及其他燃料加工业' }, { value: '26', label: '化学原料和化学制品制造业' },
-  { value: '33', label: '金属制品业' }, { value: '41', label: '土木工程建筑业' },
-  { value: '47', label: '房屋建筑业' }, { value: '51', label: '批发业' },
-  { value: '52', label: '零售业' }, { value: '56', label: '住宿业' },
-  { value: '62', label: '餐饮业' }, { value: '63', label: '电信、广播电视和卫星传输服务' },
-  { value: '64', label: '互联网和相关服务' }, { value: '66', label: '金融业' },
-  { value: '70', label: '房地产业' }, { value: '80', label: '居民服务业' },
-  { value: '82', label: '教育' }, { value: '83', label: '卫生' },
-  { value: '85', label: '社会工作' }, { value: '86', label: '新闻和出版业' },
-  { value: '87', label: '广播、电视、电影和影视录音制作业' }, { value: '90', label: '文化艺术业' },
-  { value: '91', label: '国家机构' }, { value: '96', label: '基层群众自治组织' },
-]
-
 const DIM_D_OPTIONS = [
   { value: '1', label: '人员密集场所' }, { value: '2', label: '高层建筑' },
   { value: '3', label: '地下建筑' }, { value: '4', label: '易燃易爆场所' },
@@ -1089,7 +1082,7 @@ const DIM_D_OPTIONS = [
 
 export async function getDimADict() { return { data: DIM_A_OPTIONS } }
 export async function getDictB() { return { data: DIM_B_OPTIONS } }
-export async function getDictC() { return { data: DIM_C_OPTIONS } }
+export async function getDictC() { return { data: INDUSTRY_CATEGORIES } }
 export async function getDictD() { return { data: DIM_D_OPTIONS } }
 export async function getModuleTree() { return { data: [] } }
 
@@ -1107,7 +1100,11 @@ export async function getRelationRoleDict() { return { data: RELATION_ROLE_OPTIO
 // 辅助
 // ============================================
 function resolveDimCName(code: string): string {
-  return DIM_C_OPTIONS.find(o => o.value === code)?.label || ''
+  for (const section of INDUSTRY_CATEGORIES) {
+    const found = section.children?.find(d => d.value === code)
+    if (found) return found.label
+  }
+  return ''
 }
 
 function parseTags(tags: any): string[] {

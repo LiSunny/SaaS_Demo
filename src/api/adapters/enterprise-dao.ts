@@ -3,6 +3,7 @@
  */
 import type { EnterpriseItem, EnterpriseQuery, EnterpriseForm, SubordinateItem, PartnerItem, OperationLogItem, PaginatedData, PartnerRole } from '@/types/enterprise'
 import { createPersistentStore } from '@/utils/db-adapter'
+import { INDUSTRY_CATEGORIES, resolveIndustryPath } from '@/config/gbt4754-2017'
 
 // ===== Mock User 数据（供企业创建时自动初始化管理员） =====
 interface MockUser {
@@ -42,7 +43,7 @@ const mockUEStore = createPersistentStore('mock_user_enterprises', MOCK_USER_ENT
 const MOCK_ENTERPRISES: EnterpriseItem[] = [
   {
     id: '1', name: '尼特', code: 'QY1',
-    dimB: '', dimC: { code: '', name: '' }, dimD: '',
+    dimB: '', dimC: { sectionCode: '', sectionName: '', code: '', name: '' }, dimD: '',
     region: '', contactName: '管理员', contactPhone: '16666666666',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -52,7 +53,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '2', name: '港南一中', code: 'QY1013801074735185920',
-    dimB: '06', dimC: { code: '85', name: '教育' }, dimD: '12',
+    dimB: '06', dimC: { sectionCode: '', sectionName: '', code: '85', name: '教育' }, dimD: '12',
     region: '广西壮族自治区 贵港市 港南区', contactName: '李文学', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['消防安全重点单位'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -62,7 +63,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '3', name: '港南消防队', code: 'QY1044197200894099456',
-    dimB: '', dimC: { code: '91', name: '国家机构' }, dimD: '',
+    dimB: '', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '', contactName: '李阳', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -72,7 +73,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '4', name: '阳光物业管理有限公司', code: 'QY1000000000000000001',
-    dimB: '', dimC: { code: '70', name: '房地产业' }, dimD: '2',
+    dimB: '', dimC: { sectionCode: '', sectionName: '', code: '70', name: '房地产业' }, dimD: '2',
     region: '北京市 朝阳区', contactName: '赵丽萍', contactPhone: '13800001111',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '朝阳区XX路100号', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -82,7 +83,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '5', name: '蓝盾消防技术服务公司', code: 'QY1000000000000000002',
-    dimB: '', dimC: { code: '80', name: '居民服务业' }, dimD: '',
+    dimB: '', dimC: { sectionCode: '', sectionName: '', code: '80', name: '居民服务业' }, dimD: '',
     region: '北京市 海淀区', contactName: '郑晓峰', contactPhone: '13900002222',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['维保', '检测'], address: '海淀区XX科技园', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -92,7 +93,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '6', name: '应急管理局安全管理中心', code: 'QY1000000000000000003',
-    dimB: '', dimC: { code: '91', name: '国家机构' }, dimD: '',
+    dimB: '', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '北京市', contactName: '王蕾', contactPhone: '13700003333',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -102,7 +103,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '7', name: '海港区政府', code: 'QY1000000000000000004',
-    dimB: '27', dimC: { code: '91', name: '国家机构' }, dimD: '',
+    dimB: '27', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '河北省 秦皇岛市 海港区', contactName: '李子新', contactPhone: '18751529933',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签1'], address: '秦皇岛市海港区XX路', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -112,7 +113,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '8', name: '烟草局', code: 'QY1000000000000000005',
-    dimB: '', dimC: { code: '91', name: '国家机构' }, dimD: '',
+    dimB: '', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '河北省 秦皇岛市', contactName: '宋力志', contactPhone: '17040201428',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签2'], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -122,7 +123,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '9', name: '秦皇岛一中', code: 'QY1000000000000000006',
-    dimB: '06', dimC: { code: '82', name: '教育' }, dimD: '12',
+    dimB: '06', dimC: { sectionCode: '', sectionName: '', code: '82', name: '教育' }, dimD: '12',
     region: '河北省 秦皇岛市', contactName: '王小康', contactPhone: '18946450602',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签3', '消防安全重点单位'], address: '秦皇岛市XX区XX路', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -132,7 +133,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '10', name: '盛泰北苑', code: 'QY1000000000000000007',
-    dimB: '26', dimC: { code: '70', name: '房地产业' }, dimD: '8',
+    dimB: '26', dimC: { sectionCode: '', sectionName: '', code: '70', name: '房地产业' }, dimD: '8',
     region: '河北省 秦皇岛市', contactName: '宋敏', contactPhone: '13781265439',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['标签4'], address: '秦皇岛市XX区XX小区', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -142,7 +143,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '11', name: '万达商业管理有限公司', code: 'QY1000000000000000008',
-    dimB: '14', dimC: { code: '70', name: '房地产业' }, dimD: '6',
+    dimB: '14', dimC: { sectionCode: '', sectionName: '', code: '70', name: '房地产业' }, dimD: '6',
     region: '北京市 朝阳区', contactName: '陈伟强', contactPhone: '18612345678',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
     tags: ['消防安全重点单位'], address: '朝阳区XX路万达广场', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
@@ -202,7 +203,7 @@ export async function getEnterpriseList(query: EnterpriseQuery): Promise<Paginat
     list = list.filter(e => e.name.toLowerCase().includes(kw) || e.code.toLowerCase().includes(kw))
   }
   if (query.dimB) list = list.filter(e => e.dimB === query.dimB)
-  if (query.dimC) list = list.filter(e => e.dimC.name === query.dimC)
+  if (query.dimC) list = list.filter(e => e.dimC.code === query.dimC || e.dimC.name === query.dimC)
   if (query.status) {
     const statii = query.status.split(',').filter(Boolean)
     list = list.filter(e => {
@@ -249,7 +250,10 @@ export async function createEnterprise(form: EnterpriseForm): Promise<Enterprise
     validFrom: form.validFrom || '', validTo: form.validTo || '',
     region: form.region || '', parentId: form.parentId || '', parentName: '',
     address: form.address || '', remark: form.remark || '', logo: form.logo || '',
-    dimB: form.dimB || '', dimC: { code: form.dimC || '', name: '' },
+    dimB: form.dimB || '',
+    dimC: Array.isArray(form.dimC) && form.dimC.length === 2
+      ? (() => { const p = resolveIndustryPath(form.dimC); return { sectionCode: p.sectionCode, sectionName: p.sectionName, code: p.divisionCode, name: p.divisionName } })()
+      : { sectionCode: '', sectionName: '', code: typeof form.dimC === 'string' ? form.dimC : '', name: '' },
     dimD: form.dimD || '', status: 1, qrcode: '', creatorName: '当前用户',
     mapLng: Number(form.mapLng) || 0, mapLat: Number(form.mapLat) || 0,
     mapLocation: `${form.mapLat},${form.mapLng}`,
@@ -573,7 +577,7 @@ export async function getTagDict(): Promise<{ data: { value: string; label: stri
 }
 
 export async function getDictB() { return { data: DIM_B_OPTIONS } }
-export async function getDictC() { return { data: DIM_C_OPTIONS } }
+export async function getDictC() { return { data: INDUSTRY_CATEGORIES as any } }
 export async function getDictD() { return { data: DIM_D_OPTIONS } }
 export async function getModuleTree() { return { data: MODULE_TREE } }
 
@@ -646,23 +650,6 @@ const DIM_B_OPTIONS = [
   { value: '23', label: '科研机构' }, { value: '24', label: '旅游景区' },
   { value: '25', label: '宗教活动场所' }, { value: '26', label: '住宅小区' },
   { value: '27', label: '党政机关' }, { value: '28', label: '其他重点单位' },
-]
-
-// GB/T 4754-2017 国民经济行业分类（摘录常见 26 项）
-const DIM_C_OPTIONS = [
-  { value: '01', label: '农业' }, { value: '06', label: '煤炭开采和洗选业' },
-  { value: '13', label: '农副食品加工业' }, { value: '17', label: '纺织业' },
-  { value: '25', label: '石油、煤炭及其他燃料加工业' }, { value: '26', label: '化学原料和化学制品制造业' },
-  { value: '33', label: '金属制品业' }, { value: '41', label: '土木工程建筑业' },
-  { value: '47', label: '房屋建筑业' }, { value: '51', label: '批发业' },
-  { value: '52', label: '零售业' }, { value: '56', label: '住宿业' },
-  { value: '62', label: '餐饮业' }, { value: '63', label: '电信、广播电视和卫星传输服务' },
-  { value: '64', label: '互联网和相关服务' }, { value: '66', label: '金融业' },
-  { value: '70', label: '房地产业' }, { value: '80', label: '居民服务业' },
-  { value: '82', label: '教育' }, { value: '83', label: '卫生' },
-  { value: '85', label: '社会工作' }, { value: '86', label: '新闻和出版业' },
-  { value: '87', label: '广播、电视、电影和影视录音制作业' }, { value: '90', label: '文化艺术业' },
-  { value: '91', label: '国家机构' }, { value: '96', label: '基层群众自治组织' },
 ]
 
 // 各省消防安全重点单位界定标准 — 场所/建筑类型（13 项）
