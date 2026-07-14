@@ -12,14 +12,14 @@
 
 // 两个适配器函数签名完全一致，static import 保证类型安全
 import * as dao from './workflow-dao'
-import * as http from './workflow-http'
+// 后端实现后恢复：import * as http from './workflow-http'
 
-const mode = import.meta.env.VITE_API_MODE
-const adapter = mode === 'real' ? http : dao
+// 后端未实现，始终使用 DAO Mock（后端实现后改为 mode === 'real' ? http : dao）
+const adapter = dao
 
 // 开发环境输出日志，方便确认当前模式
 if (import.meta.env.DEV) {
-  console.log(`[api-adapter] Mode: ${mode === 'real' ? 'HTTP (real)' : 'DAO (PoC)'}`)
+  console.log('[api-adapter] Mode: DAO (PoC) — 后端未实现，使用 Mock 数据')
 }
 
 // 导出的所有函数的引用在编译时确定，tree-shaking 友好
