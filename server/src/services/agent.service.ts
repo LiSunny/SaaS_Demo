@@ -44,9 +44,15 @@ ${buildPageListText()}
 
 ## 回复规则
 - 用户想导航 → 返回上面的 JSON
-- 用户问数据 → 调用工具查询，然后自然回复
+- 用户问数据 → 调用工具查询，然后基于工具返回的数据回复
 - 其他问题 → 直接自然语言回复
-- 友好、简洁`
+- 友好、简洁
+
+## 【重要】数据回复铁律
+1. 工具返回的 text 字段是预先格式化好的真实数据，直接输出它，不要修改、不要重写、不要补充
+2. 绝对不编造任何企业名称、数字、行业分类
+3. 如果工具返回的 text 里写的是未分类，就如实说未分类，不要自行推测
+4. 可以在 text 前后加一句简短引导语，但数据部分一字不改`
 
 // ===== 工具定义 =====
 const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
@@ -100,7 +106,16 @@ const DIM_B_LABELS: Record<string, string> = {
   'industry_trade': '工贸企业',
   'education': '教育行业',
   'community_property': '社区物业',
-  'other': '其他',
+  'other': '其他行业',
+  // 补充常见原始值映射
+  '工贸企业': '工贸企业',
+  '教育行业': '教育行业',
+  '社区物业': '社区物业',
+  'fire_tech_service': '消防技术服务',
+  'gov_regulator': '政府监管',
+  'commercial_complex': '商业综合体',
+  'manufacturing': '制造业',
+  'emergency_mgmt': '应急管理',
 }
 
 // ===== DeepSeek 客户端 =====
@@ -125,32 +140,30 @@ async function executeTool(name: string, args: Record<string, any>): Promise<str
         dimB: args.dimB || undefined,
         keyword: args.keyword || undefined,
       })
-      const items = data.map((item: any) => ({
-        name: item.name,
-        industry: DIM_B_LABELS[item.dimB] || item.dimB || '未分类',
-        region: item.region,
-      }))
-      return JSON.stringify({ total, items })
+      if (data.length === 0) return JSON.stringify({ text: '没有找到匹配的租户。' })
+      const rows = data.map((item: any) => {
+        const industry = DIM_B_LABELS[item.dimB] || item.dimB || '未分类'
+        const region = item.region || '未填写'
+        return `| ${item.name} | ${industry} | ${region} |`
+      })
+      const text = `**共 ${total} 个租户**\n\n| 名称 | 行业 | 地区 |\n|------|------|------|\n${rows.join('\n')}`
+      return JSON.stringify({ text })
     }
     case 'query_enterprise_stats': {
       const { data, total } = await enterpriseService.getList({
         page: 1, size: 1000,
         dimB: args.dimB || undefined,
       })
-      // 按行业分组统计
       const byIndustry: Record<string, number> = {}
       for (const item of data) {
         const label = DIM_B_LABELS[item.dimB] || item.dimB || '未分类'
         byIndustry[label] = (byIndustry[label] || 0) + 1
       }
-      const industryBreakdown = Object.entries(byIndustry)
-        .map(([k, v]) => `${k}: ${v} 个`)
-        .join('，')
-      return JSON.stringify({
-        total,
-        byIndustry: byIndustry,
-        summary: `共有 ${total} 个租户。行业分布：${industryBreakdown}`,
-      })
+      const rows = Object.entries(byIndustry)
+        .map(([k, v]) => `| ${k} | ${v} |`)
+        .sort((a, b) => b.localeCompare(a))
+      const text = `**共 ${total} 个租户**\n\n| 行业 | 数量 |\n|------|------|\n${rows.join('\n')}`
+      return JSON.stringify({ text })
     }
     case 'query_user_stats': {
       const { total } = await userService.getList({ page: 1, size: 1 })
