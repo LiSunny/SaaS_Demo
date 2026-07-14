@@ -160,46 +160,55 @@ src/api/adapters/
 
 ## 七、工作快照
 
-> 2026-07-10
+> 更新时间：2026-07-14
 
-**当前阶段：** 数据可视化大屏配置功能 — 运营可为企业配置大屏，企业登录后按配置跳转。
+**当前阶段：** AI Agent 文本查询 Phase 1 完成 — 大屏页面可通过文本输入自然语言指令，Agent 自动导航到对应专题页面。
 
 ### 已完成
 
-**大屏配置核心链路：**
-- [x] 数据模型：`Bigscreen` + `BigscreenEnterprise`（多对多关联，Prisma migration）
-- [x] 后端 API：CRUD + 关联企业管理 + 企业端默认查询（3 层架构）
-- [x] 运营管理页：`BigscreenList.vue`（列表 + 新增/编辑抽屉 + 关联企业抽屉）
-- [x] 导航新增：运营管理 → 大屏配置 → 大屏管理（`/admin/bigscreens`）
-- [x] 登录跳转：企业用户登录 → 查默认大屏 → 有则跳大屏，无则工作台
-- [x] 大屏 Header：多屏切换下拉 + 真实登录用户名显示
-- [x] 类型→路由映射：`getBigscreenRoute(type, id)` → `/landing?bigscreenId=5`
-- [x] 移除 DAO Mock：只走 HTTP 真实 API
-- [x] 精简大屏类型：移除 `fire-control` / `street-detail`，只保留 `landing`（消控室/街道详情是大屏内的专题页面，不是独立大屏类型）
+**AI Agent 核心链路：**
+- [x] 后端 Agent 服务（`server/src/services/agent.service.ts`）— DeepSeek LLM 集成 + 本地规则降级
+- [x] SSE 流式控制器（`server/src/controllers/agent.controller.ts`）— 真正 LLM streaming，字级实时输出
+- [x] Agent 路由注册（`server/src/routes/agent.routes.ts`）— `POST /api/agent/chat`，JWT 鉴权
+- [x] 浮动聊天气泡（`src/views/bigscreen/components/AgentFloatingChat.vue`）— 右下角 🤖 按钮，所有大屏页面通用
+- [x] 聊天状态管理（`src/stores/ai-chat.ts`）— Pinia Store，SSE 消费 + 响应式更新
+- [x] 页面别名映射（`src/config/agent-intents.ts`）— 4 个专题页面，含语义别名
+- [x] 挂载到 StandaloneLayout — 大屏子页面全部覆盖
+- [x] DeepSeek 配置规范化（Key 放 `server/.env`，`env.ts` 从环境变量读取）
+- [x] `server/.env` 加入 `.gitignore`，防泄漏
+- [x] Agent 回复限制已放开 — 导航用 JSON，其他自由对话
 
-**UI 规范硬化：**
-- [x] CLAUDE.md 开发规范升级："参考"→"复制全文，CSS 一字不动"
-- [x] memory `ui-component-conventions.md` 升级：加"标准源文件表"+"三不原则"+"标准布局骨架"
-- [x] 表单下拉动态化：从 `BIGSCREEN_TYPE_LABELS` 生成，不手写 `<el-option>`
+**修复记录：**
+- [x] 中文引号导致 JSON 解析失败 → System Prompt 增加禁止双引号规则
+- [x] 伪流式（先等 LLM 完整返回再切块） → 改为真正 `stream: true` + async generator
+- [x] SSE 事件通过原始对象引用修改 → 改为通过 `messages.value[idx]` 走 Vue 响应式代理
 
-### 关键决策
+### 技术要点
 
-- **大屏-企业多对多**：参照 `User ↔ UserEnterprise` 模式，`isDefault` 放在中间表，不同企业可为不同大屏设默认
-- **type 决定模板 + id 通过 URL 传**：`/landing?bigscreenId=5`，type 选 Vue 文件，id 让页面知道自己在展示哪个大屏
-- **大屏类型只有 `landing`**：消控室、街道详情是大屏内的专题页面，路由保留在 `/landing/fire-control` 和 `/landing/street-detail`，由大屏内部导航，不走大屏配置
-- **新增大屏模板只动 4 个文件**：types.ts / templates.ts / router / .vue 页面
+- **LLM**：DeepSeek（`deepseek-chat`），openai 兼容接口，`stream: true` 实时输出
+- **降级**：无 API Key 时自动切换本地关键词匹配（4 个页面 × 多个别名）
+- **导航机制**：SSE `action` 事件 → 前端 `CustomEvent('agent:navigate')` → `router.push` 或 `window.location.href`
+- **聊天 UI**：Teleport to body，浮动在右下角，不受页面布局限制
 
 ### 待处理
 
 | 问题 | 优先级 | 来源 |
 |------|--------|------|
 | 企业成员 CRUD API 完整对接 | P1 | 上次快照遗留 |
+| 大屏内容仍为静态 Mock，无真实数据 | P1 | 本次 — Phase 2 业务数据层 |
+| Agent 升级数据查询（Function Calling） | P2 | 本次 — Phase 3 |
+| 语音控制 | P2 | 本次 — Phase 4，后期 |
 | 填充平台管理分组（路由配置/菜单管理/升级管理） | P2 | 上次快照遗留 |
-| 大屏内容按配置动态渲染（当前仍为静态 Mock 组件） | P2 | 本次 |
-| 其他模块 DAO Mock 是否也移除 | P2 | 本次讨论 |
+
+### 关键决策
+
+- **先 Agent 后数据**：导航零数据依赖，先跑通 Agent 全链路（聊天 UI → SSE → LLM），数据查询后期叠加 Function
+- **浮动气泡而非卡片内嵌**：Teleport to body，所有大屏页面通用，不受单个页面布局限制
+- **LLM 不限制回复范围**：System Prompt 改为导航用 JSON、其他自由对话，Agent 能回答科普、闲聊等各类问题
 
 ### 下次建议动作
 
-1. 真实数据库验证完整链路：运营创建大屏 → 关联企业 → 企业用户登录 → 自动跳转大屏
-2. 让大屏页面根据 `bigscreenId` 展示不同标题/数据（当前组件仍为静态 Mock）
+1. Phase 2：建 Hazard/Alert 数据表 + API + Seed，让大屏组件从 Mock 切换到真实数据
+2. Phase 3：Agent 加 Function Calling（`query_hazard_stats`、`query_hazard_list`），实现"今天有未闭环隐患吗"
+3. 验证完整浏览器端到端流程（需要先配置测试用户的企业+大屏关联数据）
 

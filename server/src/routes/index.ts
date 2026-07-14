@@ -54,6 +54,10 @@ router.use('/api/upload', uploadRouter)
 router.use('/api/admin/bigscreens', bigscreenAdminRouter)
 router.use('/api/user/bigscreens', bigscreenUserRouter)
 
+// ========== AI Agent ==========
+import { agentRouter } from './agent.routes.js'
+router.use('/api/agent', agentRouter)
+
 // ========== 模块路由（后续逐步添加） ==========
 // import { workflowRouter } from './workflow.routes.js'
 // import { workOrderRouter } from './work-order.routes.js'

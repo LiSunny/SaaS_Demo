@@ -1,8 +1,13 @@
 <template>
   <div class="standalone-layout">
     <router-view />
+    <AgentFloatingChat />
   </div>
 </template>
+
+<script setup lang="ts">
+import AgentFloatingChat from '@/views/bigscreen/components/AgentFloatingChat.vue'
+</script>
 
 <!-- 全局非 scoped 样式：vw/vh 变量 + overflow 控制 -->
 <style>

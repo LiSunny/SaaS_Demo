@@ -25,7 +25,9 @@
     "express": "^4.21.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.0",
-    "multer": "^2.2.0"
+    "marked": "^18.0.6",
+    "multer": "^2.2.0",
+    "openai": "^6.46.0"
   },
   "devDependencies": {
     "@types/ali-oss": "^6.23.3",
