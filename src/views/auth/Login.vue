@@ -241,20 +241,18 @@ async function handleLogin() {
     userStore.setLogin(res.token, res.user)
     ElMessage.success('登录成功')
 
-    // 1. 有 ?redirect= 参数 → 优先使用
-    const redirect = route.query.redirect as string
-    if (redirect && redirect !== '/login') {
-      router.replace(redirect)
-      return
-    }
-
-    // 2. 系统角色 → 工作台
+    // 1. 系统角色 → redirect 优先，兜底工作台
     if (res.user.systemRole) {
-      router.replace('/workbench')
+      const redirect = route.query.redirect as string
+      if (redirect && redirect !== '/login') {
+        router.replace(redirect)
+      } else {
+        router.replace('/workbench')
+      }
       return
     }
 
-    // 3. 企业用户 → 查默认大屏
+    // 2. 企业用户 → 查默认大屏（优先级高于 redirect）
     try {
       const defaultScreen = await getUserDefaultBigscreen()
       if (defaultScreen) {
@@ -263,7 +261,14 @@ async function handleLogin() {
       }
     } catch { /* 静默降级 */ }
 
-    // 4. 无大屏 → 工作台
+    // 3. 企业用户无大屏 → redirect 次之（排除 /，避免无限循环）
+    const redirect = route.query.redirect as string
+    if (redirect && redirect !== '/login' && redirect !== '/') {
+      router.replace(redirect)
+      return
+    }
+
+    // 4. 兜底 → 工作台
     router.replace('/workbench')
   } catch (err: any) {
     errorMsg.value = err?.response?.data?.message || err?.message || '登录失败，请重试'
