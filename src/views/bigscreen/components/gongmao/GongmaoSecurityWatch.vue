@@ -8,7 +8,7 @@
           :key="i"
           class="alert-card"
         >
-          <div class="alert-thumb" />
+          <img class="alert-thumb" :src="alertThumbSrc" alt="" />
           <div class="alert-info">
             <span :class="['alert-tag', `alert-tag--${alert.level}`]">
               {{ alert.tag }}
@@ -23,7 +23,7 @@
         <!-- 视频画面 — Figma: 203px 宽 -->
         <div class="monitor-video">
           <div class="video-frame">
-            <div class="video-placeholder" />
+            <img class="video-img" :src="videoFeedSrc" alt="" />
             <div class="video-label">
               <p class="video-label-text">{{ videoName }}</p>
             </div>
@@ -61,6 +61,8 @@
 
 <script setup lang="ts">
 import GongmaoSectionCard from './GongmaoSectionCard.vue'
+import alertThumbSrc from '@/assets/bigscreen/gongmao-rescue-alert-thumb.svg'
+import videoFeedSrc from '@/assets/bigscreen/gongmao-rescue-video-feed.svg'
 
 interface AlertItem {
   tag: string
@@ -145,40 +147,12 @@ const events: EventItem[] = [
 
 /* 缩略图 — Figma: 60×60, rounded 4px */
 .alert-thumb {
+  display: block;
   width: vw(60);
   height: vh(60);
   flex-shrink: 0;
   border-radius: 4px;
-  /* 摄像头画面占位 — 深色渐变模拟监控画面 */
-  background:
-    linear-gradient(
-      135deg,
-      rgba(30, 50, 80, 0.9) 0%,
-      rgba(15, 30, 60, 0.95) 100%
-    );
-  /* 十字准心暗示摄像头视角 */
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: rgba(174, 204, 255, 0.2);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: rgba(174, 204, 255, 0.2);
-  }
+  object-fit: cover;
 }
 
 /* 文字信息 — Figma: flex-col, gap 4px */
@@ -253,46 +227,12 @@ const events: EventItem[] = [
   overflow: hidden;
 }
 
-/* 视频占位图 — 模拟监控画面 */
-.video-placeholder {
+/* 视频画面图片 — Figma 真实截图，覆盖整个 frame */
+.video-img {
+  display: block;
   width: 100%;
   height: 100%;
-  /* 深蓝渐变模拟夜视/监控画面 */
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 40, 70, 0.95) 0%,
-      rgba(10, 25, 50, 0.98) 100%
-    );
-  /* 扫描线效果暗示视频 */
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(174, 204, 255, 0.03) 2px,
-        rgba(174, 204, 255, 0.03) 4px
-      );
-  }
-
-  /* 中央十字 */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: vw(40);
-    height: vh(30);
-    border: 1px solid rgba(174, 204, 255, 0.15);
-    border-radius: 2px;
-  }
+  object-fit: cover;
 }
 
 /* 底部标签覆盖 — Figma: bg rgba(18,18,18,0.58), px 10px, py 4px */
