@@ -577,3 +577,12 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-default); }
+
+/* ========== Element Plus Message 层级修正 ========== */
+/* Agent 聊天面板遮罩 z-index 为 9998，ElMessage 默认较低会被盖住 */
+.el-message {
+  z-index: 10000 !important;
+}
+.el-message__wrapper {
+  z-index: 10000 !important;
+}

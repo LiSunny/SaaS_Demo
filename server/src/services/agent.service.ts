@@ -140,6 +140,15 @@ export interface AgentResponse { type: 'navigate' | 'chat'; pageKey?: string; ro
 export interface StreamEvent { type: 'token'; content: string }
 export interface StreamDoneEvent { type: 'done'; action?: { type: 'navigate'; route: string; pageKey: string } }
 
+/** 文件上下文（前端上传解析后传入） */
+export interface FileContext {
+  url: string
+  fileName: string
+  fileType: string
+  fileSize: number
+  parsedText: string
+}
+
 // ===== 执行工具调用 =====
 async function executeTool(name: string, args: Record<string, any>): Promise<string> {
   switch (name) {
@@ -227,10 +236,11 @@ async function executeTool(name: string, args: Record<string, any>): Promise<str
   }
 }
 
-// ===== 核心：流式调用 LLM（支持 Function Calling） =====
+// ===== 核心：流式调用 LLM（支持 Function Calling + 文件上下文） =====
 export async function* streamChat(
   message: string,
   history: AgentMessage[] = [],
+  fileContext?: FileContext,
 ): AsyncGenerator<StreamEvent | StreamDoneEvent> {
   // 本地降级
   if (!env.DEEPSEEK_API_KEY) {
@@ -238,10 +248,13 @@ export async function* streamChat(
     return
   }
 
+  // 构造用户消息（有文件上下文时嵌入文件内容）
+  const userContent = buildUserMessage(message, fileContext)
+
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: 'system', content: getSystemPrompt() },
     ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-    { role: 'user', content: message },
+    { role: 'user', content: userContent },
   ]
 
   try {
@@ -339,6 +352,28 @@ async function* localFallbackStream(message: string): AsyncGenerator<StreamEvent
 }
 
 // ===== 工具函数 =====
+
+/** 构造用户消息（有文件上下文时嵌入文件内容） */
+function buildUserMessage(message: string, fileContext?: FileContext): string {
+  if (!fileContext) return message
+
+  const sizeText = fileContext.fileSize < 1024
+    ? `${fileContext.fileSize} B`
+    : fileContext.fileSize < 1024 * 1024
+      ? `${(fileContext.fileSize / 1024).toFixed(1)} KB`
+      : `${(fileContext.fileSize / (1024 * 1024)).toFixed(1)} MB`
+
+  return [
+    `用户上传了一个文件「${fileContext.fileName}」（${fileContext.fileType}，${sizeText}）`,
+    ``,
+    `文件内容：`,
+    '```',
+    fileContext.parsedText,
+    '```',
+    ``,
+    message || '请分析这个文件的内容。',
+  ].join('\n')
+}
 
 // 从数据库加载岗位 key → 名称 映射（岗位 key 含 platform:/ent: 前缀，与 UserEnterprise.positions 存储一致）
 async function buildPositionLabelMap(): Promise<Record<string, string>> {

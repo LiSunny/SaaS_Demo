@@ -43,7 +43,17 @@
               {{ msg.role === 'user' ? '👤' : '🤖' }}
             </div>
             <div class="chat-msg-bubble" v-if="msg.role === 'user'">
-              {{ msg.content }}
+              <!-- 文件附件卡片 -->
+              <div v-for="att in msg.attachments" :key="att.url"
+                   class="chat-file-card" @click="openFile(att.url)">
+                <span class="file-card-icon">{{ fileIcon(att.fileName) }}</span>
+                <div class="file-card-info">
+                  <span class="file-card-name">{{ att.fileName }}</span>
+                  <span class="file-card-meta">{{ formatSize(att.fileSize) }}</span>
+                </div>
+                <span class="file-card-dl" title="查看原文件">↗</span>
+              </div>
+              <div v-if="msg.content">{{ msg.content }}</div>
             </div>
             <!-- AI 消息：有内容时渲染 Markdown，空内容时显示加载动画 -->
             <div class="chat-msg-bubble chat-msg-bubble--md" v-else>
@@ -57,27 +67,71 @@
 
         <!-- 输入区 -->
         <div class="chat-footer">
-          <input
-            ref="inputRef"
-            v-model="inputText"
-            class="chat-input"
-            placeholder="问我任何问题，如：有多少个租户？"
-            @keyup.enter="handleSend"
-          />
-          <button
-            v-if="store.isLoading"
-            class="chat-stop-btn"
-            @click="store.stop()"
-          >停止</button>
-          <button
-            v-else
-            class="chat-send-btn"
-            @click="handleSend"
-            :disabled="!inputText.trim()"
-          >发送</button>
+          <!-- 文件预览 Tag -->
+          <div v-if="pendingFile" class="chat-file-tags">
+            <div class="file-tag"
+                 ref="fileTagRef"
+                 :class="{ 'is-uploading': isUploading, 'is-done': !!pendingUpload }"
+                 @mouseenter="onTagEnter"
+                 @mouseleave="onTagLeave">
+              <!-- 上传中：旋转图标 -->
+              <span v-if="isUploading" class="file-tag-spinner"></span>
+              <span v-else class="file-tag-type">{{ fileTypeLabel(pendingFile.name) }}</span>
+              <span class="file-tag-name">{{ pendingFile.name }}</span>
+              <!-- 上传中：进度文字；完成后：大小 -->
+              <span v-if="isUploading" class="file-tag-meta">{{ uploadProgress.toFixed(0) }}%</span>
+              <span v-else class="file-tag-meta">· {{ formatSize(pendingFile.size) }}</span>
+              <button class="file-tag-remove" @click.stop="clearPendingFile">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <!-- 上传中进度条 -->
+            <div v-if="isUploading" class="file-tag-progress">
+              <div class="file-tag-progress-bar" :style="{ width: uploadProgress + '%' }"></div>
+            </div>
+          </div>
+
+          <div class="chat-input-row">
+            <!-- 附件按钮 -->
+            <button class="chat-attach-btn" @click="triggerFileInput"
+                    :disabled="store.isLoading || isUploading" title="上传文件（PDF/图片）">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </button>
+            <input type="file" ref="fileInputRef" hidden
+                   accept=".pdf,.txt,.md,.json,.png,.jpg,.jpeg,.gif,.webp"
+                   @change="handleFileSelected" />
+
+            <input
+              ref="inputRef"
+              v-model="inputText"
+              class="chat-input"
+              :placeholder="pendingFile ? '添加说明文字（可选）...' : '问我任何问题，如：有多少个租户？'"
+              @keyup.enter="handleSend"
+              :disabled="isUploading"
+            />
+            <button
+              v-if="store.isLoading"
+              class="chat-stop-btn"
+              @click="store.stop()"
+            >停止</button>
+            <button
+              v-else
+              class="chat-send-btn"
+              @click="handleSend"
+              :disabled="(!inputText.trim() && !pendingUpload) || isUploading"
+            >发送</button>
+          </div>
         </div>
       </div>
       </div>
+    </div>
+
+    <!-- 图片预览气泡（Teleport 到 body，规避父容器 overflow:hidden 截断） -->
+    <div v-if="showImagePreview && isImageFile(pendingFile?.name || '')" class="file-image-preview" :style="previewStyle">
+      <img :src="pendingPreviewUrl" :alt="pendingFile?.name" />
     </div>
   </Teleport>
 </template>
@@ -86,6 +140,7 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
+import { ElMessage } from 'element-plus'
 
 // 配置 marked
 marked.setOptions({ breaks: true, gfm: true })
@@ -94,13 +149,23 @@ function renderMarkdown(text: string): string {
   if (!text) return ''
   return marked.parse(text) as string
 }
-import { useAiChatStore } from '@/stores/ai-chat'
+import { useAiChatStore, type FileAttachment, type FileUploadResult } from '@/stores/ai-chat'
 
 const store = useAiChatStore()
 const router = useRouter()
 const inputText = ref('')
 const bodyRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLInputElement | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const pendingFile = ref<File | null>(null)
+const pendingUpload = ref<FileUploadResult | null>(null)  // 选完即上传的结果
+const pendingPreviewUrl = ref<string>('')
+const showImagePreview = ref(false)
+const previewStyle = ref<Record<string, string>>({})
+const isUploading = ref(false)
+const uploadProgress = ref(0)  // 上传进度 0-100
+const fileTagRef = ref<HTMLElement | null>(null)
+let previewTimer: ReturnType<typeof setTimeout> | null = null
 
 // 从 URL 读取当前 bigscreenId
 function getCurrentBigscreenId(): number {
@@ -116,12 +181,157 @@ const quickChips = [
   '去消防控制室',
 ]
 
+// ===== 文件相关 =====
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function isImageFile(name: string): boolean {
+  const ext = name.split('.').pop()?.toLowerCase() || ''
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+}
+
+function fileTypeLabel(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() || ''
+  const map: Record<string, string> = {
+    pdf: 'PDF', txt: 'TXT', md: 'MD', json: 'JSON',
+    jpg: 'JPG', jpeg: 'JPEG', png: 'PNG', gif: 'GIF', webp: 'WEBP',
+  }
+  return map[ext] || ext.toUpperCase()
+}
+
+function handleFileSelected(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  // 客户端预检
+  if (file.size > 15 * 1024 * 1024) {
+    ElMessage.warning({ message: '文件大小不能超过 15MB', zIndex: 10000 })
+    return
+  }
+
+  // 释放旧预览 URL + 清除旧上传结果
+  clearPendingFile()
+
+  pendingFile.value = file
+  pendingUpload.value = null
+  uploadProgress.value = 0
+
+  // 图片生成本地预览 URL
+  if (isImageFile(file.name)) {
+    pendingPreviewUrl.value = URL.createObjectURL(file)
+  }
+
+  // 重置 input 使同一文件可再次选择
+  ;(e.target as HTMLInputElement).value = ''
+
+  // 选完立刻上传（不等待点击发送）
+  uploadPendingFile()
+}
+
+async function uploadPendingFile() {
+  if (!pendingFile.value) return
+  isUploading.value = true
+  uploadProgress.value = 0
+
+  try {
+    // 模拟上传进度（fetch 无法精确获取进度时用假进度）
+    const progressTimer = setInterval(() => {
+      if (uploadProgress.value < 90) {
+        uploadProgress.value += Math.random() * 15 + 5
+        if (uploadProgress.value > 90) uploadProgress.value = 90
+      }
+    }, 300)
+
+    const result = await store.uploadFile(pendingFile.value)
+    clearInterval(progressTimer)
+    uploadProgress.value = 100
+    pendingUpload.value = result
+  } catch (err: any) {
+    ElMessage.error({ message: '文件上传失败：' + (err.message || '未知错误'), zIndex: 10000 })
+    clearPendingFile()
+  } finally {
+    isUploading.value = false
+  }
+}
+
+function clearPendingFile() {
+  if (pendingPreviewUrl.value) {
+    URL.revokeObjectURL(pendingPreviewUrl.value)
+    pendingPreviewUrl.value = ''
+  }
+  pendingFile.value = null
+  pendingUpload.value = null
+  uploadProgress.value = 0
+  showImagePreview.value = false
+}
+
+// 长悬停图片预览
+function onTagEnter() {
+  if (previewTimer) clearTimeout(previewTimer)
+  if (isImageFile(pendingFile.value?.name || '')) {
+    previewTimer = setTimeout(() => {
+      // 计算 tag 位置，用 fixed 定位避开父容器 overflow:hidden
+      if (fileTagRef.value) {
+        const rect = fileTagRef.value.getBoundingClientRect()
+        previewStyle.value = {
+          position: 'fixed',
+          bottom: `${window.innerHeight - rect.top + 10}px`,
+          left: `${rect.left + rect.width / 2}px`,
+          transform: 'translateX(-50%)',
+        }
+      }
+      showImagePreview.value = true
+    }, 600)
+  }
+}
+
+function onTagLeave() {
+  if (previewTimer) clearTimeout(previewTimer)
+  showImagePreview.value = false
+}
+
+function fileIcon(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() || ''
+  const map: Record<string, string> = {
+    pdf: '📕',
+    txt: '📄', md: '📝', json: '📄',
+    jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', webp: '🖼️',
+  }
+  return map[ext] || '📎'
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function openFile(url: string) {
+  window.open(url, '_blank')
+}
+
 // ===== 发送消息 =====
 async function handleSend() {
   const text = inputText.value.trim()
-  if (!text || store.isLoading) return
+  if (!text && !pendingUpload.value) return
+  if (store.isLoading || isUploading.value) return
+
+  // 使用已上传完成的结果（无需等待）
+  const uploadResults: FileUploadResult[] | undefined = pendingUpload.value
+    ? [pendingUpload.value]
+    : undefined
+
+  const attachments: FileAttachment[] | undefined = uploadResults?.map(r => ({
+    url: r.url,
+    fileName: r.fileName,
+    fileType: r.fileType,
+    fileSize: r.fileSize,
+  }))
+
   inputText.value = ''
-  await store.sendMessage(text)
+  clearPendingFile()
+  await store.sendMessage(text, attachments, uploadResults)
   await scrollToBottom()
   inputRef.value?.focus()
 }
@@ -190,6 +400,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('agent:navigate', handleNavigate)
+  if (previewTimer) clearTimeout(previewTimer)
+  if (pendingPreviewUrl.value) URL.revokeObjectURL(pendingPreviewUrl.value)
 })
 </script>
 
@@ -459,7 +671,8 @@ onUnmounted(() => {
 /* ===== 输入区 ===== */
 .chat-footer {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 0;
   padding: 10px 14px;
   border-top: 1px solid rgba(86, 240, 244, 0.12);
   flex-shrink: 0;
@@ -528,6 +741,232 @@ onUnmounted(() => {
 
   &:hover {
     background: rgba(255, 71, 87, 0.25);
+  }
+}
+
+/* ===== 文件预览 Tags ===== */
+.chat-file-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.file-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 4px 4px 8px;
+  border-radius: 6px;
+  background: rgba(86, 240, 244, 0.1);
+  font-size: 12px;
+  position: relative;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(86, 240, 244, 0.16);
+  }
+}
+
+.file-tag-type {
+  color: #5a8aaa;
+  background: rgba(86, 240, 244, 0.15);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+/* 上传中旋转动画 */
+.file-tag-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(86, 240, 244, 0.2);
+  border-top-color: #56f0f4;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: tag-spin 0.8s linear infinite;
+}
+
+@keyframes tag-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 上传完成状态 */
+.file-tag.is-done {
+  .file-tag-type { background: rgba(86, 240, 244, 0.2); color: #56f0f4; }
+}
+
+.file-tag-name {
+  color: #c8e4ff;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tag-meta {
+  color: #5a7a9a;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.file-tag-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #7a9bb5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+
+  .file-tag:hover & {
+    opacity: 1;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 71, 87, 0.25);
+    color: #ff6b7a;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* 上传进度条 */
+.file-tag-progress {
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(86, 240, 244, 0.1);
+  overflow: hidden;
+}
+
+.file-tag-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(86, 240, 244, 0.6), #56f0f4);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+/* ===== 图片预览气泡（Teleport to body，fixed 定位避开 overflow:hidden） ===== */
+.file-image-preview {
+  max-width: 280px;
+  max-height: 240px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(86, 240, 244, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10001;
+  background: rgba(0, 24, 52, 0.96);
+  pointer-events: none;
+
+  img {
+    display: block;
+    max-width: 280px;
+    max-height: 240px;
+    object-fit: contain;
+  }
+}
+
+/* ===== 输入行 ===== */
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== 附件按钮 ===== */
+.chat-attach-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(86, 240, 244, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #7a9bb5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(86, 240, 244, 0.4);
+    color: #56f0f4;
+    background: rgba(86, 240, 244, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+/* ===== 文件卡片（消息气泡中） ===== */
+.chat-file-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:last-child { margin-bottom: 0; }
+
+  &:hover {
+    background: rgba(86, 240, 244, 0.1);
+    border-color: rgba(86, 240, 244, 0.25);
+  }
+}
+
+.file-card-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.file-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-card-name {
+  font-size: 12px;
+  color: #c8dff0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-card-meta {
+  font-size: 11px;
+  color: #6a8ea8;
+}
+
+.file-card-dl {
+  font-size: 14px;
+  color: #6a8ea8;
+  flex-shrink: 0;
+  transition: color 0.15s;
+
+  .chat-file-card:hover & {
+    color: #56f0f4;
   }
 }
 

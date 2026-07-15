@@ -7,11 +7,26 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 // ===== 类型 =====
+/** 文件附件（聊天消息中展示） */
+export interface FileAttachment {
+  url: string
+  fileName: string
+  fileType: string
+  fileSize: number
+}
+
+/** 文件上传后服务端返回的完整数据（含解析文本，暂存前端用于发送） */
+export interface FileUploadResult extends FileAttachment {
+  key: string
+  parsedText: string
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
+  attachments?: FileAttachment[]
 }
 
 // ===== 工具 =====
@@ -59,11 +74,39 @@ export const useAiChatStore = defineStore('aiChat', () => {
     isLoading.value = false
   }
 
-  /** 发送消息 */
-  async function sendMessage(text: string) {
-    if (!text.trim() || isLoading.value) return
+  /** 上传文件到 Agent 服务端 → 解析文本 → 返回结果 */
+  async function uploadFile(file: File): Promise<FileUploadResult> {
+    const formData = new FormData()
+    formData.append('file', file)
 
-    messages.value.push({ id: nextId(), role: 'user', content: text })
+    const token = localStorage.getItem('auth_token')
+    const resp = await fetch('/api/agent/upload', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ message: '上传失败' }))
+      throw new Error(err.message || '上传失败')
+    }
+
+    const json = await resp.json()
+    if (json.code !== 0) {
+      throw new Error(json.message || '上传失败')
+    }
+    return json.data as FileUploadResult
+  }
+
+  /** 发送消息 */
+  async function sendMessage(
+    text: string,
+    attachments?: FileAttachment[],
+    fileUploadResults?: FileUploadResult[],
+  ) {
+    if ((!text.trim() && !attachments?.length) || isLoading.value) return
+
+    messages.value.push({ id: nextId(), role: 'user', content: text, attachments })
     const aiMsg: ChatMessage = { id: nextId(), role: 'assistant', content: '', isStreaming: true }
     messages.value.push(aiMsg)
     isLoading.value = true
@@ -76,6 +119,17 @@ export const useAiChatStore = defineStore('aiChat', () => {
     const token = localStorage.getItem('auth_token')
     abortController = new AbortController()
 
+    // 构造 fileContext（取第一个附件，POC 阶段单文件）
+    const fileContext = fileUploadResults?.length
+      ? {
+          url: fileUploadResults[0].url,
+          fileName: fileUploadResults[0].fileName,
+          fileType: fileUploadResults[0].fileType,
+          fileSize: fileUploadResults[0].fileSize,
+          parsedText: fileUploadResults[0].parsedText,
+        }
+      : undefined
+
     try {
       const response = await fetch('/api/agent/chat', {
         method: 'POST',
@@ -83,7 +137,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({ message: text, history, fileContext }),
         signal: abortController.signal,
       })
 
@@ -145,5 +199,5 @@ export const useAiChatStore = defineStore('aiChat', () => {
 
   function reset() { messages.value = []; isLoading.value = false }
 
-  return { messages, isLoading, isOpen, hasNewMessage, toggle, open, close, stop, sendMessage, reset }
+  return { messages, isLoading, isOpen, hasNewMessage, toggle, open, close, stop, sendMessage, uploadFile, reset }
 })

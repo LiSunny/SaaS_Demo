@@ -55,7 +55,10 @@ router.use('/api/admin/bigscreens', bigscreenAdminRouter)
 router.use('/api/user/bigscreens', bigscreenUserRouter)
 
 // ========== AI Agent ==========
+import { agentUploadRouter } from './agent-upload.routes.js'
 import { agentRouter } from './agent.routes.js'
+// 上传路由需在 chat 路由之前注册（Express 按注册顺序匹配）
+router.use('/api/agent', agentUploadRouter)
 router.use('/api/agent', agentRouter)
 
 // ========== 模块路由（后续逐步添加） ==========

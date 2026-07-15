@@ -10,11 +10,20 @@ import type { Request, Response, NextFunction } from 'express'
 import * as agentService from '../services/agent.service.js'
 
 export async function chat(req: Request, res: Response, _next: NextFunction) {
-  const { message, history } = req.body
+  const { message, history, fileContext } = req.body
 
-  if (!message || typeof message !== 'string' || message.trim().length === 0) {
-    res.status(400).json({ code: 400, message: '请输入消息内容', data: null })
+  // 允许纯文件上传不含文字消息，但至少要有 message 或 fileContext
+  const hasText = message && typeof message === 'string' && message.trim().length > 0
+  const hasFile = fileContext && fileContext.parsedText && fileContext.fileName
+
+  if (!hasText && !hasFile) {
+    res.status(400).json({ code: 400, message: '请输入消息内容或上传文件', data: null })
     return
+  }
+
+  // 服务端二次截断 fileContext.parsedText
+  if (fileContext?.parsedText && fileContext.parsedText.length > 100 * 1024) {
+    fileContext.parsedText = fileContext.parsedText.slice(0, 100 * 1024)
   }
 
   // 设置 SSE headers
@@ -28,7 +37,11 @@ export async function chat(req: Request, res: Response, _next: NextFunction) {
   res.write(':ok\n\n')
 
   try {
-    for await (const event of agentService.streamChat(message.trim(), history)) {
+    for await (const event of agentService.streamChat(
+      (message || '').trim(),
+      history,
+      hasFile ? fileContext : undefined,
+    )) {
       if (event.type === 'token') {
         res.write(`event: token\ndata: ${JSON.stringify({ type: 'text', content: event.content })}\n\n`)
       } else if (event.type === 'done') {
