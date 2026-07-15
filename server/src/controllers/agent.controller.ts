@@ -49,6 +49,8 @@ export async function chat(req: Request, res: Response, _next: NextFunction) {
           res.write(`event: action\ndata: ${JSON.stringify(event.action)}\n\n`)
         }
         res.write(`event: done\ndata: ${JSON.stringify({ type: 'done' })}\n\n`)
+      } else if (event.type === 'debug') {
+        res.write(`event: debug\ndata: ${JSON.stringify(event)}\n\n`)
       }
     }
     res.end()

@@ -29,6 +29,17 @@ export interface ChatMessage {
   attachments?: FileAttachment[]
 }
 
+/** 调试日志单条事件 */
+export interface DebugEvent {
+  node: string
+  label: string
+  io: 'input' | 'output' | 'info' | 'error'
+  summary: string
+  detail?: any
+  // 前端补的时间戳
+  receivedAt: number
+}
+
 // ===== 工具 =====
 let msgIdCounter = 0
 function nextId(): string { return `msg-${Date.now()}-${++msgIdCounter}` }
@@ -54,6 +65,8 @@ export const useAiChatStore = defineStore('aiChat', () => {
   const isLoading = ref(false)
   const isOpen = ref(false)
   const hasNewMessage = ref(false)
+  const debugEvents = ref<DebugEvent[]>([])
+  const debugOpen = ref(false)  // 调试面板是否展开
   let abortController: AbortController | null = null
 
   function toggle() { isOpen.value = !isOpen.value; if (isOpen.value) hasNewMessage.value = false }
@@ -110,6 +123,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
     const aiMsg: ChatMessage = { id: nextId(), role: 'assistant', content: '', isStreaming: true }
     messages.value.push(aiMsg)
     isLoading.value = true
+    debugEvents.value = []  // 新消息 → 清空调试日志
 
     const history = messages.value
       .filter(m => !m.isStreaming && m.id !== aiMsg.id)
@@ -179,6 +193,15 @@ export const useAiChatStore = defineStore('aiChat', () => {
               messages.value[idx].content = cleanNavJson(rawText)
             } else if (eventType === 'action' && data.type === 'navigate' && data.route) {
               window.dispatchEvent(new CustomEvent('agent:navigate', { detail: { route: data.route } }))
+            } else if (eventType === 'debug') {
+              debugEvents.value.push({
+                node: data.node,
+                label: data.label,
+                io: data.io,
+                summary: data.summary,
+                detail: data.detail,
+                receivedAt: Date.now(),
+              })
             } else if (eventType === 'error') {
               messages.value[idx].content = data.message || '处理请求时出错'
             }
@@ -199,5 +222,5 @@ export const useAiChatStore = defineStore('aiChat', () => {
 
   function reset() { messages.value = []; isLoading.value = false }
 
-  return { messages, isLoading, isOpen, hasNewMessage, toggle, open, close, stop, sendMessage, uploadFile, reset }
+  return { messages, isLoading, isOpen, hasNewMessage, debugEvents, debugOpen, toggle, open, close, stop, sendMessage, uploadFile, reset }
 })

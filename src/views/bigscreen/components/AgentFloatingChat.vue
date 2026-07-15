@@ -14,13 +14,23 @@
 
       <!-- ===== 展开态：遮罩 + 居中面板 ===== -->
       <div v-if="store.isOpen" class="chat-overlay" @click.self="store.close()">
-        <div class="chat-panel">
+        <div class="chat-panel" :class="{ 'has-debug': store.debugOpen }">
         <!-- 头部 -->
         <div class="chat-header">
           <span class="chat-header-title">韧性AI助手</span>
-          <button class="chat-header-close" @click="store.close()">✕</button>
+          <div class="chat-header-actions">
+            <button
+              class="chat-header-debug-btn"
+              :class="{ active: store.debugOpen }"
+              @click="store.debugOpen = !store.debugOpen"
+              :title="store.debugOpen ? '关闭调试日志' : '打开调试日志'"
+            >🐛</button>
+            <button class="chat-header-close" @click="store.close()">✕</button>
+          </div>
         </div>
 
+        <!-- 主体区：消息列表 + 调试面板 -->
+        <div class="chat-main">
         <!-- 消息列表 -->
         <div class="chat-body" ref="bodyRef">
           <!-- 欢迎消息 -->
@@ -64,6 +74,44 @@
             </div>
           </div>
         </div>
+
+        <!-- 调试面板 -->
+        <div v-if="store.debugOpen" class="chat-debug-panel">
+          <div class="debug-header">
+            <span class="debug-title">🔍 调用时间线</span>
+            <span class="debug-count">{{ store.debugEvents.length }} 个节点</span>
+          </div>
+          <div class="debug-body" ref="debugBodyRef">
+            <div v-if="store.debugEvents.length === 0" class="debug-empty">
+              <span class="debug-empty-icon">📡</span>
+              <span>发送消息后，此处将显示完整的调用流程</span>
+            </div>
+            <div
+              v-for="(evt, idx) in store.debugEvents"
+              :key="idx"
+              :class="['debug-node', `debug-node--${evt.io}`]"
+            >
+              <!-- 时间线竖线 + 圆点 -->
+              <div class="debug-timeline">
+                <div class="debug-dot" :class="`dot--${evt.io}`"></div>
+                <div v-if="idx < store.debugEvents.length - 1" class="debug-line"></div>
+              </div>
+              <!-- 节点内容 -->
+              <div class="debug-node-content">
+                <div class="debug-node-head" @click="toggleDebugDetail(idx)">
+                  <span class="debug-node-label">{{ evt.label }}</span>
+                  <span class="debug-node-summary">{{ evt.summary }}</span>
+                  <span v-if="evt.detail && Object.keys(evt.detail).length" class="debug-expand">{{ expandedDebug.has(idx) ? '▾' : '▸' }}</span>
+                </div>
+                <!-- 可展开详情 -->
+                <div v-if="evt.detail && expandedDebug.has(idx)" class="debug-node-detail">
+                  <pre class="debug-json">{{ formatDebugDetail(evt.detail) }}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div><!-- /chat-main -->
 
         <!-- 输入区 -->
         <div class="chat-footer">
@@ -110,7 +158,6 @@
               class="chat-input"
               :placeholder="pendingFile ? '添加说明文字（可选）...' : '问我任何问题，如：有多少个租户？'"
               @keyup.enter="handleSend"
-              :disabled="isUploading"
             />
             <button
               v-if="store.isLoading"
@@ -137,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { ElMessage } from 'element-plus'
@@ -155,6 +202,7 @@ const store = useAiChatStore()
 const router = useRouter()
 const inputText = ref('')
 const bodyRef = ref<HTMLElement | null>(null)
+const debugBodyRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLInputElement | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const pendingFile = ref<File | null>(null)
@@ -363,6 +411,33 @@ watch(() => store.messages.length, async () => {
   await scrollToBottom()
 })
 
+// ===== 调试面板 =====
+const expandedDebug = reactive(new Set<number>())
+
+function toggleDebugDetail(idx: number) {
+  if (expandedDebug.has(idx)) {
+    expandedDebug.delete(idx)
+  } else {
+    expandedDebug.add(idx)
+  }
+}
+
+function formatDebugDetail(detail: any): string {
+  try {
+    return JSON.stringify(detail, null, 2)
+  } catch {
+    return String(detail)
+  }
+}
+
+// 调试事件更新时自动滚到底部
+watch(() => store.debugEvents.length, async () => {
+  await nextTick()
+  if (debugBodyRef.value) {
+    debugBodyRef.value.scrollTop = debugBodyRef.value.scrollHeight
+  }
+})
+
 // ===== 监听导航事件 =====
 function handleNavigate(e: Event) {
   const detail = (e as CustomEvent).detail as { route: string }
@@ -487,6 +562,20 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: width 0.25s ease, max-width 0.25s ease;
+
+  &.has-debug {
+    width: 82vw;
+    max-width: 1300px;
+  }
+}
+
+/* ===== 主体区（聊天 + 调试面板） ===== */
+.chat-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* ===== 头部 ===== */
@@ -499,10 +588,44 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .chat-header-title {
   font-size: 15px;
   font-weight: 600;
   color: #e0f4ff;
+}
+
+.chat-header-debug-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(86, 240, 244, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: #7a9bb5;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(86, 240, 244, 0.1);
+    color: #56f0f4;
+    border-color: rgba(86, 240, 244, 0.3);
+  }
+
+  &.active {
+    background: rgba(86, 240, 244, 0.15);
+    color: #56f0f4;
+    border-color: rgba(86, 240, 244, 0.4);
+    box-shadow: 0 0 8px rgba(86, 240, 244, 0.2);
+  }
 }
 
 .chat-header-close {
@@ -544,6 +667,184 @@ onUnmounted(() => {
     background: rgba(86, 240, 244, 0.15);
     border-radius: 2px;
   }
+}
+
+/* ===== 调试面板 ===== */
+.chat-debug-panel {
+  width: 380px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(86, 240, 244, 0.12);
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(86, 240, 244, 0.08);
+  flex-shrink: 0;
+}
+
+.debug-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8ec8f0;
+}
+
+.debug-count {
+  font-size: 10px;
+  color: #5a7a9a;
+  background: rgba(86, 240, 244, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.debug-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(86, 240, 244, 0.12);
+    border-radius: 2px;
+  }
+}
+
+.debug-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  color: #5a7a9a;
+  font-size: 12px;
+}
+
+.debug-empty-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+/* ===== 调试节点 ===== */
+.debug-node {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+
+  &--input  .debug-node-summary { color: #8ec8f0; }
+  &--output .debug-node-summary { color: #56f0f4; }
+  &--info   .debug-node-summary { color: #7a9bb5; }
+  &--error  .debug-node-summary { color: #ff6b7a; }
+}
+
+.debug-timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 14px;
+}
+
+.debug-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+
+  &.dot--input  { background: #8ec8f0; box-shadow: 0 0 4px rgba(142, 200, 240, 0.4); }
+  &.dot--output { background: #56f0f4; box-shadow: 0 0 6px rgba(86, 240, 244, 0.5); }
+  &.dot--info   { background: #5a7a9a; }
+  &.dot--error  { background: #ff6b7a; box-shadow: 0 0 4px rgba(255, 107, 122, 0.5); }
+}
+
+.debug-line {
+  width: 1px;
+  flex: 1;
+  background: rgba(86, 240, 244, 0.1);
+  min-height: 8px;
+}
+
+.debug-node-content {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.debug-node-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+  cursor: default;
+  padding: 2px 0;
+}
+
+.debug-node-label {
+  font-weight: 600;
+  color: #b8d8f0;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.debug-node-summary {
+  font-size: 10px;
+  word-break: break-word;
+}
+
+.debug-expand {
+  font-size: 9px;
+  color: #5a7a9a;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0 3px;
+  transition: color 0.15s;
+
+  .debug-node-head:hover & {
+    color: #8ec8f0;
+  }
+}
+
+.debug-node-detail {
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: 1px solid rgba(86, 240, 244, 0.08);
+  overflow: auto;
+  max-height: 200px;
+
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(86, 240, 244, 0.15);
+    border-radius: 2px;
+  }
+}
+
+.debug-json {
+  margin: 0;
+  font-family: 'SF Mono', 'Cascadia Code', 'Menlo', monospace;
+  font-size: 10px;
+  line-height: 1.45;
+  color: #c8dff0;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* ===== 欢迎区 ===== */

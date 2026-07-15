@@ -140,6 +140,16 @@ export interface AgentResponse { type: 'navigate' | 'chat'; pageKey?: string; ro
 export interface StreamEvent { type: 'token'; content: string }
 export interface StreamDoneEvent { type: 'done'; action?: { type: 'navigate'; route: string; pageKey: string } }
 
+/** 调试日志事件：记录调用流程中每个节点的输入/输出 */
+export interface StreamDebugEvent {
+  type: 'debug'
+  node: string       // 机器可读的节点名，如 'request'、'llm_call_1'
+  label: string      // 人类可读标签
+  io: 'input' | 'output' | 'info' | 'error'
+  summary: string    // 单行摘要
+  detail?: any       // 可展开的结构化详情
+}
+
 /** 文件上下文（前端上传解析后传入） */
 export interface FileContext {
   url: string
@@ -236,30 +246,75 @@ async function executeTool(name: string, args: Record<string, any>): Promise<str
   }
 }
 
+// ===== 调试事件辅助 =====
+const T0 = Symbol('t0')
+function since(t0: number): string { return `${Date.now() - t0}ms` }
+
+function debugEvent(node: string, label: string, io: StreamDebugEvent['io'], summary: string, detail?: any, t0?: number): StreamDebugEvent {
+  const ts = Date.now()
+  const prefix = t0 !== undefined ? `[+${since(t0)}] ` : ''
+  return { type: 'debug', node, label, io, summary: prefix + summary, detail }
+}
+
 // ===== 核心：流式调用 LLM（支持 Function Calling + 文件上下文） =====
 export async function* streamChat(
   message: string,
   history: AgentMessage[] = [],
   fileContext?: FileContext,
-): AsyncGenerator<StreamEvent | StreamDoneEvent> {
+): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent> {
+  const t0 = Date.now()
+
+  // ===== 节点 1：收到请求 =====
+  yield debugEvent('request', '📥 收到请求', 'info',
+    `消息: "${message.slice(0, 80)}${message.length > 80 ? '…' : ''}"`,
+    {
+      原始消息: message,
+      历史消息数: history.length,
+      包含文件: !!fileContext,
+      文件信息: fileContext ? { 名称: fileContext.fileName, 类型: fileContext.fileType, 大小: fileContext.fileSize } : undefined,
+    }, t0)
+
   // 本地降级
   if (!env.DEEPSEEK_API_KEY) {
-    yield* localFallbackStream(message)
+    yield debugEvent('fallback_check', '⚠️ 降级模式', 'info',
+      '未配置 DEEPSEEK_API_KEY，使用本地规则匹配', { 原因: 'no_api_key' }, t0)
+    yield* localFallbackStream(message, t0)
     return
   }
 
   // 构造用户消息（有文件上下文时嵌入文件内容）
   const userContent = buildUserMessage(message, fileContext)
+  const systemPrompt = getSystemPrompt()
+
+  // ===== 节点 2：系统提示词 =====
+  yield debugEvent('system_prompt', '📋 系统提示词', 'info',
+    `已加载（${systemPrompt.length} 字符，${TOOLS.length} 个工具定义）`,
+    {
+      提示词长度: systemPrompt.length,
+      工具数量: TOOLS.length,
+      工具列表: TOOLS.map(t => (t as any).function?.name).filter(Boolean),
+    }, t0)
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: 'system', content: getSystemPrompt() },
+    { role: 'system', content: systemPrompt },
     ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: userContent },
   ]
 
+  // ===== 节点 3：LLM 调用 #1（带 tools） =====
+  yield debugEvent('llm_call_1', '🤖 LLM 调用 #1（工具决策）', 'input',
+    `模型: ${LLM_DEFAULTS.model}，温度: ${LLM_DEFAULTS.temperature}，${messages.length} 条消息`,
+    {
+      参数: { model: LLM_DEFAULTS.model, temperature: LLM_DEFAULTS.temperature, max_tokens: LLM_DEFAULTS.max_tokens },
+      消息数: messages.length,
+      消息角色链: messages.map(m => m.role),
+      工具数: TOOLS.length,
+    }, t0)
+
   try {
     // 直接让 LLM 决定是否调用工具（tool_choice: 'auto'），不再用正则初筛
     {
+      const t1 = Date.now()
       // 先尝试工具调用（数据查询）
       const resp1 = await getClient().chat.completions.create({
         ...LLM_DEFAULTS,
@@ -267,28 +322,100 @@ export async function* streamChat(
         tools: TOOLS,
         tool_choice: 'auto',
       })
+
+      // ===== 节点 4：LLM 响应 #1 =====
+      const finishReason1 = resp1.choices[0]?.finish_reason
+      const usage1 = (resp1 as any).usage
       const toolCalls = resp1.choices[0]?.message?.tool_calls
+
+      yield debugEvent('llm_call_1_response', '🤖 LLM 响应 #1', 'output',
+        toolCalls?.length
+          ? `finish_reason: ${finishReason1}，选中 ${toolCalls.length} 个工具调用，耗时 ${Date.now() - t1}ms`
+          : `finish_reason: ${finishReason1}，直接文本回复（无工具调用），耗时 ${Date.now() - t1}ms`,
+        {
+          finish_reason: finishReason1,
+          token用量: usage1 ? { prompt: usage1.prompt_tokens, completion: usage1.completion_tokens, total: usage1.total_tokens } : undefined,
+          工具调用: toolCalls?.map((tc: any) => ({
+            名称: tc.function?.name,
+            参数: tc.function?.arguments ? JSON.parse(tc.function.arguments) : undefined,
+            调用ID: tc.id,
+          })),
+          耗时ms: Date.now() - t1,
+        }, t0)
+
       if (toolCalls && toolCalls.length > 0) {
         messages.push(resp1.choices[0].message)
         for (const tc of toolCalls) {
           const fn = (tc as any).function
+          const fnName = fn?.name || ''
           const args = JSON.parse(fn?.arguments || '{}')
-          const result = await executeTool(fn?.name || '', args)
+
+          // ===== 节点 5：工具执行 =====
+          const tTool = Date.now()
+          const result = await executeTool(fnName, args)
+          yield debugEvent('tool_exec', '🔧 工具调用', 'output',
+            `${fnName}(${JSON.stringify(args)})，耗时 ${Date.now() - tTool}ms`,
+            {
+              工具名: fnName,
+              参数: args,
+              结果预览: result.slice(0, 500) + (result.length > 500 ? '…' : ''),
+              结果长度: result.length,
+              耗时ms: Date.now() - tTool,
+            }, t0)
+
           messages.push({ role: 'tool', tool_call_id: tc.id, content: result })
         }
+
+        // ===== 节点 6：LLM 调用 #2（带工具结果，流式） =====
+        yield debugEvent('llm_call_2', '🤖 LLM 调用 #2（汇总回复）', 'input',
+          `${messages.length} 条消息（含工具结果），流式输出`,
+          {
+            参数: { model: LLM_DEFAULTS.model, temperature: LLM_DEFAULTS.temperature, stream: true },
+            消息数: messages.length,
+            消息角色链: messages.map(m => m.role),
+          }, t0)
+
+        const t2 = Date.now()
+        let fullText2 = ''
         const stream2 = await getClient().chat.completions.create({
           ...LLM_DEFAULTS, messages, stream: true,
         })
         for await (const chunk of stream2) {
           const delta = chunk.choices[0]?.delta?.content
-          if (delta) yield { type: 'token', content: delta }
+          if (delta) {
+            fullText2 += delta
+            yield { type: 'token', content: delta }
+          }
         }
+
+        // ===== 节点 7：LLM 响应 #2 完成 =====
+        yield debugEvent('llm_call_2_response', '🤖 LLM 响应 #2', 'output',
+          `流式完成，共 ${fullText2.length} 字符，耗时 ${Date.now() - t2}ms`,
+          {
+            回复预览: fullText2.slice(0, 300) + (fullText2.length > 300 ? '…' : ''),
+            回复长度: fullText2.length,
+            耗时ms: Date.now() - t2,
+          }, t0)
+
+        yield debugEvent('done', '✅ 完成', 'info',
+          `总耗时 ${since(t0)}`,
+          { 总耗时ms: Date.now() - t0 }, t0)
+
         yield { type: 'done' }
         return
       }
     }
 
     // 导航和普通对话：流式调用（无 tools）
+    // ===== 节点 8：LLM 直接流式调用 =====
+    yield debugEvent('llm_direct', '🤖 LLM 直接回复（无工具）', 'input',
+      `${messages.length} 条消息，流式输出`,
+      {
+        参数: { model: LLM_DEFAULTS.model, temperature: LLM_DEFAULTS.temperature, stream: true },
+        消息数: messages.length,
+      }, t0)
+
+    const tStream = Date.now()
     const stream1 = await getClient().chat.completions.create({
       ...LLM_DEFAULTS,
       messages,
@@ -302,28 +429,57 @@ export async function* streamChat(
         yield { type: 'token', content: delta }
       }
     }
+
+    // ===== 节点 9：流式完成 + 导航解析 =====
     const navAction = parseAction(fullText)
+    yield debugEvent('llm_direct_response', '🤖 直接回复完成', 'output',
+      navAction
+        ? `流式完成（${fullText.length} 字符），识别到导航意图 → ${navAction.pageKey}，耗时 ${Date.now() - tStream}ms`
+        : `流式完成（${fullText.length} 字符），无导航意图，耗时 ${Date.now() - tStream}ms`,
+      {
+        回复预览: fullText.slice(0, 300) + (fullText.length > 300 ? '…' : ''),
+        回复长度: fullText.length,
+        导航识别: navAction || null,
+        耗时ms: Date.now() - tStream,
+      }, t0)
+
+    yield debugEvent('done', '✅ 完成', 'info',
+      `总耗时 ${since(t0)}`,
+      { 总耗时ms: Date.now() - t0 }, t0)
+
     yield { type: 'done', action: navAction }
 
   } catch (err: any) {
+    // ===== 节点 E：LLM 异常降级 =====
+    yield debugEvent('llm_error', '❌ LLM 调用失败', 'error',
+      `错误: ${err.message}，降级到本地规则`,
+      { 错误类型: err.name, 错误信息: err.message }, t0)
+
     console.error('[agent] DeepSeek 调用失败:', err.message)
-    yield* localFallbackStream(message)
+    yield* localFallbackStream(message, t0)
   }
 }
 
 // ===== 本地规则降级流式版本 =====
-async function* localFallbackStream(message: string): AsyncGenerator<StreamEvent | StreamDoneEvent> {
+async function* localFallbackStream(message: string, t0?: number): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent> {
   const text = message.toLowerCase()
+  const start = t0 ?? Date.now()
 
   // 导航匹配
   for (const [pageKey, page] of Object.entries(PAGE_ALIASES)) {
     for (const alias of page.aliases) {
       if (text.includes(alias)) {
+        yield debugEvent('fallback_nav', '🔀 本地匹配 → 导航', 'info',
+          `匹配别名 "${alias}" → ${page.route}`,
+          { 匹配关键词: alias, 目标路由: page.route, 页面Key: pageKey }, start)
         const reply = `好的，正在为你打开${alias}页面`
         for (let i = 0; i < reply.length; i += 2) {
           yield { type: 'token', content: reply.slice(i, i + 2) }
           await sleep(15)
         }
+        yield debugEvent('done', '✅ 完成（本地降级）', 'info',
+          `总耗时 ${since(start)}`,
+          { 总耗时ms: Date.now() - start, 模式: 'local_fallback' }, start)
         yield { type: 'done', action: { type: 'navigate', route: page.route, pageKey } }
         return
       }
@@ -332,22 +488,33 @@ async function* localFallbackStream(message: string): AsyncGenerator<StreamEvent
 
   // 数据查询：本地降级也能查
   if (text.includes('租户') || text.includes('企业') && (text.includes('多少') || text.includes('几个'))) {
+    yield debugEvent('fallback_query', '🔀 本地匹配 → 数据查询', 'info',
+      '关键词匹配"租户/企业"+"多少/几个"',
+      { 匹配模式: 'enterprise_count' }, start)
     const { total } = await enterpriseService.getList({ page: 1, size: 1 })
     const reply = `目前平台共有 ${total} 个租户。`
     for (let i = 0; i < reply.length; i += 2) {
       yield { type: 'token', content: reply.slice(i, i + 2) }
       await sleep(15)
     }
+    yield debugEvent('done', '✅ 完成（本地降级）', 'info',
+      `总耗时 ${since(start)}`,
+      { 总耗时ms: Date.now() - start, 模式: 'local_fallback' }, start)
     yield { type: 'done' }
     return
   }
 
   // 默认
+  yield debugEvent('fallback_default', '🔀 本地匹配 → 默认回复', 'info',
+    '未匹配任何规则，返回默认帮助文本', {}, start)
   const reply = '我是大屏AI助手，可以帮你：\n1. 查询数据（如"有多少个租户"）\n2. 导航页面（如"打开商业街专题"）\n3. 自由对话\n\n试试看吧！'
   for (let i = 0; i < reply.length; i += 2) {
     yield { type: 'token', content: reply.slice(i, i + 2) }
     await sleep(15)
   }
+  yield debugEvent('done', '✅ 完成（本地降级）', 'info',
+    `总耗时 ${since(start)}`,
+    { 总耗时ms: Date.now() - start, 模式: 'local_fallback' }, start)
   yield { type: 'done' }
 }
 
