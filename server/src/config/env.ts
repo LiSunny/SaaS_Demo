@@ -17,4 +17,5 @@ export const env = {
   // DeepSeek API（openai 兼容接口），Key 请在 server/.env 中配置
   DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY || '',
   DEEPSEEK_BASE_URL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
+  DEEPSEEK_MODEL: process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash',
 }

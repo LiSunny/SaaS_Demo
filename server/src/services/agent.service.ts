@@ -9,8 +9,10 @@
 
 import OpenAI from 'openai'
 import { env } from '../config/env.js'
+import { loadSystemPrompt } from '../config/agent-prompt-loader.js'
 import * as enterpriseService from './enterprise.service.js'
 import * as userService from './user.service.js'
+import * as positionService from './position.service.js'
 
 // ===== 页面别名映射 =====
 const PAGE_ALIASES: Record<string, { route: string; aliases: string[] }> = {
@@ -20,53 +22,38 @@ const PAGE_ALIASES: Record<string, { route: string; aliases: string[] }> = {
   'gongmao':        { route: '/gongmao',                  aliases: ['工贸安全', '工贸驾驶舱', '工贸企业', '安全生产驾驶舱', '驾驶舱', '工贸'] },
 }
 
-// ===== System Prompt =====
-const SYSTEM_PROMPT = `你是"人工智能+企业安全"平台的大屏 AI 助手。你可以和用户自由对话，回答关于平台数据的各种问题。
-
-## 数据查询能力
-
-你可以查询平台中的真实数据，包括：
-- **租户（企业）**：租户数量、行业分类、地区分布等
-- **用户**：用户数量、角色分布等
-- **岗位**：岗位列表
-
-当用户询问数据相关的问题时（如"有多少个租户"、"都是什么行业"），使用工具函数查询真实数据，然后将结果用自然语言组织给用户。
-
-## 页面导航
-
-当用户想要打开某个页面时，返回导航 JSON：
-\`\`\`json
-{ "type": "navigate", "pageKey": "street-detail", "reply": "好的，正在为你打开..." }
-\`\`\`
-
-可用页面：${Object.keys(PAGE_ALIASES).join('、')}
-${buildPageListText()}
-
-## 回复规则
-- 用户想导航 → 返回上面的 JSON
-- 用户问数据 → 调用工具查询，然后基于工具返回的数据回复
-- 其他问题 → 直接自然语言回复
-- 友好、简洁
-
-## 【重要】数据回复铁律
-1. 工具返回的 text 字段是预先格式化好的真实数据，直接输出它，不要修改、不要重写、不要补充
-2. 绝对不编造任何企业名称、数字、行业分类
-3. 如果工具返回的 text 里写的是未分类，就如实说未分类，不要自行推测
-4. 可以在 text 前后加一句简短引导语，但数据部分一字不改`
+// ===== System Prompt（从 Markdown 文件加载） =====
+function getSystemPrompt(): string {
+  return loadSystemPrompt({ pageList: buildPageListText() })
+}
 
 // ===== 工具定义 =====
 const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      // 工具名称：查询租户列表
       name: 'query_enterprise_list',
+      // 工具说明：查询租户（企业）的详细列表，返回企业名称、行业分类、地区等信息。
+      // 触发场景：当用户要"列出所有租户"、"租户清单"、"有哪些企业"时使用此工具。
       description: '查询租户（企业）的详细列表，返回企业名称、行业分类、地区等信息。当用户要"列出所有租户"、"租户清单"、"有哪些企业"时使用此工具',
       parameters: {
         type: 'object',
         properties: {
+          // dimB：行业分类筛选维度
+          //   - 类型：string
+          //   - 可选值：'工贸企业' | '教育行业' | '社区物业' | '其他'
+          //   - 作用：按行业筛选返回的企业列表；不传（或为空）则返回全部行业
+          //   - 注意：取值需严格匹配上述枚举，拼写不一致会导致筛选无效
           dimB: { type: 'string', description: '按行业筛选，可选：工贸企业、教育行业、社区物业、其他。不传则返回全部' },
+          // keyword：企业名称关键词
+          //   - 类型：string
+          //   - 作用：按企业名称进行模糊搜索（包含匹配）；不传（或为空）则返回全部
+          //   - 注意：与 dimB 可组合使用，先按行业筛选再按名称搜索
           keyword: { type: 'string', description: '按名称搜索关键词，不传则返回全部' },
         },
+        // 必填字段：本工具所有参数均为可选，dimB 与 keyword 至少可单独或组合使用
+        required: [],
       },
     },
   },
@@ -87,8 +74,16 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'query_user_stats',
-      description: '查询平台用户统计数据，包括总用户数',
-      parameters: { type: 'object', properties: {} },
+      description: '查询平台用户数据。不传 keyword 时返回平台总用户数；传入 keyword（手机号或姓名关键词）时，查询匹配用户并展示其关联企业及关联岗位信息。当用户问"用户关联了哪些岗位"、"某用户关联了哪家企业"、"用户统计"时使用此工具',
+      parameters: {
+        type: 'object',
+        properties: {
+          // keyword：用户手机号或姓名关键词
+          //   - 类型：string
+          //   - 作用：按手机号或姓名模糊匹配用户；不传（或为空）则返回平台总用户数
+          keyword: { type: 'string', description: '按手机号或姓名搜索用户。不传则返回平台总用户数' },
+        },
+      },
     },
   },
   {
@@ -100,6 +95,8 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     },
   },
 ]
+
+// 岗位标签映射从数据库动态加载（见 buildPositionLabelMap），不写死
 
 // 这些行业分类来自 enterprise.service.ts 的 DIM_B_OPTIONS
 const DIM_B_LABELS: Record<string, string> = {
@@ -123,6 +120,9 @@ const client = new OpenAI({
   apiKey: env.DEEPSEEK_API_KEY || '',
   baseURL: env.DEEPSEEK_BASE_URL,
 })
+
+// 模型与默认请求参数集中管理（model 可在 .env 的 DEEPSEEK_MODEL 中覆盖）
+const LLM_DEFAULTS = { model: env.DEEPSEEK_MODEL, temperature: 0.7, max_tokens: 1024 }
 
 // ===== 类型 =====
 export interface AgentMessage { role: 'user' | 'assistant'; content: string }
@@ -166,6 +166,39 @@ async function executeTool(name: string, args: Record<string, any>): Promise<str
       return JSON.stringify({ text })
     }
     case 'query_user_stats': {
+      // 传入 keyword：查询指定用户的关联岗位与企业信息
+      if (args.keyword) {
+        const { data } = await userService.getList({ page: 1, size: 100, keyword: args.keyword })
+        if (data.length === 0) return JSON.stringify({ text: '没有找到匹配的用户。' })
+
+        // 从数据库加载岗位 key → 名称 映射（含 platform:/ent: 前缀）
+        const labelMap = await buildPositionLabelMap()
+        const labelOf = (k: string) => labelMap[k] || k
+
+        const blocks: string[] = []
+        for (const u of data) {
+          const enterprises = await userService.getUserEnterprises(u.id)
+          const positions = new Set<string>()
+          for (const e of enterprises) {
+            for (const p of (e.positions || [])) positions.add(labelOf(p))
+          }
+          const entLines = enterprises.length
+            ? enterprises
+                .map(e => `- ${e.enterpriseName}（岗位：${(e.positions || []).map((p: string) => labelOf(p)).join('、') || '无'}）`)
+                .join('\n')
+            : '（无关联企业）'
+          blocks.push(
+            `**${u.realName || u.phone}**（${u.phone}）\n` +
+            `- 关联企业数：${enterprises.length}\n` +
+            `- 关联岗位：${[...positions].join('、') || '无'}\n` +
+            `${entLines}`,
+          )
+        }
+        const text = blocks.join('\n\n')
+        return JSON.stringify({ text })
+      }
+
+      // 默认：平台用户统计
       const { total } = await userService.getList({ page: 1, size: 1 })
       return JSON.stringify({ total })
     }
@@ -197,23 +230,18 @@ export async function* streamChat(
   }
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: getSystemPrompt() },
     ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: message },
   ]
 
   try {
-    // 预判：用户问题是否很可能需要查数据
-    const dataKeywords = /多少|几个|有哪些|列表|列出|统计|什么行业|哪个|查询|几个租户|几个用户|岗位/
-    const likelyDataQuery = dataKeywords.test(message)
-
-    if (likelyDataQuery) {
+    // 直接让 LLM 决定是否调用工具（tool_choice: 'auto'），不再用正则初筛
+    {
       // 先尝试工具调用（数据查询）
       const resp1 = await client.chat.completions.create({
-        model: 'deepseek-chat',
+        ...LLM_DEFAULTS,
         messages,
-        temperature: 0.7,
-        max_tokens: 1024,
         tools: TOOLS,
         tool_choice: 'auto',
       })
@@ -227,7 +255,7 @@ export async function* streamChat(
           messages.push({ role: 'tool', tool_call_id: tc.id, content: result })
         }
         const stream2 = await client.chat.completions.create({
-          model: 'deepseek-chat', messages, temperature: 0.7, max_tokens: 1024, stream: true,
+          ...LLM_DEFAULTS, messages, stream: true,
         })
         for await (const chunk of stream2) {
           const delta = chunk.choices[0]?.delta?.content
@@ -240,10 +268,8 @@ export async function* streamChat(
 
     // 导航和普通对话：流式调用（无 tools）
     const stream1 = await client.chat.completions.create({
-      model: 'deepseek-chat',
+      ...LLM_DEFAULTS,
       messages,
-      temperature: 0.7,
-      max_tokens: 1024,
       stream: true,
     })
     let fullText = ''
@@ -304,6 +330,14 @@ async function* localFallbackStream(message: string): AsyncGenerator<StreamEvent
 }
 
 // ===== 工具函数 =====
+
+// 从数据库加载岗位 key → 名称 映射（岗位 key 含 platform:/ent: 前缀，与 UserEnterprise.positions 存储一致）
+async function buildPositionLabelMap(): Promise<Record<string, string>> {
+  const { data } = await positionService.getList({ page: 1, size: 9999 })
+  const map: Record<string, string> = {}
+  for (const p of data) map[p.key] = p.name
+  return map
+}
 function buildPageListText(): string {
   return Object.entries(PAGE_ALIASES)
     .map(([key, p]) => `- **${key}**：${p.aliases.join('、')} → 路由 ${p.route}`)
@@ -343,14 +377,14 @@ export async function analyzeIntent(message: string, history: AgentMessage[] = [
   if (!env.DEEPSEEK_API_KEY) return localFallbackSync(message)
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: getSystemPrompt() },
     ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: message },
   ]
 
   try {
     const completion = await client.chat.completions.create({
-      model: 'deepseek-chat', messages, temperature: 0.7, max_tokens: 1024,
+      ...LLM_DEFAULTS, messages,
     })
     const raw = completion.choices[0]?.message?.content?.trim() || ''
     return parseResponse(raw)
