@@ -115,11 +115,20 @@ const DIM_B_LABELS: Record<string, string> = {
   'emergency_mgmt': '应急管理',
 }
 
-// ===== DeepSeek 客户端 =====
-const client = new OpenAI({
-  apiKey: env.DEEPSEEK_API_KEY || '',
-  baseURL: env.DEEPSEEK_BASE_URL,
-})
+// ===== DeepSeek 客户端（懒加载，避免模块顶层初始化在没有 Key 时崩进程） =====
+let _client: OpenAI | null = null
+function getClient(): OpenAI {
+  if (!_client) {
+    if (!env.DEEPSEEK_API_KEY) {
+      throw new Error('DeepSeek API Key 未配置，请在 server/.env 中设置 DEEPSEEK_API_KEY')
+    }
+    _client = new OpenAI({
+      apiKey: env.DEEPSEEK_API_KEY,
+      baseURL: env.DEEPSEEK_BASE_URL,
+    })
+  }
+  return _client
+}
 
 // 模型与默认请求参数集中管理（model 可在 .env 的 DEEPSEEK_MODEL 中覆盖）
 const LLM_DEFAULTS = { model: env.DEEPSEEK_MODEL, temperature: 0.7, max_tokens: 1024 }
@@ -239,7 +248,7 @@ export async function* streamChat(
     // 直接让 LLM 决定是否调用工具（tool_choice: 'auto'），不再用正则初筛
     {
       // 先尝试工具调用（数据查询）
-      const resp1 = await client.chat.completions.create({
+      const resp1 = await getClient().chat.completions.create({
         ...LLM_DEFAULTS,
         messages,
         tools: TOOLS,
@@ -254,7 +263,7 @@ export async function* streamChat(
           const result = await executeTool(fn?.name || '', args)
           messages.push({ role: 'tool', tool_call_id: tc.id, content: result })
         }
-        const stream2 = await client.chat.completions.create({
+        const stream2 = await getClient().chat.completions.create({
           ...LLM_DEFAULTS, messages, stream: true,
         })
         for await (const chunk of stream2) {
@@ -267,7 +276,7 @@ export async function* streamChat(
     }
 
     // 导航和普通对话：流式调用（无 tools）
-    const stream1 = await client.chat.completions.create({
+    const stream1 = await getClient().chat.completions.create({
       ...LLM_DEFAULTS,
       messages,
       stream: true,
@@ -383,7 +392,7 @@ export async function analyzeIntent(message: string, history: AgentMessage[] = [
   ]
 
   try {
-    const completion = await client.chat.completions.create({
+    const completion = await getClient().chat.completions.create({
       ...LLM_DEFAULTS, messages,
     })
     const raw = completion.choices[0]?.message?.content?.trim() || ''
