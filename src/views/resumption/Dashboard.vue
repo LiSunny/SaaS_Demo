@@ -11,19 +11,23 @@
       </el-breadcrumb>
     </div>
 
-    <!-- ===== 统计卡片行 ===== -->
+    <!-- ===== 统计卡片行（4 阶段 = 4 卡片） ===== -->
     <div class="metric-row">
-      <div class="metric-card metric-preparing">
-        <span class="metric-value">{{ stats.preparing }}</span>
-        <span class="metric-label">筹备中</span>
+      <div class="metric-card metric-prepare">
+        <span class="metric-value">{{ stats.prepare }}</span>
+        <span class="metric-label">复工准备</span>
+      </div>
+      <div class="metric-card metric-review">
+        <span class="metric-value">{{ stats.review }}</span>
+        <span class="metric-label">复工审核</span>
       </div>
       <div class="metric-card metric-trial">
         <span class="metric-value">{{ stats.trial }}</span>
-        <span class="metric-label">试产中</span>
+        <span class="metric-label">试产观察</span>
       </div>
-      <div class="metric-card metric-archived">
-        <span class="metric-value">{{ stats.archived }}</span>
-        <span class="metric-label">已归档</span>
+      <div class="metric-card metric-production">
+        <span class="metric-value">{{ stats.production }}</span>
+        <span class="metric-label">正式复产</span>
       </div>
     </div>
 
@@ -46,7 +50,7 @@
             <div
               class="progress-fill"
               :style="{ width: stepPercent(plan) + '%' }"
-              :class="plan.status === 'archived' ? 'fill-success' : ''"
+              :class="plan.status === 'production' ? 'fill-success' : ''"
             />
           </div>
           <span class="progress-text">{{ completedSteps(plan) }}/11 步已完成</span>
@@ -94,15 +98,14 @@ const store = useResumptionStore()
 
 // 统计
 const stats = computed(() => ({
-  preparing: store.list.filter(p => p.status === 'preparing').length,
+  prepare: store.list.filter(p => p.status === 'prepare').length,
+  review: store.list.filter(p => p.status === 'review').length,
   trial: store.list.filter(p => p.status === 'trial').length,
-  archived: store.list.filter(p => p.status === 'archived').length,
+  production: store.list.filter(p => p.status === 'production').length,
 }))
 
 function completedSteps(plan: ResumptionPlanItem): number {
-  // currentStep 始终指向第一个未完成步骤的序号，由 updateStep 实时维护
-  // preparing → trial → archived 三种状态下都依赖 currentStep
-  if (plan.status === 'archived') return 11
+  if (plan.status === 'production') return 11
   return plan.currentStep - 1
 }
 
@@ -142,11 +145,14 @@ onMounted(async () => {
 /* ===== 统计卡片 ===== */
 .metric-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   flex-shrink: 0;
 }
-@media (max-width: 700px) {
+@media (max-width: 900px) {
+  .metric-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
   .metric-row { grid-template-columns: 1fr; }
 }
 
@@ -168,9 +174,10 @@ onMounted(async () => {
   font-size: var(--font-small, 14px);
   color: var(--text-muted);
 }
-.metric-preparing { border-left: 3px solid var(--accent-primary); }
-.metric-trial { border-left: 3px solid var(--warning, #D97706); }
-.metric-archived { border-left: 3px solid var(--success, #059669); }
+.metric-prepare { border-left: 3px solid var(--accent-primary); }
+.metric-review { border-left: 3px solid var(--warning, #D97706); }
+.metric-trial { border-left: 3px solid #F59E0B; }
+.metric-production { border-left: 3px solid var(--success, #059669); }
 
 /* ===== 车间卡片网格 ===== */
 .workshop-grid {

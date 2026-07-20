@@ -281,16 +281,20 @@ const acceptanceSigners = computed(() => {
   )
 })
 
-/** 步骤是否可编辑 */
+/** 步骤是否可编辑（4 状态分阶段锁定） */
 function canEdit(step: ResumptionStep | null): boolean {
   if (!step || !detail.value) return false
-  if (detail.value.status === 'archived') return false
-  if (detail.value.status === 'preparing') return step.stepOrder <= 8
-  // trial 状态：只有当前第一个未完成的步骤可编辑
-  if (detail.value.status === 'trial') {
-    const firstPending = detail.value.steps.find(s => s.status !== 'done')
+  const s = detail.value.status
+  if (s === 'prepare') return step.stepOrder <= 8
+  if (s === 'review') {
+    const firstPending = detail.value.steps.find(st => st.status !== 'done')
     return firstPending ? step.id === firstPending.id : false
   }
+  if (s === 'trial') {
+    const firstPending = detail.value.steps.find(st => st.status !== 'done')
+    return firstPending ? step.id === firstPending.id : false
+  }
+  // production：全部只读
   return false
 }
 

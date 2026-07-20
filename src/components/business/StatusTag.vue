@@ -43,10 +43,11 @@ const MAP: Record<string, { label: string; cls: string }> = {
   'platform-ops': { label: '运营管理', cls: 'success' },
   'platform-admin': { label: '技术管理', cls: 'purple' },
   'platform-user': { label: '普通用户', cls: 'normal' },
-  // 复工计划状态
-  plan_preparing: { label: '筹备中', cls: 'info' },
-  plan_trial: { label: '试产中', cls: 'warning' },
-  plan_archived: { label: '已归档', cls: 'success' },
+  // 复工计划状态（与 4 阶段对应）
+  plan_prepare: { label: '复工准备', cls: 'info' },
+  plan_review: { label: '复工审核', cls: 'warning' },
+  plan_trial: { label: '试产观察', cls: 'warning' },
+  plan_production: { label: '正式复产', cls: 'success' },
   // 复工步骤状态
   step_done: { label: '已完成', cls: 'success' },
   step_in_progress: { label: '执行中', cls: 'warning' },

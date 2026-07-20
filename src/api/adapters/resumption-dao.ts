@@ -12,7 +12,7 @@ import type {
   OrgTeamMember,
   ResumptionOrder,
 } from '@/types/resumption'
-import { STEP_META } from '@/types/resumption'
+import { STEP_META, STAGES } from '@/types/resumption'
 import { createPersistentStore } from '@/utils/db-adapter'
 
 // ===== Mock 管理单元数据（企业层，enterpriseId=1 的物理空间树） =====
@@ -102,17 +102,17 @@ const SEED_ORDERS: ResumptionOrder[] = [
 ]
 
 const SEED_PLANS: ResumptionPlanItem[] = [
-  { id: 1, enterpriseId: 1, locationId: 2, locationName: '冲压车间', status: 'preparing', currentStep: 5, startedAt: '2026-02-05', completedAt: '', createdAt: '2026-02-05 08:00:00', updatedAt: '2026-02-05 16:30:00' },
+  { id: 1, enterpriseId: 1, locationId: 2, locationName: '冲压车间', status: 'prepare', currentStep: 5, startedAt: '2026-02-05', completedAt: '', createdAt: '2026-02-05 08:00:00', updatedAt: '2026-02-05 16:30:00' },
   { id: 2, enterpriseId: 1, locationId: 3, locationName: '喷涂车间', status: 'trial', currentStep: 10, startedAt: '2026-02-03', completedAt: '', createdAt: '2026-02-03 08:00:00', updatedAt: '2026-02-04 17:00:00' },
-  { id: 3, enterpriseId: 1, locationId: 4, locationName: '组装车间', status: 'archived', currentStep: 11, startedAt: '2026-01-15', completedAt: '2026-01-22', createdAt: '2026-01-15 08:00:00', updatedAt: '2026-01-22 10:00:00' },
+  { id: 3, enterpriseId: 1, locationId: 4, locationName: '组装车间', status: 'production', currentStep: 11, startedAt: '2026-01-15', completedAt: '2026-01-22', createdAt: '2026-01-15 08:00:00', updatedAt: '2026-01-22 10:00:00' },
 ]
 
 // ===== 持久化 Store =====
 
-const planStore = createPersistentStore('resumption_plans_v2', SEED_PLANS)
-const stepStore = createPersistentStore('resumption_steps_v2', SEED_STEPS)
-const teamStore = createPersistentStore('resumption_team_v2', SEED_TEAM)
-const orderStore = createPersistentStore('resumption_orders_v2', SEED_ORDERS)
+const planStore = createPersistentStore('resumption_plans_v3', SEED_PLANS)
+const stepStore = createPersistentStore('resumption_steps_v3', SEED_STEPS)
+const teamStore = createPersistentStore('resumption_team_v3', SEED_TEAM)
+const orderStore = createPersistentStore('resumption_orders_v3', SEED_ORDERS)
 const unitStore = createPersistentStore('management_units_v2', MOCK_UNITS)
 
 /** 获取企业的管理单元列表（平铺，用于下拉选择） */
@@ -146,11 +146,10 @@ export function getStepLabel(plan: ResumptionPlanItem): string {
 }
 
 /** 当前阶段标签（与详情 4 阶段对应） */
-import { STAGES } from '@/types/resumption'
 export function getStageLabel(plan: ResumptionPlanItem): string {
   const steps = stepsForPlan(plan.id)
   const current = steps.find(s => s.status !== 'done')
-  if (!current) return '正式复产'
+  if (!current) return STAGES[STAGES.length - 1].label
   const meta = STEP_META.find(m => m.order === current.stepOrder)
   if (!meta) return '未知'
   const stage = STAGES.find(s => s.key === meta.stage)
@@ -203,7 +202,7 @@ export async function createResumptionPlan(locationName: string, enterpriseId = 
     enterpriseId,
     locationId,
     locationName,
-    status: 'preparing',
+    status: 'prepare',
     currentStep: 1,
     startedAt: now.slice(0, 10),
     completedAt: '',
@@ -247,22 +246,26 @@ export async function updateStep(
   }
   stepStore.update(updated)
 
-  // 更新计划的 currentStep 和 status
+  // 更新计划的 currentStep 和 status（4 阶段对应 4 状态）
   const plan = planStore.getById(step.planId)
   if (plan) {
     const steps = stepsForPlan(step.planId)
     const firstPending = steps.find(s => s.status !== 'done')
     const newCurrentStep = firstPending ? firstPending.stepOrder : 11
     const jointAcceptance = steps.find(s => s.stepType === 'joint-acceptance')
-    const archive = steps.find(s => s.stepType === 'archive')
-    let newStatus: PlanStatus = 'preparing'
-    if (archive?.status === 'done') newStatus = 'archived'
-    else if (jointAcceptance?.status === 'done') newStatus = 'trial'
+    const issueOrder = steps.find(s => s.stepType === 'issue-order')
+    const dutyLog = steps.find(s => s.stepType === 'duty-log')
+    let newStatus: PlanStatus = 'prepare'
+    if (jointAcceptance?.status !== 'done') newStatus = 'prepare'
+    else if (issueOrder?.status !== 'done') newStatus = 'review'
+    else if (dutyLog?.status !== 'done') newStatus = 'trial'
+    else newStatus = 'production'
 
     const planUpdated: ResumptionPlanItem = {
       ...plan,
       currentStep: newCurrentStep,
       status: newStatus,
+      completedAt: newStatus === 'production' ? (plan.completedAt || now.slice(0, 10)) : '',
       updatedAt: now,
     }
     planStore.update(planUpdated)

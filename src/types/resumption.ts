@@ -1,7 +1,7 @@
 // ===== 枚举 =====
 
-/** 计划状态 */
-export type PlanStatus = 'preparing' | 'trial' | 'archived'
+/** 计划状态（与 4 阶段一一对应） */
+export type PlanStatus = 'prepare' | 'review' | 'trial' | 'production'
 
 /** 步骤类型（11 步串行） */
 export type StepType =

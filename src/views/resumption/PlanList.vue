@@ -74,7 +74,7 @@
             <tr v-for="row in store.list" :key="row.id" class="fi-tbody-tr">
               <td class="fi-td col-name">{{ row.locationName }}</td>
               <td class="fi-td col-status">
-                <StatusTag :status="planStatusKey(row)" :label="planStatusLabel(row)" />
+                <StatusTag :status="planStatusKey(row)" />
               </td>
               <td class="fi-td col-step">{{ currentStepLabel(row) }}</td>
               <td class="fi-td col-date">{{ row.startedAt || '—' }}</td>
@@ -162,9 +162,10 @@ const showHelp = ref(true)
 
 // ===== 筛选 =====
 const statusOptions = [
-  { label: '筹备中', value: 'preparing' },
-  { label: '试产中', value: 'trial' },
-  { label: '已归档', value: 'archived' },
+  { label: '复工准备', value: 'prepare' },
+  { label: '复工审核', value: 'review' },
+  { label: '试产观察', value: 'trial' },
+  { label: '正式复产', value: 'production' },
 ]
 
 const hasFilter = computed(() => !!query.keyword || !!query.status)
@@ -194,11 +195,6 @@ function toggleDateSort() {
 // ===== 状态映射 =====
 function planStatusKey(row: ResumptionPlanItem): string {
   return `plan_${row.status}`
-}
-
-function planStatusLabel(row: ResumptionPlanItem): string {
-  const map: Record<string, string> = { preparing: '筹备中', trial: '试产中', archived: '已归档' }
-  return map[row.status] || row.status
 }
 
 function currentStepLabel(row: ResumptionPlanItem): string {
