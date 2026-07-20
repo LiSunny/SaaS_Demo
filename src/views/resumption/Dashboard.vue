@@ -52,9 +52,9 @@
           <span class="progress-text">{{ completedSteps(plan) }}/11 步已完成</span>
         </div>
 
-        <!-- 当前步骤 -->
+        <!-- 当前阶段 -->
         <div class="ws-current">
-          <span class="current-label">当前步骤</span>
+          <span class="current-label">当前阶段</span>
           <span class="current-value">{{ currentStepLabel(plan) }}</span>
         </div>
 
@@ -87,7 +87,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useResumptionStore } from '@/stores/resumption'
 import type { ResumptionPlanItem } from '@/types/resumption'
-import { getStepLabel } from '@/api/adapters/resumption-dao'
+import { getStageLabel } from '@/api/adapters/resumption-dao'
 import StatusTag from '@/components/business/StatusTag.vue'
 
 const store = useResumptionStore()
@@ -111,7 +111,7 @@ function stepPercent(plan: ResumptionPlanItem): number {
 }
 
 function currentStepLabel(plan: ResumptionPlanItem): string {
-  return getStepLabel(plan)
+  return getStageLabel(plan)
 }
 
 onMounted(async () => {
@@ -235,7 +235,7 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-/* 当前步骤 */
+/* 当前阶段 */
 .ws-current {
   display: flex;
   gap: 8px;

@@ -145,6 +145,18 @@ export function getStepLabel(plan: ResumptionPlanItem): string {
   return meta ? meta.label : `步骤${current.stepOrder}`
 }
 
+/** 当前阶段标签（与详情 4 阶段对应） */
+import { STAGES } from '@/types/resumption'
+export function getStageLabel(plan: ResumptionPlanItem): string {
+  const steps = stepsForPlan(plan.id)
+  const current = steps.find(s => s.status !== 'done')
+  if (!current) return '正式复产'
+  const meta = STEP_META.find(m => m.order === current.stepOrder)
+  if (!meta) return '未知'
+  const stage = STAGES.find(s => s.key === meta.stage)
+  return stage ? stage.label : meta.label
+}
+
 /** 列表查询 */
 export async function getResumptionPlanList(query: ResumptionQuery): Promise<PaginatedData<ResumptionPlanItem>> {
   let list = planStore.getAll()

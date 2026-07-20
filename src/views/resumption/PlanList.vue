@@ -61,7 +61,7 @@
             <tr class="fi-thead-tr">
               <th class="fi-th col-name"><span>复工场所</span></th>
               <th class="fi-th col-status"><span>状态</span></th>
-              <th class="fi-th col-step"><span>当前步骤</span></th>
+              <th class="fi-th col-step"><span>当前阶段</span></th>
               <th class="fi-th fi-th-sort col-date" @click="toggleDateSort">
                 <span>开始时间</span>
                 <TableSortIcon :direction="dateSortDir" />
@@ -147,7 +147,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useResumptionStore } from '@/stores/resumption'
 import type { ResumptionPlanItem } from '@/types/resumption'
-import { getStepLabel, createResumptionPlan, getManagementUnits } from '@/api/adapters/resumption-dao'
+import { getStageLabel, createResumptionPlan, getManagementUnits } from '@/api/adapters/resumption-dao'
 import type { ManagementUnit } from '@/api/adapters/resumption-dao'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -202,7 +202,7 @@ function planStatusLabel(row: ResumptionPlanItem): string {
 }
 
 function currentStepLabel(row: ResumptionPlanItem): string {
-  return getStepLabel(row)
+  return getStageLabel(row)
 }
 
 // ===== 管理单元数据 =====
