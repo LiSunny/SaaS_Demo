@@ -197,22 +197,22 @@ const featureCards = [
 ]
 
 // 体验账号 测试
-// const demoAccounts = [
-//   { role: '系统运维', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
-//   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-//   { role: '监督管理', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-//   { role: '企业管理', phone: '13600000001', password: 'admin123!@#', image: enterpriseAdminImg },
-//   { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
-// ]
+const demoAccounts = [
+  { role: '系统运维', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
+  { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
+  { role: '监督管理', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
+  { role: '企业管理', phone: '13600000001', password: 'admin123!@#', image: enterpriseAdminImg },
+  { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
+]
 
 // 体验账号 正式
-const demoAccounts = [
-  { role: '系统运维', phone: '17733550542', password: 'yvdi2f', image: platformAdminImg },
-  { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-  { role: '监督管理', phone: '13567890123', password: 'pkwlo6', image: supervisionAdminImg },
-  { role: '企业管理', phone: '13000000009', password: 'admin123!@#', image: enterpriseAdminImg },
-  { role: '普通用户', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
-]
+// const demoAccounts = [
+//   { role: '系统运维', phone: '17733550542', password: 'yvdi2f', image: platformAdminImg },
+//   { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
+//   { role: '监督管理', phone: '13567890123', password: 'pkwlo6', image: supervisionAdminImg },
+//   { role: '企业管理', phone: '13000000009', password: 'admin123!@#', image: enterpriseAdminImg },
+//   { role: '普通用户', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
+// ]
 
 // 将 5 个账号拆为两行：第一行 3 个、第二行 2 个
 const demoRow1 = demoAccounts.slice(0, 3)

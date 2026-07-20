@@ -171,6 +171,19 @@
               :disabled="(!inputText.trim() && !pendingUpload) || isUploading"
             >发送</button>
           </div>
+
+          <!-- 语音通话入口 -->
+          <div class="chat-voice-row">
+            <button class="chat-voice-btn" @click="startVoiceChat" title="语音通话">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+              <span>语音通话</span>
+            </button>
+          </div>
         </div>
       </div>
       </div>
@@ -180,6 +193,9 @@
     <div v-if="showImagePreview && isImageFile(pendingFile?.name || '')" class="file-image-preview" :style="previewStyle">
       <img :src="pendingPreviewUrl" :alt="pendingFile?.name" />
     </div>
+
+    <!-- 语音通话面板 -->
+    <VoiceChatPanel v-if="showVoiceChat" @close="showVoiceChat = false" />
   </Teleport>
 </template>
 
@@ -188,6 +204,7 @@ import { ref, reactive, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { ElMessage } from 'element-plus'
+import VoiceChatPanel from './VoiceChatPanel.vue'
 
 // 配置 marked
 marked.setOptions({ breaks: true, gfm: true })
@@ -214,6 +231,19 @@ const isUploading = ref(false)
 const uploadProgress = ref(0)  // 上传进度 0-100
 const fileTagRef = ref<HTMLElement | null>(null)
 let previewTimer: ReturnType<typeof setTimeout> | null = null
+
+// ===== 语音通话 =====
+const showVoiceChat = ref(false)
+
+function startVoiceChat() {
+  // 浏览器支持检测
+  const hasSTT = !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition)
+  if (!hasSTT) {
+    ElMessage.warning({ message: '当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器', zIndex: 10000 })
+    return
+  }
+  showVoiceChat.value = true
+}
 
 // 从 URL 读取当前 bigscreenId
 function getCurrentBigscreenId(): number {
@@ -1042,6 +1072,46 @@ onUnmounted(() => {
 
   &:hover {
     background: rgba(255, 71, 87, 0.25);
+  }
+}
+
+/* ===== 语音通话入口 ===== */
+.chat-voice-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(86, 240, 244, 0.08);
+  display: flex;
+  justify-content: center;
+}
+
+.chat-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(86, 240, 244, 0.25);
+  background: rgba(86, 240, 244, 0.06);
+  color: #56f0f4;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(86, 240, 244, 0.14);
+    border-color: rgba(86, 240, 244, 0.45);
+    box-shadow: 0 0 16px rgba(86, 240, 244, 0.12);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  svg {
+    flex-shrink: 0;
   }
 }
 

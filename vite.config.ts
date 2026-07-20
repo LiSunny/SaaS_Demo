@@ -32,9 +32,12 @@ export default defineConfig({
   },
   server: {
     port: 3200,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+    },
     proxy: {
       '/api': {
-        // 测试时可通过 VITE_API_TARGET 覆盖后端端口（E2E 测试用 3202）
         target: process.env.VITE_API_TARGET || 'http://localhost:3201',
         changeOrigin: true,
       },

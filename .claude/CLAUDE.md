@@ -160,55 +160,48 @@ src/api/adapters/
 
 ## 七、工作快照
 
-> 更新时间：2026-07-14
+> 更新时间：2026-07-16
 
-**当前阶段：** AI Agent 文本查询 Phase 1 完成 — 大屏页面可通过文本输入自然语言指令，Agent 自动导航到对应专题页面。
+**当前阶段：** 产品文档生成 — 已完成动火作业管理全流程文档，工贸企业安全管理产品级场景介绍，正在按域逐模块编写。
 
 ### 已完成
 
-**AI Agent 核心链路：**
-- [x] 后端 Agent 服务（`server/src/services/agent.service.ts`）— DeepSeek LLM 集成 + 本地规则降级
-- [x] SSE 流式控制器（`server/src/controllers/agent.controller.ts`）— 真正 LLM streaming，字级实时输出
-- [x] Agent 路由注册（`server/src/routes/agent.routes.ts`）— `POST /api/agent/chat`，JWT 鉴权
-- [x] 浮动聊天气泡（`src/views/bigscreen/components/AgentFloatingChat.vue`）— 右下角 🤖 按钮，所有大屏页面通用
-- [x] 聊天状态管理（`src/stores/ai-chat.ts`）— Pinia Store，SSE 消费 + 响应式更新
-- [x] 页面别名映射（`src/config/agent-intents.ts`）— 4 个专题页面，含语义别名
-- [x] 挂载到 StandaloneLayout — 大屏子页面全部覆盖
-- [x] DeepSeek 配置规范化（Key 放 `server/.env`，`env.ts` 从环境变量读取）
-- [x] `server/.env` 加入 `.gitignore`，防泄漏
-- [x] Agent 回复限制已放开 — 导航用 JSON，其他自由对话
+**产品文档（对外宣传 + 用户手册）：**
+- [x] 动火作业管理 — 场景介绍（`docs/动火作业管理/scenarios/场景介绍.md`，193 行）
+- [x] 动火作业管理 — 用户手册（`docs/动火作业管理/scenarios/用户手册.md`，419 行，15 步操作指南）
+- [x] 工贸企业安全管理 — 功能探索报告（`docs/工贸企业安全管理/scenarios/功能探索报告.md`，101 行，18 域清单）
+- [x] 工贸企业安全管理 — 场景介绍（`docs/工贸企业安全管理/scenarios/场景介绍.md`，138 行，产品级）
+- [x] FigJam 业务域全景信息图（18 域 × 6 分组 × 5 角色，[链接](https://www.figma.com/board/9dVB9mOLZ3DrD6uVwZcFdr)）
 
-**修复记录：**
-- [x] 中文引号导致 JSON 解析失败 → System Prompt 增加禁止双引号规则
-- [x] 伪流式（先等 LLM 完整返回再切块） → 改为真正 `stream: true` + async generator
-- [x] SSE 事件通过原始对象引用修改 → 改为通过 `messages.value[idx]` 走 Vue 响应式代理
+**代码探索：**
+- [x] 港南项目（Flutter 移动端）全量探索 — 669 Dart 文件，18 业务域完整盘点
+- [x] neat-ui（Vue 3 Web 后台）全量探索 — 400+ 文件，20 业务域完整盘点
+- [x] 两端功能互补关系梳理（移动端现场操作 ↔ Web 端管理配置）
 
 ### 技术要点
 
-- **LLM**：DeepSeek（`deepseek-chat`），openai 兼容接口，`stream: true` 实时输出
-- **降级**：无 API Key 时自动切换本地关键词匹配（4 个页面 × 多个别名）
-- **导航机制**：SSE `action` 事件 → 前端 `CustomEvent('agent:navigate')` → `router.push` 或 `window.location.href`
-- **聊天 UI**：Teleport to body，浮动在右下角，不受页面布局限制
+- **两个外部项目路径**：`/Users/liyang/Desktop/维护中的项目/港南项目/`（Flutter + GetX）、`/Users/liyang/neat-ui/`（Vue 3 + Element Plus）
+- **文档模板**：遵循 `product-doc` skill 的场景介绍页 + 用户手册模板
+- **Figma 生成**：通过 Figma MCP `generate_diagram` 工具，Mermaid 语法 → FigJam
 
 ### 待处理
 
 | 问题 | 优先级 | 来源 |
 |------|--------|------|
+| 其他 16 个业务域的场景介绍 + 用户手册待写 | P2 | 本次 — 已完成 2 域（动火作业 + 工贸总览） |
+| 大屏内容仍为静态 Mock，无真实数据 | P1 | 上次快照遗留 |
 | 企业成员 CRUD API 完整对接 | P1 | 上次快照遗留 |
-| 大屏内容仍为静态 Mock，无真实数据 | P1 | 本次 — Phase 2 业务数据层 |
-| Agent 升级数据查询（Function Calling） | P2 | 本次 — Phase 3 |
-| 语音控制 | P2 | 本次 — Phase 4，后期 |
-| 填充平台管理分组（路由配置/菜单管理/升级管理） | P2 | 上次快照遗留 |
+| Agent 升级数据查询（Function Calling） | P2 | 上次快照遗留 |
 
 ### 关键决策
 
-- **先 Agent 后数据**：导航零数据依赖，先跑通 Agent 全链路（聊天 UI → SSE → LLM），数据查询后期叠加 Function
-- **浮动气泡而非卡片内嵌**：Teleport to body，所有大屏页面通用，不受单个页面布局限制
-- **LLM 不限制回复范围**：System Prompt 改为导航用 JSON、其他自由对话，Agent 能回答科普、闲聊等各类问题
+- **角色按设计文档写**：产品文档角色对齐 `docs/平台岗位设计.md` 的 11 岗位，而非代码中的实际用户
+- **合并两端叙事**：场景介绍中 Web 端和移动端功能合并描述，展示完整业务闭环
+- **先总后分**：先写产品级"工贸企业日常安全管理"场景，再逐域展开（设备台账、巡查检查、隐患整改等）
 
 ### 下次建议动作
 
-1. Phase 2：建 Hazard/Alert 数据表 + API + Seed，让大屏组件从 Mock 切换到真实数据
-2. Phase 3：Agent 加 Function Calling（`query_hazard_stats`、`query_hazard_list`），实现"今天有未闭环隐患吗"
-3. 验证完整浏览器端到端流程（需要先配置测试用户的企业+大屏关联数据）
+1. 按优先级继续写域级场景介绍：设备台账 → 巡查检查 → 隐患整改 → 告警核查
+2. 为每个域补充用户手册（任务级操作步骤）
+3. 为场景介绍页补截图（当前均为 📷 标注位）
 

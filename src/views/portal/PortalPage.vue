@@ -68,18 +68,20 @@
       <div class="sec-wrap">
         <div ref="scHead" class="reveal" :class="{ visible: scHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>应用场景<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">三大业务方向</h2>
+          <h2 class="sec-title">核心应用场景</h2>
         </div>
         <!-- Content panel with horizontal slide -->
         <div class="sc-stage">
           <div class="sc-track" :style="{ transform: `translateX(-${activeScenario * 100}%)` }">
-            <div v-for="(sc, i) in SCENARIOS" :key="i" class="sc-panel">
+            <div v-for="(sc, i) in SCENARIOS" :key="i" class="sc-panel" @click="goIndustry(sc.slug)">
               <div class="sc-panel-left">
                 <h3 class="sc-title">{{ sc.title }}</h3>
                 <p class="sc-aud">{{ sc.audience }}</p>
-                <ul class="sc-points">
-                  <li v-for="(pt, j) in sc.points" :key="j"><span class="sc-dot"></span>{{ pt }}</li>
-                </ul>
+                <p class="sc-summary">{{ sc.summary }}</p>
+                <div class="sc-tags">
+                  <span v-for="t in sc.tags" :key="t" class="sc-tag">{{ t }}</span>
+                </div>
+                <button class="sc-cta"><span>查看详情</span><ArrowRight :size="13" /></button>
               </div>
               <div class="sc-panel-right">
                 <img :src="sc.image" alt="" class="sc-image" />
@@ -217,10 +219,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, FileText, Activity, Phone, Mail } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, FileText, Activity, Phone, Mail, Store } from 'lucide-vue-next'
 import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
 import scenarioIndustryImg from '@/assets/portal/scenario-industry.png'
-import scenarioEbikeImg from '@/assets/portal/scenario-ebike.png'
+import scenarioMerchantImg from '@/assets/portal/scenario-ebike.png'
+
+const router = useRouter()
 
 // ===== Mobile detection =====
 const isMobile = () => window.innerWidth < 768
@@ -332,29 +337,36 @@ const POSITIONING = [
 const activeScenario = ref(0)
 const SCENARIOS = [
   {
-    title: '人工智能 + 平安校园', audience: '教育局 · 中小学（含寄宿制）', badge: '校端已落地', badgeColor: '#d97706',
-    status: '港南二中 1 所学校已接入，205 台设备运行中',
-    points: ['AI 防欺凌：音频感知与视觉识别，精准定位至宿舍号或区域', '电气火灾监测：用电指纹分析，违规电器接入实时预警', '明厨亮灶：AI 视觉识别鼠患与着装违规，全时监管后厨', '寄宿生管理：周界算法 + 人脸闸机联动，离宿实时轨迹预警', '红黑榜排名：量化巡检打卡率与隐患整改质量，倒逼责任落实'],
+    title: '校园安全管理', audience: '教育局 · 中小学（含寄宿制）', slug: 'campus',
+    summary: '食堂后厨全链条追溯、AI 声音识别防欺凌、宿舍电气消防巡检——让学校从"人管人"走向"数据管安全"。',
+    tags: ['食品安全', 'AI 防欺凌', '宿舍安全'],
     icon: FileText, image: scenarioCampusImg,
   },
   {
-    title: '工贸企业安全生产', audience: '应急管理局 · 规上 / 规下工贸企业', badge: '驾驶舱可演示', badgeColor: '#d97706',
-    status: '驾驶舱开发完成、可演示，暂无客户接入',
-    points: ['三级驾驶舱：应急局全域看板 → 规上企业驾驶舱 → 规下轻量化版本', '粉尘防爆预警：电流异常与粉尘浓度交叉分析，联动降尘系统', 'AI 视觉合规：吸烟、未戴安全帽等违规行为实时抓拍与音柱播报', '精准执法导航：企业风险自动画像，执法资源定向投放高风险目标'],
+    title: '工贸企业安全管理', audience: '应急管理局 · 规上 / 规下工贸企业', slug: 'industry',
+    summary: '设备台账、巡查检查、隐患闭环、告警值守、动火管控——五个独立场景覆盖工厂安全全链路。',
+    tags: ['设备保养', '巡查检查', '隐患闭环', '告警值守'],
     icon: Zap, image: scenarioIndustryImg,
   },
   {
-    title: '电动自行车安全监管', audience: '住建局 · 物业', badge: '大屏阶段', badgeColor: '#dc2626',
-    status: '可视化大屏已完成，商务推广待启动',
-    points: ['充电桩安全监管大屏，实时监测充电桩状态与异常事件', '隐患点位自动标记，充电区域消防联动', '面向住建局提供辖区电动自行车充电安全态势总览'],
-    icon: Activity, image: scenarioEbikeImg,
+    title: '小商户安全监管', audience: '街道办 · 市场监管局 · 物业', slug: 'merchant',
+    summary: '商户每日安全自查打卡、物业入户巡查上报、隐患整改拍照闭环——覆盖辖区几千家店。',
+    tags: ['安全自查', '巡查与隐患'],
+    icon: Store, image: scenarioMerchantImg,
   },
 ]
 // Auto carousel
 let carouselTimer: ReturnType<typeof setInterval>
+let carouselPaused = false
+const pauseCarousel = () => { carouselPaused = true }
+const resumeCarousel = () => { carouselPaused = false }
+const goIndustry = (slug: string) => {
+  pauseCarousel()
+  router.push(`/portal/${slug}`)
+}
 onMounted(() => {
   carouselTimer = setInterval(() => {
-    activeScenario.value = (activeScenario.value + 1) % SCENARIOS.length
+    if (!carouselPaused) activeScenario.value = (activeScenario.value + 1) % SCENARIOS.length
   }, 4000)
 })
 onUnmounted(() => clearInterval(carouselTimer))
@@ -424,7 +436,7 @@ const PROTOCOLS = ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', 'MQTT 三方中�
 
 // ===== Footer =====
 const FOOTER_COLS = [
-  { title: '应用场景', links: ['平安校园', '工贸企业', '电动自行车监管', '应急管理局', '住建局'] },
+  { title: '应用场景', links: ['校园安全', '工贸企业', '小商户安全监管', '动火作业管理'] },
   { title: '功能模块', links: ['远程值守', '巡查检查', '隐患管理', 'AI 告警分析', '可视化大屏'] },
   { title: '技术', links: ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', '多端协同', 'API 文档'] },
   { title: '联系我们', links: ['预约演示', '商务合作', '技术支持', '关于平台'] },
@@ -527,11 +539,17 @@ const FOOTER_COLS = [
 .sc-dot-btn.active { width: 24px; border-radius: 4px; background: #3678E3; }
 .sc-stage { overflow: hidden; border-radius: 16px; }
 .sc-track { display: flex; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-.sc-panel { flex-shrink: 0; width: 100%; display: grid; grid-template-columns: 1fr; gap: 32px; padding: 32px; min-height: 380px; box-sizing: border-box; border-radius: 16px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(54,120,227,0.08), inset 0 1px 0 rgba(255,255,255,0.6); }
+.sc-panel { flex-shrink: 0; width: 100%; display: grid; grid-template-columns: 1fr; gap: 32px; padding: 32px; min-height: 380px; box-sizing: border-box; border-radius: 16px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(54,120,227,0.08), inset 0 1px 0 rgba(255,255,255,0.6); cursor: pointer; transition: all 0.35s; }
+.sc-panel:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(54,120,227,0.15); }
 @media (min-width: 1024px) { .sc-panel { grid-template-columns: 1fr 1fr; gap: 48px; padding: 40px; min-height: 360px; } }
 .sc-title { font-size: 22px; font-weight: 700; font-family: 'Outfit', 'Noto Sans SC', sans-serif; color: #101010; margin: 0 0 4px; }
 @media (min-width: 640px) { .sc-title { font-size: 26px; } }
-.sc-aud { font-size: 14px; color: #3678E3; font-weight: 500; margin: 0 0 24px; }
+.sc-aud { font-size: 14px; color: #3678E3; font-weight: 500; margin: 0 0 16px; }
+.sc-summary { font-size: 14px; color: rgba(16,16,16,0.65); line-height: 1.65; margin: 0 0 20px; }
+.sc-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.sc-tag { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 9999px; background: rgba(54,120,227,0.06); color: #3678E3; border: 1px solid rgba(54,120,227,0.15); }
+.sc-cta { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 8px; border: 1px solid rgba(54,120,227,0.25); background: transparent; color: #3678E3; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.sc-cta:hover { background: #3678E3; color: #fff; border-color: #3678E3; }
 .sc-points { list-style: none; padding: 0; margin: 0; }
 .sc-points li { display: flex; gap: 12px; font-size: 14px; color: rgba(16,16,16,0.75); line-height: 1.65; margin-bottom: 12px; }
 .sc-dot { width: 6px; height: 6px; border-radius: 50%; background: #3678E3; flex-shrink: 0; margin-top: 7px; }
