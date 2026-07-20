@@ -158,7 +158,6 @@ const router = createRouter({
         { path: '', name: 'ResumptionPlanList', component: () => import('@/views/resumption/PlanList.vue') },
         { path: 'dashboard', name: 'ResumptionDashboard', component: () => import('@/views/resumption/Dashboard.vue') },
         { path: ':id', name: 'ResumptionPlanDetail', component: () => import('@/views/resumption/PlanDetail.vue'), meta: { hidden: true } },
-        { path: ':id/acceptance', name: 'ResumptionAcceptance', component: () => import('@/views/resumption/AcceptancePage.vue'), meta: { hidden: true } },
       ],
     },
 

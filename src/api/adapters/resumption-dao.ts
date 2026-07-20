@@ -4,9 +4,11 @@
 import type {
   ResumptionPlanItem,
   ResumptionPlan,
+  PlanStatus,
   ResumptionQuery,
   PaginatedData,
   ResumptionStep,
+  StepStatus,
   OrgTeamMember,
   ResumptionOrder,
 } from '@/types/resumption'
@@ -43,7 +45,7 @@ const SEED_STEPS: ResumptionStep[] = [
   { id: 2, planId: 1, stepType: 'sign-pledge', stepOrder: 2, status: 'done', completedBy: '王志刚', completedAt: '2026-02-05 10:15:00', remark: '完成主任→班组长→成员两层签署', attachments: [] },
   { id: 3, planId: 1, stepType: 'safety-training', stepOrder: 3, status: 'done', completedBy: '李安全', completedAt: '2026-02-05 14:00:00', remark: '全员 32 人参加，含有限空间作业专项培训，考核全员通过', attachments: [] },
   { id: 4, planId: 1, stepType: 'tech-disclosure', stepOrder: 4, status: 'done', completedBy: '李安全', completedAt: '2026-02-05 16:30:00', remark: '冲压线操作规程交底，重点交底模具更换安全要点', attachments: [] },
-  { id: 5, planId: 1, stepType: 'hazard-check', stepOrder: 5, status: 'in_progress', completedBy: '', completedAt: '', remark: '', attachments: [] },
+  { id: 5, planId: 1, stepType: 'hazard-check', stepOrder: 5, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
   { id: 6, planId: 1, stepType: 'device-check', stepOrder: 6, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
   { id: 7, planId: 1, stepType: 'rectify', stepOrder: 7, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
   { id: 8, planId: 1, stepType: 'joint-acceptance', stepOrder: 8, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
@@ -215,4 +217,44 @@ export async function createResumptionPlan(locationName: string, enterpriseId = 
   }
 
   return plan
+}
+
+/** 更新步骤（标记完成/取消完成） */
+export async function updateStep(
+  stepId: number,
+  data: { status?: StepStatus; completedBy?: string; remark?: string }
+): Promise<ResumptionStep | null> {
+  const step = stepStore.getById(stepId) as ResumptionStep | undefined
+  if (!step) return null
+
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
+  const updated: ResumptionStep = {
+    ...step,
+    ...data,
+    completedAt: data.status === 'done' ? now : (data.status === 'pending' ? '' : step.completedAt),
+  }
+  stepStore.update(updated)
+
+  // 更新计划的 currentStep 和 status
+  const plan = planStore.getById(step.planId)
+  if (plan) {
+    const steps = stepsForPlan(step.planId)
+    const firstPending = steps.find(s => s.status !== 'done')
+    const newCurrentStep = firstPending ? firstPending.stepOrder : 11
+    const jointAcceptance = steps.find(s => s.stepType === 'joint-acceptance')
+    const archive = steps.find(s => s.stepType === 'archive')
+    let newStatus: PlanStatus = 'preparing'
+    if (archive?.status === 'done') newStatus = 'archived'
+    else if (jointAcceptance?.status === 'done') newStatus = 'trial'
+
+    const planUpdated: ResumptionPlanItem = {
+      ...plan,
+      currentStep: newCurrentStep,
+      status: newStatus,
+      updatedAt: now,
+    }
+    planStore.update(planUpdated)
+  }
+
+  return updated
 }
