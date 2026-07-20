@@ -100,13 +100,10 @@ const stats = computed(() => ({
 }))
 
 function completedSteps(plan: ResumptionPlanItem): number {
-  // 通过 currentStep 推算：当前步骤之前的步骤即为已完成
-  // preparing 状态下 currentStep 指向正在进行的步骤
-  // trial 状态下 currentStep 指向 duty-log(10)
-  // archived 状态下 currentStep=11，全部完成
+  // currentStep 始终指向第一个未完成步骤的序号，由 updateStep 实时维护
+  // preparing → trial → archived 三种状态下都依赖 currentStep
   if (plan.status === 'archived') return 11
-  if (plan.status === 'trial') return 9 // 复工令已签发 = 前9步完成
-  return plan.currentStep - 1 // 当前步骤之前 = 已完成数
+  return plan.currentStep - 1
 }
 
 function stepPercent(plan: ResumptionPlanItem): number {
