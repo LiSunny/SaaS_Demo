@@ -25,6 +25,31 @@ const router = createRouter({
       component: () => import('@/views/portal/PortalPage.vue'),
       meta: { standalone: true },
     },
+    // 行业专题页
+    {
+      path: '/portal/campus',
+      name: 'IndustryCampus',
+      component: () => import('@/views/portal/IndustryCampus.vue'),
+      meta: { standalone: true },
+    },
+    {
+      path: '/portal/industry',
+      name: 'IndustryIndustry',
+      component: () => import('@/views/portal/IndustryIndustry.vue'),
+      meta: { standalone: true },
+    },
+    {
+      path: '/portal/merchant',
+      name: 'IndustryMerchant',
+      component: () => import('@/views/portal/IndustryMerchant.vue'),
+      meta: { standalone: true },
+    },
+    {
+      path: '/portal/hotwork',
+      name: 'IndustryHotWork',
+      component: () => import('@/views/portal/IndustryHotWork.vue'),
+      meta: { standalone: true },
+    },
 
     // ===== 登录页（无布局，独立页面） =====
     {
@@ -125,6 +150,18 @@ const router = createRouter({
       ],
     },
 
+    // ===== 复工复产管理 =====
+    {
+      path: '/resumption',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'ResumptionPlanList', component: () => import('@/views/resumption/PlanList.vue') },
+        { path: 'dashboard', name: 'ResumptionDashboard', component: () => import('@/views/resumption/Dashboard.vue') },
+        { path: ':id', name: 'ResumptionPlanDetail', component: () => import('@/views/resumption/PlanDetail.vue'), meta: { hidden: true } },
+        { path: ':id/acceptance', name: 'ResumptionAcceptance', component: () => import('@/views/resumption/AcceptancePage.vue'), meta: { hidden: true } },
+      ],
+    },
+
     // ===== 兼容重定向（/workflow/* → /system/*） =====
     {
       path: '/workflow',
@@ -140,7 +177,7 @@ const router = createRouter({
 // ===== 全局路由守卫 =====
 router.beforeEach((to) => {
   const token = localStorage.getItem('auth_token')
-  const isPublicPage = to.path === '/login' || to.path === '/portal'
+  const isPublicPage = to.path === '/login' || to.path.startsWith('/portal')
 
   if (!token && !isPublicPage) {
     return { path: '/login', query: { redirect: to.fullPath } }

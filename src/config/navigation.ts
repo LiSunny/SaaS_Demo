@@ -148,6 +148,15 @@ export const NAV_GROUPS: NavGroup[] = [
           { key: 'danger-approve', label: '特殊作业审批' },
         ],
       },
+      {
+        key: 'resumption-mgmt',
+        label: '复工复产管理',
+        icon: 'menuicon-27',
+        children: [
+          { key: 'resumption-list', label: '复工计划列表', route: '/resumption' },
+          { key: 'resumption-dashboard', label: '复工看板', route: '/resumption/dashboard' },
+        ],
+      },
     ],
   },
 
@@ -314,6 +323,8 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/admin/bigscreens': 'bigscreen-list',
   '/enterprise/members': 'enterprise-members',
   '/enterprise/positions': 'enterprise-positions',
+  '/resumption': 'resumption-list',
+  '/resumption/dashboard': 'resumption-dashboard',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -334,6 +345,8 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'bigscreen-list': '/admin/bigscreens',
   'enterprise-members': '/enterprise/members',
   'enterprise-positions': '/enterprise/positions',
+  'resumption-list': '/resumption',
+  'resumption-dashboard': '/resumption/dashboard',
 }
 
 // ===== 工具函数 =====
