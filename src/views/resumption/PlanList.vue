@@ -61,7 +61,6 @@
             <tr class="fi-thead-tr">
               <th class="fi-th col-name"><span>复工场所</span></th>
               <th class="fi-th col-status"><span>状态</span></th>
-              <th class="fi-th col-step"><span>当前阶段</span></th>
               <th class="fi-th fi-th-sort col-date" @click="toggleDateSort">
                 <span>开始时间</span>
                 <TableSortIcon :direction="dateSortDir" />
@@ -76,7 +75,6 @@
               <td class="fi-td col-status">
                 <StatusTag :status="planStatusKey(row)" />
               </td>
-              <td class="fi-td col-step">{{ currentStepLabel(row) }}</td>
               <td class="fi-td col-date">{{ row.startedAt || '—' }}</td>
               <td class="fi-td col-date2">{{ row.completedAt || '—' }}</td>
               <td class="fi-td col-actions">
@@ -147,7 +145,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useResumptionStore } from '@/stores/resumption'
 import type { ResumptionPlanItem } from '@/types/resumption'
-import { getStageLabel, createResumptionPlan, getManagementUnits } from '@/api/adapters/resumption-dao'
+import { createResumptionPlan, getManagementUnits } from '@/api/adapters/resumption-dao'
 import type { ManagementUnit } from '@/api/adapters/resumption-dao'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -195,10 +193,6 @@ function toggleDateSort() {
 // ===== 状态映射 =====
 function planStatusKey(row: ResumptionPlanItem): string {
   return `plan_${row.status}`
-}
-
-function currentStepLabel(row: ResumptionPlanItem): string {
-  return getStageLabel(row)
 }
 
 // ===== 管理单元数据 =====

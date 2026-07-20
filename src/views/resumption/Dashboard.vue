@@ -56,12 +56,6 @@
           <span class="progress-text">{{ completedSteps(plan) }}/11 步已完成</span>
         </div>
 
-        <!-- 当前阶段 -->
-        <div class="ws-current">
-          <span class="current-label">当前阶段</span>
-          <span class="current-value">{{ currentStepLabel(plan) }}</span>
-        </div>
-
         <!-- 时间信息 -->
         <div class="ws-meta">
           <div class="ws-meta-item">
@@ -91,7 +85,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useResumptionStore } from '@/stores/resumption'
 import type { ResumptionPlanItem } from '@/types/resumption'
-import { getStageLabel } from '@/api/adapters/resumption-dao'
 import StatusTag from '@/components/business/StatusTag.vue'
 
 const store = useResumptionStore()
@@ -111,10 +104,6 @@ function completedSteps(plan: ResumptionPlanItem): number {
 
 function stepPercent(plan: ResumptionPlanItem): number {
   return Math.round((completedSteps(plan) / 11) * 100)
-}
-
-function currentStepLabel(plan: ResumptionPlanItem): string {
-  return getStageLabel(plan)
 }
 
 onMounted(async () => {
@@ -240,22 +229,6 @@ onMounted(async () => {
   font-size: var(--font-xs, 12px);
   color: var(--text-muted);
   white-space: nowrap;
-}
-
-/* 当前阶段 */
-.ws-current {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
-.current-label {
-  font-size: var(--font-xs, 12px);
-  color: var(--text-muted);
-}
-.current-value {
-  font-size: var(--font-small, 14px);
-  color: var(--accent-primary);
-  font-weight: 500;
 }
 
 /* 时间 */

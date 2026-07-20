@@ -12,7 +12,7 @@ import type {
   OrgTeamMember,
   ResumptionOrder,
 } from '@/types/resumption'
-import { STEP_META, STAGES } from '@/types/resumption'
+import { STEP_META } from '@/types/resumption'
 import { createPersistentStore } from '@/utils/db-adapter'
 
 // ===== Mock 管理单元数据（企业层，enterpriseId=1 的物理空间树） =====
@@ -143,17 +143,6 @@ export function getStepLabel(plan: ResumptionPlanItem): string {
   if (!current) return '已完成'
   const meta = STEP_META.find(m => m.order === current.stepOrder)
   return meta ? meta.label : `步骤${current.stepOrder}`
-}
-
-/** 当前阶段标签（与详情 4 阶段对应） */
-export function getStageLabel(plan: ResumptionPlanItem): string {
-  const steps = stepsForPlan(plan.id)
-  const current = steps.find(s => s.status !== 'done')
-  if (!current) return STAGES[STAGES.length - 1].label
-  const meta = STEP_META.find(m => m.order === current.stepOrder)
-  if (!meta) return '未知'
-  const stage = STAGES.find(s => s.key === meta.stage)
-  return stage ? stage.label : meta.label
 }
 
 /** 列表查询 */
