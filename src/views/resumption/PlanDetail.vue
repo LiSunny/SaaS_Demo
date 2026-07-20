@@ -43,6 +43,12 @@
             {{ m.role }}·{{ m.userName }}<span v-if="i < detail.team.length - 1">、</span>
           </span>
         </div>
+        <!-- 验收入口 -->
+        <div class="summary-actions">
+          <button class="btn-outline-primary" @click="$router.push(`/resumption/${detail.id}/acceptance`)">
+            查看验收与签发
+          </button>
+        </div>
       </div>
 
       <!-- ===== 步骤进度条 ===== -->
@@ -111,6 +117,16 @@
             <div v-else class="attachment-grid">
               <!-- light 阶段占位 -->
             </div>
+          </div>
+
+          <!-- 步骤 8/9 → 验收签发快捷入口 -->
+          <div
+            v-if="selectedStep.stepType === 'joint-acceptance' || selectedStep.stepType === 'issue-order'"
+            class="step-nav-hint"
+          >
+            <button class="btn-outline-primary" @click="$router.push(`/resumption/${detail!.id}/acceptance`)">
+              查看验收与签发详情 →
+            </button>
           </div>
         </template>
 
@@ -396,6 +412,29 @@ onMounted(async () => {
   min-height: 160px;
   font-size: var(--font-body, 16px);
   color: var(--text-muted);
+}
+
+/* ===== 验收入口 ===== */
+.summary-actions {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-low);
+}
+.btn-outline-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 37px; padding: 8px 12px; border-radius: 8px;
+  font-size: var(--font-small, 14px); font-weight: 500;
+  background: var(--info-bg); color: var(--accent-primary);
+  border: 1px solid var(--accent-primary); cursor: pointer;
+  white-space: nowrap; transition: all .2s;
+}
+.btn-outline-primary:hover { background: var(--accent-primary10); }
+.step-nav-hint {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-low);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .loading-wrap, .empty-wrap {
