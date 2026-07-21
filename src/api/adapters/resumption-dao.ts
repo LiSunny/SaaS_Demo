@@ -37,14 +37,31 @@ const MOCK_UNITS: ManagementUnit[] = [
   { id: 10, enterpriseId: 1, name: '公共区', parentId: null },
 ]
 
+// ===== 默认模板 =====
+
+/** 步骤 2 签责 — 默认责任状模板 */
+export const DEFAULT_PLEDGE_CONTENT = `为贯彻"安全第一、预防为主、综合治理"方针，确保春节后复工复产安全有序，本车间全体从业人员郑重承诺：
+
+一、严格遵守安全生产法律法规和本岗位操作规程，不违章指挥、不违章作业、不违反劳动纪律。
+
+二、积极参加安全生产教育培训，掌握本岗位所需的安全知识和操作技能，未经培训合格不上岗。
+
+三、发现事故隐患或者其他不安全因素，立即向现场管理人员报告，并积极参与隐患整改。
+
+四、正确佩戴和使用劳动防护用品，拒绝在不具备安全条件的场所作业。
+
+五、自觉接受安全生产监督检查，对提出的问题及时整改到位。
+
+六、发生事故时，立即如实报告，不迟报、不瞒报、不漏报。`
+
 // ===== 种子数据 =====
 
 const SEED_STEPS: ResumptionStep[] = [
-  // 计划 1 — 冲压车间（preparing，完成到第4步）
-  { id: 1, planId: 1, stepType: 'build-team', stepOrder: 1, status: 'done', completedBy: '王志刚', completedAt: '2026-02-05 09:30:00', remark: '组建复工小组，组长王志刚，副组长李安全、张工', attachments: [] },
-  { id: 2, planId: 1, stepType: 'sign-pledge', stepOrder: 2, status: 'done', completedBy: '王志刚', completedAt: '2026-02-05 10:15:00', remark: '完成主任→班组长→成员两层签署', attachments: [] },
-  { id: 3, planId: 1, stepType: 'safety-training', stepOrder: 3, status: 'done', completedBy: '李安全', completedAt: '2026-02-05 14:00:00', remark: '全员 32 人参加，含有限空间作业专项培训，考核全员通过', attachments: [] },
-  { id: 4, planId: 1, stepType: 'tech-disclosure', stepOrder: 4, status: 'done', completedBy: '李安全', completedAt: '2026-02-05 16:30:00', remark: '冲压线操作规程交底，重点交底模具更换安全要点', attachments: [] },
+  // 计划 1 — 冲压车间（prepare，完成到第4步）
+  { id: 1, planId: 1, stepType: 'build-team', stepOrder: 1, status: 'done', completedBy: '王志刚', completedAt: '2026-02-05 09:30:00', remark: '组建复工小组', attachments: [] },
+  { id: 2, planId: 1, stepType: 'sign-pledge', stepOrder: 2, status: 'done', completedBy: '王志刚', completedAt: '2026-02-05 10:15:00', remark: '全员签署完毕', attachments: [], formData: { title: '2026年春节后安全生产责任状', content: DEFAULT_PLEDGE_CONTENT, signers: [{ name: '王志刚', role: '车间主任', signed: true, signedAt: '2026-02-05' }, { name: '李安全', role: '安全员', signed: true, signedAt: '2026-02-05' }, { name: '张工', role: '班组长', signed: true, signedAt: '2026-02-05' }, { name: '王小明', role: '操作工', signed: true, signedAt: '2026-02-05' }, { name: '赵大力', role: '操作工', signed: true, signedAt: '2026-02-05' }], photoUrl: '' } },
+  { id: 3, planId: 1, stepType: 'safety-training', stepOrder: 3, status: 'done', completedBy: '李安全', completedAt: '2026-02-05 14:00:00', remark: '全员培训完成', attachments: [], formData: { topic: '节后复工复产安全专项培训', location: '第二培训室', trainDate: '2026-02-05', format: '视频学习', participants: '王志刚、李安全、张工、王小明、赵大力等32人', photoUrls: [] } },
+  { id: 4, planId: 1, stepType: 'tech-disclosure', stepOrder: 4, status: 'done', completedBy: '李安全', completedAt: '2026-02-05 16:30:00', remark: '冲压线操作规程交底', attachments: [], formData: { records: [{ position: '冲压操作工', procedureName: '冲压线安全操作规程', assignees: '王小明、赵大力' }, { position: '模具工', procedureName: '模具更换安全规程', assignees: '张工' }], discloseDate: '2026-02-05', discloser: '李安全', photoUrls: [] } },
   { id: 5, planId: 1, stepType: 'hazard-check', stepOrder: 5, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
   { id: 6, planId: 1, stepType: 'device-check', stepOrder: 6, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
   { id: 7, planId: 1, stepType: 'rectify', stepOrder: 7, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
@@ -222,18 +239,16 @@ export async function createResumptionPlan(locationName: string, enterpriseId = 
 /** 更新步骤（标记完成/取消完成） */
 export async function updateStep(
   stepId: number,
-  data: { status?: StepStatus; completedBy?: string; remark?: string }
+  data: { status?: StepStatus; completedBy?: string; remark?: string; formData?: Record<string, any> }
 ): Promise<ResumptionStep | null> {
   const step = stepStore.getById(stepId) as ResumptionStep | undefined
   if (!step) return null
 
   const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
-  const updated: ResumptionStep = {
-    ...step,
+  stepStore.update(stepId, {
     ...data,
     completedAt: data.status === 'done' ? now : (data.status === 'pending' ? '' : step.completedAt),
-  }
-  stepStore.update(updated)
+  })
 
   // 更新计划的 currentStep 和 status（4 阶段对应 4 状态）
   const plan = planStore.getById(step.planId)
@@ -250,15 +265,39 @@ export async function updateStep(
     else if (dutyLog?.status !== 'done') newStatus = 'trial'
     else newStatus = 'production'
 
-    const planUpdated: ResumptionPlanItem = {
-      ...plan,
+    planStore.update(plan.id, {
       currentStep: newCurrentStep,
       status: newStatus,
       completedAt: newStatus === 'production' ? (plan.completedAt || now.slice(0, 10)) : '',
       updatedAt: now,
-    }
-    planStore.update(planUpdated)
+    })
   }
 
   return updated
+}
+
+/** 更新小组名单（全量替换） */
+export async function updateTeamMembers(
+  planId: number,
+  members: Omit<OrgTeamMember, 'id' | 'planId'>[]
+): Promise<OrgTeamMember[]> {
+  // 删除旧成员
+  const oldMembers = teamStore.findBy(m => m.planId === planId)
+  for (const m of oldMembers) {
+    teamStore.remove(m.id)
+  }
+  // 插入新成员
+  const result: OrgTeamMember[] = []
+  for (const m of members) {
+    const id = teamStore.nextId()
+    const member: OrgTeamMember = { id, planId, ...m }
+    teamStore.add(member)
+    result.push(member)
+  }
+  return result
+}
+
+/** 获取小组名单 */
+export async function getTeamMembers(planId: number): Promise<OrgTeamMember[]> {
+  return teamStore.findBy(m => m.planId === planId)
 }

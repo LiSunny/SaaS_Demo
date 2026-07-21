@@ -1,133 +1,150 @@
 <template>
   <div class="detail-page">
-    <!-- ===== 面包屑 + 返回 ===== -->
-    <div class="page-top">
-      <button class="btn-link" @click="$router.push('/resumption')">
-        ← 返回列表
-      </button>
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/resumption' }">复工复产管理</el-breadcrumb-item>
-        <el-breadcrumb-item>复工流程详情</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <template v-if="detail">
-      <!-- ===== 摘要卡片 ===== -->
-      <div class="summary-card">
-        <div class="summary-left">
-          <h2 class="summary-title">{{ detail.locationName }}</h2>
-          <StatusTag :status="`plan_${detail.status}`" />
-        </div>
-        <div class="summary-meta">
-          <div class="meta-item">
-            <span class="meta-label">复工时间</span>
-            <span class="meta-value">{{ detail.startedAt || '—' }}</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">完成时间</span>
-            <span class="meta-value">{{ detail.completedAt || '—' }}</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">小组人数</span>
-            <span class="meta-value">{{ detail.team.length }} 人</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">复工令</span>
-            <span class="meta-value">{{ detail.order ? '已签发' : '未签发' }}</span>
+      <!-- ===== 单一父容器 ===== -->
+      <div class="detail-container">
+        <!-- 顶部操作栏 -->
+        <div class="top-bar">
+          <button class="btn-back" @click="$router.push('/resumption')">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            返回列表
+          </button>
+          <div class="top-actions">
+            <button class="btn-outline-primary" @click="$router.push(`/resumption/${detail.id}`)">
+              <AppIcon name="edit" class="btn-add-icon" />编辑
+            </button>
+            <button class="btn-cancel" @click="handleDelete">
+              <AppIcon name="delete" class="btn-add-icon" />删除
+            </button>
           </div>
         </div>
-        <div v-if="detail.team.length" class="team-row">
-          <span class="meta-label">小组成员：</span>
-          <span v-for="(m, i) in detail.team" :key="m.id" class="team-tag">
-            {{ m.role }}·{{ m.userName }}<span v-if="i < detail.team.length - 1">、</span>
-          </span>
-        </div>
-      </div>
 
-      <!-- ===== 阶段进度条（4 阶段） ===== -->
-      <div class="stage-card">
-        <div class="stage-bar">
-          <div
-            v-for="(st, si) in STAGES"
-            :key="st.key"
-            class="stage-node"
-            :class="{
-              'stage-done': stageState(st) === 'done',
-              'stage-active': stageState(st) === 'active',
-              'stage-selected': selectedStage === st.key,
-              'stage-milestone': st.isMilestone,
-            }"
-            @click="selectStage(st.key)"
-          >
-            <div class="stage-circle">
-              <span v-if="stageState(st) === 'done'">✓</span>
-              <span v-else>{{ si + 1 }}</span>
+        <!-- 摘要卡片 -->
+        <div class="summary-card">
+          <div class="summary-main">
+            <div class="summary-info">
+              <div class="summary-title-row">
+                <h2 class="summary-title">{{ detail.locationName }}</h2>
+                <StatusTag :status="`plan_${detail.status}`" />
+              </div>
+              <p class="summary-time">开始时间：{{ detail.startedAt || '—' }}</p>
+              <p class="summary-time">结束时间：{{ detail.completedAt || '—' }}</p>
             </div>
-            <div class="stage-label">{{ st.label }}</div>
-          </div>
-        </div>
-
-        <!-- 阶段内容：左侧步骤导航 + 右侧详情 -->
-        <div v-if="currentStageSteps.length" class="stage-content">
-          <!-- 左侧步骤导航 -->
-          <div class="step-nav">
-            <div
-              v-for="s in currentStageSteps"
-              :key="s.id"
-              class="step-nav-item"
-              :class="{ 'nav-selected': selectedStepId === s.id }"
-              @click="selectedStepId = s.id"
-            >
-              <span class="nav-num">{{ s.stepOrder }}</span>
-              <span class="nav-name">{{ stepMetaByType(s.stepType)?.label }}</span>
-              <StatusTag :status="`step_${s.status}`" />
-            </div>
-          </div>
-
-          <!-- 右侧步骤详情 -->
-          <div class="step-detail">
-            <template v-if="selectedStep">
-              <div class="step-detail-header">
-                <div class="step-detail-header-left">
-                  <h3 class="step-detail-title">
-                    {{ selectedStep.stepOrder }}. {{ stepMetaByType(selectedStep.stepType)?.label }}
-                  </h3>
-                  <StatusTag :status="`step_${selectedStep.status}`" />
-                </div>
-                <div v-if="canEdit(selectedStep)" class="step-header-actions">
-                  <button v-if="selectedStep.status !== 'done'" class="btn-primary-sm" @click="openEditDialog('done')">
-                    标记完成
-                  </button>
-                  <button v-else class="btn-outline-sm" @click="openEditDialog('edit')">
-                    修改
-                  </button>
+            <div class="summary-divider"></div>
+            <div class="summary-stats">
+              <div class="stat-item">
+                <div class="stat-icon-bg"><img :src="unitSvg" class="stat-icon" alt="" /></div>
+                <div class="stat-body">
+                  <span class="stat-label">排查设备</span>
+                  <span class="stat-value">25<span class="stat-unit"> 个</span></span>
                 </div>
               </div>
+              <div class="stat-group">
+                <div class="stat-item">
+                  <div class="stat-icon-bg"><img :src="connectSvg" class="stat-icon" alt="" /></div>
+                  <div class="stat-body">
+                    <span class="stat-label">排查隐患</span>
+                    <span class="stat-value">365<span class="stat-unit"> 个</span></span>
+                  </div>
+                </div>
+                <div class="summary-divider-sm"></div>
+                <div class="stat-item stat-no-icon">
+                  <div class="stat-body">
+                    <span class="stat-label">已闭环</span>
+                    <span class="stat-value">365<span class="stat-unit"> 个</span></span>
+                  </div>
+                </div>
+                <div class="stat-item stat-no-icon">
+                  <div class="stat-body">
+                    <span class="stat-label">未闭环</span>
+                    <span class="stat-value">365<span class="stat-unit"> 个</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="summary-qr">
+            <div class="qr-placeholder">QR</div>
+          </div>
+        </div>
 
-              <div class="step-detail-body">
-                <div class="info-row">
-                  <span class="info-label">执行角色</span>
-                  <span class="info-value">{{ stepMetaByType(selectedStep.stepType)?.executor || '—' }}</span>
+        <!-- 流程区 -->
+        <div class="stage-card">
+          <!-- 阶段进度条 -->
+          <div class="stage-bar">
+            <div
+              v-for="(st, si) in STAGES"
+              :key="st.key"
+              class="stage-node"
+              :class="{
+                'stage-done': stageState(st) === 'done',
+                'stage-active': stageState(st) === 'active',
+                'stage-selected': selectedStage === st.key,
+              }"
+              @click="selectStage(st.key)"
+            >
+              <div class="stage-circle">
+                <span v-if="stageState(st) === 'done'">✓</span>
+                <span v-else>{{ si + 1 }}</span>
+              </div>
+              <p class="stage-label">{{ st.label }}</p>
+            </div>
+          </div>
+
+          <!-- 阶段内容：左侧步骤导航 + 右侧详情 -->
+          <div v-if="currentStageSteps.length" class="stage-content">
+            <!-- 左侧步骤导航 -->
+            <div class="step-nav">
+              <div
+                v-for="s in currentStageSteps"
+                :key="s.id"
+                class="step-nav-item"
+                :class="{ 'nav-selected': selectedStepId === s.id }"
+                @click="switchStep(s.id)"
+              >
+                <div class="nav-left">
+                  <span class="nav-num">{{ s.stepOrder }}</span>
+                  <span class="nav-name">{{ stepMetaByType(s.stepType)?.label }}</span>
                 </div>
-                <div v-if="stepMetaByType(selectedStep.stepType)?.sixOneLabel" class="info-row">
-                  <span class="info-label">法规依据</span>
-                  <span class="info-value">{{ stepMetaByType(selectedStep.stepType)?.sixOneLabel }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">完成人</span>
-                  <span class="info-value">{{ selectedStep.completedBy || '—' }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">完成时间</span>
-                  <span class="info-value">{{ selectedStep.completedAt || '—' }}</span>
-                </div>
-                <div v-if="selectedStep.remark" class="info-row">
-                  <span class="info-label">操作记录</span>
-                  <span class="info-value remark-text">{{ selectedStep.remark }}</span>
+                <StatusTag :status="`step_${s.status}`" />
+              </div>
+            </div>
+
+            <!-- 右侧步骤详情 -->
+            <div class="step-detail">
+              <template v-if="selectedStep">
+                <div class="step-detail-header">
+                  <div class="step-detail-header-left">
+                    <h3 class="step-detail-title">
+                      {{ selectedStep.stepOrder }}. {{ stepMetaByType(selectedStep.stepType)?.label }}
+                    </h3>
+                  </div>
+                  <div v-if="canEdit(selectedStep)" class="step-header-actions">
+                    <template v-if="!editing">
+                      <button class="btn-edit-outline" @click="startEdit">
+                        {{ selectedStep.status !== 'done' ? '录入' : '编辑' }}
+                      </button>
+                    </template>
+                    <template v-else>
+                      <button class="btn-primary-sm" @click="handleSave">保存</button>
+                      <button class="btn-outline-sm" @click="handleCancel">取消</button>
+                    </template>
+                  </div>
                 </div>
 
-                <!-- 联合验收 — 签字人员 -->
-                <div v-if="selectedStep.stepType === 'joint-acceptance' && selectedStep.status === 'done'" class="signers-section">
+                <!-- 动态步骤组件 -->
+                <component
+                  :is="stepComponent"
+                  v-if="selectedStep"
+                  :key="selectedStep.id"
+                  ref="stepCompRef"
+                  :step="selectedStep"
+                  :editing="editing"
+                  :plan-id="detail.id"
+                />
+
+                <!-- 特殊展示：联合验收签字 -->
+                <div v-if="selectedStep.stepType === 'joint-acceptance' && selectedStep.status === 'done' && !editing" class="signers-section">
                   <span class="info-label">签字人员</span>
                   <div class="signer-list">
                     <div v-for="m in acceptanceSigners" :key="m.id" class="signer-item">
@@ -138,8 +155,8 @@
                   </div>
                 </div>
 
-                <!-- 签发复工令 — 复工令详情 -->
-                <div v-if="selectedStep.stepType === 'issue-order' && detail.order" class="order-section">
+                <!-- 特殊展示：签发复工令 -->
+                <div v-if="selectedStep.stepType === 'issue-order' && detail.order && !editing" class="order-section">
                   <div class="info-row">
                     <span class="info-label">签发人</span>
                     <span class="info-value">{{ detail.order.issuedBy }}</span>
@@ -153,19 +170,11 @@
                     <span class="info-value remark-text">{{ detail.order.conclusion }}</span>
                   </div>
                 </div>
-              </div>
+              </template>
 
-              <!-- 附件区 -->
-              <div v-if="selectedStep.status !== 'pending'" class="step-attachments">
-                <span class="info-label">现场留痕</span>
-                <div v-if="selectedStep.attachments.length === 0" class="no-attachments">
-                  📷 暂无附件（未上传或已归档）
-                </div>
+              <div v-else class="step-empty">
+                请点击左侧步骤查看详情
               </div>
-            </template>
-
-            <div v-else class="step-empty">
-              请点击左侧步骤查看详情
             </div>
           </div>
         </div>
@@ -178,74 +187,66 @@
       <p>计划不存在或已被删除</p>
       <button class="btn-link" @click="$router.push('/resumption')">← 返回列表</button>
     </div>
-
-    <!-- ===== 步骤编辑弹窗 ===== -->
-    <el-dialog
-      v-model="editDialog.visible"
-      :title="editDialog.mode === 'done' ? '标记步骤完成' : '修改步骤信息'"
-      width="420px"
-      :close-on-click-modal="false"
-    >
-      <div class="edit-form">
-        <div class="edit-field">
-          <label class="edit-label">完成人</label>
-          <el-input v-model="editDialog.completedBy" placeholder="请输入完成人姓名" maxlength="20" />
-        </div>
-        <div class="edit-field">
-          <label class="edit-label">操作备注</label>
-          <el-input
-            v-model="editDialog.remark"
-            type="textarea"
-            :rows="3"
-            placeholder="记录操作摘要、整改情况等"
-            maxlength="200"
-          />
-        </div>
-        <div v-if="editDialog.mode === 'edit'" class="edit-field">
-          <label class="edit-label">状态</label>
-          <el-switch
-            v-model="editDialog.keepDone"
-            active-text="已完成"
-            inactive-text="待执行"
-          />
-        </div>
-      </div>
-      <template #footer>
-        <button class="btn-default" @click="editDialog.visible = false">取消</button>
-        <button class="btn-primary" @click="saveStep">保存</button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, markRaw, type Component } from 'vue'
 import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useResumptionStore } from '@/stores/resumption'
-import { updateStep } from '@/api/adapters/resumption-dao'
+import { updateStep, updateTeamMembers } from '@/api/adapters/resumption-dao'
 import { STEP_META, STAGES } from '@/types/resumption'
 import type { StepType, ResumptionStep, StageDef } from '@/types/resumption'
 import StatusTag from '@/components/business/StatusTag.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
+import unitSvg from '@/assets/unit.svg'
+import connectSvg from '@/assets/connect.svg'
+
+import Step1BuildTeam from './steps/Step1BuildTeam.vue'
+import Step2SignPledge from './steps/Step2SignPledge.vue'
+import Step3SafetyTraining from './steps/Step3SafetyTraining.vue'
+import Step4TechDisclosure from './steps/Step4TechDisclosure.vue'
+import Step5HazardCheck from './steps/Step5HazardCheck.vue'
+import Step6DeviceCheck from './steps/Step6DeviceCheck.vue'
+import StepGeneric from './steps/StepGeneric.vue'
 
 const route = useRoute()
 const store = useResumptionStore()
 const detail = computed(() => store.detail)
 const loading = computed(() => store.detailLoading)
 
-// 当前选中的阶段和步骤
+const stepComponentMap: Record<StepType, Component> = {
+  'build-team': markRaw(Step1BuildTeam),
+  'sign-pledge': markRaw(Step2SignPledge),
+  'safety-training': markRaw(Step3SafetyTraining),
+  'tech-disclosure': markRaw(Step4TechDisclosure),
+  'hazard-check': markRaw(Step5HazardCheck),
+  'device-check': markRaw(Step6DeviceCheck),
+  'rectify': markRaw(StepGeneric),
+  'joint-acceptance': markRaw(StepGeneric),
+  'issue-order': markRaw(StepGeneric),
+  'duty-log': markRaw(StepGeneric),
+  'archive': markRaw(StepGeneric),
+}
+
 const selectedStage = ref('prepare')
 const selectedStepId = ref<number | null>(null)
+const editing = ref(false)
+const stepCompRef = ref<any>(null)
 
 const selectedStep = computed(() => {
   if (!detail.value || !selectedStepId.value) return null
   return detail.value.steps.find(s => s.id === selectedStepId.value) || null
 })
 
-function stepMetaByType(type: StepType) {
-  return STEP_META.find(m => m.type === type)
-}
+const stepComponent = computed(() => {
+  if (!selectedStep.value) return null
+  return stepComponentMap[selectedStep.value.stepType] || markRaw(StepGeneric)
+})
 
-/** 阶段状态 */
+function stepMetaByType(type: StepType) { return STEP_META.find(m => m.type === type) }
+
 function stageState(stage: StageDef): 'done' | 'active' | 'pending' {
   if (!detail.value) return 'pending'
   const steps = detail.value.steps.filter(s => stage.stepOrders.includes(s.stepOrder))
@@ -254,7 +255,6 @@ function stageState(stage: StageDef): 'done' | 'active' | 'pending' {
   return 'pending'
 }
 
-/** 当前选中阶段的子步骤 */
 const currentStageSteps = computed(() => {
   if (!detail.value) return []
   const stage = STAGES.find(s => s.key === selectedStage.value)
@@ -263,17 +263,23 @@ const currentStageSteps = computed(() => {
 })
 
 function selectStage(key: string) {
+  if (editing.value) return
   selectedStage.value = key
-  // 直接从 detail 过滤，不依赖 computed（避免 Vue 惰性求值导致的旧数据）
   const stage = STAGES.find(s => s.key === key)
   const steps = stage && detail.value ? detail.value.steps.filter(s => stage.stepOrders.includes(s.stepOrder)) : []
   if (steps.length) {
     const firstPending = steps.find(s => s.status !== 'done')
     selectedStepId.value = firstPending ? firstPending.id : steps[steps.length - 1].id
+    editing.value = false
   }
 }
 
-// 验收签字人
+function switchStep(stepId: number) {
+  if (editing.value) return
+  selectedStepId.value = stepId
+  editing.value = false
+}
+
 const acceptanceSigners = computed(() => {
   if (!detail.value) return []
   return detail.value.team.filter(m =>
@@ -281,7 +287,6 @@ const acceptanceSigners = computed(() => {
   )
 })
 
-/** 步骤是否可编辑（4 状态分阶段锁定） */
 function canEdit(step: ResumptionStep | null): boolean {
   if (!step || !detail.value) return false
   const s = detail.value.status
@@ -294,42 +299,43 @@ function canEdit(step: ResumptionStep | null): boolean {
     const firstPending = detail.value.steps.find(st => st.status !== 'done')
     return firstPending ? step.id === firstPending.id : false
   }
-  // production：全部只读
   return false
 }
 
-// 编辑弹窗
-const editDialog = reactive({
-  visible: false,
-  mode: 'done' as 'done' | 'edit',
-  stepId: 0,
-  completedBy: '',
-  remark: '',
-  keepDone: true,
-})
-
-function openEditDialog(mode: 'done' | 'edit') {
-  const s = selectedStep.value
-  if (!s) return
-  editDialog.mode = mode
-  editDialog.stepId = s.id
-  editDialog.completedBy = s.completedBy
-  editDialog.remark = s.remark
-  editDialog.keepDone = s.status === 'done'
-  editDialog.visible = true
+function handleDelete() {
+  ElMessage.info('删除功能 — 待接入')
 }
 
-async function saveStep() {
-  const status = editDialog.mode === 'done' || editDialog.keepDone ? 'done' as const : 'pending' as const
-  const updated = await updateStep(editDialog.stepId, {
-    status,
-    completedBy: editDialog.completedBy,
-    remark: editDialog.remark,
-  })
-  if (updated && detail.value) {
-    await store.fetchDetail(detail.value.id)
+function startEdit() { editing.value = true }
+
+function handleCancel() {
+  editing.value = false
+  if (stepCompRef.value?.handleCancel) stepCompRef.value.handleCancel()
+}
+
+async function handleSave() {
+  const comp = stepCompRef.value
+  if (!comp?.getSaveData || !selectedStep.value || !detail.value) return
+  const data = comp.getSaveData()
+  if (selectedStep.value.stepType === 'build-team' && data.teamMembers) {
+    await updateTeamMembers(detail.value.id, data.teamMembers)
+    delete data.teamMembers
   }
-  editDialog.visible = false
+  await updateStep(selectedStep.value.id, {
+    status: data.status, completedBy: data.completedBy,
+    remark: data.remark, formData: data.formData,
+  })
+  await store.fetchDetail(detail.value.id)
+  if (detail.value) {
+    const steps = detail.value.steps.filter(s => {
+      const stage = STAGES.find(st => st.key === selectedStage.value)
+      return stage ? stage.stepOrders.includes(s.stepOrder) : false
+    })
+    const firstPending = steps.find(s => s.status !== 'done')
+    if (firstPending) selectedStepId.value = firstPending.id
+  }
+  editing.value = false
+  ElMessage.success('保存成功')
 }
 
 onMounted(async () => {
@@ -337,7 +343,6 @@ onMounted(async () => {
   if (id) {
     await store.fetchDetail(id)
     if (detail.value) {
-      // 找到第一个未完成步骤所属的阶段
       const firstPending = detail.value.steps.find(s => s.status !== 'done')
       if (firstPending) {
         const meta = STEP_META.find(m => m.order === firstPending.stepOrder)
@@ -354,404 +359,243 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* ===== 页面容器 ===== */
-.detail-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  overflow: auto;
+/* ===== 页面 ===== */
+.detail-page { height: 100%; }
+
+/* ===== 父容器（与列表页 .content-card 一致） ===== */
+.detail-container {
+  background: var(--bg-card, #fbfbfb); border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-xl, 16px); display: flex; flex-direction: column;
+  gap: var(--spacing-lg, 12px); height: 100%; overflow: hidden;
 }
 
-/* ===== 面包屑 ===== */
-.page-top {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-shrink: 0;
+/* ===== 顶部操作栏 ===== */
+.top-bar { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.top-actions { display: flex; gap: 10px; }
+
+.btn-back {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: var(--radius-md, 8px); border: none;
+  background: transparent; color: var(--accent-primary, #3678e3);
+  font-size: var(--font-small, 14px); font-weight: 500;
+  font-family: inherit; cursor: pointer;
 }
+.btn-back:hover { background: var(--accent-primary08); }
+
+/* 描边按钮（复用项目标准） */
+.btn-outline-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 37px; padding: 8px 12px; border-radius: 8px;
+  font-size: var(--font-small, 14px); font-weight: 500;
+  background: var(--info-bg); color: var(--accent-primary);
+  border: 1px solid var(--accent-primary); cursor: pointer;
+  white-space: nowrap; transition: all .2s; font-family: inherit;
+}
+.btn-outline-primary:hover { background: var(--accent-primary10); }
+
+.btn-cancel {
+  display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; height: 37px;
+  border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 8px; background: rgba(220, 38, 38, 0.1);
+  color: var(--semantic-danger, #DC2626); font-size: var(--font-small, 14px); font-weight: 500;
+  font-family: inherit; cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+}
+.btn-cancel:hover { opacity: 0.8; }
 
 /* ===== 摘要卡片 ===== */
 .summary-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg, 10px);
-  padding: 16px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: var(--bg-sub-card, #fff); border: 1px solid var(--border-default, #dedede);
+  border-radius: var(--radius-md, 8px); padding: var(--spacing-lg, 12px);
+  flex-shrink: 0; display: flex; align-items: center; gap: 24px;
 }
-.summary-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.summary-main { display: flex; align-items: center; gap: 24px; flex: 1; min-width: 0; }
+.summary-info { display: flex; flex-direction: column; gap: 4px; min-width: 320px; width: 420px; flex-shrink: 0; }
+.summary-title-row { display: flex; align-items: center; justify-content: space-between; }
+.summary-title { font-size: var(--font-h2, 20px); font-weight: 500; color: var(--text-primary, #101010); margin: 0; white-space: nowrap; }
+.summary-time { font-size: var(--font-small, 14px); color: var(--text-tertiary, #454545); margin: 0; line-height: 1.6; }
+
+.summary-divider { width: 0; height: 78px; border-left: 1px solid var(--border-low, #e5e7eb); flex-shrink: 0; }
+.summary-divider-sm { width: 0; height: 78px; border-left: 1px solid var(--border-low, #e5e7eb); flex-shrink: 0; }
+
+.summary-stats { display: flex; align-items: center; gap: 0; flex: 1; min-width: 0; }
+.stat-item { display: flex; align-items: center; gap: 18px; padding: 0 18px; flex-shrink: 0; }
+.stat-item.stat-no-icon { gap: 0; }
+
+.stat-group { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+.stat-group .stat-item { padding: 0 18px; }
+
+.stat-icon-bg {
+  width: 56px; height: 56px; border-radius: var(--radius-md, 8px);
+  background: var(--info-bg);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.summary-title {
-  font-size: var(--font-h2, 20px);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-.summary-meta {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.meta-label {
-  font-size: var(--font-xs, 12px);
-  color: var(--text-muted);
-}
-.meta-value {
-  font-size: var(--font-body, 16px);
-  color: var(--text-primary);
-}
-.team-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.team-tag {
-  font-size: var(--font-small, 14px);
-  color: var(--text-secondary);
+.stat-icon { width: 36px; height: 36px; }
+.stat-body { display: flex; flex-direction: column; gap: 8px; width: 80px; flex-shrink: 0; }
+.stat-label { font-size: var(--font-body, 16px); color: var(--text-secondary, #2e2e2e); }
+.stat-value { font-size: 24px; font-weight: 500; color: var(--text-primary, #101010); }
+.stat-unit { font-size: var(--font-body, 16px); font-weight: 500; color: var(--text-tertiary, #454545); }
+
+.summary-qr { flex-shrink: 0; }
+.qr-placeholder {
+  width: 78px; height: 78px; border: 1px solid #e5e7eb; border-radius: 4px;
+  background: var(--bg-card, #fff); display: flex; align-items: center;
+  justify-content: center; font-size: 14px; font-weight: 500; color: var(--text-muted);
 }
 
-/* ===== 阶段卡片 ===== */
+/* ===== 阶段卡片（流程区）===== */
 .stage-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg, 10px);
-  padding: 16px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background: var(--bg-sub-card, #fff); border: 1px solid var(--border-default, #dedede);
+  border-radius: var(--radius-md, 8px); padding: var(--spacing-lg, 12px);
+  flex: 1; display: flex; flex-direction: column; gap: 24px; overflow: hidden;
 }
 
 /* ===== 阶段进度条 ===== */
-.stage-bar {
-  display: flex;
-  align-items: flex-start;
-}
+.stage-bar { display: flex; align-items: flex-start; position: relative; padding-top: 4px; }
 .stage-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  cursor: pointer;
-  position: relative;
-  padding: 4px 4px 8px;
-  border-radius: 8px;
-  transition: background .2s;
-}
-.stage-node:hover {
-  background: var(--bg-sub-card);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  flex: 1; cursor: pointer; position: relative;
+  padding: 4px 4px 8px; border-radius: var(--radius-md, 8px);
 }
 .stage-node::after {
-  content: '';
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  right: -50%;
-  height: 2px;
-  background: var(--border-default);
-  z-index: 0;
+  content: ''; position: absolute; top: 24px; left: 50%; right: -50%;
+  height: 2px; background: var(--border-default, #dedede); z-index: 0;
 }
 .stage-node:last-child::after { display: none; }
 .stage-done::after { background: var(--success, #059669); }
-.stage-active::after { background: var(--accent-primary); }
-
-/* 选中态 */
-.stage-node.stage-selected {
-  background: var(--accent-primary08, rgba(24, 144, 255, 0.08));
-}
-.stage-node.stage-selected .stage-label {
-  color: var(--accent-primary);
-  font-weight: 600;
-}
+.stage-active::after { background: var(--accent-primary, #3678e3); }
 
 .stage-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-h3, 18px);
-  font-weight: 700;
-  z-index: 1;
-  background: var(--bg-sub-card);
-  border: 2px solid var(--border-default);
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition: all .2s;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--font-body, 16px); font-weight: 500; z-index: 1;
+  background: var(--bg-card-hover, rgba(147,147,147,0.08));
+  border: 2px solid var(--border-default, #dedede);
+  color: var(--text-muted, #5e5e5e); flex-shrink: 0; transition: all .2s;
 }
 .stage-done .stage-circle {
-  background: var(--success, #059669);
-  border-color: var(--success, #059669);
-  color: #fff;
+  background: var(--success, #059669); border-color: var(--success, #059669); color: #fff;
 }
 .stage-active .stage-circle {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: #fff;
-  box-shadow: 0 0 0 4px var(--accent-primary10);
+  background: var(--accent-primary, #3678e3); border-color: var(--accent-primary, #3678e3);
+  color: #fff; box-shadow: 0 0 8px rgba(55,120,227,0.3);
 }
 
-/* 关键阶段（复工审核 / 试产观察） */
-.stage-milestone .stage-circle {
-  border-color: var(--warning, #D97706);
-}
-.stage-milestone.stage-done .stage-circle {
-  background: var(--warning, #D97706);
-  border-color: var(--warning, #D97706);
-}
-.stage-milestone.stage-active .stage-circle {
-  background: var(--warning, #D97706);
-  border-color: var(--warning, #D97706);
-  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.2);
-}
-
-.stage-label {
-  font-size: var(--font-small, 14px);
-  color: var(--text-secondary);
-  text-align: center;
-  font-weight: 500;
-}
+.stage-label { font-size: var(--font-small, 14px); color: var(--text-muted, #5e5e5e); text-align: center; font-weight: 500; margin: 0; }
 .stage-done .stage-label { color: var(--text-muted); }
+.stage-active .stage-label,
+.stage-selected .stage-label { color: var(--accent-primary, #3678e3); }
 
-/* ===== 阶段内容（左导航 + 右详情） ===== */
-.stage-content {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-low);
-  display: flex;
-  gap: 0;
-  flex: 1;
-  overflow: hidden;
-}
+/* ===== 阶段内容 ===== */
+.stage-content { display: flex; gap: 0; flex: 1; overflow: hidden; }
 
 /* ===== 左侧步骤导航 ===== */
 .step-nav {
-  width: 170px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-right: 12px;
-  border-right: 1px solid var(--border-low);
-  overflow-y: auto;
+  width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px;
+  overflow-y: auto; padding: 6px 0;
 }
 .step-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background .15s;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px var(--spacing-xl, 16px); border-radius: 6px;
+  cursor: pointer; transition: background .15s;
 }
-.step-nav-item:hover { background: var(--bg-sub-card); }
+.step-nav-item:hover { background: var(--bg-card-hover, rgba(147,147,147,0.05)); }
 .step-nav-item.nav-selected {
-  background: var(--accent-primary08, rgba(24, 144, 255, 0.08));
+  background: var(--bg-page, #f0f1f6);
+  border-radius: 6px 0 0 6px;
 }
-.step-nav-item.nav-selected .nav-name {
-  color: var(--accent-primary);
-  font-weight: 500;
+.step-nav-item.nav-selected .nav-num {
+  background: var(--accent-primary06, rgba(54,120,227,0.05)); color: var(--accent-primary, #3678e3);
 }
+.step-nav-item.nav-selected .nav-name { color: var(--accent-primary, #3778e3); }
+
+.nav-left { display: flex; align-items: center; gap: 8px; flex: 1 0 0; min-width: 0; }
 .nav-num {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  background: var(--bg-sub-card);
-  color: var(--text-muted);
-  flex-shrink: 0;
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; background: var(--bg-card, #fbfbfb);
+  color: var(--text-muted, #5e5e5e); flex-shrink: 0;
 }
-.nav-name {
-  flex: 1;
-  font-size: var(--font-small, 14px);
-  color: var(--text-primary);
-  white-space: nowrap;
-}
+.nav-name { flex: 1 0 0; min-width: 0; font-size: var(--font-body, 16px); color: var(--text-primary, #101010); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ===== 右侧步骤详情 ===== */
 .step-detail {
-  flex: 1;
-  padding-left: 16px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  flex: 1; padding: var(--spacing-xl, 16px); overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--spacing-lg, 12px);
+  background: var(--bg-page, #f0f1f6); border-radius: var(--radius-md, 8px); margin-left: 0;
 }
-
 .step-detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-default);
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 12px; border-bottom: 1px solid #e9e9e9;
+  height: 50px; box-sizing: border-box;
 }
-.step-detail-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.step-header-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
+.step-detail-header-left { display: flex; align-items: center; gap: 12px; }
+.step-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
 .step-detail-title {
-  font-size: var(--font-h3, 18px);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-.step-detail-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.info-row {
-  display: flex;
-  gap: 12px;
-}
-.info-label {
-  font-size: var(--font-small, 14px);
-  color: var(--text-muted);
-  min-width: 70px;
-  flex-shrink: 0;
-}
-.info-value {
-  font-size: var(--font-body, 16px);
-  color: var(--text-primary);
-}
-.remark-text {
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.step-attachments {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-low);
-}
-.no-attachments {
-  margin-top: 8px;
-  font-size: var(--font-small, 14px);
-  color: var(--text-muted);
-}
-
-/* ===== 签字人员 ===== */
-.signers-section {
-  margin-top: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-low);
-}
-.signer-list {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.signer-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: var(--bg-sub-card);
-  border-radius: var(--radius-sm, 6px);
-  font-size: var(--font-small, 14px);
-}
-.signer-role {
-  color: var(--accent-primary);
-  font-weight: 500;
-  min-width: 50px;
-}
-.signer-name {
-  color: var(--text-primary);
-  flex: 1;
-}
-.signer-status {
-  color: var(--success, #059669);
-}
-
-/* ===== 复工令详情 ===== */
-.order-section {
-  margin-top: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-low);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  font-size: var(--font-body, 16px); font-weight: 500; color: var(--text-primary, #101010); margin: 0;
 }
 
 .step-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; min-height: 160px; color: var(--text-muted);
   font-size: var(--font-body, 16px);
-  color: var(--text-muted);
 }
 
+/* ===== 步骤内详情标签/值 ===== */
+.step-detail :deep(.info-label) { color: var(--text-muted, #5e5e5e); }
+.step-detail :deep(.info-value) { color: var(--text-secondary, #2e2e2e); font-weight: 500; }
+
 /* ===== 按钮 ===== */
-.btn-primary-sm {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 32px; padding: 0 16px; border-radius: 6px;
+.btn-edit-outline {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 32px; padding: 0 16px; border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--accent-primary, #3678e3);
+  background: var(--accent-primary06, rgba(54,120,227,0.05));
+  color: var(--accent-primary, #3678e3);
   font-size: var(--font-small, 14px); font-weight: 500;
-  background: var(--accent-primary); color: #fff;
-  border: none; cursor: pointer; transition: all .2s;
+  font-family: inherit; cursor: pointer; min-width: 65px;
+}
+.btn-edit-outline:hover { background: var(--accent-primary10); }
+
+.btn-primary-sm {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 32px; padding: 0 16px; border-radius: var(--radius-md, 8px);
+  font-size: var(--font-small, 14px); font-weight: 500;
+  background: var(--accent-primary, #3678e3); color: #fff;
+  border: none; cursor: pointer; font-family: inherit; min-width: 65px;
 }
 .btn-primary-sm:hover { opacity: 0.85; }
+
 .btn-outline-sm {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 32px; padding: 0 16px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 32px; padding: 0 16px; border-radius: var(--radius-md, 8px);
   font-size: var(--font-small, 14px); font-weight: 500;
-  background: var(--info-bg); color: var(--accent-primary);
-  border: 1px solid var(--accent-primary); cursor: pointer; transition: all .2s;
+  background: var(--accent-primary06, rgba(54,120,227,0.05));
+  color: var(--accent-primary, #3678e3);
+  border: 1px solid var(--accent-primary, #3678e3);
+  cursor: pointer; font-family: inherit; min-width: 65px;
 }
 .btn-outline-sm:hover { background: var(--accent-primary10); }
 
-/* ===== 编辑弹窗 ===== */
-.edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+/* ===== 签字人员 ===== */
+.signers-section { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border-low); }
+.signer-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.signer-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  background: var(--bg-sub-card); border-radius: var(--radius-sm, 6px); font-size: var(--font-small, 14px);
 }
-.edit-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.edit-label {
-  font-size: var(--font-small, 14px);
-  color: var(--text-secondary);
-  font-weight: 500;
-}
+.signer-role { color: var(--accent-primary); font-weight: 500; min-width: 50px; }
+.signer-name { color: var(--text-primary); flex: 1; }
+.signer-status { color: var(--success, #059669); }
+
+/* ===== 复工令详情 ===== */
+.order-section { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border-low); display: flex; flex-direction: column; gap: 10px; }
+.info-row { display: flex; gap: 12px; }
+.info-label { font-size: var(--font-body, 16px); color: var(--text-muted, #5e5e5e); min-width: 70px; flex-shrink: 0; font-weight: 400; }
+.info-value { font-size: var(--font-body, 16px); color: var(--text-secondary, #2e2e2e); font-weight: 500; }
+.remark-text { line-height: 1.6; color: var(--text-secondary); }
 
 .loading-wrap, .empty-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 48px;
-  color: var(--text-secondary);
-  font-size: var(--font-body, 16px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 48px; color: var(--text-secondary); font-size: var(--font-body, 16px);
 }
 </style>

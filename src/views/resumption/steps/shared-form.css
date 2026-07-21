@@ -1,0 +1,172 @@
+/* ============================================
+   步骤编辑表单公共样式
+   遵循 EnterpriseFormDrawer.vue 范式
+   所有 steps/*.vue 通过非 scoped @import 引入
+   非 scoped → 无需 :deep()，直接用后代选择器
+   ============================================ */
+
+/* ---- 表单布局 ---- */
+.drawer-form-body {
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+.form-row {
+  display: flex; align-items: center; gap: 16px; min-height: 36px;
+}
+.form-row-top {
+  align-items: flex-start;
+}
+
+.form-label {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; width: 80px; justify-content: flex-end;
+}
+.label-required {
+  font-size: 18px; font-weight: 500;
+  color: var(--semantic-danger, #DC2626);
+  line-height: 1; flex-shrink: 0;
+}
+.label-text {
+  font-size: var(--font-body, 16px); font-weight: 400;
+  color: var(--text-tertiary, #454545);
+  white-space: nowrap; line-height: 1;
+}
+
+.form-control {
+  flex: 1; min-width: 0; position: relative;
+}
+
+/* ---- 输入框（clean-input）---- */
+.clean-input {
+  width: 100% !important;
+}
+.clean-input .el-input__wrapper {
+  min-height: 36px; height: 36px;
+  border: 1px solid #DEDEDE; border-radius: var(--radius-md, 8px);
+  box-shadow: none; background: var(--bg-card, #fff);
+  padding: 0 18px;
+  display: flex; align-items: center; box-sizing: border-box;
+}
+.clean-input .el-input__wrapper:hover {
+  border-color: var(--accent-primary, #3678E3);
+}
+.clean-input .el-input__wrapper.is-focus {
+  border-color: var(--accent-primary, #3678E3); box-shadow: none;
+}
+.clean-input .el-input__inner {
+  font-size: var(--font-small, 14px); color: var(--text-primary, #101010);
+  line-height: 36px; height: auto;
+}
+.clean-input .el-input__inner::placeholder {
+  color: var(--text-placeholder, #D9D9D9); font-size: var(--font-small, 14px);
+}
+
+/* 文本域 */
+.clean-input .el-textarea__inner {
+  border: 1px solid #DEDEDE; border-radius: var(--radius-md, 8px);
+  box-shadow: none; background: var(--bg-card, #fff);
+  padding: 8px 18px; resize: vertical;
+  font-size: var(--font-small, 14px); color: var(--text-primary, #101010);
+}
+.clean-input .el-textarea__inner:hover {
+  border-color: var(--accent-primary, #3678E3);
+}
+.clean-input .el-textarea__inner:focus {
+  border-color: var(--accent-primary, #3678E3); box-shadow: none;
+}
+
+/* ---- 下拉框（clean-select）---- */
+.clean-select {
+  width: 100% !important;
+}
+.clean-select .el-select__wrapper {
+  min-height: 36px; height: 36px;
+  border: 1px solid #DEDEDE; border-radius: var(--radius-md, 8px);
+  box-shadow: none; background: var(--bg-card, #fff);
+  padding: 0 18px;
+  display: flex; align-items: center; box-sizing: border-box;
+}
+.clean-select .el-select__wrapper:hover {
+  border-color: var(--accent-primary, #3678E3);
+}
+.clean-select .el-select__wrapper.is-focus {
+  border-color: var(--accent-primary, #3678E3); box-shadow: none;
+}
+.clean-select .el-input__inner,
+.clean-select .el-select__input {
+  font-size: var(--font-small, 14px); color: var(--text-primary, #101010);
+  line-height: 36px; height: auto;
+}
+.clean-select .el-select__placeholder,
+.clean-select .el-select__input::placeholder {
+  color: var(--text-placeholder, #D9D9D9); font-size: var(--font-small, 14px);
+}
+.clean-select .el-select__suffix {
+  color: var(--text-muted, #5E5E5E);
+}
+
+/* ---- 紧凑输入框（表格内嵌用）---- */
+.clean-input-sm {
+  width: 100% !important;
+}
+.clean-input-sm .el-input__wrapper,
+.clean-select-sm .el-select__wrapper {
+  min-height: 30px; height: 30px;
+  border: 1px solid #DEDEDE; border-radius: var(--radius-sm, 6px);
+  box-shadow: none; background: var(--bg-card, #fff);
+  padding: 0 8px;
+  display: flex; align-items: center; box-sizing: border-box;
+}
+.clean-input-sm .el-input__wrapper:hover,
+.clean-select-sm .el-select__wrapper:hover {
+  border-color: var(--accent-primary, #3678E3);
+}
+.clean-input-sm .el-input__inner,
+.clean-select-sm .el-input__inner {
+  font-size: var(--font-small, 14px); color: var(--text-primary, #101010);
+}
+
+/* ---- 日期选择器（EP 2.14 el-date-picker 有两层：.el-date-editor > .el-input__wrapper）---- */
+.clean-datepicker {
+  width: 100%;
+  border: none; box-shadow: none; background: none;
+}
+.clean-datepicker .el-input__wrapper {
+  min-height: 36px; height: 36px;
+  border: 1px solid #DEDEDE; border-radius: 8px; box-shadow: none;
+  background: var(--bg-card, #fff); padding: 0 18px;
+  display: flex; align-items: center; box-sizing: border-box;
+}
+.clean-datepicker .el-input__wrapper:hover { border-color: #3678E3; }
+.clean-datepicker.is-active .el-input__wrapper { border-color: #3678E3; box-shadow: none; }
+.clean-datepicker .el-input__inner {
+  font-size: 14px; color: var(--text-primary, #101010);
+}
+.clean-datepicker .el-input__inner::placeholder {
+  color: #D9D9D9; font-size: 14px;
+}
+
+/* ---- 公共操作按钮 ---- */
+.btn-add-row {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: var(--radius-sm, 6px);
+  border: 1px dashed var(--border-high); background: transparent;
+  color: var(--accent-primary); cursor: pointer;
+  font-size: var(--font-small, 14px); width: fit-content;
+}
+.btn-add-row:hover {
+  background: var(--accent-primary08);
+}
+
+.btn-remove-row {
+  width: 24px; height: 24px; border-radius: 50%; border: none;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.btn-remove-row:hover {
+  background: var(--danger-bg); color: var(--danger, #dc2626);
+}
+.btn-remove-row:disabled {
+  opacity: 0.3; cursor: not-allowed;
+}

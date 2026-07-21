@@ -260,6 +260,91 @@ async function submit() {
 }
 ```
 
+### 3.6 行内表单（非抽屉/弹窗场景）
+
+步骤编辑、卡片内表单等不需要 el-drawer 的场景，直接复用抽屉的布局模式——去掉 el-drawer 外壳，只保留 `.form-row` 结构：
+
+```html
+<div class="drawer-form-body">
+  <!-- 单行字段 -->
+  <div class="form-row">
+    <div class="form-label">
+      <span class="label-required">*</span>
+      <span class="label-text">字段名</span>
+    </div>
+    <div class="form-control">
+      <el-input v-model="form.field" placeholder="请输入" maxlength="50" class="clean-input" />
+    </div>
+  </div>
+
+  <!-- 多行字段（文本域） -->
+  <div class="form-row form-row-top">
+    <div class="form-label">
+      <span class="label-text">备注</span>
+    </div>
+    <div class="form-control">
+      <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="备注" class="clean-input" />
+    </div>
+  </div>
+</div>
+```
+
+**关键 class**（从 `EnterpriseFormDrawer.vue` 复制，禁止自创）：
+
+| class | 用途 |
+|------|------|
+| `.drawer-form-body` | 表单字段容器，`flex column gap:18px` |
+| `.form-row` | 单行字段，`flex align-center gap:16px` |
+| `.form-row-top` | 多行字段，`align-items: flex-start` |
+| `.form-label` | 标签区，`width:80px justify-end` |
+| `.label-required` | 必填星号，`color: var(--semantic-danger)` |
+| `.label-text` | 标签文字，`color: var(--text-tertiary)` |
+| `.form-control` | 控件区，`flex:1 min-width:0` |
+| `.clean-input` | 输入框统一样式 |
+| `.clean-select` | 下拉框统一样式 |
+| `.clean-datepicker` | 日期选择器统一样式 |
+| `.clean-input-sm` / `.clean-select-sm` | 紧凑版（表格内嵌用，`height:30px`） |
+
+**公共样式文件**：`src/views/resumption/steps/shared-form.css` 已提取上述 class。新模块可参照建自己的 shared CSS，不要再逐组件重复。
+
+### 3.7 EP 组件 DOM 结构与 scoped 陷阱
+
+Element Plus 不同组件的 DOM 渲染方式不同，决定样式该放 scoped 还是非 scoped：
+
+| EP 组件 | DOM 结构 | class 在哪 | 样式方式 |
+|------|------|------|:---:|
+| `el-input` | `<外层>` > `<.el-input__wrapper>` | 外层 | scoped `:deep(.el-input__wrapper)` |
+| `el-select` | `<外层>` > `<.el-select__wrapper>` | 外层 | scoped `:deep(.el-select__wrapper)` |
+| `el-date-picker` (date) | `<.el-date-editor.el-input__wrapper>` | **自身 = wrapper** | **非 scoped** `.clean-datepicker .el-input__wrapper` |
+| `el-date-picker` (range) | 同上 | 自身 = wrapper | **非 scoped** |
+
+**规则**：`class="xxx"` 加在 EP 组件上时，若 EP 把 class 合并到内部 wrapper 同元素上，scoped `:deep()` 编译为 `[data-v-xxx] .wrapper`（找后代），永远匹配不到自身。必须用非 scoped `<style>` 块。
+
+**EP 2.14 datepicker 特殊处理**（外层 `.el-date-editor` + 内层 `.el-input__wrapper` 嵌套）：
+```css
+/* 非 scoped */
+.clean-datepicker { width: 100%; border: none; }                          /* 外层：无边框 */
+.clean-datepicker .el-input__wrapper { border: 1px solid #DEDEDE; ... }  /* 内层：统一边框 */
+```
+
+**验证方法**：写完先在 DevTools 检查实际 DOM，确认选择器能匹配到目标元素。
+
+### 3.8 公共样式提取规则
+
+≥2 个组件用到同一套样式时，提取到共享 CSS，各组件通过非 scoped `@import` 引入：
+
+```vue
+<style scoped>
+/* 仅组件特有样式 */
+</style>
+
+<style>
+@import './shared-form.css';
+</style>
+```
+
+禁止每个组件各写一份相同的 `.clean-input` / `.form-row` / `.btn-add-row` 样式。
+
 ---
 
 ## 四、间距 / 字号 / 颜色
@@ -286,14 +371,17 @@ async function submit() {
 | # | 检查项 | 参考 |
 |---|--------|------|
 | 1 | 列表页 | `EnterpriseList.vue` — 筛选栏、表头、表格、分页 |
-| 2 | 表单 | `EnterpriseFormDrawer.vue` — 布局、控件、校验、提交 |
-| 3 | 按钮 | `btn-primary` / `btn-default` / `act-btn` |
-| 4 | 表格 | 主列表 `fi-table`，抽屉内 `el-table` |
-| 5 | 标签 | `StatusTag` |
-| 6 | 列宽 | 按决策表选策略，不从其他表格复制 |
-| 7 | 列头内容 | 同一 class，同一对齐 |
-| 8 | 标签容器 | `inline-flex` 非 `flex` |
-| 9 | 间距/字号/颜色 | `var(--xxx)` 非硬编码 |
-| 10 | 一致性 | 同文件内同类元素是否一致？不一致 → 提问 |
+| 2 | 表单布局 | `EnterpriseFormDrawer.vue` — `.form-row` > `.form-label` + `.form-control`，禁止自创 |
+| 3 | 表单控件样式 | `clean-input` / `clean-select` / `clean-datepicker`，禁止裸 `el-input` |
+| 4 | 表单 scoped | el-date-picker → 非 scoped；el-input/el-select → scoped `:deep()`（见 3.7） |
+| 5 | 表单公共样式 | ≥2 处重复 → 提取 shared CSS（见 3.8） |
+| 6 | 按钮 | `btn-primary` / `btn-default` / `act-btn` |
+| 7 | 表格 | 主列表 `fi-table`，抽屉内 `el-table` |
+| 8 | 标签 | `StatusTag` |
+| 9 | 列宽 | 按决策表选策略，不从其他表格复制 |
+| 10 | 列头内容 | 同一 class，同一对齐 |
+| 11 | 标签容器 | `inline-flex` 非 `flex` |
+| 12 | 间距/字号/颜色 | `var(--xxx)` 非硬编码（除 `#DEDEDE` 输入框边框） |
+| 13 | 一致性 | 同文件内同类元素是否一致？不一致 → 提问 |
 
 **场景不匹配 → 提问，不要猜测。**

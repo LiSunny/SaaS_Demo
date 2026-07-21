@@ -2,6 +2,22 @@
 
 > Skill 调试验证项目。Skill 流水线、调试方法见[父目录 CLAUDE.md](../CLAUDE.md)。
 
+## ⚠️ 写任何代码前（强制）
+
+**拿到设计稿/需求 → 先查项目已有资源，再写代码。禁止自己发明。**
+
+| 你要写 | 先查 | 工具 |
+|--------|------|------|
+| 图标 | `public/icons/` 下是否已有 | `ls public/icons/` |
+| 按钮 / 标签 / 表单 | 项目 class 是否已有 | `grep` 搜索 `btn-` `act-` `clean-` 等 |
+| 页面布局 | 列表页 → `EnterpriseList.vue`；表单 → `EnterpriseFormDrawer.vue`；详情 → `PlanDetail.vue` | 打开对应范式文件 |
+| 颜色 / 字号 / 间距 | 只准用 `var(--xxx)` | `grep` 查 `src/style.css` |
+| 表单输入框 | `class="clean-input"` 等公共样式 | `.claude/references/ui-patterns.md` 第三节 |
+| Figma 写代码 | 设计稿每个元素 → 先映射到项目已有组件/class | 逐元素对照，找不到再问用户 |
+| **图标** | **项目内不存在的图标 → 用占位图 `📷`，告诉用户自己替换。禁止手写 SVG、禁止从 Figma 导出** | 用户已有明确 skill 规定 |
+
+**违反本规则的后果**：手写 SVG → 项目已有同名图标文件；自创 class → 项目已有标准 class；硬编码颜色 → 全局 Token 已定义；自己画图标 → 用户反复强调不能用 SVG 画。每次都浪费 1-2 轮对话修复。
+
 ## 一、产品定位
 
 **通用安全领域数字化协同平台**。覆盖消防安全 + 应急安全 + 可扩展至工业安全，串联物业方、服务方、监管方三方协作。全平台规划 **17 业务域 × 123 模块**（详见 `docs/biz-design.md`）。

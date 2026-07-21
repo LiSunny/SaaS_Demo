@@ -91,6 +91,8 @@ export interface ResumptionStep {
   completedAt: string
   remark: string
   attachments: string[]
+  /** 步骤专属表单数据（JSON），类型由 stepType 决定 */
+  formData?: Record<string, any>
 }
 
 /** 组织小组成员 */
@@ -131,4 +133,89 @@ export interface ResumptionQuery {
 export interface PaginatedData<T> {
   data: T[]
   total: number
+}
+
+// ===== 步骤专属表单类型 =====
+
+/** 步骤 2 签责 — 签署人 */
+export interface PledgeSigner {
+  name: string
+  role: string
+  signed: boolean
+  signedAt: string
+}
+
+/** 步骤 2 签责 — 表单数据 */
+export interface PledgeData {
+  title: string
+  content: string
+  signers: PledgeSigner[]
+  photoUrl: string
+}
+
+/** 步骤 3 安全培训 — 表单数据 */
+export interface TrainingData {
+  topic: string
+  location: string
+  trainDate: string
+  format: string
+  participants: string
+  photoUrls: string[]
+}
+
+/** 步骤 4 技术交底 — 单条交底记录 */
+export interface TechDisclosureItem {
+  position: string
+  procedureName: string
+  assignees: string
+}
+
+/** 步骤 4 技术交底 — 表单数据 */
+export interface TechDisclosureData {
+  records: TechDisclosureItem[]
+  discloseDate: string
+  discloser: string
+  photoUrls: string[]
+}
+
+/** 步骤 5 隐患排查 — 隐患状态 */
+export type HazardStatus = 'found' | 'disposed' | 'rectified' | 'accepted' | 'archived'
+
+/** 步骤 5 隐患排查 — 单条隐患记录 */
+export interface HazardRecord {
+  id: number
+  description: string
+  level: 'general' | 'major'
+  photos: string[]
+  status: HazardStatus
+  foundAt: string
+  foundBy: string
+  // 处置
+  disposalMeasure?: string
+  disposalBy?: string
+  disposalAt?: string
+  // 整改
+  rectificationMeasure?: string
+  rectificationBy?: string
+  rectificationAt?: string
+  rectificationPhotos?: string[]
+  // 验收
+  acceptanceConclusion?: string
+  acceptanceBy?: string
+  acceptanceAt?: string
+  // 归档
+  archivedAt?: string
+}
+
+/** 步骤 6 设备体检 — 单台设备检查记录 */
+export interface DeviceCheckItem {
+  id: number
+  deviceName: string
+  location: string
+  checker: string
+  checkTime: string
+  result: 'normal' | 'needs_repair' | 'disabled'
+  checkItems: { label: string; checked: boolean }[]
+  handling: string
+  photos: string[]
 }
