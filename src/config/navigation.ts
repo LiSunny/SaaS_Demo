@@ -154,7 +154,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'menuicon-27',
         children: [
           { key: 'resumption-list', label: '复工计划列表', route: '/resumption' },
-          { key: 'resumption-dashboard', label: '复工看板', route: '/resumption/dashboard' },
+          { key: 'resumption-bigscreen', label: '可视化大屏', route: '/resumption-bigscreen' },
         ],
       },
     ],
@@ -324,7 +324,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/enterprise/members': 'enterprise-members',
   '/enterprise/positions': 'enterprise-positions',
   '/resumption': 'resumption-list',
-  '/resumption/dashboard': 'resumption-dashboard',
+  '/resumption-bigscreen': 'resumption-bigscreen',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -346,7 +346,6 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'enterprise-members': '/enterprise/members',
   'enterprise-positions': '/enterprise/positions',
   'resumption-list': '/resumption',
-  'resumption-dashboard': '/resumption/dashboard',
 }
 
 // ===== 工具函数 =====

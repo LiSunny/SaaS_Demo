@@ -220,7 +220,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, FileText, Activity, Phone, Mail, Store } from 'lucide-vue-next'
+import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, FileText, Phone, Mail, Store } from 'lucide-vue-next'
 import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
 import scenarioIndustryImg from '@/assets/portal/scenario-industry.png'
 import scenarioMerchantImg from '@/assets/portal/scenario-ebike.png'
@@ -359,7 +359,6 @@ const SCENARIOS = [
 let carouselTimer: ReturnType<typeof setInterval>
 let carouselPaused = false
 const pauseCarousel = () => { carouselPaused = true }
-const resumeCarousel = () => { carouselPaused = false }
 const goIndustry = (slug: string) => {
   pauseCarousel()
   router.push(`/portal/${slug}`)

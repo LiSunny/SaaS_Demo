@@ -237,7 +237,7 @@ const showVoiceChat = ref(false)
 
 function startVoiceChat() {
   // 浏览器支持检测
-  const hasSTT = !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition)
+  const hasSTT = !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
   if (!hasSTT) {
     ElMessage.warning({ message: '当前浏览器不支持语音输入，请使用 Chrome 或 Edge 浏览器', zIndex: 10000 })
     return

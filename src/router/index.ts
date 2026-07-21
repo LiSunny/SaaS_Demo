@@ -69,6 +69,7 @@ const router = createRouter({
         { path: 'landing/street-detail', name: 'StreetDetail', component: () => import('@/views/bigscreen/StreetDetailPage.vue') },
         { path: 'landing/fire-control', name: 'FireControlDetail', component: () => import('@/views/bigscreen/FireControlPage.vue') },
         { path: 'gongmao', name: 'BigscreenGongmao', component: () => import('@/views/bigscreen/BigscreenGongmao.vue') },
+        { path: 'resumption-bigscreen', name: 'BigscreenResumption', component: () => import('@/views/bigscreen/BigscreenResumption.vue') },
       ],
     },
 
@@ -156,7 +157,6 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         { path: '', name: 'ResumptionPlanList', component: () => import('@/views/resumption/PlanList.vue') },
-        { path: 'dashboard', name: 'ResumptionDashboard', component: () => import('@/views/resumption/Dashboard.vue') },
         { path: ':id', name: 'ResumptionPlanDetail', component: () => import('@/views/resumption/PlanDetail.vue'), meta: { hidden: true } },
       ],
     },

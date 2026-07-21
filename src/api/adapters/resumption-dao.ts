@@ -95,6 +95,19 @@ const SEED_STEPS: ResumptionStep[] = [
   { id: 31, planId: 3, stepType: 'issue-order', stepOrder: 9, status: 'done', completedBy: '周志远', completedAt: '2026-01-18 10:00:00', remark: '厂长签发复工令', attachments: [] },
   { id: 32, planId: 3, stepType: 'duty-log', stepOrder: 10, status: 'done', completedBy: '马班长', completedAt: '2026-01-21 17:00:00', remark: '3 天试产无异常，正式复产', attachments: [] },
   { id: 33, planId: 3, stepType: 'archive', stepOrder: 11, status: 'done', completedBy: '孙安全', completedAt: '2026-01-22 10:00:00', remark: '全套资料归档完成，含培训签到表、体检报告、验收签字、复工令', attachments: [] },
+
+  // 计划 4 — 锅炉房（review，验收完成待签发复工令）
+  { id: 34, planId: 4, stepType: 'build-team', stepOrder: 1, status: 'done', completedBy: '黄建国', completedAt: '2026-03-01 08:30:00', remark: '组建复工小组', attachments: [] },
+  { id: 35, planId: 4, stepType: 'sign-pledge', stepOrder: 2, status: 'done', completedBy: '黄建国', completedAt: '2026-03-01 10:00:00', remark: '全员签署完成', attachments: [], formData: { title: '2026年春季锅炉房安全生产责任状', content: DEFAULT_PLEDGE_CONTENT, signers: [{ name: '黄建国', role: '车间主任', signed: true, signedAt: '2026-03-01' }, { name: '宋安全', role: '安全员', signed: true, signedAt: '2026-03-01' }, { name: '何班长', role: '班组长', signed: true, signedAt: '2026-03-01' }, { name: '刘师傅', role: '司炉工', signed: true, signedAt: '2026-03-01' }], photoUrl: '' } },
+  { id: 36, planId: 4, stepType: 'safety-training', stepOrder: 3, status: 'done', completedBy: '宋安全', completedAt: '2026-03-01 14:00:00', remark: '锅炉房安全操作专项培训完成', attachments: [], formData: { topic: '锅炉房复工复产安全专项培训', location: '锅炉房值班室', trainDate: '2026-03-01', format: '现场授课', participants: '黄建国、宋安全、何班长、刘师傅等8人', photoUrls: [] } },
+  { id: 37, planId: 4, stepType: 'tech-disclosure', stepOrder: 4, status: 'done', completedBy: '宋安全', completedAt: '2026-03-01 16:00:00', remark: '锅炉操作规程交底完成', attachments: [], formData: { records: [{ position: '司炉工', procedureName: '燃气锅炉安全操作规程', assignees: '刘师傅、何班长' }, { position: '水处理工', procedureName: '锅炉水处理操作规程', assignees: '宋安全' }], discloseDate: '2026-03-01', discloser: '宋安全', photoUrls: [] } },
+  { id: 38, planId: 4, stepType: 'hazard-check', stepOrder: 5, status: 'done', completedBy: '何班长', completedAt: '2026-03-02 09:00:00', remark: '排查隐患2项', attachments: [] },
+  { id: 39, planId: 4, stepType: 'device-check', stepOrder: 6, status: 'done', completedBy: '何班长', completedAt: '2026-03-02 11:00:00', remark: '锅炉本体及辅机检查，燃烧器需清洗', attachments: [] },
+  { id: 40, planId: 4, stepType: 'rectify', stepOrder: 7, status: 'done', completedBy: '宋安全', completedAt: '2026-03-02 14:00:00', remark: '2项隐患已销号，燃烧器清洗完成', attachments: [] },
+  { id: 41, planId: 4, stepType: 'joint-acceptance', stepOrder: 8, status: 'done', completedBy: '黄建国', completedAt: '2026-03-03 15:00:00', remark: '三方验收通过，具备点火试运行条件', attachments: [] },
+  { id: 42, planId: 4, stepType: 'issue-order', stepOrder: 9, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
+  { id: 43, planId: 4, stepType: 'duty-log', stepOrder: 10, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
+  { id: 44, planId: 4, stepType: 'archive', stepOrder: 11, status: 'pending', completedBy: '', completedAt: '', remark: '', attachments: [] },
 ]
 
 const SEED_TEAM: OrgTeamMember[] = [
@@ -111,6 +124,10 @@ const SEED_TEAM: OrgTeamMember[] = [
   { id: 11, planId: 3, role: '副组长', userName: '孙安全', positionKey: 'workshop-safety-officer' },
   { id: 12, planId: 3, role: '副组长', userName: '马班长', positionKey: 'team-leader' },
   { id: 13, planId: 3, role: '成员', userName: '周小军', positionKey: 'team-member' },
+  { id: 14, planId: 4, role: '组长', userName: '黄建国', positionKey: 'workshop-director' },
+  { id: 15, planId: 4, role: '副组长', userName: '宋安全', positionKey: 'workshop-safety-officer' },
+  { id: 16, planId: 4, role: '副组长', userName: '何班长', positionKey: 'team-leader' },
+  { id: 17, planId: 4, role: '成员', userName: '刘师傅', positionKey: 'team-member' },
 ]
 
 const SEED_ORDERS: ResumptionOrder[] = [
@@ -122,6 +139,7 @@ const SEED_PLANS: ResumptionPlanItem[] = [
   { id: 1, enterpriseId: 1, locationId: 2, locationName: '冲压车间', status: 'prepare', currentStep: 5, startedAt: '2026-02-05', completedAt: '', createdAt: '2026-02-05 08:00:00', updatedAt: '2026-02-05 16:30:00' },
   { id: 2, enterpriseId: 1, locationId: 3, locationName: '喷涂车间', status: 'trial', currentStep: 10, startedAt: '2026-02-03', completedAt: '', createdAt: '2026-02-03 08:00:00', updatedAt: '2026-02-04 17:00:00' },
   { id: 3, enterpriseId: 1, locationId: 4, locationName: '组装车间', status: 'production', currentStep: 11, startedAt: '2026-01-15', completedAt: '2026-01-22', createdAt: '2026-01-15 08:00:00', updatedAt: '2026-01-22 10:00:00' },
+  { id: 4, enterpriseId: 1, locationId: 6, locationName: '锅炉房', status: 'review', currentStep: 9, startedAt: '2026-03-01', completedAt: '', createdAt: '2026-03-01 08:00:00', updatedAt: '2026-03-03 16:00:00' },
 ]
 
 // ===== 持久化 Store =====
@@ -273,6 +291,7 @@ export async function updateStep(
     })
   }
 
+  const updated = stepStore.getById(stepId) as ResumptionStep | null
   return updated
 }
 
@@ -300,4 +319,15 @@ export async function updateTeamMembers(
 /** 获取小组名单 */
 export async function getTeamMembers(planId: number): Promise<OrgTeamMember[]> {
   return teamStore.findBy(m => m.planId === planId)
+}
+
+/** 获取所有计划详情（大屏用，含步骤、小组、复工令） */
+export async function getAllPlansWithDetails(): Promise<ResumptionPlan[]> {
+  const plans = planStore.getAll()
+  return plans.map(plan => ({
+    ...plan,
+    steps: stepsForPlan(plan.id),
+    team: teamForPlan(plan.id),
+    order: orderForPlan(plan.id) || null,
+  }))
 }

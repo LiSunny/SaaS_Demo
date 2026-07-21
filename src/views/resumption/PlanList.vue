@@ -2,24 +2,23 @@
   <div class="list-page">
     <div class="content-card">
 
-      <!-- ===== 引导说明卡片 ===== -->
-      <div v-if="showHelp" class="help-card">
-        <div class="help-illustration">
-          <img :src="helpImg" alt="复工复产说明" class="help-img" />
+      <!-- ===== 4 阶段统计卡片 ===== -->
+      <div class="metric-row">
+        <div class="metric-card metric-prepare">
+          <span class="metric-value">{{ stats.prepare }}</span>
+          <span class="metric-label">复工准备</span>
         </div>
-        <div class="help-content">
-          <div class="help-section">
-            <h3 class="help-title">什么是复工复产管理？</h3>
-            <p class="help-text">工厂企业在节后/停产检修/临时停工后，按"六个一"法规要求，以车间为履责主体，完成"建组→签责→培训→排查→体检→整改→验收→复工令→试产→归档"全流程闭环管理。</p>
-          </div>
-          <div class="help-section">
-            <h3 class="help-subtitle">如何使用？</h3>
-            <ul class="help-list">
-              <li><strong>新建复工计划：</strong>点击"新建计划"，填写复工场所（如车间、门店、库区），系统自动创建 11 个串行步骤。</li>
-              <li><strong>查看流程进度：</strong>点击"查看详情"，查看每个步骤的执行状态和操作记录。</li>
-              <li><strong>看板总览：</strong>点击"复工看板"，一屏查看全厂各车间复工进度。</li>
-            </ul>
-          </div>
+        <div class="metric-card metric-review">
+          <span class="metric-value">{{ stats.review }}</span>
+          <span class="metric-label">复工审核</span>
+        </div>
+        <div class="metric-card metric-trial">
+          <span class="metric-value">{{ stats.trial }}</span>
+          <span class="metric-label">试产观察</span>
+        </div>
+        <div class="metric-card metric-production">
+          <span class="metric-value">{{ stats.production }}</span>
+          <span class="metric-label">正式复产</span>
         </div>
       </div>
 
@@ -45,8 +44,12 @@
         </div>
 
         <div class="filter-right">
-          <button class="btn-outline-primary" @click="$router.push('/resumption/dashboard')">
-            复工看板
+          <div class="view-toggle">
+            <button :class="['toggle-btn', viewMode === 'card' ? 'active' : '']" @click="viewMode = 'card'" title="卡片视图">▦</button>
+            <button :class="['toggle-btn', viewMode === 'list' ? 'active' : '']" @click="viewMode = 'list'" title="列表视图">☰</button>
+          </div>
+          <button class="btn-default" @click="goBigscreen">
+            📊 可视化大屏
           </button>
           <button class="btn-outline-primary" @click="openCreateDialog">
             <AppIcon name="plus" class="btn-add-icon" />新建计划
@@ -55,7 +58,7 @@
       </div>
 
       <!-- ===== 数据表格 ===== -->
-      <div class="table-wrap">
+      <div v-if="viewMode === 'list'" class="table-wrap">
         <table class="fi-table">
           <thead>
             <tr class="fi-thead-tr">
@@ -87,6 +90,27 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- ===== 卡片视图 ===== -->
+      <div v-if="viewMode === 'card'" class="card-grid" v-loading="store.loading">
+        <div v-for="plan in store.list" :key="plan.id" class="plan-card" @click="$router.push(`/resumption/${plan.id}`)">
+          <div class="card-header">
+            <h4 class="card-name">{{ plan.locationName }}</h4>
+            <StatusTag :status="`plan_${plan.status}`" />
+          </div>
+          <div class="card-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: stepPercent(plan) + '%' }" :class="plan.status === 'production' ? 'fill-success' : ''" />
+            </div>
+            <span class="progress-text">{{ plan.currentStep }}/11 步</span>
+          </div>
+          <div class="card-meta">
+            <span>开始：{{ plan.startedAt || '—' }}</span>
+            <span v-if="plan.completedAt">完成：{{ plan.completedAt }}</span>
+          </div>
+        </div>
+        <div v-if="!store.loading && store.list.length === 0" class="card-empty">暂无复工计划</div>
       </div>
 
       <!-- ===== 分页 ===== -->
@@ -142,6 +166,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useResumptionStore } from '@/stores/resumption'
 import type { ResumptionPlanItem } from '@/types/resumption'
@@ -150,13 +175,25 @@ import type { ManagementUnit } from '@/api/adapters/resumption-dao'
 import StatusTag from '@/components/business/StatusTag.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import TableSortIcon from '@/components/base/TableSortIcon.vue'
-import helpImg from '@/assets/zhuhu.png'
 
+const router = useRouter()
 const store = useResumptionStore()
 const query = store.query
 
-// ===== 引导说明 =====
-const showHelp = ref(true)
+// ===== 统计 =====
+const stats = computed(() => ({
+  prepare: store.list.filter(p => p.status === 'prepare').length,
+  review: store.list.filter(p => p.status === 'review').length,
+  trial: store.list.filter(p => p.status === 'trial').length,
+  production: store.list.filter(p => p.status === 'production').length,
+}))
+
+// ===== 视图切换 =====
+const viewMode = ref<'card' | 'list'>('list')
+
+function stepPercent(plan: ResumptionPlanItem): number {
+  return Math.round((plan.currentStep / 11) * 100)
+}
 
 // ===== 筛选 =====
 const statusOptions = [
@@ -225,6 +262,10 @@ function onUnitSelect(id: number | string | undefined) {
   }
 }
 
+function goBigscreen() {
+  router.push('/resumption-bigscreen')
+}
+
 function openCreateDialog() {
   dialogForm.value.locationName = ''
   dialogForm.value.locationId = undefined
@@ -263,22 +304,54 @@ onMounted(async () => { await loadUnits(); await store.fetchList() })
   z-index: 1;
 }
 
-/* ===== 引导卡片 ===== */
-.help-card {
-  background: var(--bg-sub-card); border: 1px solid var(--border-default);
-  border-radius: var(--radius-md, 8px); padding: var(--spacing-lg, 12px);
-  display: flex; gap: 10px; align-items: center; flex-shrink: 0;
+/* ===== 统计卡片 ===== */
+.metric-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; flex-shrink: 0;
 }
-.help-illustration { width: 242px; height: 156px; border-radius: 8px; flex-shrink: 0; overflow: hidden; }
-.help-illustration img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.help-content { display: flex; flex-direction: column; gap: 10px; padding: 0 var(--spacing-lg, 12px); flex: 1; min-width: 0; }
-.help-section { display: flex; flex-direction: column; gap: 6px; }
-.help-title { font-size: var(--font-h4, 16px); font-weight: 600; color: var(--text-primary); margin: 0; }
-.help-subtitle { font-size: var(--font-body, 16px); font-weight: 500; color: var(--text-primary); margin: 0; }
-.help-text { font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.6; margin: 0; }
-.help-list { margin: 0; padding-left: 20px; font-size: var(--font-small, 14px); color: var(--text-secondary); line-height: 1.8; }
-.help-list li { margin-bottom: 0; }
-.help-list li strong { color: var(--text-primary); }
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 10px);
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.metric-value { font-size: 32px; font-weight: 700; color: var(--text-primary); }
+.metric-label { font-size: var(--font-small, 14px); color: var(--text-muted); }
+.metric-prepare { border-left: 3px solid var(--accent-primary); }
+.metric-review { border-left: 3px solid var(--warning, #D97706); }
+.metric-trial { border-left: 3px solid #F59E0B; }
+.metric-production { border-left: 3px solid var(--success, #059669); }
+
+/* ===== 视图切换按钮 ===== */
+.view-toggle { display: flex; gap: 4px; margin-right: 8px; }
+.toggle-btn {
+  width: 32px; height: 32px; border: 1px solid var(--border-default); border-radius: 6px;
+  background: var(--bg-card); color: var(--text-muted); cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+.toggle-btn.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+.toggle-btn:hover:not(.active) { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+/* ===== 卡片视图 ===== */
+.card-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px; overflow: auto; align-content: start;
+}
+.plan-card {
+  background: var(--bg-card); border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 8px); padding: 16px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 12px; transition: box-shadow .15s;
+}
+.plan-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.card-header { display: flex; align-items: center; justify-content: space-between; }
+.card-name { font-size: var(--font-body, 16px); font-weight: 500; color: var(--text-primary); margin: 0; }
+.card-progress { display: flex; align-items: center; gap: 10px; }
+.progress-bar { flex: 1; height: 6px; background: var(--bg-sub-card); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent-primary); border-radius: 3px; transition: width .3s; }
+.progress-fill.fill-success { background: var(--success, #059669); }
+.progress-text { font-size: var(--font-xs, 12px); color: var(--text-muted); white-space: nowrap; }
+.card-meta { display: flex; gap: 16px; font-size: var(--font-xs, 12px); color: var(--text-muted); }
+.card-empty { text-align: center; padding: 48px; color: var(--text-muted); font-size: var(--font-body, 16px); }
 
 /* ===== 筛选栏 ===== */
 .fi-select-wrap { width: 130px; flex-shrink: 0; }
@@ -308,8 +381,7 @@ onMounted(async () => { await loadUnits(); await store.fetchList() })
 @media (max-width: 800px) {
   .filter-bar { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: stretch; }
   .pagination-wrap { flex-direction: column; gap: var(--spacing-lg, 12px); align-items: flex-start; }
-  .help-card { flex-direction: column; }
-  .help-illustration { width: 100%; }
+  .metric-row { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ===== 分页器 ===== */

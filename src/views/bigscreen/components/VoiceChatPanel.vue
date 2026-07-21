@@ -104,8 +104,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue'
-import { useVoiceChat, type VoiceState } from '@/composables/useVoiceChat'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useVoiceChat } from '@/composables/useVoiceChat'
 import { useAiChatStore } from '@/stores/ai-chat'
 
 const emit = defineEmits<{
