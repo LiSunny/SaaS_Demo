@@ -1,6 +1,7 @@
 <template>
   <div class="rm-section-card" :style="height ? { height } : {}">
     <ResumptionModuleTitle :title="title" />
+    <!-- 内容区（Figma: background/card = #00336a） -->
     <div class="rm-card-body">
       <slot />
     </div>
@@ -27,18 +28,17 @@ defineProps<{
   flex-shrink: 0;
 }
 
+/* ===== 内容区（Figma: background/card #00336A, stroke #1565A4） ===== */
 .rm-card-body {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    rgba(8, 66, 162, 0.3) 0%,
-    rgba(5, 51, 125, 0.12) 100%
-  );
-  border: 1px solid rgba(71, 132, 232, 0.2);
+  background: #00336A;
+  border: 1px solid #1565A4;
   border-top: none;
   border-radius: 0 0 4px 4px;
-  padding: vw(12) vw(16);
+  padding: vh(16) vw(16) vw(12) vw(16);
 }
 </style>

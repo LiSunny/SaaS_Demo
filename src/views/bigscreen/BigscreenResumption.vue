@@ -46,35 +46,138 @@
     <!-- ===== 主内容区 ===== -->
     <div class="rb-content">
       <div class="rb-col-left">
-        <div class="rb-factory-panel">
-          <img class="rb-factory-bg" src="@/assets/bigscreen/resumption/factory-bg.png" alt="工厂概览" />
-          <div
-            v-for="(plan, idx) in plans"
-            :key="plan.id"
-            class="rb-factory-dot"
-            :class="`dot-${plan.status}`"
-            :style="dotStyle(idx)"
-            :title="`${plan.locationName} · ${statusLabel(plan.status)}`"
-          />
-          <div class="rb-factory-overlay">
-            <span class="rb-factory-name">港南工厂 • 复工复产监控画面</span>
-            <span class="rb-factory-live">● LIVE</span>
+        <ResumptionSectionCard title="复工复产一张图" class="rb-factory-card">
+          <div class="rb-factory-panel">
+            <img class="rb-factory-bg" src="@/assets/bigscreen/resumption/factory-bg.png" alt="工厂概览" />
+            <div
+              v-for="(plan, idx) in plans"
+              :key="plan.id"
+              class="rb-factory-dot"
+              :class="[`dot-${plan.status}`, { 'dot-selected': plan.id === selectedPlanId }]"
+              :style="dotStyle(idx)"
+              :title="`${plan.locationName} · ${statusLabel(plan.status)}`"
+              @click="selectedPlanId = plan.id"
+            />
+            <div class="rb-factory-overlay">
+              <span class="rb-factory-name">港南工厂 • 复工复产监控画面</span>
+              <span class="rb-factory-live">● LIVE</span>
+            </div>
           </div>
-        </div>
-        <div class="rb-workshop-cards">
-          <WorkshopStatusCard
-            v-for="ws in workshopData"
-            :key="ws.id"
-            :name="ws.name" :leader="ws.leader" :date="ws.date"
-            :status="ws.status" :progress="ws.progress" :warnings="ws.warnings"
-          />
-        </div>
+        </ResumptionSectionCard>
+        <ResumptionSectionCard title="场所列表" class="rb-place-list">
+          <div class="rb-workshop-cards">
+            <div
+              v-for="ws in workshopData"
+              :key="ws.id"
+              class="rb-ws-clickable"
+              :class="{ 'rb-ws-selected': ws.id === selectedPlanId }"
+              @click="selectedPlanId = ws.id"
+            >
+              <WorkshopStatusCard
+                :name="ws.name" :leader="ws.leader" :date="ws.date"
+                :status="ws.status" :progress="ws.progress" :warnings="ws.warnings"
+              />
+            </div>
+          </div>
+        </ResumptionSectionCard>
       </div>
       <div class="rb-col-right">
-        <StageFlow :plans="plans" />
-        <HazardSummary :plans="plans" />
-        <DeviceSummary :plans="plans" />
-        <ActivityTimeline :plans="plans" />
+        <ResumptionSectionCard title="场所详情" class="rb-place-detail">
+          <template v-if="selectedPlan">
+            <!-- 场所信息 -->
+            <div class="pd-section">
+              <h4 class="pd-subtitle">场所信息</h4>
+              <div class="pd-info-grid">
+                <span class="pd-info-label">场所名称</span>
+                <span class="pd-info-value">{{ selectedPlan.locationName }}</span>
+                <span class="pd-info-label">当前状态</span>
+                <span class="pd-info-value">
+                  <span class="pd-status-tag" :class="`pd-${selectedPlan.status}`">
+                    {{ statusLabel(selectedPlan.status) }}
+                  </span>
+                </span>
+                <span class="pd-info-label">负责人</span>
+                <span class="pd-info-value">{{ selectedPlan.team?.find(t => t.role === '组长')?.userName || '—' }}</span>
+                <span class="pd-info-label">开始时间</span>
+                <span class="pd-info-value">{{ selectedPlan.startedAt || selectedPlan.createdAt?.slice(0, 10) || '—' }}</span>
+              </div>
+            </div>
+            <!-- 核心指标 -->
+            <div class="pd-section">
+              <h4 class="pd-subtitle">核心指标</h4>
+              <div class="pd-metrics">
+                <div class="pd-metric pd-metric-warn">
+                  <span class="pd-metric-value">{{ planMetrics(selectedPlan).abnormalDevices }}</span>
+                  <span class="pd-metric-label">异常设备数</span>
+                </div>
+                <div class="pd-metric pd-metric-danger">
+                  <span class="pd-metric-value">{{ planMetrics(selectedPlan).unclosedHazards }}</span>
+                  <span class="pd-metric-label">未闭环隐患数</span>
+                </div>
+                <div class="pd-metric pd-metric-primary">
+                  <span class="pd-metric-value">{{ planMetrics(selectedPlan).progress }}%</span>
+                  <span class="pd-metric-label">复产进度</span>
+                </div>
+              </div>
+            </div>
+            <!-- 复产详情：四阶段 + 内部 11 步（撑满剩余空间） -->
+            <div class="pd-section pd-section-fill">
+              <h4 class="pd-subtitle">复产详情</h4>
+              <div class="pd-stages-detail">
+                <div v-for="stage in STAGES" :key="stage.key" class="pds-stage-block">
+                  <div class="pds-stage-head">
+                    <span class="pds-stage-dot" :class="`pd-dot-${stage.key}`" />
+                    <span class="pds-stage-label">{{ stage.label }}</span>
+                    <span class="pds-stage-sub">（{{ stage.stepOrders.length }} 步）</span>
+                  </div>
+                  <div class="pds-steps">
+                    <div
+                      v-for="order in stage.stepOrders"
+                      :key="order"
+                      class="pds-step"
+                      :class="[
+                        `pds-step-${planStepStatus(selectedPlan, order)}`,
+                        { 'pds-step-active': selectedStepOrder === order }
+                      ]"
+                      @click="selectedStepOrder = selectedStepOrder === order ? 0 : order"
+                    >
+                      <span class="pds-step-icon">{{ stepStatusIcon(planStepStatus(selectedPlan, order)) }}</span>
+                      <span class="pds-step-num">{{ order }}.</span>
+                      <span class="pds-step-name">{{ planStepLabel(order) }}</span>
+                      <span class="pds-step-executor">{{ planStepExecutor(order) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 选中步骤详情条 -->
+              <div v-if="selectedStep && selectedStepOrder" class="pds-step-detail">
+                <div class="pds-step-detail-head">
+                  <span class="pds-step-detail-num">{{ selectedStepOrder }}. {{ planStepLabel(selectedStepOrder) }}</span>
+                  <span class="pds-detail-status" :class="`pds-detail-${planStepStatus(selectedPlan, selectedStepOrder)}`">
+                    {{ stepStatusLabel(planStepStatus(selectedPlan, selectedStepOrder)) }}
+                  </span>
+                </div>
+                <div class="pds-step-detail-body">
+                  <span class="pds-detail-row">
+                    <span class="pds-detail-k">执行人</span>
+                    <span class="pds-detail-v">{{ planStepExecutor(selectedStepOrder) }}</span>
+                  </span>
+                  <span v-if="selectedStep" class="pds-detail-row">
+                    <span class="pds-detail-k">完成时间</span>
+                    <span class="pds-detail-v">{{ selectedStep.completedAt || '—' }}</span>
+                  </span>
+                  <span v-if="selectedStep?.remark" class="pds-detail-row">
+                    <span class="pds-detail-k">备注</span>
+                    <span class="pds-detail-v">{{ selectedStep.remark }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <div v-else class="pd-empty">
+            <p>请选择车间</p>
+          </div>
+        </ResumptionSectionCard>
       </div>
     </div>
   </div>
@@ -83,12 +186,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { ResumptionPlan, PlanStatus } from '@/types/resumption'
+import { STAGES, STEP_META } from '@/types/resumption'
 import { getAllPlansWithDetails } from '@/api/adapters/resumption-dao'
 import WorkshopStatusCard from './components/resumption/WorkshopStatusCard.vue'
-import StageFlow from './components/resumption/StageFlow.vue'
-import HazardSummary from './components/resumption/HazardSummary.vue'
-import DeviceSummary from './components/resumption/DeviceSummary.vue'
-import ActivityTimeline from './components/resumption/ActivityTimeline.vue'
+import ResumptionSectionCard from './components/resumption/ResumptionSectionCard.vue'
 
 // ===== 时钟 =====
 const currentTime = ref('')
@@ -112,11 +213,34 @@ onUnmounted(() => {
 // ===== 数据加载 =====
 const plans = ref<ResumptionPlan[]>([])
 
+// ===== 选中车间 =====
+const selectedPlanId = ref<number>(0)
+const selectedPlan = computed(() => plans.value.find(p => p.id === selectedPlanId.value))
+
+// ===== 选中步骤 =====
+const selectedStepOrder = ref<number>(0)
+const selectedStep = computed(() =>
+  selectedPlan.value?.steps?.find(s => s.stepOrder === selectedStepOrder.value)
+)
+
 onMounted(async () => {
   try {
     plans.value = await getAllPlansWithDetails()
+    if (plans.value.length) selectedPlanId.value = plans.value[0].id
   } catch { /* mock 降级 */ }
 })
+
+// ===== 步骤状态展示 =====
+function stepStatusIcon(s: string) {
+  if (s === 'done') return '✓'
+  if (s === 'in_progress') return '●'
+  return '○'
+}
+function stepStatusLabel(s: string) {
+  if (s === 'done') return '已完成'
+  if (s === 'in_progress') return '进行中'
+  return '待处理'
+}
 
 // ===== KPI 指标计算 =====
 const kpiList = computed(() => {
@@ -183,6 +307,41 @@ const statusLabelMap: Record<string, string> = {
   prepare: '复工准备', review: '复工审核', trial: '试产观察', production: '正式复产',
 }
 function statusLabel(s: string) { return statusLabelMap[s] || s }
+
+// ===== 单个车间指标 =====
+function planMetrics(plan: ResumptionPlan) {
+  const steps = plan.steps || []
+  const total = 11
+  const done = steps.filter(s => s.status === 'done').length
+
+  const deviceStep = steps.find(s => s.stepType === 'device-check')
+  const devices = deviceStep?.formData?.devices || []
+  const abnormalDevices = devices.filter((d: any) => d.result === 'needs_repair' || d.result === 'disabled').length
+
+  const hazardStep = steps.find(s => s.stepType === 'hazard-check')
+  const hazards = hazardStep?.formData?.hazards || []
+  const unclosedHazards = hazards.filter((h: any) => h.status !== 'archived').length
+
+  return {
+    progress: Math.round((done / total) * 100),
+    abnormalDevices,
+    unclosedHazards,
+  }
+}
+
+// ===== 步骤状态 & 标签 =====
+function planStepStatus(plan: ResumptionPlan, order: number): string {
+  const step = plan.steps?.find(s => s.stepOrder === order)
+  return step?.status || 'pending'
+}
+
+function planStepLabel(order: number): string {
+  return STEP_META.find(m => m.order === order)?.label || `步骤${order}`
+}
+
+function planStepExecutor(order: number): string {
+  return STEP_META.find(m => m.order === order)?.executor || '—'
+}
 
 const dotPositions = [
   { left: 18, top: 38 },
@@ -469,30 +628,348 @@ function dotStyle(idx: number) {
   min-height: 0;
 }
 
+/* 左侧卡片：工厂图 flex:1 撑满，场所列表 auto */
+.rb-factory-card {
+  flex: 1;
+  min-height: 0;
+
+  .rm-factory-card .rm-card-body {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+}
+
+.rb-place-list {
+  flex-shrink: 0;
+
+  .rm-factory-card .rm-card-body {
+    padding: vh(12) vw(12);
+  }
+}
+
 /* 右侧列 (Figma: 620px) */
 .rb-col-right {
   display: flex;
   flex-direction: column;
-  gap: vh(12);
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow-y: auto;
-  /* 隐藏滚动条但可滚动 */
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+}
+
+/* 场所详情模块 */
+.rb-place-detail {
+  flex: 1;
+  min-height: 0;
+
+  .rm-card-body {
+    display: flex;
+    flex-direction: column;
+    padding: vh(12) vw(14);
+    overflow: hidden;
+  }
+}
+
+/* 子区块 */
+.pd-section {
+  & + & {
+    margin-top: vh(14);
+    padding-top: vh(14);
+    border-top: 1px solid rgba(21, 101, 164, 0.3);
+  }
+
+  /* 最后一个（复产详情）撑满剩余空间 */
+  &.pd-section-fill {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+    .pd-stages-detail {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+}
+
+.pd-subtitle {
+  margin: 0 0 vh(8);
+  font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(12px, calc(15 * var(--min-scale)), 16px);
+  font-weight: 500;
+  color: #89b5ff;
+}
+
+/* 场所信息 2×4 网格 */
+.pd-info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: vh(4) vw(12);
+}
+
+.pd-info-label {
+  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
+  color: rgba(195, 215, 248, 0.5);
+  white-space: nowrap;
+}
+
+.pd-info-value {
+  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
+  color: rgba(195, 215, 248, 0.9);
+}
+
+.pd-status-tag {
+  display: inline-block;
+  padding: 0 vw(6);
+  border-radius: 3px;
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+  line-height: 1.8;
+
+  &.pd-prepare    { background: rgba(134,174,240,0.2); color: #86aef0; }
+  &.pd-review     { background: rgba(94,147,235,0.2); color: #5e93eb; }
+  &.pd-trial      { background: rgba(237,161,0,0.2);  color: #eda100; }
+  &.pd-production { background: rgba(27,175,122,0.2); color: #1baf7a; }
+}
+
+/* 核心指标 3 列 */
+.pd-metrics {
+  display: flex;
+  gap: vw(10);
+}
+
+.pd-metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: vh(8) vw(6);
+  border-radius: 4px;
+  background: rgba(0, 51, 106, 0.4);
+  border: 1px solid rgba(21, 101, 164, 0.25);
+}
+
+.pd-metric-value {
+  font-family: 'Douyin Sans', 'DingTalk_JinBuTi', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(20px, calc(28 * var(--min-scale)), 32px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pd-metric-label {
+  font-size: clamp(10px, calc(12 * var(--min-scale)), 13px);
+  margin-top: vh(2);
+}
+
+.pd-metric-warn  .pd-metric-value { color: #eda100; }
+.pd-metric-danger .pd-metric-value { color: #e34948; }
+.pd-metric-primary .pd-metric-value { color: #3678E3; }
+.pd-metric-warn  .pd-metric-label,
+.pd-metric-danger .pd-metric-label,
+.pd-metric-primary .pd-metric-label { color: rgba(195, 215, 248, 0.5); }
+
+/* 复产详情：四阶段 + 11 步 */
+.pd-stages-detail {
+  display: flex;
+  flex-direction: column;
+  gap: vh(8);
+}
+
+.pds-stage-block {
+  border-radius: 4px;
+  background: rgba(0, 51, 106, 0.25);
+  border: 1px solid rgba(21, 101, 164, 0.15);
+  overflow: hidden;
+}
+
+.pds-stage-head {
+  display: flex;
+  align-items: center;
+  gap: vw(6);
+  padding: vh(4) vw(8);
+  border-bottom: 1px solid rgba(21, 101, 164, 0.12);
+}
+
+.pds-stage-dot {
+  width: vw(8);
+  height: vw(8);
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.pd-dot-prepare    { background: #86aef0; }
+  &.pd-dot-review     { background: #5e93eb; }
+  &.pd-dot-trial      { background: #eda100; }
+  &.pd-dot-production { background: #1baf7a; }
+}
+
+.pds-stage-label {
+  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
+  font-weight: 500;
+  color: rgba(195, 215, 248, 0.9);
+}
+
+.pds-stage-sub {
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+  color: rgba(195, 215, 248, 0.35);
+}
+
+/* 步骤行 */
+.pds-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: vw(3);
+  padding: vh(4) vw(6);
+}
+
+.pds-step {
+  display: flex;
+  align-items: center;
+  gap: vw(3);
+  padding: vh(3) vw(6);
+  border-radius: 3px;
+  background: rgba(21, 101, 164, 0.1);
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(21, 101, 164, 0.25);
+  }
+
+  &.pds-step-active {
+    background: rgba(54, 120, 227, 0.3);
+    outline: 1px solid rgba(54, 120, 227, 0.5);
+  }
+
+  &.pds-step-done {
+    background: rgba(27, 175, 122, 0.12);
+    .pds-step-icon { color: #1baf7a; }
+  }
+  &.pds-step-in_progress {
+    background: rgba(237, 161, 0, 0.12);
+    .pds-step-icon { color: #eda100; }
+  }
+  &.pds-step-pending {
+    .pds-step-icon { color: rgba(195, 215, 248, 0.2); }
+  }
+}
+
+.pds-step-icon {
+  font-size: clamp(9px, calc(10 * var(--min-scale)), 11px);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pds-step-num {
+  color: rgba(195, 215, 248, 0.3);
+  flex-shrink: 0;
+}
+
+.pds-step-name {
+  color: rgba(195, 215, 248, 0.7);
+}
+
+.pds-step-executor {
+  margin-left: auto;
+  color: rgba(195, 215, 248, 0.25);
+  font-size: clamp(9px, calc(10 * var(--min-scale)), 11px);
+}
+
+/* 步骤详情条 */
+.pds-step-detail {
+  margin-top: vh(6);
+  padding: vh(6) vw(8);
+  border-radius: 4px;
+  background: rgba(54, 120, 227, 0.1);
+  border: 1px solid rgba(54, 120, 227, 0.2);
+}
+
+.pds-step-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: vh(4);
+}
+
+.pds-step-detail-num {
+  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
+  font-weight: 500;
+  color: rgba(195, 215, 248, 0.9);
+}
+
+.pds-step-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: vh(2);
+}
+
+.pds-detail-row {
+  display: flex;
+  gap: vw(8);
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+}
+
+.pds-detail-k {
+  color: rgba(195, 215, 248, 0.4);
+  flex-shrink: 0;
+}
+
+.pds-detail-v {
+  color: rgba(195, 215, 248, 0.7);
+}
+
+.pds-detail-status {
+  padding: vh(1) vw(5);
+  border-radius: 3px;
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+
+  &.pds-detail-done        { background: rgba(27,175,122,0.15); color: #1baf7a; }
+  &.pds-detail-in_progress { background: rgba(237,161,0,0.15);  color: #eda100; }
+  &.pds-detail-pending     { background: rgba(195,215,248,0.08); color: rgba(195,215,248,0.35); }
+}
+
+/* 空状态 */
+.pd-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: vh(120);
+  color: rgba(195, 215, 248, 0.25);
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 15px);
+}
+
+/* 车间卡片选中 */
+.rb-ws-clickable {
+  cursor: pointer;
+  transition: outline 0.15s;
+  border-radius: 6px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+
+  &.rb-ws-selected {
+    outline-color: #3678E3;
+  }
+}
+
+/* 工厂点位选中 */
+.rb-factory-dot.dot-selected {
+  transform: translate(-50%, -50%) scale(1.5) !important;
+  z-index: 4;
+  box-shadow: 0 0 12px rgba(54, 120, 227, 0.8);
 }
 
 /* ================================================
-   工厂概览面板 — flex:1 占满剩余高度
+   工厂概览面板 — 由 SectionCard 包裹，去掉独立边框
    ================================================ */
 .rb-factory-panel {
   position: relative;
   flex: 1;
   min-height: 0;
-  border: 1px solid var(--border\/default, #004671);
-  border-radius: var(--lg, 10px);
   overflow: hidden;
+  border-radius: 0 0 4px 4px;
 }
 
 .rb-factory-bg {
@@ -575,17 +1052,12 @@ function dotStyle(idx: number) {
 }
 
 /* ================================================
-   车间状态卡片行 — flex-shrink:0 固定高度
+   车间状态卡片行 — 由 SectionCard 包裹，去掉独立背景边框
    ================================================ */
 .rb-workshop-cards {
   display: flex;
   gap: vw(16);
   width: 100%;
-  flex-shrink: 0;
-  padding: vh(12) vw(12);
-  background: var(--background\/main, #002b59);
-  border: 1px solid var(--border\/default, #004671);
-  border-radius: var(--lg, 10px);
   overflow-x: auto;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }

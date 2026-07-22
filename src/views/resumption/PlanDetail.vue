@@ -72,8 +72,6 @@
         <div class="stage-card">
           <!-- 阶段进度条 -->
           <div class="stage-bar">
-            <div class="stage-line stage-line-bg"></div>
-            <div class="stage-line stage-line-done" :style="doneLineStyle"></div>
             <div
               v-for="(st, si) in STAGES"
               :key="st.key"
@@ -109,7 +107,7 @@
                   <span class="nav-name">{{ stepMetaByType(s.stepType)?.label }}</span>
                 </div>
                 <StatusTag :status="`step_${s.status}`" />
-              </div>
+              </div>  
             </div>
 
             <!-- 右侧步骤详情 -->
@@ -193,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, markRaw, type Component } from 'vue'
+import { ref, computed, onMounted, markRaw, type Component } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useResumptionStore } from '@/stores/resumption'
@@ -282,14 +280,6 @@ function switchStep(stepId: number) {
   editing.value = false
 }
 
-/** 已完成阶段连线样式（硬编码精确值，停在当前活跃圆心左侧） */
-const STAGE_LINE_WIDTHS = ['10%', '34%', '60%'] // 4 阶段时 index 0/1/2 的蓝色宽度
-const doneLineStyle = computed(() => {
-  const activeIdx = STAGES.findIndex(s => stageState(s) === 'active')
-  if (activeIdx === -1) return { left: '0', right: '0' }
-  return { width: STAGE_LINE_WIDTHS[activeIdx] || '0%' }
-})
-
 const acceptanceSigners = computed(() => {
   if (!detail.value) return []
   return detail.value.team.filter(m =>
@@ -348,30 +338,23 @@ async function handleSave() {
   ElMessage.success('保存成功')
 }
 
-async function loadPlan(id: number) {
-  await store.fetchDetail(id)
-  if (detail.value) {
-    const firstPending = detail.value.steps.find(s => s.status !== 'done')
-    if (firstPending) {
-      const meta = STEP_META.find(m => m.order === firstPending.stepOrder)
-      if (meta) selectedStage.value = meta.stage
-      selectedStepId.value = firstPending.id
-    } else {
-      selectedStage.value = 'production'
-      const last = detail.value.steps[detail.value.steps.length - 1]
-      if (last) selectedStepId.value = last.id
+onMounted(async () => {
+  const id = Number(route.params.id)
+  if (id) {
+    await store.fetchDetail(id)
+    if (detail.value) {
+      const firstPending = detail.value.steps.find(s => s.status !== 'done')
+      if (firstPending) {
+        const meta = STEP_META.find(m => m.order === firstPending.stepOrder)
+        if (meta) selectedStage.value = meta.stage
+        selectedStepId.value = firstPending.id
+      } else {
+        selectedStage.value = 'production'
+        const last = detail.value.steps[detail.value.steps.length - 1]
+        if (last) selectedStepId.value = last.id
+      }
     }
   }
-  editing.value = false
-}
-
-onMounted(() => {
-  const id = Number(route.params.id)
-  if (id) loadPlan(id)
-})
-
-watch(() => route.params.id, (newId) => {
-  if (newId) loadPlan(Number(newId))
 })
 </script>
 
@@ -469,28 +452,23 @@ watch(() => route.params.id, (newId) => {
 .stage-bar { display: flex; align-items: flex-start; position: relative; padding-top: 4px; }
 .stage-node {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  flex: 1; cursor: pointer;
+  flex: 1; cursor: pointer; position: relative;
   padding: 4px 4px 8px; border-radius: var(--radius-md, 8px);
 }
-/* 连线：z-index: -1 确保在圆环下方 */
-/* 连线：两层 — 底层虚线 + 上层已完成实线 */
-.stage-line {
-  position: absolute; top: 28px; left: 20px; right: 20px;
-  height: 2px; z-index: 0;
+.stage-node::after {
+  content: ''; position: absolute; top: 20px; left: 50%; right: -50%;
+  height: 2px; background: var(--border-default, #dedede); z-index: 0;
 }
-.stage-line-bg {
-  border-top: 2px dashed var(--border-default, #dedede);
-}
-.stage-line-done {
-  background: var(--accent-primary, #3678e3);
-}
+.stage-node:last-child::after { display: none; }
+.stage-done::after { background: var(--success, #059669); }
+.stage-active::after { background: var(--accent-primary, #3678e3); }
 
 .stage-circle {
   width: 40px; height: 40px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: var(--font-body, 16px); font-weight: 500;
   position: relative; z-index: 1;
-  background: var(--bg-sub-card, #fff);
+  background: var(--bg-card-hover, rgba(147,147,147,0.08));
   border: 2px solid var(--border-default, #dedede);
   color: var(--text-muted, #5e5e5e); flex-shrink: 0; transition: all .2s;
 }
@@ -499,20 +477,13 @@ watch(() => route.params.id, (newId) => {
 }
 .stage-active .stage-circle {
   background: var(--accent-primary, #3678e3); border-color: var(--accent-primary, #3678e3);
-  color: #fff;
+  color: #fff; box-shadow: 0 0 8px rgba(55,120,227,0.3);
+  animation: stage-breathe 2s ease-in-out infinite;
 }
 
-.stage-active .stage-circle::before,
-.stage-active .stage-circle::after {
-  content: ''; position: absolute; inset: -2px; border-radius: 50%;
-  border: 2px solid var(--accent-primary, #3678e3);
-  animation: stage-ripple 2s ease-out infinite;
-}
-.stage-active .stage-circle::after { animation-delay: 1s; }
-
-@keyframes stage-ripple {
-  0% { transform: scale(1); opacity: .5; }
-  100% { transform: scale(1.8); opacity: 0; }
+@keyframes stage-breathe {
+  0%, 100% { box-shadow: 0 0 8px rgba(55,120,227,0.3); }
+  50% { box-shadow: 0 0 16px rgba(55,120,227,0.5); }
 }
 
 .stage-label { font-size: var(--font-small, 14px); color: var(--text-muted, #5e5e5e); text-align: center; font-weight: 500; margin: 0; }
@@ -633,32 +604,5 @@ watch(() => route.params.id, (newId) => {
 .loading-wrap, .empty-wrap {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 12px; padding: 48px; color: var(--text-secondary); font-size: var(--font-body, 16px);
-}
-
-/* ===== 响应式：摘要卡片 ===== */
-/* 1199px 以下：收缩左侧信息区 + 统计区 */
-@media (max-width: 1199px) {
-  .summary-info { width: 320px; min-width: 280px; }
-  .stat-item { padding: 0 12px; gap: 12px; }
-  .stat-body { min-width: 60px; width: auto; }
-}
-
-/* 899px 以下：摘要卡片纵向排列，分隔线变横线，隐藏 QR */
-@media (max-width: 899px) {
-  .summary-card { flex-direction: column; }
-  .summary-main { flex-wrap: wrap; }
-  .summary-divider { width: 100%; height: 0; border-left: none; border-top: 1px solid var(--border-low, #e5e7eb); }
-  .summary-divider-sm { width: 100%; height: 0; border-left: none; border-top: 1px solid var(--border-low, #e5e7eb); }
-  .summary-qr { display: none; }
-  .summary-stats { flex-basis: 100%; }
-}
-
-/* 719px 以下：统计区纵向排列 */
-@media (max-width: 719px) {
-  .summary-info { width: 100%; min-width: 0; }
-  .summary-stats { flex-direction: column; gap: 12px; }
-  .stat-group { flex-direction: column; }
-  .stat-item { justify-content: flex-start; }
-  .summary-divider-sm { display: none; }
 }
 </style>
