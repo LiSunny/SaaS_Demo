@@ -23,19 +23,22 @@ defineProps<{
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-height: 0;
+  flex-shrink: 0;
 }
 
 .rm-card-body {
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
   background: linear-gradient(
     180deg,
-    rgba(1, 70, 146, 0.35) 0%,
-    rgba(4, 87, 167, 0.15) 100%
+    rgba(8, 66, 162, 0.3) 0%,
+    rgba(5, 51, 125, 0.12) 100%
   );
-  border: 1px solid rgba(71, 132, 232, 0.25);
+  border: 1px solid rgba(71, 132, 232, 0.2);
   border-top: none;
   border-radius: 0 0 4px 4px;
-  overflow: hidden;
   padding: vw(12) vw(16);
 }
 </style>

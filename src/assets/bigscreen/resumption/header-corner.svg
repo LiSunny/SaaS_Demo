@@ -1,0 +1,27 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 350.779 85.6277" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 150">
+<path id="Rectangle 181" d="M350.779 84.6277H81.7643L68.7786 70.1277" stroke="url(#paint0_linear_0_39)" stroke-width="2"/>
+<path id="Rectangle 180" d="M152.279 70.1277H350.779V84.6277H81.7643L68.7786 70.1277H152.279Z" fill="url(#paint1_linear_0_39)"/>
+<path id="Rectangle 177" d="M2.27857 0.627715H350.779V73.6277H59.6249L2.27857 0.627715Z" fill="url(#paint2_linear_0_39)"/>
+<path id="Rectangle 179" d="M0.778542 0.627593L59.6249 73.6277H350.779" stroke="url(#paint3_linear_0_39)" stroke-width="2"/>
+<rect id="Rectangle 189" x="145.779" y="80.6277" width="48" height="4" fill="#38EEFB"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_39" x1="212.196" y1="70.1277" x2="212.196" y2="84.6277" gradientUnits="userSpaceOnUse">
+<stop stop-color="#084EA3"/>
+<stop offset="1" stop-color="#4FB5E5"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_39" x1="32.9364" y1="48.1277" x2="350.779" y2="48.1277" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0B57AC"/>
+<stop offset="1" stop-color="#1589E1"/>
+</linearGradient>
+<linearGradient id="paint2_linear_0_39" x1="6.77857" y1="37.1277" x2="350.779" y2="37.1277" gradientUnits="userSpaceOnUse">
+<stop stop-color="#084CA1"/>
+<stop offset="1" stop-color="#158AE2"/>
+</linearGradient>
+<linearGradient id="paint3_linear_0_39" x1="178.778" y1="0.627592" x2="178.778" y2="73.6276" gradientUnits="userSpaceOnUse">
+<stop stop-color="#084EA3"/>
+<stop offset="1" stop-color="#4FB5E5"/>
+</linearGradient>
+</defs>
+</svg>
