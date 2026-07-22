@@ -52,7 +52,10 @@ defineProps<{
   font-family: 'Alibaba PuHuiTi', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: clamp(14px, calc(18 * var(--min-scale)), 20px);
   font-weight: 700;
-  color: #c3d7f8;
+  background: linear-gradient(to bottom, #e5f2ff 0%, #b0cdff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   white-space: nowrap;
   line-height: 1;
 

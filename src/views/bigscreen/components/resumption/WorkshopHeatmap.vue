@@ -14,9 +14,10 @@
                 v-for="order in stage.stepOrders"
                 :key="order"
                 class="hm-step-cell hm-header-cell"
+                :class="{ 'hm-watershed': order === 8 }"
                 :title="stepMetaByOrder[order]?.label"
               >
-                {{ order }}
+                {{ stepShortLabels[order] || order }}
               </div>
             </div>
           </div>
@@ -44,7 +45,7 @@
             v-for="order in stage.stepOrders"
             :key="order"
             class="hm-step-cell hm-data-cell"
-            :class="cellClass(getStepStatus(plan, order))"
+            :class="[cellClass(getStepStatus(plan, order)), { 'hm-watershed': order === 8 }]"
             :title="cellTitle(plan, order)"
           >
             <div class="hm-cell-dot" />
@@ -83,6 +84,13 @@ defineEmits<{
 // 步骤元数据按 order 索引
 const stepMetaByOrder: Record<number, typeof STEP_META[number]> = {}
 STEP_META.forEach(m => { stepMetaByOrder[m.order] = m })
+
+// 步骤简称（用于热力图表头）
+const stepShortLabels: Record<number, string> = {
+  1: '建组', 2: '签责', 3: '培训', 4: '交底',
+  5: '隐患', 6: '设备', 7: '整改', 8: '验收',
+  9: '签发', 10: '值班', 11: '归档',
+}
 
 const statusLabelMap: Record<string, string> = {
   prepare: '复工准备',
@@ -219,6 +227,13 @@ function cellTitle(plan: ResumptionPlan, order: number): string {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  /* 验收分水岭：步骤 8 前加分隔 */
+  &.hm-watershed {
+    margin-left: vw(4);
+    border-left: 1px solid rgba(237, 161, 0, 0.4);
+    padding-left: vw(4);
+  }
 }
 
 .hm-data-cell {

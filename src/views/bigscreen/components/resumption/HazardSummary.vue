@@ -91,15 +91,17 @@ const summary = computed<HazardSummaryData>(() => {
 
 const disposalRate = computed(() => {
   if (summary.value.total === 0) return 0
-  const disposed = summary.value.disposed + summary.value.rectified + summary.value.accepted + summary.value.archived
-  return Math.round((disposed / summary.value.total) * 100)
+  const handled = processedCount.value + summary.value.archived
+  return Math.round((handled / summary.value.total) * 100)
 })
+
+const processedCount = computed(() =>
+  summary.value.disposed + summary.value.rectified + summary.value.accepted
+)
 
 const statusSegments = computed(() => [
   { key: 'found', label: '发现', count: summary.value.found },
-  { key: 'disposed', label: '已处置', count: summary.value.disposed },
-  { key: 'rectified', label: '已整改', count: summary.value.rectified },
-  { key: 'accepted', label: '已验收', count: summary.value.accepted },
+  { key: 'processed', label: '已处理', count: processedCount.value },
   { key: 'archived', label: '已归档', count: summary.value.archived },
 ])
 </script>
@@ -180,9 +182,7 @@ const statusSegments = computed(() => [
   transition: flex 0.3s;
 
   &.seg-found { background: #e34948; }
-  &.seg-disposed { background: #eb6834; }
-  &.seg-rectified { background: #eda100; }
-  &.seg-accepted { background: #3678E3; }
+  &.seg-processed { background: #3678E3; }
   &.seg-archived { background: #1baf7a; }
 }
 
@@ -206,9 +206,7 @@ const statusSegments = computed(() => [
   border-radius: 1px;
 
   &.dot-found { background: #e34948; }
-  &.dot-disposed { background: #eb6834; }
-  &.dot-rectified { background: #eda100; }
-  &.dot-accepted { background: #3678E3; }
+  &.dot-processed { background: #3678E3; }
   &.dot-archived { background: #1baf7a; }
 }
 

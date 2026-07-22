@@ -4,7 +4,7 @@
       <div v-if="activities.length" class="timeline-list">
         <div
           v-for="(act, i) in activities"
-          :key="i"
+          :key="`${act.planId}-${act.completedAt}`"
           class="timeline-item"
           :class="{ 'is-last': i === activities.length - 1 }"
         >

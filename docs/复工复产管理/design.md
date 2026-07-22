@@ -30,6 +30,7 @@
 |------|------|------|---------|:---:|
 | 复工计划列表 | 列表/卡片 | `/resumption` | 4 阶段统计卡片 + 状态筛选 + 卡片/列表双视图切换 + 新建计划 | 🔵 light |
 | 复工流程详情 | 详情展示 | `/resumption/:id` | 单一父容器布局：摘要（统计指标+QR）+ 4 阶段进度条 + 左侧步骤导航 + 右侧步骤编辑（7 个独立步骤组件） | 🔵 light |
+| 复工复产大屏 | 可视化大屏 | `/resumption-bigscreen` | 全屏暗色主题：4 阶段 KPI + 阶段分布流 + 车间×步骤热力图 + 隐患/设备汇总 + 最近动态时间线，支持点击行跳详情 | 🔵 light |
 
 > Light 深度：仅前端页面 + Mock 数据（localStorage 持久化），支持步骤录入和状态流转。后续 standard/full 阶段增加后端 API、数据库、权限校验。
 >
@@ -190,7 +191,8 @@
 ├── 隐患管理
 ├── 危险作业
 └── 复工复产管理  ← 新增
-    └── 复工计划列表   (/resumption)
+    ├── 复工计划列表   (/resumption)
+    └── 可视化大屏     (/resumption-bigscreen)
 ```
 
 > 导航节点 key：`resumption-mgmt`，详情页 (`/resumption/:id`) 不显示在侧栏（`meta: { hidden: true }`）。
@@ -212,6 +214,12 @@
 | `src/views/resumption/steps/Step6DeviceCheck.vue` | 步骤 6：设备体检（统计 + 设备列表 + 设备详情弹窗） |
 | `src/views/resumption/steps/StepGeneric.vue` | 步骤 7-11：通用编辑（完成人 + 备注） |
 | `src/views/resumption/steps/shared-form.css` | 公共编辑表单样式（clean-input/select/datepicker） |
+| `src/views/bigscreen/BigscreenResumption.vue` | 复工复产大屏主页面（KPI + 阶段分布 + 热力图 + 汇总） |
+| `src/views/bigscreen/components/resumption/StageFlow.vue` | 4 阶段分布流组件 |
+| `src/views/bigscreen/components/resumption/WorkshopHeatmap.vue` | 车间×步骤热力图组件 |
+| `src/views/bigscreen/components/resumption/HazardSummary.vue` | 隐患排查汇总组件 |
+| `src/views/bigscreen/components/resumption/DeviceSummary.vue` | 设备体检汇总组件 |
+| `src/views/bigscreen/components/resumption/ActivityTimeline.vue` | 最近动态时间线组件 |
 
 ## 9. 变更记录
 
@@ -224,3 +232,4 @@
 | 2026-07-21 | v2.1 | 移除复工看板，统计迁移至列表页；列表支持卡片/列表双视图 |
 | 2026-07-21 | v2.2 | 详情页重构为单一父容器布局；步骤表单拆分为 7 个独立组件；内联编辑替代弹窗；摘要卡片改为统计指标 |
 | 2026-07-21 | v2.3 | 文档同步代码：修正 status 枚举、新增 formData 字段、更新页面清单、补充 4.10 表单类型 |
+| 2026-07-22 | v2.4 | 新增大屏页面 `/resumption-bigscreen`，含 KPI/阶段流/热力图/隐患设备汇总/动态时间线；种子数据补充 formData |

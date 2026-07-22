@@ -634,4 +634,31 @@ watch(() => route.params.id, (newId) => {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 12px; padding: 48px; color: var(--text-secondary); font-size: var(--font-body, 16px);
 }
+
+/* ===== 响应式：摘要卡片 ===== */
+/* 1199px 以下：收缩左侧信息区 + 统计区 */
+@media (max-width: 1199px) {
+  .summary-info { width: 320px; min-width: 280px; }
+  .stat-item { padding: 0 12px; gap: 12px; }
+  .stat-body { min-width: 60px; width: auto; }
+}
+
+/* 899px 以下：摘要卡片纵向排列，分隔线变横线，隐藏 QR */
+@media (max-width: 899px) {
+  .summary-card { flex-direction: column; }
+  .summary-main { flex-wrap: wrap; }
+  .summary-divider { width: 100%; height: 0; border-left: none; border-top: 1px solid var(--border-low, #e5e7eb); }
+  .summary-divider-sm { width: 100%; height: 0; border-left: none; border-top: 1px solid var(--border-low, #e5e7eb); }
+  .summary-qr { display: none; }
+  .summary-stats { flex-basis: 100%; }
+}
+
+/* 719px 以下：统计区纵向排列 */
+@media (max-width: 719px) {
+  .summary-info { width: 100%; min-width: 0; }
+  .summary-stats { flex-direction: column; gap: 12px; }
+  .stat-group { flex-direction: column; }
+  .stat-item { justify-content: flex-start; }
+  .summary-divider-sm { display: none; }
+}
 </style>
