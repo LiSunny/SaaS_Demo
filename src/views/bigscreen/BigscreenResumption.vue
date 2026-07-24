@@ -59,7 +59,7 @@
               @click="selectedPlanId = plan.id"
             />
             <div class="rb-factory-overlay">
-              <span class="rb-factory-name">港南工厂 • 复工复产监控画面</span>
+              <span class="rb-factory-name">复工复产实时动态</span>
               <span class="rb-factory-live">● LIVE</span>
             </div>
           </div>
@@ -88,18 +88,26 @@
             <div class="pd-section">
               <h4 class="pd-subtitle">场所信息</h4>
               <div class="pd-info-grid">
-                <span class="pd-info-label">场所名称</span>
-                <span class="pd-info-value">{{ selectedPlan.locationName }}</span>
-                <span class="pd-info-label">当前状态</span>
-                <span class="pd-info-value">
-                  <span class="pd-status-tag" :class="`pd-${selectedPlan.status}`">
-                    {{ statusLabel(selectedPlan.status) }}
+                <div class="pd-info-cell">
+                  <span class="pd-info-label">场所名称</span>
+                  <span class="pd-info-value">{{ selectedPlan.locationName }}</span>
+                </div>
+                <div class="pd-info-cell">
+                  <span class="pd-info-label">当前状态</span>
+                  <span class="pd-info-value">
+                    <span class="pd-status-tag" :class="`pd-${selectedPlan.status}`">
+                      {{ statusLabel(selectedPlan.status) }}
+                    </span>
                   </span>
-                </span>
-                <span class="pd-info-label">负责人</span>
-                <span class="pd-info-value">{{ selectedPlan.team?.find(t => t.role === '组长')?.userName || '—' }}</span>
-                <span class="pd-info-label">开始时间</span>
-                <span class="pd-info-value">{{ selectedPlan.startedAt || selectedPlan.createdAt?.slice(0, 10) || '—' }}</span>
+                </div>
+                <div class="pd-info-cell">
+                  <span class="pd-info-label">负责人</span>
+                  <span class="pd-info-value">{{ selectedPlan.team?.find(t => t.role === '组长')?.userName || '—' }}</span>
+                </div>
+                <div class="pd-info-cell">
+                  <span class="pd-info-label">开始时间</span>
+                  <span class="pd-info-value">{{ selectedPlan.startedAt || selectedPlan.createdAt?.slice(0, 10) || '—' }}</span>
+                </div>
               </div>
             </div>
             <!-- 核心指标 -->
@@ -120,59 +128,77 @@
                 </div>
               </div>
             </div>
-            <!-- 复产详情：四阶段 + 内部 11 步（撑满剩余空间） -->
+            <!-- 复产详情：时间线（撑满剩余空间） -->
             <div class="pd-section pd-section-fill">
               <h4 class="pd-subtitle">复产详情</h4>
-              <div class="pd-stages-detail">
-                <div v-for="stage in STAGES" :key="stage.key" class="pds-stage-block">
-                  <div class="pds-stage-head">
-                    <span class="pds-stage-dot" :class="`pd-dot-${stage.key}`" />
-                    <span class="pds-stage-label">{{ stage.label }}</span>
-                    <span class="pds-stage-sub">（{{ stage.stepOrders.length }} 步）</span>
+              <div class="pd-timeline">
+                <template v-for="(stage, si) in STAGES" :key="stage.key">
+                  <!-- 阶段头（可折叠） -->
+                  <div class="ptl-stage-head" :class="{ 'ptl-stage-collapsed': !expandedStages.has(stage.key) }" @click="toggleStage(stage.key)">
+                    <span class="ptl-stage-arrow" :class="{ 'ptl-arrow-open': expandedStages.has(stage.key) }">▶</span>
+                    <span class="ptl-stage-label">{{ stage.label }}</span>
+                    <span class="ptl-stage-sub">（{{ stage.stepOrders.length }} 步）</span>
                   </div>
-                  <div class="pds-steps">
+                  <!-- 时间线节点 -->
+                  <template v-if="expandedStages.has(stage.key)">
                     <div
-                      v-for="order in stage.stepOrders"
+                      v-for="(order, i) in stage.stepOrders"
                       :key="order"
-                      class="pds-step"
+                      class="ptl-node"
                       :class="[
-                        `pds-step-${planStepStatus(selectedPlan, order)}`,
-                        { 'pds-step-active': selectedStepOrder === order }
+                        `ptl-${planStepStatus(selectedPlan, order)}`,
+                        { 'ptl-active': selectedStepOrder === order }
                       ]"
-                      @click="selectedStepOrder = selectedStepOrder === order ? 0 : order"
+                      @click="openStepDrawer(order)"
                     >
-                      <span class="pds-step-icon">{{ stepStatusIcon(planStepStatus(selectedPlan, order)) }}</span>
-                      <span class="pds-step-num">{{ order }}.</span>
-                      <span class="pds-step-name">{{ planStepLabel(order) }}</span>
-                      <span class="pds-step-executor">{{ planStepExecutor(order) }}</span>
+                      <div class="ptl-line-area">
+                        <span class="ptl-dot-node" />
+                        <span v-if="i < stage.stepOrders.length - 1 || si < STAGES.length - 1" class="ptl-line" />
+                      </div>
+                      <div class="ptl-body">
+                        <span class="ptl-order">{{ order }}.</span>
+                        <span class="ptl-name">{{ planStepLabel(order) }}</span>
+                        <span class="ptl-executor">{{ planStepExecutor(order) }}</span>
+                        <span class="ptl-status-tag" :class="`ptl-tag-${planStepStatus(selectedPlan, order)}`">
+                          {{ stepStatusLabel(planStepStatus(selectedPlan, order)) }}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </template>
+                </template>
               </div>
-              <!-- 选中步骤详情条 -->
-              <div v-if="selectedStep && selectedStepOrder" class="pds-step-detail">
-                <div class="pds-step-detail-head">
-                  <span class="pds-step-detail-num">{{ selectedStepOrder }}. {{ planStepLabel(selectedStepOrder) }}</span>
-                  <span class="pds-detail-status" :class="`pds-detail-${planStepStatus(selectedPlan, selectedStepOrder)}`">
+            </div>
+            <!-- 步骤详情抽屉 -->
+            <el-drawer
+              v-model="drawerVisible"
+              direction="rtl"
+              size="320px"
+              :with-header="false"
+              :z-index="2000"
+            >
+              <template v-if="selectedStep">
+                <div class="ptl-drawer-head">
+                  <span class="ptl-drawer-title">{{ selectedStepOrder }}. {{ planStepLabel(selectedStepOrder) }}</span>
+                  <span class="ptl-drawer-status" :class="`ptl-tag-${planStepStatus(selectedPlan, selectedStepOrder)}`">
                     {{ stepStatusLabel(planStepStatus(selectedPlan, selectedStepOrder)) }}
                   </span>
                 </div>
-                <div class="pds-step-detail-body">
-                  <span class="pds-detail-row">
-                    <span class="pds-detail-k">执行人</span>
-                    <span class="pds-detail-v">{{ planStepExecutor(selectedStepOrder) }}</span>
-                  </span>
-                  <span v-if="selectedStep" class="pds-detail-row">
-                    <span class="pds-detail-k">完成时间</span>
-                    <span class="pds-detail-v">{{ selectedStep.completedAt || '—' }}</span>
-                  </span>
-                  <span v-if="selectedStep?.remark" class="pds-detail-row">
-                    <span class="pds-detail-k">备注</span>
-                    <span class="pds-detail-v">{{ selectedStep.remark }}</span>
-                  </span>
+                <div class="ptl-drawer-body">
+                  <div class="ptl-drawer-row">
+                    <span class="ptl-drawer-k">执行人</span>
+                    <span class="ptl-drawer-v">{{ planStepExecutor(selectedStepOrder) }}</span>
+                  </div>
+                  <div class="ptl-drawer-row">
+                    <span class="ptl-drawer-k">完成时间</span>
+                    <span class="ptl-drawer-v">{{ selectedStep.completedAt || '—' }}</span>
+                  </div>
+                  <div v-if="selectedStep.remark" class="ptl-drawer-row">
+                    <span class="ptl-drawer-k">备注</span>
+                    <span class="ptl-drawer-v">{{ selectedStep.remark }}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </template>
+            </el-drawer>
           </template>
           <div v-else class="pd-empty">
             <p>请选择车间</p>
@@ -217,11 +243,30 @@ const plans = ref<ResumptionPlan[]>([])
 const selectedPlanId = ref<number>(0)
 const selectedPlan = computed(() => plans.value.find(p => p.id === selectedPlanId.value))
 
-// ===== 选中步骤 =====
+// ===== 阶段折叠 =====
+const expandedStages = ref(new Set<string>([STAGES[0].key]))
+
+function toggleStage(key: string) {
+  if (expandedStages.value.has(key)) {
+    expandedStages.value.delete(key)
+  } else {
+    expandedStages.value.add(key)
+  }
+  // 触发响应式更新
+  expandedStages.value = new Set(expandedStages.value)
+}
+
+// ===== 选中步骤 + 抽屉 =====
 const selectedStepOrder = ref<number>(0)
+const drawerVisible = ref(false)
 const selectedStep = computed(() =>
   selectedPlan.value?.steps?.find(s => s.stepOrder === selectedStepOrder.value)
 )
+
+function openStepDrawer(order: number) {
+  selectedStepOrder.value = order
+  drawerVisible.value = true
+}
 
 onMounted(async () => {
   try {
@@ -231,11 +276,6 @@ onMounted(async () => {
 })
 
 // ===== 步骤状态展示 =====
-function stepStatusIcon(s: string) {
-  if (s === 'done') return '✓'
-  if (s === 'in_progress') return '●'
-  return '○'
-}
 function stepStatusLabel(s: string) {
   if (s === 'done') return '已完成'
   if (s === 'in_progress') return '进行中'
@@ -633,7 +673,7 @@ function dotStyle(idx: number) {
   flex: 1;
   min-height: 0;
 
-  .rm-factory-card .rm-card-body {
+  :deep(.rm-card-body) {
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -643,8 +683,8 @@ function dotStyle(idx: number) {
 .rb-place-list {
   flex-shrink: 0;
 
-  .rm-factory-card .rm-card-body {
-    padding: vh(12) vw(12);
+  :deep(.rm-card-body) {
+    padding: vh(16) 0;
   }
 }
 
@@ -662,16 +702,19 @@ function dotStyle(idx: number) {
   flex: 1;
   min-height: 0;
 
-  .rm-card-body {
+  :deep(.rm-card-body) {
     display: flex;
     flex-direction: column;
-    padding: vh(12) vw(14);
+    padding: vh(16) 0;
     overflow: hidden;
   }
 }
 
 /* 子区块 */
 .pd-section {
+  padding-left: vw(16);
+  padding-right: vw(16);
+
   & + & {
     margin-top: vh(14);
     padding-top: vh(14);
@@ -685,7 +728,7 @@ function dotStyle(idx: number) {
     display: flex;
     flex-direction: column;
 
-    .pd-stages-detail {
+    .pd-timeline {
       flex: 1;
       min-height: 0;
       overflow-y: auto;
@@ -703,11 +746,17 @@ function dotStyle(idx: number) {
   color: #89b5ff;
 }
 
-/* 场所信息 2×4 网格 */
+/* 场所信息 2×2 网格 */
 .pd-info-grid {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: vh(4) vw(12);
+  grid-template-columns: 1fr 1fr;
+  gap: vh(8) vw(12);
+}
+
+.pd-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: vh(2);
 }
 
 .pd-info-label {
@@ -770,165 +819,239 @@ function dotStyle(idx: number) {
 .pd-metric-danger .pd-metric-label,
 .pd-metric-primary .pd-metric-label { color: rgba(195, 215, 248, 0.5); }
 
-/* 复产详情：四阶段 + 11 步 */
-.pd-stages-detail {
-  display: flex;
-  flex-direction: column;
-  gap: vh(8);
+/* ================================================
+   复产详情 — 时间线
+   ================================================ */
+.pd-timeline {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 }
 
-.pds-stage-block {
-  border-radius: 4px;
-  background: rgba(0, 51, 106, 0.25);
-  border: 1px solid rgba(21, 101, 164, 0.15);
-  overflow: hidden;
-}
-
-.pds-stage-head {
+/* 阶段头 */
+.ptl-stage-head {
   display: flex;
   align-items: center;
-  gap: vw(6);
-  padding: vh(4) vw(8);
-  border-bottom: 1px solid rgba(21, 101, 164, 0.12);
+  gap: vw(8);
+  padding: vh(8) 0 vh(6) 0;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:not(:first-child) {
+    margin-top: vh(6);
+    border-top: 1px solid rgba(21, 101, 164, 0.15);
+  }
+
+  &.ptl-stage-collapsed {
+    opacity: 0.6;
+  }
 }
 
-.pds-stage-dot {
-  width: vw(8);
-  height: vw(8);
-  border-radius: 50%;
+.ptl-stage-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: vw(16);
+  height: vw(16);
+  font-size: clamp(9px, calc(10 * var(--min-scale)), 11px);
+  color: rgba(195, 215, 248, 0.5);
+  transition: transform 0.2s;
   flex-shrink: 0;
 
-  &.pd-dot-prepare    { background: #86aef0; }
-  &.pd-dot-review     { background: #5e93eb; }
-  &.pd-dot-trial      { background: #eda100; }
-  &.pd-dot-production { background: #1baf7a; }
+  &.ptl-arrow-open {
+    transform: rotate(90deg);
+  }
 }
 
-.pds-stage-label {
-  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
-  font-weight: 500;
+.ptl-stage-label {
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
+  font-weight: 600;
   color: rgba(195, 215, 248, 0.9);
 }
 
-.pds-stage-sub {
-  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
-  color: rgba(195, 215, 248, 0.35);
+.ptl-stage-sub {
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 15px);
+  color: rgba(195, 215, 248, 0.55);
 }
 
-/* 步骤行 */
-.pds-steps {
+/* 时间线节点 */
+.ptl-node {
   display: flex;
-  flex-wrap: wrap;
-  gap: vw(3);
-  padding: vh(4) vw(6);
-}
-
-.pds-step {
-  display: flex;
-  align-items: center;
-  gap: vw(3);
-  padding: vh(3) vw(6);
-  border-radius: 3px;
-  background: rgba(21, 101, 164, 0.1);
-  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
-  white-space: nowrap;
+  gap: vw(10);
   cursor: pointer;
   transition: background 0.15s;
+  border-radius: 4px;
+  padding: vh(2) vw(4);
 
   &:hover {
-    background: rgba(21, 101, 164, 0.25);
+    background: rgba(54, 120, 227, 0.08);
   }
 
-  &.pds-step-active {
-    background: rgba(54, 120, 227, 0.3);
-    outline: 1px solid rgba(54, 120, 227, 0.5);
-  }
-
-  &.pds-step-done {
-    background: rgba(27, 175, 122, 0.12);
-    .pds-step-icon { color: #1baf7a; }
-  }
-  &.pds-step-in_progress {
-    background: rgba(237, 161, 0, 0.12);
-    .pds-step-icon { color: #eda100; }
-  }
-  &.pds-step-pending {
-    .pds-step-icon { color: rgba(195, 215, 248, 0.2); }
+  &.ptl-active {
+    background: rgba(54, 120, 227, 0.15);
   }
 }
 
-.pds-step-icon {
-  font-size: clamp(9px, calc(10 * var(--min-scale)), 11px);
-  line-height: 1;
+/* 左侧：圆点 + 竖线 */
+.ptl-line-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: vw(20);
+  flex-shrink: 0;
+  padding-top: vh(0);
+}
+
+.ptl-dot-node {
+  width: vw(12);
+  height: vw(12);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: vh(7);
+  background: rgba(195, 215, 248, 0.25);
+  border: 2px solid rgba(195, 215, 248, 0.2);
+  transition: all 0.2s;
+}
+
+.ptl-line {
+  flex: 1;
+  width: 2px;
+  min-height: vh(18);
+  background: rgba(21, 101, 164, 0.2);
+  margin-top: vh(4);
+}
+
+/* 节点状态色 */
+.ptl-done .ptl-dot-node {
+  background: #1baf7a;
+  border-color: #1baf7a;
+  box-shadow: 0 0 6px rgba(27, 175, 122, 0.4);
+}
+.ptl-done .ptl-line {
+  background: rgba(27, 175, 122, 0.4);
+}
+
+.ptl-in_progress .ptl-dot-node {
+  background: #eda100;
+  border-color: #eda100;
+  box-shadow: 0 0 6px rgba(237, 161, 0, 0.4);
+  animation: ptl-pulse 2s ease-in-out infinite;
+}
+.ptl-in_progress .ptl-line {
+  background: rgba(237, 161, 0, 0.3);
+}
+
+.ptl-pending .ptl-dot-node {
+  background: transparent;
+  border-color: rgba(195, 215, 248, 0.2);
+}
+
+@keyframes ptl-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(237, 161, 0, 0.4); }
+  50%      { box-shadow: 0 0 12px rgba(237, 161, 0, 0.7); }
+}
+
+/* 右侧：文字信息 */
+.ptl-body {
+  display: flex;
+  align-items: center;
+  gap: vw(8);
+  flex: 1;
+  min-width: 0;
+  padding: vh(6) 0;
+  font-size: clamp(13px, calc(15 * var(--min-scale)), 16px);
+}
+
+.ptl-order {
+  color: rgba(195, 215, 248, 0.45);
+  flex-shrink: 0;
+  width: vw(26);
+  text-align: right;
+}
+
+.ptl-name {
+  color: rgba(195, 215, 248, 0.85);
   flex-shrink: 0;
 }
 
-.pds-step-num {
-  color: rgba(195, 215, 248, 0.3);
+.ptl-executor {
+  color: rgba(195, 215, 248, 0.5);
+  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
   flex-shrink: 0;
 }
 
-.pds-step-name {
-  color: rgba(195, 215, 248, 0.7);
-}
-
-.pds-step-executor {
+.ptl-status-tag {
   margin-left: auto;
-  color: rgba(195, 215, 248, 0.25);
-  font-size: clamp(9px, calc(10 * var(--min-scale)), 11px);
+  padding: vh(1) vw(7);
+  border-radius: 3px;
+  font-size: clamp(11px, calc(12 * var(--min-scale)), 13px);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &.ptl-tag-done        { background: rgba(27,175,122,0.15); color: #1baf7a; }
+  &.ptl-tag-in_progress { background: rgba(237,161,0,0.15); color: #eda100; }
+  &.ptl-tag-pending     { background: rgba(195,215,248,0.08); color: rgba(195,215,248,0.45); }
 }
 
-/* 步骤详情条 */
-.pds-step-detail {
-  margin-top: vh(6);
-  padding: vh(6) vw(8);
-  border-radius: 4px;
-  background: rgba(54, 120, 227, 0.1);
-  border: 1px solid rgba(54, 120, 227, 0.2);
+/* ================================================
+   步骤详情抽屉
+   ================================================ */
+:deep(.ptl-drawer) {
+  // 由 el-drawer 默认处理即可
 }
 
-.pds-step-detail-head {
+.ptl-drawer-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: vh(4);
+  padding: vh(16) vw(20) vh(12);
+  border-bottom: 1px solid rgba(21, 101, 164, 0.2);
 }
 
-.pds-step-detail-num {
-  font-size: clamp(11px, calc(13 * var(--min-scale)), 14px);
-  font-weight: 500;
+.ptl-drawer-title {
+  font-size: clamp(15px, calc(18 * var(--min-scale)), 20px);
+  font-weight: 600;
   color: rgba(195, 215, 248, 0.9);
 }
 
-.pds-step-detail-body {
+.ptl-drawer-status {
+  padding: vh(2) vw(10);
+  border-radius: 4px;
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 15px);
+
+  &.ptl-tag-done        { background: rgba(27,175,122,0.15); color: #1baf7a; }
+  &.ptl-tag-in_progress { background: rgba(237,161,0,0.15); color: #eda100; }
+  &.ptl-tag-pending     { background: rgba(195,215,248,0.08); color: rgba(195,215,248,0.45); }
+}
+
+.ptl-drawer-body {
+  padding: vh(12) vw(20);
   display: flex;
   flex-direction: column;
-  gap: vh(2);
+  gap: vh(10);
 }
 
-.pds-detail-row {
+.ptl-drawer-row {
   display: flex;
-  gap: vw(8);
-  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
+  gap: vw(12);
+  font-size: clamp(13px, calc(15 * var(--min-scale)), 16px);
 }
 
-.pds-detail-k {
-  color: rgba(195, 215, 248, 0.4);
+.ptl-drawer-k {
+  color: rgba(195, 215, 248, 0.45);
   flex-shrink: 0;
+  width: vw(56);
 }
 
-.pds-detail-v {
-  color: rgba(195, 215, 248, 0.7);
-}
-
-.pds-detail-status {
-  padding: vh(1) vw(5);
-  border-radius: 3px;
-  font-size: clamp(10px, calc(11 * var(--min-scale)), 12px);
-
-  &.pds-detail-done        { background: rgba(27,175,122,0.15); color: #1baf7a; }
-  &.pds-detail-in_progress { background: rgba(237,161,0,0.15);  color: #eda100; }
-  &.pds-detail-pending     { background: rgba(195,215,248,0.08); color: rgba(195,215,248,0.35); }
+.ptl-drawer-v {
+  color: rgba(195, 215, 248, 0.8);
 }
 
 /* 空状态 */
@@ -937,7 +1060,7 @@ function dotStyle(idx: number) {
   align-items: center;
   justify-content: center;
   min-height: vh(120);
-  color: rgba(195, 215, 248, 0.25);
+  color: rgba(195, 215, 248, 0.5);
   font-size: clamp(12px, calc(14 * var(--min-scale)), 15px);
 }
 
@@ -1058,8 +1181,30 @@ function dotStyle(idx: number) {
   display: flex;
   gap: vw(16);
   width: 100%;
+  padding: 0 vw(16);
   overflow-x: auto;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
+}
+</style>
+
+<!-- 抽屉暗色主题覆盖（非 scoped，覆盖 Element Plus 默认白底） -->
+<style lang="scss">
+/* 步骤详情抽屉 — 暗色主题 */
+.resumption-bigscreen .el-drawer {
+  .el-drawer__body {
+    padding: 0;
+    background: #00336A;
+    color: rgba(195, 215, 248, 0.9);
+  }
+
+  .el-drawer__header {
+    display: none;
+  }
+}
+
+/* 抽屉遮罩 */
+.resumption-bigscreen + .el-overlay {
+  background: rgba(0, 20, 50, 0.7) !important;
 }
 </style>

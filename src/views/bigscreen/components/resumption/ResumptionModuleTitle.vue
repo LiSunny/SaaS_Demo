@@ -5,27 +5,22 @@
     特点：纯透明背景，所有装饰元素浮在内容区上方
   -->
   <div class="rm-title-bar">
-    <!-- 左侧多边形（Figma: Exclude boolean 导出 SVG, 165×35, 含内阴影） -->
-    <img class="rm-polygon" src="@/assets/bigscreen/resumption/title-polygon.svg" alt="" />
+    <!-- 左侧：多边形 + 标题文字叠加 -->
+    <div class="rm-title-left">
+      <img class="rm-polygon" src="@/assets/bigscreen/resumption/title-polygon.svg" alt="" />
+      <p class="rm-title-text">{{ title }}</p>
+    </div>
 
-    <!-- 标题文字（Figma: 16px, white → #b0fdff, 居中于多边形上） -->
-    <p class="rm-title-text">{{ title }}</p>
-
-    <!-- ===== 竖线色块 1（Figma: 矩形, 6×17, #1685D3） ===== -->
-    <span class="rm-v-divider rm-vd-1" />
-
-    <!-- ===== 竖线色块 2（Figma: 矩形备份 61, 6×17, #25B5D9） ===== -->
-    <span class="rm-v-divider rm-vd-2" />
-
-    <!-- ===== 右侧装饰组（Figma: Frame 620, x=199） ===== -->
-    <div class="rm-right-deco">
-      <!-- 水平横线（Figma: 路径 10, #1565A4, 2px） -->
-      <span class="rm-deco-line" />
-      <!-- 3 条向右斜线（Figma: 路径 ×3, rotate 51.69deg skew 9.57deg）
-           用 border-top 实现细线，避免 SVG 拉伸成色块 -->
-      <span class="rm-slash" />
-      <span class="rm-slash" />
-      <span class="rm-slash" />
+    <!-- 右侧：色块 + 横线 + 斜线装饰（撑满剩余宽度） -->
+    <div class="rm-title-right">
+      <span class="rm-v-divider rm-vd-1" />
+      <span class="rm-v-divider rm-vd-2" />
+      <div class="rm-right-deco">
+        <span class="rm-deco-line" />
+        <span class="rm-slash" />
+        <span class="rm-slash" />
+        <span class="rm-slash" />
+      </div>
     </div>
   </div>
 </template>
@@ -40,38 +35,41 @@ defineProps<{
 @use "@/styles/function.scss" as *;
 
 /* ================================================
-   标题栏容器（Figma: Frame 622, 620×36, 无背景）
+   标题栏容器（flex 布局，左多边形 + 右装饰）
    ================================================ */
 .rm-title-bar {
-  position: relative;
+  display: flex;
+  align-items: stretch;
   width: 100%;
-  height: vh(36);  /* Figma: Frame 622, 620×36 */
+  height: vh(36);
+  margin: 0;
+  padding: 0;
   flex-shrink: 0;
 }
 
 /* ================================================
-   左侧多边形（Figma: Exclude boolean, 165×35）
-   底部斜切 15×15 三角形
+   左侧：多边形 + 标题文字叠加
    ================================================ */
+.rm-title-left {
+  position: relative;
+  flex-shrink: 0;
+  // 不设宽度，由多边形撑开
+}
+
 .rm-polygon {
-  position: absolute;
-  left: 0;
-  top: vh(2);
-  width: vw(165);
+  display: block;
   height: vh(35);
+  width: auto;
+  margin: vh(1) 0 0 0;
+  padding: 0;
   pointer-events: none;
 }
 
-/* ================================================
-   标题文字（Figma: 16px white→#b0fdff, 居中于多边形）
-   ================================================ */
 .rm-title-text {
   position: absolute;
-  left: 0;
+  left: vw(16);
   top: vh(10);
-  width: vw(165);
   margin: 0;
-  text-align: center;
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
@@ -84,58 +82,48 @@ defineProps<{
 }
 
 /* ================================================
-   竖线色块（Figma: 6×17 矩形）
+   右侧：色块 + 横线 + 斜线装饰（撑满剩余宽度）
    ================================================ */
+.rm-title-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: vw(6);
+  padding-left: vw(8);
+  padding-right: vw(4);
+  min-width: 0;
+}
+
 .rm-v-divider {
-  position: absolute;
-  top: 40%;
-  transform: translateY(-50%);
+  flex-shrink: 0;
   width: vw(6);
   height: vh(17);
 }
 
-.rm-vd-1 {
-  left: vw(172);
-  background: #1685D3;
-}
+.rm-vd-1 { background: #1685D3; }
+.rm-vd-2 { background: #25B5D9; }
 
-.rm-vd-2 {
-  left: vw(185);
-  background: #25B5D9;
-}
-
-/* ================================================
-   右侧装饰组（Figma: Frame 620, x=199）
-   横线(#1565A4) + 3 条向右斜线
-   ================================================ */
 .rm-right-deco {
-  position: absolute;
-  left: vw(199);
-  right: vw(4);
-  top: 40%;
-  transform: translateY(-50%);
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 0;
   height: vh(7);
+  min-width: 0;
 }
 
-/* 水平横线（Figma: 路径 10, stroke-width 2, #1565A4）
-   末端与第一条斜线相连（Figma: 线终点 x≈399.9, 斜线起点 x=399） */
 .rm-deco-line {
   flex: 1;
   height: 0;
-  min-width: vw(60);
+  min-width: vw(40);
   border-top: 2px solid #1565A4;
   margin-right: -1px;
 }
 
-/* 向右斜线间距（Figma: 路径间 ≈7px → 缩小至 30%） */
 .rm-slash + .rm-slash {
   margin-left: vw(2.1);
 }
 
-/* 向右斜线（Figma: 路径 ×3, stroke-width 2, #1565A4 ≡ 横线颜色一致, rotate 51.69deg skew 9.57deg） */
 .rm-slash {
   display: block;
   width: vw(10);
@@ -145,7 +133,6 @@ defineProps<{
   transform: rotate(51.69deg) skewX(9.57deg);
   transform-origin: center center;
 
-  /* 用绝对定位 + border 确保始终是细线，颜色与横线相同 */
   &::after {
     content: '';
     position: absolute;
