@@ -1,5 +1,5 @@
 <template>
-  <div class="wsc-card" :class="`wsc-${status}`">
+  <div class="wsc-card" :class="[`wsc-${status}`, { 'wsc-selected': selected }]">
     <!-- 状态标签 -->
     <div class="wsc-tag" :class="`tag-${status}`">
       {{ statusLabel }}
@@ -62,6 +62,7 @@ const props = defineProps<{
   status: PlanStatus
   progress: number
   warnings: string[]
+  selected?: boolean
 }>()
 
 const statusLabelMap: Record<PlanStatus, string> = {
@@ -97,16 +98,38 @@ const progressColor = computed(() => {
   height: vh(138);
   padding: vw(12) vw(13);
   background: var(--background\/card, #00336a);
-  border: 1px solid var(--border\/default, #004671);
+  border: 2px solid transparent;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
   width: vw(260);
-  transition: border-color 0.3s, transform 0.2s;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
 
   &:hover {
-    border-color: rgba(54, 120, 227, 0.5);
+    border-color: rgba(54, 120, 227, 0.4);
     transform: translateY(-1px);
+  }
+
+  &.wsc-selected {
+    border-color: #2255b0;
+    background: #2255b0;
+
+    .wsc-name { color: #ffffff; }
+    .wsc-meta { color: rgba(255, 255, 255, 0.8); }
+    .wsc-tag {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .wsc-percent { color: #ffffff; }
+    .wsc-ok, .wsc-warnings { background: rgba(255, 255, 255, 0.15); }
+    .wsc-ok-text { color: rgba(255, 255, 255, 0.85); }
+    .wsc-ring-progress {
+      stroke: #ffffff;
+    }
+    /* 进度环背景圈 */
+    circle:first-child {
+      stroke: rgba(255, 255, 255, 0.2);
+    }
   }
 }
 

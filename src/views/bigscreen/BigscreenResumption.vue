@@ -29,18 +29,19 @@
 
     <!-- ===== KPI 指标栏 ===== -->
     <div class="rb-kpi-bar">
-      <div class="rb-kpi-item" v-for="(kpi, i) in kpiList" :key="kpi.label">
-        <div class="rb-kpi-icon">
-          <div class="rb-kpi-placeholder" />
+      <template v-for="(kpi, i) in kpiList" :key="kpi.label">
+        <div class="rb-kpi-item">
+          <div class="rb-kpi-icon">
+            <img class="rb-kpi-icon-bg" src="@/assets/bigscreen/resumption/kpi/icon-bg.svg" alt="" />
+            <img class="rb-kpi-icon-fg" :src="kpi.icon" alt="" />
+          </div>
+          <div class="rb-kpi-text">
+            <span class="rb-kpi-value">{{ kpi.value }}</span>
+            <span class="rb-kpi-label">{{ kpi.label }}</span>
+          </div>
         </div>
-        <div class="rb-kpi-text">
-          <span class="rb-kpi-value">{{ kpi.value }}</span>
-          <span class="rb-kpi-label">{{ kpi.label }}</span>
-        </div>
-        <div v-if="i < kpiList.length - 1" class="rb-kpi-divider">
-          <div class="rb-kpi-line" />
-        </div>
-      </div>
+        <div v-if="i < kpiList.length - 1" class="rb-kpi-divider" />
+      </template>
     </div>
 
     <!-- ===== 主内容区 ===== -->
@@ -81,12 +82,12 @@
               v-for="ws in workshopData"
               :key="ws.id"
               class="rb-ws-clickable"
-              :class="{ 'rb-ws-selected': ws.id === selectedPlanId }"
               @click="selectedPlanId = ws.id"
             >
               <WorkshopStatusCard
                 :name="ws.name" :leader="ws.leader" :date="ws.date"
                 :status="ws.status" :progress="ws.progress" :warnings="ws.warnings"
+                :selected="ws.id === selectedPlanId"
               />
             </div>
           </div>
@@ -310,13 +311,14 @@ const kpiList = computed(() => {
     abnormalDevices += devices.filter((d: any) => d.result === 'needs_repair' || d.result === 'disabled').length
   }
 
+  const iconServer = new URL('@/assets/bigscreen/resumption/kpi/icon-server.svg', import.meta.url).href
   return [
-    { label: '车间总数', value: total },
-    { label: '已复工车间', value: resumed },
-    { label: '未复工车间', value: notResumed },
-    { label: '复工率', value: rate + '%' },
-    { label: '未闭环隐患', value: unclosedHazards },
-    { label: '异常设备', value: abnormalDevices },
+    { label: '车间总数', value: total, icon: iconServer },
+    { label: '已复工车间', value: resumed, icon: iconServer },
+    { label: '未复工车间', value: notResumed, icon: iconServer },
+    { label: '复工率', value: rate + '%', icon: iconServer },
+    { label: '未闭环隐患', value: unclosedHazards, icon: iconServer },
+    { label: '异常设备', value: abnormalDevices, icon: iconServer },
   ]
 })
 
@@ -570,7 +572,6 @@ function labelSide(idx: number): 'left' | 'right' {
 /* ================================================
    KPI 指标栏 — flex-shrink:0
    Figma: y=115, w=1766, 左右居中
-   与标题间距: vh(115) - vh(14 + 48) ≈ vh(53)
    ================================================ */
 .rb-kpi-bar {
   position: relative;
@@ -580,12 +581,12 @@ function labelSide(idx: number): 'left' | 'right' {
   align-items: center;
   margin: vh(52) auto 0;
   width: vw(1766);
-  height: vh(100);
-  background: var(--background\/main, #002b59);
-  border: 1px solid var(--border\/default, #004671);
-  border-radius: var(--lg, 10px);
-  padding: vh(12) vw(12);
-  gap: vw(12);
+  background: #00336A;
+  border: 1px solid #1565A4;
+  border-radius: 4px;
+  padding: vh(16) vw(12);
+  gap: vw(37);
+  box-shadow: inset 0 vh(1) vw(12) 0 rgba(4, 151, 253, 0.44);
 }
 
 .rb-kpi-item {
@@ -593,69 +594,61 @@ function labelSide(idx: number): 'left' | 'right' {
   display: flex;
   align-items: center;
   gap: vw(12);
-  height: 100%;
-  padding: vh(8) vw(4);
   min-width: 0;
 }
 
 .rb-kpi-icon {
+  position: relative;
   flex-shrink: 0;
-  width: vw(47);
-  height: vw(47);
+  width: vw(56);
+  height: vw(56);
 }
 
-.rb-kpi-placeholder {
+.rb-kpi-icon-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  background: rgba(54, 120, 227, 0.15);
-  border-radius: 6px;
-  border: 1px solid rgba(71, 132, 232, 0.2);
+}
+
+.rb-kpi-icon-fg {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  width: vw(26);
+  height: vw(26);
 }
 
 .rb-kpi-text {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: vh(2);
-  min-width: 0;
-  word-break: break-word;
+  gap: 0;
+  flex-shrink: 0;
 }
 
 .rb-kpi-value {
   font-family: 'Douyin Sans', 'DingTalk_JinBuTi', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(22px, calc(32 * var(--min-scale)), 36px);
+  font-size: clamp(22px, calc(28 * var(--min-scale)), 32px);
   font-weight: 700;
   color: #ffffff;
   line-height: 1.2;
 }
 
 .rb-kpi-label {
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 20px);
+  font-size: clamp(12px, calc(16 * var(--min-scale)), 18px);
   font-weight: 400;
-  color: var(--text-secondary);
+  color: #ffffff;
   line-height: 1.3;
   white-space: nowrap;
 }
 
 .rb-kpi-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: vh(78);
-  width: 0;
-  flex-shrink: 0;
-}
-
-.rb-kpi-line {
   width: 1px;
-  height: 100%;
-  background: linear-gradient(
-    to bottom,
-    rgba(71, 132, 232, 0),
-    rgba(71, 132, 232, 0.4) 20%,
-    rgba(71, 132, 232, 0.4) 80%,
-    rgba(71, 132, 232, 0)
-  );
+  height: vh(56);
+  flex-shrink: 0;
+  background: #004671;
 }
 
 /* ================================================
@@ -1024,9 +1017,7 @@ function labelSide(idx: number): 'left' | 'right' {
 .ptl-detail-inline {
   margin: vh(2) 0 vh(6) vw(20);
   padding: vh(6) vw(10);
-  border-radius: 4px;
-  background: rgba(54, 120, 227, 0.1);
-  border-left: vw(2) solid #3678E3;
+  background: rgba(54, 120, 227, 0.08);
 }
 
 .ptl-detail-row {
@@ -1060,23 +1051,9 @@ function labelSide(idx: number): 'left' | 'right' {
   font-size: clamp(12px, calc(14 * var(--min-scale)), 15px);
 }
 
-/* 车间卡片选中 */
+/* 车间卡片容器 */
 .rb-ws-clickable {
   cursor: pointer;
-  transition: outline-color 0.2s;
-  border-radius: 6px;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-
-  &.rb-ws-selected {
-    outline-color: #3678E3;
-    animation: card-select-flash 0.6s ease-out;
-  }
-}
-
-@keyframes card-select-flash {
-  0%   { outline-width: 4px; outline-color: rgba(54, 120, 227, 0.9); }
-  100% { outline-width: 2px; outline-color: #3678E3; }
 }
 
 /* ================================================
@@ -1128,7 +1105,7 @@ function labelSide(idx: number): 'left' | 'right' {
     animation: dot-radar 2s ease-out infinite;
   }
 
-  .dot-production &::after {
+  &.dot-production::after {
     content: none;
   }
 }
@@ -1153,7 +1130,7 @@ function labelSide(idx: number): 'left' | 'right' {
 .dot-prepare    { background: #86aef0; color: #86aef0; box-shadow: 0 0 8px rgba(134,174,240,0.6); }
 .dot-review     { background: #5e93eb; color: #5e93eb; box-shadow: 0 0 8px rgba(94,147,235,0.6); }
 .dot-trial      { background: #eda100; color: #eda100; box-shadow: 0 0 8px rgba(237,161,0,0.6); }
-.dot-production { background: #1baf7a; color: #1baf7a; box-shadow: 0 0 8px rgba(27,175,122,0.6); }
+.dot-production { background: #1baf7a; color: #1baf7a; box-shadow: none; }
 
 /* 标签 */
 .rb-dot-label {
@@ -1168,19 +1145,47 @@ function labelSide(idx: number): 'left' | 'right' {
   background: rgba(0, 36, 89, 0.88);
   border-radius: 3px;
   pointer-events: none;
+  opacity: 0;
   transition: opacity 0.2s;
   line-height: 1.5;
 
-  /* 默认右侧 + 左边框 */
-  .rb-label-right & { left: vw(10); right: auto; border-left: vw(3) solid; border-right: none; }
-  /* 靠右点位翻左侧 + 右边框 */
-  .rb-label-left  & { left: auto; right: vw(10); border-left: none; border-right: vw(3) solid; }
+  .rb-factory-marker:hover &,
+  .rb-marker-selected & { opacity: 1; }
 
-  /* 状态色 */
-  .dot-prepare ~ &    { border-color: #86aef0; border-style: solid; }
-  .dot-review ~ &     { border-color: #5e93eb; border-style: solid; }
-  .dot-trial ~ &      { border-color: #eda100; border-style: solid; }
-  .dot-production ~ & { border-color: #1baf7a; border-style: solid; opacity: 0.5; }
+  .rb-marker-selected & { background: rgba(0, 36, 89, 0.95); }
+
+  /* 默认右侧 */
+  .rb-label-right & { left: vw(10); right: auto; }
+  /* 靠右点位翻左侧 */
+  .rb-label-left  & { left: auto; right: vw(10); }
+
+  /* 已复产标签半透明（仅显示时） */
+  .rb-factory-marker:hover .dot-production ~ &,
+  .rb-marker-selected .dot-production ~ & { opacity: 0.6; }
+
+  /* 尖角 — 指向圆点 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: vw(5) solid transparent;
+    border-bottom: vw(5) solid transparent;
+  }
+
+  /* 右侧标签：尖角在左边，指向左侧圆点 */
+  .rb-label-right &::before {
+    left: vw(-5);
+    border-right: vw(5) solid rgba(0, 36, 89, 0.88);
+  }
+
+  /* 左侧标签：尖角在右边，指向右侧圆点 */
+  .rb-label-left &::before {
+    right: vw(-5);
+    border-left: vw(5) solid rgba(0, 36, 89, 0.88);
+  }
 }
 
 .rb-dot-label-div {
@@ -1188,26 +1193,23 @@ function labelSide(idx: number): 'left' | 'right' {
   opacity: 0.35;
 }
 
-.rb-marker-selected .rb-dot-label {
-  opacity: 1;
-  background: rgba(0, 36, 89, 0.95);
-}
+
 
 @keyframes dot-radar {
   0%   { transform: scale(0.8); opacity: 0.8; }
   100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* 图例 — 左下角 */
+/* 图例 — 右上角 */
 .rb-factory-legend {
   position: absolute;
-  left: vw(12);
-  bottom: vh(44);
+  right: vw(12);
+  top: vh(8);
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
-  gap: vw(12);
-  padding: vh(4) vw(10);
+  gap: vw(14);
+  padding: vh(5) vw(12);
   background: rgba(0, 36, 89, 0.78);
   border-radius: 4px;
   pointer-events: none;
@@ -1216,9 +1218,9 @@ function labelSide(idx: number): 'left' | 'right' {
 .rb-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: vw(4);
-  font-size: clamp(9px, calc(10 * var(--min-scale)), 11px);
-  color: var(--text-secondary);
+  gap: vw(5);
+  font-size: clamp(11px, calc(12 * var(--min-scale)), 13px);
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
@@ -1232,7 +1234,7 @@ function labelSide(idx: number): 'left' | 'right' {
   &.dot-prepare    { background: #86aef0; box-shadow: 0 0 4px rgba(134,174,240,0.5); }
   &.dot-review     { background: #5e93eb; box-shadow: 0 0 4px rgba(94,147,235,0.5); }
   &.dot-trial      { background: #eda100; box-shadow: 0 0 4px rgba(237,161,0,0.5); }
-  &.dot-production { background: #1baf7a; box-shadow: 0 0 4px rgba(27,175,122,0.5); }
+  &.dot-production { background: #1baf7a; box-shadow: none; }
 }
 
 /* 工厂画面底部信息条 */
