@@ -24,7 +24,7 @@
     <!-- ===== 标题区 ===== -->
     <div class="rb-header">
       <span class="rb-time">{{ currentTime }}</span>
-      <h1 class="rb-title">复工复产可视化大屏</h1>
+      <h1 class="rb-title">复工复产可视化看板</h1>
     </div>
 
     <!-- ===== KPI 指标栏 ===== -->
@@ -564,7 +564,7 @@ function labelSide(idx: number): 'left' | 'right' {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 vh(4) vw(8) rgba(0, 45, 122, 0.47);
+  // text-shadow: 0 vh(4) vw(8) rgba(0, 45, 122, 0.47);
   line-height: 1.2;
   letter-spacing: vw(4);
 }
