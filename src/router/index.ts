@@ -50,6 +50,20 @@ const router = createRouter({
       component: () => import('@/views/portal/IndustryHotWork.vue'),
       meta: { standalone: true },
     },
+    // 案例详情页
+    {
+      path: '/portal/case/:slug',
+      name: 'CaseDetail',
+      component: () => import('@/views/portal/CaseDetail.vue'),
+      meta: { standalone: true },
+    },
+    // 大屏静态预览页
+    {
+      path: '/portal/preview/:type',
+      name: 'BigscreenPreview',
+      component: () => import('@/views/portal/BigscreenPreview.vue'),
+      meta: { standalone: true },
+    },
 
     // ===== 登录页（无布局，独立页面） =====
     {

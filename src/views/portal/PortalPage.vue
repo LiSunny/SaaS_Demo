@@ -168,6 +168,7 @@
             <div v-for="(c, i) in filteredCases" :key="i"
               class="case-slant"
               :style="{ backgroundImage: `url(${c.image})` }"
+              @click="goCase(c.slug)"
             >
               <div class="case-slant-overlay"></div>
               <div class="case-slant-content">
@@ -432,16 +433,21 @@ const caseTabs = [
   { key: '垂直业务', label: '垂直业务' },
 ]
 const CASES = [
-  { name: '港南二中校园安全', tag: '教育', desc: '部署 AI 防欺凌系统、消防监测终端与应急指挥平台，实现校园安全事件早发现、快响应，覆盖 200+ 终端设备。', nums: ['200+ 设备', '6 类终端', '4 种协议'], image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
-  { name: '工业园区安全监测', tag: '工业', desc: '面向化工园区、制造工厂部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。', nums: ['800+ 监测点', '3 类感知', '实时预警'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
-  { name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
-  { name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80' },
-  { name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80' },
+  { slug: 'gangnan-campus', name: '港南二中校园安全', tag: '教育', desc: '部署 AI 防欺凌系统、消防监测终端与应急指挥平台，实现校园安全事件早发现、快响应，覆盖 200+ 终端设备。', nums: ['200+ 设备', '6 类终端', '4 种协议'], image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
+  { slug: 'industrial-park', name: '工业园区安全监测', tag: '工业', desc: '面向化工园区、制造工厂部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。', nums: ['800+ 监测点', '3 类感知', '实时预警'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
+  { slug: 'fire-maintenance', name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
+  { slug: 'hot-work', name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80' },
+  { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&q=80' },
+  { slug: 'commercial-street', name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80' },
 ]
 
 const filteredCases = computed(() =>
   activeCaseTab.value === 'all' ? CASES : CASES.filter(c => c.tag === activeCaseTab.value)
 )
+
+function goCase(slug: string) {
+  router.push(`/portal/case/${slug}`)
+}
 
 // Cases auto scroll
 const caseScroll = ref(0)
@@ -662,12 +668,12 @@ html, body { margin: 0; padding: 0; }
 .cases-track { display: flex; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 .case-slant { position: relative; flex: 0 0 calc(33.333% - 11px); margin-right: 16px; transform: skewX(-6deg); background-size: cover; background-position: center; border-radius: 16px; overflow: hidden; min-height: 320px; transition: transform 0.3s; cursor: pointer; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
 .case-slant:hover { transform: skewX(-6deg) scale(1.02); z-index: 4; box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
-.case-slant-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%); z-index: 1; }
-.case-slant-content { position: relative; z-index: 2; padding: 36px 40px; display: flex; flex-direction: column; justify-content: center; height: 100%; transform: skewX(6deg); }
-.case-slant-tag { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(54,120,227,0.4); padding: 4px 12px; border-radius: 4px; align-self: flex-start; margin-bottom: 12px; font-family: var(--f-display); }
-.case-slant-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 8px; font-family: var(--f-display); }
-.case-slant-desc { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.6; margin: 0 0 14px; }
-.case-slant-nums { display: flex; gap: 6px; flex-wrap: nowrap; }
+.case-slant-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 100%); z-index: 1; }
+.case-slant-content { position: relative; z-index: 2; padding: 36px 40px; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; transform: skewX(6deg); }
+.case-slant-tag { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(54,120,227,0.4); padding: 4px 12px; border-radius: 4px; align-self: flex-start; margin-bottom: 12px; font-family: var(--f-display); flex-shrink: 0; }
+.case-slant-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 8px; font-family: var(--f-display); flex-shrink: 0; min-height: 28px; }
+.case-slant-desc { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.6; margin: 0 0 14px; flex: 1; overflow: hidden; }
+.case-slant-nums { display: flex; gap: 6px; flex-wrap: nowrap; margin-top: auto; flex-shrink: 0; }
 .case-slant-nums span { font-size: 13px; color: #93c5fd; background: rgba(54,120,227,0.2); padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
 @media (max-width: 640px) {
   .case-slant { transform: none; min-height: 180px; }
