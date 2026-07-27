@@ -18,27 +18,49 @@
 
     <!-- ===== Hero ===== -->
     <section class="hero">
-      <div class="hero-grid"></div>
-      <div class="hero-line-d"></div>
-      <div class="hero-line-v"></div>
-      <div class="hero-content">
-        <h1 class="hero-title">
-          <span v-for="(ch, i) in titleChars" :key="i"
-            class="hero-char"
-            :class="{ plus: ch === '+' }"
-            :style="{ animationDelay: `${80 + i * 40}ms`, color: ch === '+' ? '#3678E3' : '#fff', textShadow: ch === '+' ? '0 0 30px rgba(54,120,227,0.7)' : 'none' }"
-          >{{ ch === ' ' ? ' ' : ch }}</span>
-        </h1>
-        <p class="hero-sub">覆盖教育、工业、城市治理三大领域，构建从单点管控到全域联动的完整安全治理体系</p>
-        <div class="hero-btns">
-          <a href="#应用场景" class="hero-btn-fill"><span>了解应用场景</span><ArrowRight :size="15" /></a>
-          <a href="#功能矩阵" class="hero-btn-ghost"><span>查看功能矩阵</span><ChevronRight :size="15" /></a>
+      <div class="hero-inner">
+        <div class="hero-left">
+          <h1 class="hero-title">
+            <span v-for="(ch, i) in titleChars" :key="i">
+              <template v-if="ch === '+'"><span class="hero-char plus" :style="{ animationDelay: `${80 + i * 40}ms`, color: '#3678E3', textShadow: '0 0 30px rgba(54,120,227,0.2)' }">+</span><br /></template>
+              <span v-else class="hero-char" :style="{ animationDelay: `${80 + i * 40}ms` }">{{ ch === ' ' ? ' ' : ch }}</span>
+            </span>
+          </h1>
+          <p class="hero-sub">覆盖教育、工业、城市治理三大领域，构建从单点管控到全域联动的完整安全治理体系</p>
+          <div class="hero-btns">
+            <a href="#应用场景" class="hero-btn-fill"><span>了解应用场景</span><ArrowRight :size="15" /></a>
+            <a href="/login" class="hero-btn-ghost"><span>去体验</span><ArrowRight :size="15" /></a>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="hero-preview reveal">
+            <div class="hero-stack">
+              <div v-for="card in heroCards" :key="card.alt"
+                class="hero-stack-card"
+                :class="'hero-stack-pos' + card.pos"
+              >
+                <div class="hero-window-bar">
+                  <span class="hero-window-dot dot-red"></span>
+                  <span class="hero-window-dot dot-yellow"></span>
+                  <span class="hero-window-dot dot-green"></span>
+                </div>
+                <img :src="card.src" :alt="card.alt" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="hero-fade"></div>
-      <div class="hero-scroll">
-        <span class="hero-scroll-text">向下滚动</span>
-        <ChevronDown class="hero-scroll-arrow" :size="20" color="#fff" />
+    </section>
+
+    <!-- ===== Trust Bar ===== -->
+    <section class="trust">
+      <div class="sec-wrap">
+        <div class="trust-row">
+          <div v-for="(t, i) in TRUST_NUMS" :key="i" class="trust-item reveal" :style="{ transitionDelay: `${i * 80}ms` }">
+            <div class="trust-num">{{ t.num }}<span class="trust-unit">{{ t.unit }}</span></div>
+            <div class="trust-label">{{ t.label }}</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -47,17 +69,20 @@
       <div class="sec-wrap">
         <div ref="posHead" class="pos-head reveal" :class="{ visible: posHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>平台定位<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">深度赋能三类典型场景</h2>
+          <h2 class="sec-title">深度赋能三类管理模式</h2>
           <p class="sec-desc">覆盖从单点管控到全域联动的完整安全治理体系</p>
         </div>
         <div class="pos-grid">
           <div v-for="(p, i) in POSITIONING" :key="i" class="pos-card reveal" :style="{ transitionDelay: `${i * 100}ms` }">
-            <div class="pos-card-head">
-              <div class="pos-card-icon"><component :is="p.icon" :size="17" color="#3678E3" /></div>
-              <span class="pos-card-tag">{{ p.tag }}</span>
+            <div class="pos-card-bg" :style="{ backgroundImage: `url(${p.image})` }"></div>
+            <div class="pos-card-overlay"></div>
+            <div class="pos-card-content">
+              <div class="pos-card-top">
+                <span class="pos-card-tag">{{ p.tag }}</span>
+                <h3 class="pos-card-title">{{ p.title }}</h3>
+              </div>
+              <p class="pos-card-body">{{ p.body }}</p>
             </div>
-            <h3 class="pos-card-title">{{ p.title }}</h3>
-            <p class="pos-card-body">{{ p.body }}</p>
           </div>
         </div>
       </div>
@@ -66,22 +91,27 @@
     <!-- ===== Scenarios ===== -->
     <section id="应用场景" class="scenarios-sec">
       <div class="sec-wrap">
-        <div ref="scHead" class="reveal" :class="{ visible: scHeadV }">
+        <div ref="scHead" class="reveal" :class="{ visible: scHeadV }" style="text-align:center; margin-bottom:36px;">
           <div class="sec-label"><span class="sec-label-line"></span>应用场景<span class="sec-label-line"></span></div>
           <h2 class="sec-title">核心应用场景</h2>
+          <p class="sec-desc">覆盖校园安全、工贸企业、小商户经营等典型场景，提供从日常巡检、隐患管理到应急响应的闭环解决方案</p>
         </div>
         <!-- Content panel with horizontal slide -->
         <div class="sc-stage">
           <div class="sc-track" :style="{ transform: `translateX(-${activeScenario * 100}%)` }">
-            <div v-for="(sc, i) in SCENARIOS" :key="i" class="sc-panel" @click="goIndustry(sc.slug)">
+            <div v-for="(sc, i) in SCENARIOS" :key="i" class="sc-panel" @click="goIndustry(sc.slug)" @mouseenter="carouselPaused = true" @mouseleave="carouselPaused = false">
               <div class="sc-panel-left">
-                <h3 class="sc-title">{{ sc.title }}</h3>
-                <p class="sc-aud">{{ sc.audience }}</p>
+                <div class="sc-header-row">
+                  <div>
+                    <h3 class="sc-title">{{ sc.title }}</h3>
+                    <p class="sc-aud">{{ sc.audience }}</p>
+                  </div>
+                  <button class="sc-cta"><span>查看详情</span><ArrowRight :size="13" /></button>
+                </div>
                 <p class="sc-summary">{{ sc.summary }}</p>
                 <div class="sc-tags">
                   <span v-for="t in sc.tags" :key="t" class="sc-tag">{{ t }}</span>
                 </div>
-                <button class="sc-cta"><span>查看详情</span><ArrowRight :size="13" /></button>
               </div>
               <div class="sc-panel-right">
                 <img :src="sc.image" alt="" class="sc-image" />
@@ -103,7 +133,7 @@
     <section id="AI 能力" class="ai">
       <div class="sec-wrap">
         <div ref="aiHead" class="reveal" :class="{ visible: aiHeadV }">
-          <div class="sec-label"><span class="sec-label-line"></span>核心能力<span class="sec-label-line"></span></div>
+          <div class="sec-label"><span class="sec-label-line"></span>AI赋能<span class="sec-label-line"></span></div>
           <h2 class="sec-title">AI 如何提升安全管理</h2>
         </div>
         <div class="ai-grid">
@@ -117,51 +147,39 @@
       </div>
     </section>
 
-    <!-- ===== Feature Matrix ===== -->
-    <section id="功能矩阵" class="feat">
+    <!-- ===== Case Studies ===== -->
+    <section id="案例展示" class="cases">
       <div class="sec-wrap">
         <div ref="featHead" class="reveal" :class="{ visible: featHeadV }">
-          <div class="sec-label"><span class="sec-label-line"></span>功能矩阵<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">覆盖安全管理全业务链路</h2>
-          <div class="feat-legend">
-            <span v-for="(cfg, k) in STATE_CFG" :key="k" class="feat-legend-item">
-              <span class="feat-legend-dot" :style="{ background: cfg.color }"></span>{{ cfg.label }}
-            </span>
-          </div>
+          <div class="sec-label"><span class="sec-label-line"></span>案例展示<span class="sec-label-line"></span></div>
+          <h2 class="sec-title">落地案例，真实可见</h2>
+          <p class="sec-desc">已在校园安全、工贸企业等领域完成多个项目交付</p>
         </div>
-        <div class="feat-grid">
-          <div v-for="(f, i) in FEATURES" :key="i" class="feat-card reveal" :style="{ transitionDelay: `${i * 40}ms` }">
-            <div class="feat-bar" :style="{ background: STATE_CFG[f.state].color }"></div>
-            <div class="feat-body">
-              <div class="feat-top">
-                <h4>{{ f.name }}</h4>
-                <span class="feat-badge" :style="{ color: STATE_CFG[f.state].color, background: STATE_CFG[f.state].bg }">{{ STATE_CFG[f.state].label }}</span>
+        <div class="cases-tabs">
+          <button v-for="tab in caseTabs" :key="tab.key"
+            class="cases-tab"
+            :class="{ active: activeCaseTab === tab.key }"
+            @click="activeCaseTab = tab.key"
+          >{{ tab.label }}</button>
+        </div>
+        <div class="cases-stage">
+          <div class="cases-track" :style="{ transform: `translateX(-${caseScroll * (100 / 3)}%)` }"
+            @mouseenter="casePaused = true" @mouseleave="casePaused = false">
+            <div v-for="(c, i) in filteredCases" :key="i"
+              class="case-slant"
+              :style="{ backgroundImage: `url(${c.image})` }"
+            >
+              <div class="case-slant-overlay"></div>
+              <div class="case-slant-content">
+                <span class="case-slant-tag">{{ c.tag }}</span>
+                <h4 class="case-slant-title">{{ c.name }}</h4>
+                <p class="case-slant-desc">{{ c.desc }}</p>
+                <div class="case-slant-nums">
+                  <span v-for="n in c.nums" :key="n">{{ n }}</span>
+                </div>
               </div>
-              <p>{{ f.desc }}</p>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== TechStats ===== -->
-    <section id="技术特性" class="tech" ref="techSection">
-      <div class="tech-grid-bg"></div>
-      <div class="sec-wrap tech-wrap">
-        <div ref="techHead" class="reveal" :class="{ visible: techHeadV }">
-          <div class="sec-label sec-label--light"><span class="sec-label-line sec-label-line--light"></span>技术特性<span class="sec-label-line sec-label-line--light"></span></div>
-          <h2 class="sec-title sec-title--light">多协议兼容，多端协同</h2>
-        </div>
-        <div class="stats-row">
-          <div v-for="(st, i) in STATS" :key="i" class="stat-card">
-            <div class="stat-num">{{ countVals[i] }}<span class="stat-unit">{{ st.unit }}</span></div>
-            <div class="stat-label">{{ st.label }}</div>
-            <div class="stat-sub">{{ st.sub }}</div>
-          </div>
-        </div>
-        <div ref="protoRef" class="protocols reveal" :class="{ visible: protoV }">
-          <span class="proto-label">协议支持</span>
-          <span v-for="p in PROTOCOLS" :key="p" class="proto-tag">{{ p }}</span>
         </div>
       </div>
     </section>
@@ -175,7 +193,7 @@
           <p class="ft-cta-sub">人工智能 + 公共安全管理平台 — 以大安全（消防 + 应急）为核心</p>
           <div class="ft-cta-btns">
             <a href="#应用场景" class="hero-btn-fill">浏览应用场景<ArrowRight :size="14" /></a>
-            <a href="#" class="hero-btn-ghost" style="border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.65);">联系商务团队</a>
+            <a href="#" class="hero-btn-ghost">联系商务团队</a>
           </div>
         </div>
       </div>
@@ -218,9 +236,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, ChevronRight, ChevronDown, Shield, Radio, Building2, Zap, FileText, Phone, Mail, Store } from 'lucide-vue-next'
+import { ArrowRight, Zap, FileText, Phone, Mail, Store, Monitor, ClipboardCheck, AlertTriangle, Cpu, Brain, Bell } from 'lucide-vue-next'
 import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
 import scenarioIndustryImg from '@/assets/portal/scenario-industry.png'
 import scenarioMerchantImg from '@/assets/portal/scenario-ebike.png'
@@ -260,7 +278,7 @@ const copyExpUrl = async () => {
 
 // ===== Scroll & Nav =====
 const scrolled = ref(false)
-const navLinks = ['平台定位', '应用场景', 'AI 能力', '功能矩阵', '技术特性']
+const navLinks = ['平台定位', '应用场景', 'AI 能力', '案例展示']
 let scrollFn: () => void
 onMounted(() => {
   scrollFn = () => { scrolled.value = window.scrollY > 48 }
@@ -279,6 +297,28 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 // ===== Hero =====
 const titleChars = '人工智能 + 公共安全管理平台'.split('')
 
+// ===== Hero stack carousel =====
+import heroCampusImg from '@/assets/portal/hero-campus.png'
+import heroIndustryImg from '@/assets/portal/hero-industry.png'
+import heroMerchantImg from '@/assets/portal/hero-merchant.png'
+
+const HERO_IMAGES = [
+  { src: heroCampusImg, alt: '校园安全管理大屏' },
+  { src: heroIndustryImg, alt: '工贸企业安全管理大屏' },
+  { src: heroMerchantImg, alt: '小商户安全监管大屏' },
+]
+const heroCards = ref(HERO_IMAGES.map((img, i) => ({ ...img, pos: i })))
+let stackTimer: ReturnType<typeof setInterval>
+onMounted(() => {
+  stackTimer = setInterval(() => {
+    heroCards.value = heroCards.value.map(c => ({
+      ...c,
+      pos: (c.pos + 1) % 3,
+    }))
+  }, 4000)
+})
+onUnmounted(() => clearInterval(stackTimer))
+
 // ===== Section header reveal states =====
 const posHeadV = ref(false)
 const posHead = ref<HTMLElement | null>(null)
@@ -288,10 +328,6 @@ const aiHeadV = ref(false)
 const aiHead = ref<HTMLElement | null>(null)
 const featHeadV = ref(false)
 const featHead = ref<HTMLElement | null>(null)
-const techHeadV = ref(false)
-const techHead = ref<HTMLElement | null>(null)
-const protoV = ref(false)
-const protoRef = ref<HTMLElement | null>(null)
 const ftCtaV = ref(false)
 const ftCta = ref<HTMLElement | null>(null)
 
@@ -300,7 +336,6 @@ onMounted(() => {
   const heads = [
     { el: posHead, v: posHeadV }, { el: scHead, v: scHeadV },
     { el: aiHead, v: aiHeadV }, { el: featHead, v: featHeadV },
-    { el: techHead, v: techHeadV }, { el: protoRef, v: protoV },
     { el: ftCta, v: ftCtaV },
   ]
   const headObs = new IntersectionObserver((entries) => {
@@ -326,11 +361,19 @@ onMounted(() => {
   onUnmounted(() => { headObs.disconnect(); cardObs.disconnect() })
 })
 
+// ===== Trust Bar =====
+const TRUST_NUMS = [
+  { num: '205', unit: '+', label: '台设备接入' },
+  { num: '3', unit: '类', label: '核心场景覆盖' },
+  { num: '3', unit: '端', label: '多端协同' },
+  { num: '4', unit: '种', label: '通信协议兼容' },
+]
+
 // ===== Positioning =====
 const POSITIONING = [
-  { tag: '单点管控', title: '企业自主管理', body: '面向工贸企业、学校等主体单位，提供从日常巡检、隐患排查到应急响应的一站式安全自管能力，帮助落实安全主体责任。', icon: Building2 },
-  { tag: '全域协同', title: '区域联勤联动', body: '面向教育局、应急管理局等监管部门，通过局端宏观监管与校端 / 企端微观执行的纵向架构，实现跨主体数据汇聚与精准督办。', icon: Radio },
-  { tag: '集团统管', title: '垂直穿透管控', body: '面向集团型企业，总部一屏掌握各分支安全态势，数据逐级汇聚、风险逐层预警、指令直达末端，实现安全与业务管控深度融合。', icon: Shield },
+  { tag: '单点管控', title: '企业自主管理', body: '面向单个项目或企业的"大安全自主管理"。通过构建智能化的安全管理平台，实现对消防设施、应急预案、风险隐患等要素的实时监测与动态管理，提升单位自身的安全防控能力和应急响应效率。', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80' },
+  { tag: '全域协同', title: '区域联勤联动', body: '围绕监管部门为核心的"区域联勤联动"机制。打通区域内多个单位、部门之间的信息壁垒，建立统一指挥、快速响应、多方协同的应急联动体系，提升对突发事件的综合处置能力。', image: 'https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=600&q=80' },
+  { tag: '集团统管', title: '垂直穿透管控', body: '针对大型集团公司的"垂直穿透管控"模式。通过搭建集团级安全管理中枢平台，实现对下属各级子公司、项目单位的安全状况进行统一监管与调度，强化集团对全链条安全风险的掌控能力。', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
 ]
 
 // ===== Scenarios =====
@@ -343,13 +386,13 @@ const SCENARIOS = [
     icon: FileText, image: scenarioCampusImg,
   },
   {
-    title: '工贸企业安全管理', audience: '应急管理局 · 规上 / 规下工贸企业', slug: 'industry',
+    title: '工贸企业安全管理', audience: '应急局 · 规上 / 规下工贸企业', slug: 'industry',
     summary: '设备台账、巡查检查、隐患闭环、告警值守、动火管控——五个独立场景覆盖工厂安全全链路。',
     tags: ['设备保养', '巡查检查', '隐患闭环', '告警值守'],
     icon: Zap, image: scenarioIndustryImg,
   },
   {
-    title: '小商户安全监管', audience: '街道办 · 市场监管局 · 物业', slug: 'merchant',
+    title: '小商户安全监管', audience: '街道办 · 应急局 · 物业', slug: 'merchant',
     summary: '商户每日安全自查打卡、物业入户巡查上报、隐患整改拍照闭环——覆盖辖区几千家店。',
     tags: ['安全自查', '巡查与隐患'],
     icon: Store, image: scenarioMerchantImg,
@@ -357,18 +400,19 @@ const SCENARIOS = [
 ]
 // Auto carousel
 let carouselTimer: ReturnType<typeof setInterval>
-let carouselPaused = false
+let carouselPaused: boolean = false
 const pauseCarousel = () => { carouselPaused = true }
 const goIndustry = (slug: string) => {
   pauseCarousel()
   router.push(`/portal/${slug}`)
 }
 onMounted(() => {
+  startCaseScroll()
   carouselTimer = setInterval(() => {
     if (!carouselPaused) activeScenario.value = (activeScenario.value + 1) % SCENARIOS.length
-  }, 4000)
+  }, 8000)
 })
-onUnmounted(() => clearInterval(carouselTimer))
+onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer) })
 
 // ===== AI =====
 const AI_LIST = [
@@ -378,64 +422,48 @@ const AI_LIST = [
   { title: '精准执法导航', body: '平台 AI 模型综合分析辖区内企业的电气监测、巡检记录及搜索行为等多维数据，发现高风险目标时自动标记，建议执法人员定向检查其除尘系统与电气防爆措施，将执法资源精准投放。', num: '04' },
 ]
 
-// ===== Features =====
-const FEATURES = [
-  { name: '远程值守', desc: '消控室工作台、预案管理、告警推送、值守报表', state: 'done' },
-  { name: '巡查检查', desc: '点位管理、巡查任务、计划编排、异常处理、巡查报表', state: 'done' },
-  { name: '隐患管理', desc: '隐患上报、初核、整改、复查全流程闭环跟踪', state: 'done' },
-  { name: '设备管理', desc: '设备台账、实时监控、事件日志、保养计划与任务', state: 'done' },
-  { name: '维保管理', desc: '维保合同管理、维保记录、保养规范配置与执行', state: 'done' },
-  { name: '工单管理', desc: '流程模板配置、工单监控、处置流转、归档追溯', state: 'wip' },
-  { name: '危险作业', desc: '动火、高空等特殊作业备案、审批与全流程监管', state: 'wip' },
-  { name: '动态表单', desc: '自定义表单设计、填写记录管理与数据分析', state: 'done' },
-  { name: 'AI 告警分析', desc: '基于 Coze 工作流生成设备告警事件 AI 分析报告', state: 'done' },
-  { name: '可视化大屏', desc: '应急局、企业、校园多级驾驶舱，一屏掌握全局', state: 'wip' },
-  { name: '消息通知', desc: '站内信、短信、语音、第三方推送多通道覆盖', state: 'done' },
-  { name: '系统管理', desc: '组织架构、人员岗位、权限配置、相关方管理', state: 'done' },
+// ===== Cases =====
+const activeCaseTab = ref('all')
+const caseTabs = [
+  { key: 'all', label: '全部' },
+  { key: '教育', label: '教育' },
+  { key: '工业', label: '工业' },
+  { key: '城市治理', label: '城市治理' },
+  { key: '垂直业务', label: '垂直业务' },
 ]
-const STATE_CFG: Record<string, { label: string; color: string; bg: string }> = {
-  done: { label: '已上线', color: '#059669', bg: 'rgba(5,150,105,0.08)' },
-  wip: { label: '开发中', color: '#d97706', bg: 'rgba(217,119,6,0.08)' },
-  planned: { label: '规划中', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)' },
-}
-
-// ===== TechStats count-up =====
-const STATS = [
-  { value: 205, unit: '台', label: '设备接入', sub: '港南二中项目' },
-  { value: 6, unit: '种', label: '设备类型', sub: '多品牌兼容' },
-  { value: 4, unit: '种', label: '通信协议', sub: 'MQTT · TCP · HTTP' },
-  { value: 3, unit: '端', label: '多端协同', sub: 'PC · 移动 · 大屏' },
+const CASES = [
+  { name: '港南二中校园安全', tag: '教育', desc: '部署 AI 防欺凌系统、消防监测终端与应急指挥平台，实现校园安全事件早发现、快响应，覆盖 200+ 终端设备。', nums: ['200+ 设备', '6 类终端', '4 种协议'], image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
+  { name: '工业园区安全监测', tag: '工业', desc: '面向化工园区、制造工厂部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。', nums: ['800+ 监测点', '3 类感知', '实时预警'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
+  { name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
+  { name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80' },
+  { name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80' },
 ]
-const countVals = ref(STATS.map(() => 0))
-const techSection = ref<HTMLElement | null>(null)
-let counted = false
 
-onMounted(() => {
-  const obs = new IntersectionObserver(([e]) => {
-    if (e.isIntersecting && !counted) {
-      counted = true
-      STATS.forEach((st, i) => {
-        const t0 = performance.now()
-        const tick = (now: number) => {
-          const p = Math.min((now - t0) / 1800, 1)
-          countVals.value[i] = Math.floor((1 - Math.pow(1 - p, 3)) * st.value)
-          if (p < 1) requestAnimationFrame(tick)
-        }
-        requestAnimationFrame(tick)
-      })
-      obs.disconnect()
+const filteredCases = computed(() =>
+  activeCaseTab.value === 'all' ? CASES : CASES.filter(c => c.tag === activeCaseTab.value)
+)
+
+// Cases auto scroll
+const caseScroll = ref(0)
+let casePaused: boolean = false
+let caseTimer: ReturnType<typeof setInterval>
+const startCaseScroll = () => {
+  const total = filteredCases.value.length
+  caseTimer = setInterval(() => {
+    if (!casePaused && total > 3) {
+      caseScroll.value = (caseScroll.value + 1) % (total - 2)
     }
-  }, { threshold: 0.3 })
-  if (techSection.value) obs.observe(techSection.value)
-  onUnmounted(() => obs.disconnect())
+  }, 4000)
+}
+watch(activeCaseTab, () => {
+  caseScroll.value = 0
+  clearInterval(caseTimer)
+  startCaseScroll()
 })
-
-// ===== Protocols =====
-const PROTOCOLS = ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', 'MQTT 三方中转']
 
 // ===== Footer =====
 const FOOTER_COLS = [
-  { title: '应用场景', links: ['校园安全', '工贸企业', '小商户安全监管', '动火作业管理'] },
+  { title: '应用场景', links: ['校园安全', '工贸企业', '小商户安全监管'] },
   { title: '功能模块', links: ['远程值守', '巡查检查', '隐患管理', 'AI 告警分析', '可视化大屏'] },
   { title: '技术', links: ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', '多端协同', 'API 文档'] },
   { title: '联系我们', links: ['预约演示', '商务合作', '技术支持', '关于平台'] },
@@ -444,11 +472,13 @@ const FOOTER_COLS = [
 
 <style>
 /* ===== Font ===== */
-.font-outfit { font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
+.font-outfit { font-family: var(--f-display); }
 
-/* ===== Scrollbar ===== */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: rgba(54,120,227,0.25); border-radius: 2px; }
+html, body { margin: 0; padding: 0; }
+
+/* ===== Scrollbar (hidden) ===== */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
 
 /* ===== Reveal ===== */
 .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
@@ -459,32 +489,31 @@ const FOOTER_COLS = [
 </style>
 
 <style scoped>
+/* ===== Font Tokens ===== */
+.portal { --f-display: 'Outfit', 'Noto Sans SC', sans-serif; --f-body: 'Noto Sans SC', 'Outfit', sans-serif; }
 /* ===== Shared ===== */
 .sec-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 @media (min-width: 640px) { .sec-wrap { padding: 0 32px; } }
-.sec-label { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; color: #3678E3; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
+.sec-label { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 16px; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #3678E3; font-family: var(--f-display); }
 .sec-label-line { display: block; width: 32px; height: 1px; background: rgba(54,120,227,0.4); }
-.sec-title { font-size: clamp(1.5rem, 4vw, 1.875rem); font-weight: 700; color: #101010; margin: 0 0 12px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; text-align: center; }
-.sec-desc { font-size: 14px; color: #5E5E5E; text-align: center; max-width: 480px; margin: 0 auto; }
+.sec-title { font-size: clamp(1.5rem, 4vw, 1.875rem); font-weight: 700; color: #101010; margin: 0 0 12px; font-family: var(--f-display); text-align: center; }
+.sec-desc { font-size: 16px; color: #5E5E5E; text-align: center; max-width: 480px; margin: 0 auto; }
 
 /* ===== Nav ===== */
-.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; transition: all 0.5s; background: transparent; border-bottom: 1px solid transparent; backdrop-filter: none; }
-.nav.scrolled { background: rgba(255,255,255,0.96); border-bottom: 1px solid rgba(54,120,227,0.1); backdrop-filter: blur(16px); box-shadow: 0 1px 20px rgba(0,0,0,0.06); }
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; transition: all 0.5s; background: rgba(255,255,255,0.92); border-bottom: 1px solid rgba(54,120,227,0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+.nav.scrolled { background: rgba(255,255,255,0.96); border-bottom: 1px solid rgba(54,120,227,0.12); box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
 .nav-inner { max-width: 1360px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
 @media (min-width: 640px) { .nav-inner { padding: 0 32px; height: 64px; } }
 .nav-brand { display: flex; align-items: center; gap: 6px; text-decoration: none; }
 @media (min-width: 640px) { .nav-brand { gap: 8px; } }
 .nav-logo { width: 24px; height: 24px; border-radius: 6px; background: #3678E3; flex-shrink: 0; }
 @media (min-width: 640px) { .nav-logo { width: 28px; height: 28px; } }
-.nav-name { font-weight: 700; font-size: 13px; color: #fff; transition: color 0.5s; font-family: 'Outfit', 'Noto Sans SC', sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+.nav-name { font-weight: 700; font-size: 13px; color: #101010; font-family: var(--f-display); letter-spacing: -0.01em; white-space: nowrap; }
 @media (min-width: 640px) { .nav-name { font-size: 16px; } }
-.nav-name.scrolled { color: #101010; }
 .nav-links { display: none; gap: 28px; }
 @media (min-width: 768px) { .nav-links { display: flex; } }
-.nav-link { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.2s; }
+.nav-link { font-size: 15px; font-weight: 600; color: rgba(16,16,16,0.6); text-decoration: none; cursor: pointer; transition: color 0.2s; }
 .nav-link:hover { color: #3678E3; }
-.nav-link.scrolled { color: rgba(16,16,16,0.6); }
-.nav-link.scrolled:hover { color: #3678E3; }
 .nav-actions { display: flex; align-items: center; gap: 8px; }
 @media (min-width: 640px) { .nav-actions { gap: 12px; } }
 .nav-btn { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: none; background: #3678E3; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(54,120,227,0.3); transition: background 0.2s; }
@@ -492,28 +521,78 @@ const FOOTER_COLS = [
 .nav-btn:hover { background: rgba(54,120,227,0.9); }
 
 /* ===== Hero ===== */
-.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(160deg, #162d5e 0%, #1e4080 55%, #1a3568 100%); }
-.hero-grid { position: absolute; inset: 0; opacity: 0.045; background-image: linear-gradient(rgba(255,255,255,1) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px); background-size: 80px 80px; }
-.hero-line-d { position: absolute; top: 0; right: 0; width: 1px; height: 100%; opacity: 0.1; background: linear-gradient(to bottom, transparent, #3678E3, transparent); }
-.hero-line-v { position: absolute; top: 0; left: 33.33%; width: 1px; height: 100%; opacity: 0.05; background: linear-gradient(to bottom, transparent, #fff, transparent); }
-.hero-content { position: relative; z-index: 10; max-width: 960px; margin: 0 auto; padding: 80px 20px 128px; text-align: center; }
-@media (min-width: 640px) { .hero-content { padding-left: 32px; padding-right: 32px; } }
-.hero-char { display: inline-block; font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; font-family: 'Outfit', 'Noto Sans SC', sans-serif; line-height: 1.1; opacity: 0; animation: charIn 0.5s ease forwards; }
+.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(180deg, #f8faff 0%, #eef3ff 50%, #f4f7ff 100%); padding: 40px 0 80px; }
+.hero::after { content: ''; position: absolute; inset: 0; z-index: 0; background: url('@/assets/portal/hero-bg.png') center/cover no-repeat; opacity: 0.3; pointer-events: none; }
+.hero-inner { position: relative; z-index: 10; max-width: 1200px; width: 100%; margin: 0 auto; padding: 80px 0; display: flex; align-items: center; gap: 48px; }
+.hero-left { flex: 1; min-width: 0; text-align: left; margin-left: -80px; }
+.hero-right { flex: 0 0 690px; margin-right: -80px; }
+@media (max-width: 900px) {
+  .hero-inner { flex-direction: column; padding: 80px 20px 48px; gap: 32px; }
+  .hero-left { text-align: center; }
+  .hero-right { flex: 0 0 auto; width: 100%; max-width: 690px; }
+}
+.hero-char { display: inline-block; font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; font-family: var(--f-display); line-height: 1.35; opacity: 0; animation: charIn 0.5s ease forwards; color: #101010; }
+.hero-char.plus { font-size: clamp(2.5rem, 7vw, 4.5rem); font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace; }
 @keyframes charIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.hero-sub { font-size: 16px; color: rgba(255,255,255,0.55); line-height: 1.7; max-width: 560px; margin: 28px auto 40px; opacity: 0; animation: fadeIn 0.6s ease 0.8s forwards; }
+.hero-sub { font-size: 16px; color: #5E5E5E; line-height: 1.7; max-width: 480px; margin: 24px 0 48px; opacity: 0; animation: fadeIn 0.6s ease 0.8s forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @media (min-width: 640px) { .hero-sub { font-size: 18px; } }
-.hero-btns { display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0; animation: fadeIn 0.6s ease 1s forwards; }
-@media (min-width: 640px) { .hero-btns { flex-direction: row; justify-content: center; } }
-.hero-btn-fill { display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #fff; background: #3678E3; text-decoration: none; box-shadow: 0 4px 20px rgba(54,120,227,0.45); transition: background 0.2s; }
+.hero-btns { display: flex; align-items: center; gap: 12px; opacity: 0; animation: fadeIn 0.6s ease 1s forwards; }
+.hero-left .hero-btns { justify-content: flex-start; }
+.hero-btn-fill { display: flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; color: #fff; background: #3678E3; text-decoration: none; box-shadow: 0 4px 20px rgba(54,120,227,0.45); transition: background 0.2s; }
 .hero-btn-fill:hover { background: rgba(54,120,227,0.9); }
-.hero-btn-ghost { display: flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.15); text-decoration: none; transition: background 0.2s; }
-.hero-btn-ghost:hover { background: rgba(255,255,255,0.05); }
+.hero-btn-ghost { display: flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; color: #5E5E5E; border: 1px solid rgba(0,0,0,0.12); text-decoration: none; transition: background 0.2s; }
+.hero-btn-ghost:hover { background: rgba(0,0,0,0.04); }
+/* ===== Hero preview ===== */
+.hero-preview { max-width: 690px; margin: 0; }
+.dot-red { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green { background: #28c840; }
+.hero-stack { position: relative; padding-top: 62.5%; }
+.hero-stack-card {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.7s ease, z-index 0.7s;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08);
+  display: flex; flex-direction: column;
+}
+.hero-window-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #f5f5f7; border-bottom: 1px solid rgba(0,0,0,0.06); flex-shrink: 0; }
+.hero-window-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.hero-stack-card img { flex: 1; width: 100%; object-fit: contain; background: #fafafa; }
+/* Position 0 = front */
+.hero-stack-pos0 { z-index: 3; opacity: 1; transform: rotate(0deg) translateX(0); }
+/* Position 1 = middle */
+.hero-stack-pos1 { z-index: 2; opacity: 0.7; transform: rotate(1.5deg) translateX(8px); }
+/* Position 2 = back */
+.hero-stack-pos2 { z-index: 1; opacity: 0.55; transform: rotate(-3deg) translateX(-12px); }
+.hero-stack:hover .hero-stack-pos1 { transform: rotate(3deg) translateX(20px) !important; }
+.hero-stack:hover .hero-stack-pos2 { transform: rotate(-5deg) translateX(-28px) !important; }
+.hero-stack-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hero-preview-placeholder {
+  width: 100%; height: 100%;
+  border: 2px dashed rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-preview-hint { font-size: 14px; color: rgba(0,0,0,0.2); }
 .hero-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to bottom, transparent, rgba(22,45,94,0.3)); pointer-events: none; }
-.hero-scroll { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0.75; }
-.hero-scroll-text { font-size: 13px; font-weight: 500; color: #93c5fd; }
-.hero-scroll-arrow { color: #93c5fd; animation: bounce 2s infinite; }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+/* ===== Trust Bar ===== */
+.trust { padding: 48px 0; background: #fff; border-bottom: 1px solid rgba(0,0,0,0.04); }
+.trust-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+@media (min-width: 768px) { .trust-row { grid-template-columns: repeat(4, 1fr); } }
+.trust-item { text-align: center; }
+.trust-num { font-size: 2rem; font-weight: 900; color: #101010; font-family: var(--f-display); line-height: 1; }
+@media (min-width: 640px) { .trust-num { font-size: 2.5rem; } }
+.trust-unit { font-size: 1rem; font-weight: 500; color: #3678E3; margin-left: 2px; }
+.trust-label { font-size: 16px; color: #5E5E5E; margin-top: 4px; }
 
 /* ===== Positioning ===== */
 .pos { padding: 80px 0; background: #fafafa; }
@@ -521,14 +600,16 @@ const FOOTER_COLS = [
 .pos-head { text-align: center; margin-bottom: 36px; }
 .pos-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 @media (min-width: 768px) { .pos-grid { grid-template-columns: repeat(3, 1fr); } }
-.pos-card { background: #fff; border: 1px solid rgba(54,120,227,0.12); border-radius: 12px; padding: 24px; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-@media (min-width: 640px) { .pos-card { padding: 32px; } }
-.pos-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(54,120,227,0.1); }
-.pos-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.pos-card-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(54,120,227,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.pos-card-tag { font-size: 12px; font-weight: 600; color: #3678E3; letter-spacing: 0.08em; background: rgba(54,120,227,0.07); padding: 2px 8px; border-radius: 4px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
-.pos-card-title { font-size: 16px; font-weight: 700; color: #101010; margin: 0 0 8px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
-.pos-card-body { font-size: 14px; color: #5E5E5E; line-height: 1.65; margin: 0; }
+.pos-card { position: relative; border-radius: 14px; overflow: hidden; min-height: 240px; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.pos-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(54,120,227,0.12); }
+.pos-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.4s; }
+.pos-card:hover .pos-card-bg { transform: scale(1.05); }
+.pos-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.25) 100%); z-index: 1; }
+.pos-card-content { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; padding: 32px; }
+.pos-card-top { margin-bottom: 16px; }
+.pos-card-tag { display: inline-block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); letter-spacing: 0.06em; background: rgba(54,120,227,0.4); padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; font-family: var(--f-display); }
+.pos-card-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0; font-family: var(--f-display); }
+.pos-card-body { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.65; margin: auto 0 0; min-height: 80px; }
 
 /* ===== Scenarios ===== */
 .scenarios-sec { padding: 80px 0; background: linear-gradient(180deg, #eef3ff 0%, #e8effc 50%, #f4f7ff 100%); }
@@ -538,104 +619,89 @@ const FOOTER_COLS = [
 .sc-dot-btn.active { width: 24px; border-radius: 4px; background: #3678E3; }
 .sc-stage { overflow: hidden; border-radius: 16px; }
 .sc-track { display: flex; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-.sc-panel { flex-shrink: 0; width: 100%; display: grid; grid-template-columns: 1fr; gap: 32px; padding: 32px; min-height: 380px; box-sizing: border-box; border-radius: 16px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(54,120,227,0.08), inset 0 1px 0 rgba(255,255,255,0.6); cursor: pointer; transition: all 0.35s; }
+.sc-panel { flex-shrink: 0; width: 100%; display: grid; grid-template-columns: 1fr; gap: 32px; padding: 32px; box-sizing: border-box; border-radius: 16px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(54,120,227,0.08), inset 0 1px 0 rgba(255,255,255,0.6); cursor: pointer; transition: all 0.35s; }
 .sc-panel:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(54,120,227,0.15); }
-@media (min-width: 1024px) { .sc-panel { grid-template-columns: 1fr 1fr; gap: 48px; padding: 40px; min-height: 360px; } }
-.sc-title { font-size: 22px; font-weight: 700; font-family: 'Outfit', 'Noto Sans SC', sans-serif; color: #101010; margin: 0 0 4px; }
+@media (min-width: 1024px) { .sc-panel { grid-template-columns: 1fr; gap: 32px; padding: 40px; min-height: auto; } }
+.sc-title { font-size: 22px; font-weight: 700; font-family: var(--f-display); color: #101010; margin: 0 0 4px; }
 @media (min-width: 640px) { .sc-title { font-size: 26px; } }
-.sc-aud { font-size: 14px; color: #3678E3; font-weight: 500; margin: 0 0 16px; }
-.sc-summary { font-size: 14px; color: rgba(16,16,16,0.65); line-height: 1.65; margin: 0 0 20px; }
+.sc-aud { font-size: 16px; color: #3678E3; font-weight: 500; margin: 0; }
+.sc-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sc-summary { font-size: 16px; color: rgba(16,16,16,0.65); line-height: 1.65; margin: 0 0 20px; }
 .sc-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
 .sc-tag { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 9999px; background: rgba(54,120,227,0.06); color: #3678E3; border: 1px solid rgba(54,120,227,0.15); }
-.sc-cta { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 8px; border: 1px solid rgba(54,120,227,0.25); background: transparent; color: #3678E3; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.sc-cta { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 8px; border: 1px solid rgba(54,120,227,0.25); background: transparent; color: #3678E3; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .sc-cta:hover { background: #3678E3; color: #fff; border-color: #3678E3; }
 .sc-points { list-style: none; padding: 0; margin: 0; }
-.sc-points li { display: flex; gap: 12px; font-size: 14px; color: rgba(16,16,16,0.75); line-height: 1.65; margin-bottom: 12px; }
+.sc-points li { display: flex; gap: 12px; font-size: 16px; color: rgba(16,16,16,0.75); line-height: 1.65; margin-bottom: 12px; }
 .sc-dot { width: 6px; height: 6px; border-radius: 50%; background: #3678E3; flex-shrink: 0; margin-top: 7px; }
-.sc-image { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; border: 4px solid #e5e5e5; }
+.sc-panel-right { width: 100%; aspect-ratio: 1.47; }
+.sc-image { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
 
 /* ===== AI ===== */
 .ai { padding: 80px 0; background: #fafafa; }
 @media (min-width: 640px) { .ai { padding: 112px 0; } }
 .ai-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 48px; }
 @media (min-width: 640px) { .ai-grid { grid-template-columns: repeat(2, 1fr); } }
-.ai-card { position: relative; background: #fff; border: 1px solid rgba(54,120,227,0.1); border-radius: 12px; padding: 28px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
-.ai-card:hover { background: #3678E3; border-color: #3678E3; box-shadow: 0 10px 36px rgba(54,120,227,0.35); transform: translateY(-2px); }
-.ai-num { position: absolute; top: 16px; right: 20px; font-size: 48px; font-weight: 900; color: rgba(54,120,227,0.1); font-family: 'Outfit', 'Noto Sans SC', sans-serif; line-height: 1; pointer-events: none; user-select: none; transition: color 0.35s; }
-.ai-card:hover .ai-num { color: rgba(255,255,255,0.15); }
+.ai-card { position: relative; background: #fff; border: 1px solid rgba(54,120,227,0.1); border-radius: 12px; padding: 28px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.25s ease; }
+.ai-num { position: absolute; top: 16px; right: 20px; font-size: 48px; font-weight: 900; color: rgba(54,120,227,0.1); font-family: var(--f-display); line-height: 1; pointer-events: none; user-select: none; transition: color 0.35s; }
 .ai-line { width: 24px; height: 2px; background: #3678E3; margin-bottom: 16px; transition: width 0.35s, background 0.35s; }
-.ai-card:hover .ai-line { width: 48px; background: #fff; }
-.ai-title { font-size: 16px; font-weight: 700; color: #101010; margin: 0 0 12px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; transition: color 0.35s; }
-.ai-card:hover .ai-title { color: #fff; }
-.ai-body { font-size: 14px; color: #5E5E5E; line-height: 1.8; margin: 0; transition: color 0.35s; }
-.ai-card:hover .ai-body { color: rgba(255,255,255,0.85); }
+.ai-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(54,120,227,0.12); border-color: rgba(54,120,227,0.25); }
+.ai-card:hover .ai-num { color: rgba(54,120,227,0.18); }
+.ai-card:hover .ai-line { width: 48px; background: rgba(54,120,227,0.5); }
+.ai-title { font-size: 16px; font-weight: 700; color: #101010; margin: 0 0 12px; font-family: var(--f-display); }
+.ai-body { font-size: 16px; color: #5E5E5E; line-height: 1.8; margin: 0; }
 
-/* ===== Features ===== */
-.feat { padding: 80px 0; background: #fff; }
-@media (min-width: 640px) { .feat { padding: 112px 0; } }
-.feat-legend { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
-.feat-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5E5E5E; }
-.feat-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: block; }
-.feat-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 48px; }
-@media (min-width: 640px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .feat-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1280px) { .feat-grid { grid-template-columns: repeat(4, 1fr); } }
-.feat-card { display: flex; border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid rgba(54,120,227,0.1); box-shadow: 0 1px 6px rgba(0,0,0,0.04); transition: all 0.25s; }
-.feat-card:hover { box-shadow: 0 6px 24px rgba(54,120,227,0.1); }
-.feat-bar { width: 4px; flex-shrink: 0; transition: width 0.2s; }
-.feat-card:hover .feat-bar { width: 5px; }
-.feat-body { flex: 1; padding: 16px; }
-.feat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-.feat-top h4 { font-size: 14px; font-weight: 700; color: #101010; margin: 0; }
-.feat-badge { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; flex-shrink: 0; margin-left: 8px; }
-.feat-body p { font-size: 12px; color: #5E5E5E; line-height: 1.5; margin: 0; }
-
-/* ===== TechStats ===== */
-.tech { position: relative; padding: 80px 0; background: linear-gradient(160deg, #162d5e 0%, #1e4080 100%); overflow: hidden; }
-@media (min-width: 640px) { .tech { padding: 112px 0; } }
-.tech-grid-bg { position: absolute; inset: 0; opacity: 0.04; background-image: linear-gradient(rgba(255,255,255,1) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px); background-size: 60px 60px; }
-.tech-wrap { position: relative; }
-.sec-label--light { color: rgba(147,197,253,1); }
-.sec-label-line--light { background: rgba(147,197,253,0.4); }
-.sec-title--light { color: #fff; }
-.stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; border-radius: 16px; overflow: hidden; margin-bottom: 56px; background: rgba(255,255,255,0.04); }
-@media (min-width: 1024px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
-.stat-card { display: flex; flex-direction: column; align-items: center; padding: 40px 16px; text-align: center; background: rgba(26,53,104,0.6); }
-.stat-num { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #fff; font-family: 'Outfit', 'Noto Sans SC', sans-serif; line-height: 1; margin-bottom: 4px; }
-.stat-unit { font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.5); margin-left: 4px; }
-.stat-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); margin-top: 8px; }
-.stat-sub { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 4px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
-.protocols { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
-.proto-label { font-size: 12px; color: rgba(255,255,255,0.4); font-family: 'Outfit', 'Noto Sans SC', sans-serif; margin-right: 8px; }
-.proto-tag { font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 9999px; background: rgba(54,120,227,0.15); border: 1px solid rgba(54,120,227,0.3); color: #93c5fd; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
+/* ===== Case Studies ===== */
+.cases { padding: 80px 0; background: #fff; }
+@media (min-width: 640px) { .cases { padding: 112px 0; } }
+.cases-tabs { display: flex; justify-content: center; gap: 8px; margin-top: 32px; }
+.cases-tab { font-size: 16px; font-weight: 500; color: #5E5E5E; padding: 8px 24px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; transition: all 0.2s; }
+.cases-tab.active { background: #3678E3; color: #fff; border-color: #3678E3; }
+.cases-tab:hover:not(.active) { border-color: rgba(54,120,227,0.3); color: #3678E3; }
+.cases-stage { overflow: hidden; border-radius: 16px; margin: 24px -20px 0; padding: 0 20px; }
+.cases-track { display: flex; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.case-slant { position: relative; flex: 0 0 calc(33.333% - 11px); margin-right: 16px; transform: skewX(-6deg); background-size: cover; background-position: center; border-radius: 16px; overflow: hidden; min-height: 320px; transition: transform 0.3s; cursor: pointer; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+.case-slant:hover { transform: skewX(-6deg) scale(1.02); z-index: 4; box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
+.case-slant-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%); z-index: 1; }
+.case-slant-content { position: relative; z-index: 2; padding: 36px 40px; display: flex; flex-direction: column; justify-content: center; height: 100%; transform: skewX(6deg); }
+.case-slant-tag { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(54,120,227,0.4); padding: 4px 12px; border-radius: 4px; align-self: flex-start; margin-bottom: 12px; font-family: var(--f-display); }
+.case-slant-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 8px; font-family: var(--f-display); }
+.case-slant-desc { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.6; margin: 0 0 14px; }
+.case-slant-nums { display: flex; gap: 6px; flex-wrap: nowrap; }
+.case-slant-nums span { font-size: 13px; color: #93c5fd; background: rgba(54,120,227,0.2); padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+@media (max-width: 640px) {
+  .case-slant { transform: none; min-height: 180px; }
+  .case-slant-1, .case-slant-2 { margin-left: 0; }
+  .case-slant-content { transform: none; padding: 24px; }
+}
 
 /* ===== Footer ===== */
-.ft { background: #0d1a38; }
-.ft-cta { text-align: center; padding: 64px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ft { background: linear-gradient(180deg, #eef3ff 0%, #f4f7ff 100%); border-top: 1px solid rgba(54,120,227,0.1); }
+.ft-cta { text-align: center; padding: 64px 20px; border-bottom: 1px solid rgba(54,120,227,0.08); }
 @media (min-width: 640px) { .ft-cta { padding: 80px 20px; } }
-.ft-cta-label { font-size: 12px; color: rgba(147,197,253,0.7); letter-spacing: 0.2em; text-transform: uppercase; font-family: 'Outfit', 'Noto Sans SC', sans-serif; margin: 0 0 20px; }
-.ft-cta-title { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 16px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
+.ft-cta-label { font-size: 16px; color: #3678E3; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--f-display); margin: 0 0 20px; }
+.ft-cta-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 16px; font-family: var(--f-display); }
 @media (min-width: 640px) { .ft-cta-title { font-size: 30px; } }
-.ft-cta-sub { font-size: 14px; color: rgba(255,255,255,0.6); max-width: 448px; margin: 0 auto 32px; }
+.ft-cta-sub { font-size: 16px; color: #5E5E5E; max-width: 448px; margin: 0 auto 32px; }
 .ft-cta-btns { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 @media (min-width: 640px) { .ft-cta-btns { flex-direction: row; justify-content: center; } }
 .ft-links-wrap { max-width: 1200px; margin: 0 auto; padding: 48px 20px; }
 @media (min-width: 640px) { .ft-links-wrap { padding: 48px 32px; } }
-.ft-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ft-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; padding-bottom: 40px; border-bottom: 1px solid rgba(54,120,227,0.08); }
 @media (min-width: 640px) { .ft-links { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 768px) { .ft-links { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; } }
 .ft-brand-icon { width: 24px; height: 24px; border-radius: 6px; background: #3678E3; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-.ft-brand-name { font-size: 14px; font-weight: 700; color: #fff; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
-.ft-brand-desc { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.65; margin: 12px 0 16px; }
-.ft-contact { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.6); }
+.ft-brand-name { font-size: 16px; font-weight: 700; color: #101010; font-family: var(--f-display); }
+.ft-brand-desc { font-size: 16px; color: #5E5E5E; line-height: 1.65; margin: 12px 0 16px; }
+.ft-contact { display: flex; flex-direction: column; gap: 6px; font-size: 16px; color: #5E5E5E; }
 .ft-contact span { display: flex; align-items: center; gap: 6px; }
-.ft-col h4 { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); margin: 0 0 12px; font-family: 'Outfit', 'Noto Sans SC', sans-serif; }
-.ft-col a { display: block; font-size: 12px; color: rgba(255,255,255,0.55); text-decoration: none; padding: 4px 0; transition: color 0.2s; }
-.ft-col a:hover { color: rgba(255,255,255,0.85); }
-.ft-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 32px; font-size: 12px; color: rgba(255,255,255,0.5); }
+.ft-col h4 { font-size: 16px; font-weight: 600; color: #3678E3; margin: 0 0 12px; font-family: var(--f-display); }
+.ft-col a { display: block; font-size: 16px; color: #5E5E5E; text-decoration: none; padding: 4px 0; transition: color 0.2s; }
+.ft-col a:hover { color: #3678E3; }
+.ft-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 32px; font-size: 16px; color: rgba(16,16,16,0.5); }
 @media (min-width: 640px) { .ft-bottom { flex-direction: row; justify-content: space-between; } }
-.footer-icp { font-family: 'Outfit', 'Noto Sans SC', sans-serif; color: rgba(255,255,255,0.5); text-decoration: none; cursor: pointer; transition: color 0.2s; }
-.footer-icp:hover { color: rgba(147,197,253,0.9); }
+.footer-icp { font-family: var(--f-display); color: rgba(16,16,16,0.5); text-decoration: none; cursor: pointer; transition: color 0.2s; }
+.footer-icp:hover { color: #3678E3; }
 
 /* ===== Mobile tip modal ===== */
 .mobile-tip-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
