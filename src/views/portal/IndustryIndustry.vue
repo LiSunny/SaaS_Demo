@@ -84,7 +84,7 @@ import { ArrowRight, Monitor, ScanEye, AlertTriangle, Bell, Image } from 'lucide
 import { useMobileGuard } from '@/composables/useMobileGuard'
 import MobileTipModal from '@/components/base/MobileTipModal.vue'
 
-const { showMobileTip, copied, goExp, copyExpUrl } = useMobileGuard('/login')
+const { showMobileTip, copied, goExp } = useMobileGuard('/login')
 
 const pageTitle = '工贸企业安全管理'
 const pageSub = '从设备台账到告警值守 —— 五个独立场景，覆盖工厂安全全链路'

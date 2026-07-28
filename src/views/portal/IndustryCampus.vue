@@ -100,7 +100,7 @@ import { ArrowRight, Utensils, ShieldAlert, Building, Image } from 'lucide-vue-n
 import { useMobileGuard } from '@/composables/useMobileGuard'
 import MobileTipModal from '@/components/base/MobileTipModal.vue'
 
-const { showMobileTip, copied, goExp, copyExpUrl } = useMobileGuard('/login')
+const { showMobileTip, copied, goExp } = useMobileGuard('/login')
 
 const pageTitle = '校园安全管理'
 const pageSub = '食堂全链条追溯、AI 声音防欺凌、宿舍电气消防巡检 —— 从"人管人"到"数据管安全"'

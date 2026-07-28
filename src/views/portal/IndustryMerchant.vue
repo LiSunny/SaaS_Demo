@@ -12,7 +12,7 @@
             @click.prevent="scrollTo(item.id, i)">{{ item.nav }}</a>
         </div>
         <div class="nav-actions">
-          <button class="nav-btn" @click="$router.push('/login')">去体验</button>
+          <button class="nav-btn" @click="goExp">去体验</button>
         </div>
       </div>
     </nav>
@@ -74,6 +74,7 @@
       <a href="#" class="ind-cta-demo">预约演示<ArrowRight :size="14" /></a>
       <a href="/portal" class="ind-cta-btn">← 返回场景总览</a>
     </section>
+    <MobileTipModal :show="showMobileTip" :copied="copied" @close="showMobileTip = false" />
   </div>
 </template>
 
@@ -83,7 +84,7 @@ import { ArrowRight, ClipboardCheck, Search, Image } from 'lucide-vue-next'
 import { useMobileGuard } from '@/composables/useMobileGuard'
 import MobileTipModal from '@/components/base/MobileTipModal.vue'
 
-const { showMobileTip, copied, goExp, copyExpUrl } = useMobileGuard('/login')
+const { showMobileTip, copied, goExp } = useMobileGuard('/login')
 
 const pageTitle = '小商户安全监管'
 const pageSub = '辖区几千家店，靠几个人跑不完 —— 自查打卡 + 入户巡查 + 隐患闭环'
