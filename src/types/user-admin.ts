@@ -29,6 +29,7 @@ export interface CreateUserForm {
 export interface UpdateUserForm {
   realName: string
   email: string
+  avatar?: string
   systemRole?: string | null  // 系统角色，非空时跳过企业关联
 }
 

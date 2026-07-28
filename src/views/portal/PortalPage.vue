@@ -239,7 +239,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Zap, FileText, Phone, Mail, Store, Monitor, ClipboardCheck, AlertTriangle, Cpu, Brain, Bell } from 'lucide-vue-next'
+import { ArrowRight, Zap, FileText, Phone, Mail, Store } from 'lucide-vue-next'
 import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
 import scenarioIndustryImg from '@/assets/portal/scenario-industry.png'
 import scenarioMerchantImg from '@/assets/portal/scenario-ebike.png'
@@ -401,8 +401,8 @@ const SCENARIOS = [
 ]
 // Auto carousel
 let carouselTimer: ReturnType<typeof setInterval>
-let carouselPaused: boolean = false
-const pauseCarousel = () => { carouselPaused = true }
+const carouselPaused = ref(false)
+const pauseCarousel = () => { carouselPaused.value = true }
 const goIndustry = (slug: string) => {
   pauseCarousel()
   router.push(`/portal/${slug}`)
@@ -410,7 +410,7 @@ const goIndustry = (slug: string) => {
 onMounted(() => {
   startCaseScroll()
   carouselTimer = setInterval(() => {
-    if (!carouselPaused) activeScenario.value = (activeScenario.value + 1) % SCENARIOS.length
+    if (!carouselPaused.value) activeScenario.value = (activeScenario.value + 1) % SCENARIOS.length
   }, 8000)
 })
 onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer) })
@@ -452,12 +452,12 @@ function goCase(slug: string) {
 
 // Cases auto scroll
 const caseScroll = ref(0)
-let casePaused: boolean = false
+const casePaused = ref(false)
 let caseTimer: ReturnType<typeof setInterval>
 const startCaseScroll = () => {
   const total = filteredCases.value.length
   caseTimer = setInterval(() => {
-    if (!casePaused && total > 3) {
+    if (!casePaused.value && total > 3) {
       caseScroll.value = (caseScroll.value + 1) % (total - 2)
     }
   }, 4000)

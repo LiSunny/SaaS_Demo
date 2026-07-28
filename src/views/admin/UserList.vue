@@ -341,7 +341,7 @@ async function handleAvatarUpload(e: Event) {
   try {
     const { uploadFile } = await import('@/api/upload')
     const url = await uploadFile(file, 'avatars')
-    editForm.avatar = url
+    editForm.avatar = url.url
     ElMessage.success('头像上传成功')
   } catch {
     ElMessage.error('上传失败')
