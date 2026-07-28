@@ -65,6 +65,7 @@ declare module 'vue' {
     FlowRecords: typeof import('./src/components/business/FlowRecords.vue')['default']
     FormDesigner: typeof import('./src/components/business/FormDesigner.vue')['default']
     GisMapPicker: typeof import('./src/components/business/GisMapPicker.vue')['default']
+    MobileTipModal: typeof import('./src/components/base/MobileTipModal.vue')['default']
     NodePropertyPanel: typeof import('./src/components/business/NodePropertyPanel.vue')['default']
     OperationLogsTab: typeof import('./src/components/business/OperationLogsTab.vue')['default']
     OrderProgress: typeof import('./src/components/business/OrderProgress.vue')['default']

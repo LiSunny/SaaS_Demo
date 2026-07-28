@@ -80,6 +80,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ArrowRight, ClipboardCheck, Search, Image } from 'lucide-vue-next'
+import { useMobileGuard } from '@/composables/useMobileGuard'
+import MobileTipModal from '@/components/base/MobileTipModal.vue'
+
+const { showMobileTip, copied, goExp, copyExpUrl } = useMobileGuard('/login')
 
 const pageTitle = '小商户安全监管'
 const pageSub = '辖区几千家店，靠几个人跑不完 —— 自查打卡 + 入户巡查 + 隐患闭环'

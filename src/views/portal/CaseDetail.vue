@@ -13,7 +13,7 @@
           <a href="/portal#案例展示" class="nav-link" :class="{ scrolled }">案例展示</a>
         </div>
         <div class="nav-actions">
-          <a href="/login" class="nav-btn">去体验</a>
+          <button class="nav-btn" @click="goExperience">去体验</button>
         </div>
       </div>
     </nav>
@@ -372,7 +372,7 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 .cd-coming-back:hover { opacity: 0.7; }
 
 /* ===== Mobile tip ===== */
-.mobile-tip-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.mobile-tip-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.35); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .mobile-tip-card { background: #fff; border-radius: 16px; padding: 40px 32px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
 .mobile-tip-icon { font-size: 48px; margin-bottom: 16px; }
 .mobile-tip-title { font-size: 18px; font-weight: 700; color: #101010; margin: 0 0 8px; }

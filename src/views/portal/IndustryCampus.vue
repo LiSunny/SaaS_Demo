@@ -13,7 +13,7 @@
             @click.prevent="scrollTo(item.id, i)">{{ item.nav }}</a>
         </div>
         <div class="nav-actions">
-          <button class="nav-btn" @click="$router.push('/login')">去体验</button>
+          <button class="nav-btn" @click="goExp">去体验</button>
         </div>
       </div>
     </nav>
@@ -90,12 +90,17 @@
       <a href="#" class="ind-cta-demo">预约演示<ArrowRight :size="14" /></a>
       <a href="/portal" class="ind-cta-btn">← 返回场景总览</a>
     </section>
+    <MobileTipModal :show="showMobileTip" :copied="copied" @close="showMobileTip = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ArrowRight, Utensils, ShieldAlert, Building, Image } from 'lucide-vue-next'
+import { useMobileGuard } from '@/composables/useMobileGuard'
+import MobileTipModal from '@/components/base/MobileTipModal.vue'
+
+const { showMobileTip, copied, goExp, copyExpUrl } = useMobileGuard('/login')
 
 const pageTitle = '校园安全管理'
 const pageSub = '食堂全链条追溯、AI 声音防欺凌、宿舍电气消防巡检 —— 从"人管人"到"数据管安全"'
