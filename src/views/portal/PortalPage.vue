@@ -529,12 +529,11 @@ html, body { margin: 0; padding: 0; }
 @media (min-width: 640px) { .nav-btn { font-size: 14px; padding: 8px 20px; } }
 .nav-btn:hover { background: rgba(54,120,227,0.9); }
 
-/* ===== Hero ===== */
-.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(180deg, #f8faff 0%, #eef3ff 50%, #f4f7ff 100%); padding: 40px 0 80px; }
+.hero-inner { position: relative; z-index: 10; max-width: 1200px; width: 100%; margin: 0 auto; padding: 80px 0; display: flex; align-items: center; gap: 32px; }
+.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: visible; background: linear-gradient(180deg, #f8faff 0%, #eef3ff 50%, #f4f7ff 100%); padding: 40px 0 80px; }
 .hero::after { content: ''; position: absolute; inset: 0; z-index: 0; background: url('@/assets/portal/hero-bg.png') center/cover no-repeat; opacity: 0.3; pointer-events: none; }
-.hero-inner { position: relative; z-index: 10; max-width: 1200px; width: 100%; margin: 0 auto; padding: 80px 20px; display: flex; align-items: center; gap: 48px; overflow: hidden; }
-.hero-left { flex: 1; min-width: 0; text-align: left; }
-.hero-right { flex: 0 0 690px; max-width: 100%; }
+.hero-left { flex: 1; min-width: 0; text-align: left; margin-left: -40px; }
+.hero-right { flex: 0 0 690px; max-width: 100%; margin-right: -100px; }
 @media (max-width: 900px) {
   .hero-inner { flex-direction: column; padding: 80px 20px 48px; gap: 32px; }
   .hero-left { text-align: center; margin-left: 0; }
@@ -546,7 +545,7 @@ html, body { margin: 0; padding: 0; }
   .hero-btns { flex-direction: column; width: 100%; }
   .hero-btn-fill, .hero-btn-ghost { width: 100%; justify-content: center; padding: 14px 20px; }
 }
-.hero-char { display: inline-block; font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; font-family: var(--f-display); line-height: 1.35; opacity: 0; animation: charIn 0.5s ease forwards; color: #101010; }
+.hero-char { display: inline-block; font-size: clamp(1.5rem, 5vw, 4rem); font-weight: 900; font-family: var(--f-display); line-height: 1.35; opacity: 0; animation: charIn 0.5s ease forwards; color: #101010; }
 .hero-char.plus { font-size: clamp(2.5rem, 7vw, 4.5rem); font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace; }
 @keyframes charIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .hero-sub { font-size: 16px; color: #5E5E5E; line-height: 1.7; max-width: 480px; margin: 24px 0 48px; opacity: 0; animation: fadeIn 0.6s ease 0.8s forwards; }
