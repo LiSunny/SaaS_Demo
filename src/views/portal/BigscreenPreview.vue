@@ -9,21 +9,50 @@
       </div>
       <img
         class="pb-img"
-        src="/screenshots/fgfc_cz.png"
-        alt="复工复产可视化大屏"
+        :src="preview.src"
+        :alt="preview.title"
       />
     </div>
 
     <!-- 底部浮层 -->
     <div class="pb-float">
-      <a href="/portal/case/work-resumption" class="pb-back">← 返回案例</a>
+      <a :href="preview.backLink" class="pb-back">← 返回案例</a>
       <span class="pb-hint">以上为静态预览效果，登录后查看实时数据</span>
-      <a href="/login?redirect=/resumption-bigscreen" class="pb-exp">登录体验完整功能</a>
+      <a :href="preview.expLink" class="pb-exp">登录体验完整功能</a>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const type = computed(() => route.params.type as string)
+
+interface PreviewInfo {
+  src: string
+  title: string
+  backLink: string
+  expLink: string
+}
+
+const PREVIEWS: Record<string, PreviewInfo> = {
+  resumption: {
+    src: '/screenshots/fgfc_cz.png',
+    title: '复工复产可视化大屏',
+    backLink: '/portal/case/work-resumption',
+    expLink: '/login?redirect=/resumption-bigscreen',
+  },
+  gongmao: {
+    src: '/screenshots/gongmao.png',
+    title: '工贸企业安全监测大屏',
+    backLink: '/portal/case/industrial-park',
+    expLink: '/login?redirect=/gongmao',
+  },
+}
+
+const preview = computed(() => PREVIEWS[type.value] || PREVIEWS.resumption)
 </script>
 
 <style scoped>

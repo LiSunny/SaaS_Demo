@@ -69,8 +69,8 @@
             </div>
             <img
               class="cd-preview-img"
-              src="/screenshots/fgfc_cz.png"
-              alt="复工复产可视化大屏"
+              :src="previewSrc"
+              :alt="current.name + '可视化大屏'"
             />
           </div>
         </div>
@@ -91,16 +91,6 @@
             <p class="cd-value-desc">{{ v.desc }}</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- ===== CTA Footer ===== -->
-    <section class="cd-ft-cta">
-      <h2 class="cd-ft-title">让安全管理从"被动响应"走向"主动智治"</h2>
-      <p class="cd-ft-sub">人工智能 + 公共安全管理平台</p>
-      <div class="cd-ft-btns">
-        <a :href="current.expLink" class="cd-ft-btn">立即体验</a>
-        <a href="/portal" class="cd-ft-ghost">← 返回门户</a>
       </div>
     </section>
   </div>
@@ -151,9 +141,37 @@ const CASES: CaseData[] = [
       { role: '安全监管方', desc: '远程核查企业复工全流程记录，隐患整改进度实时可见，从"上门查"变为"在线管"。' },
     ],
   },
+  {
+    slug: 'industrial-park',
+    name: '工业园区安全监测',
+    tag: '工业',
+    desc: '面向化工园区、制造工厂部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。',
+    nums: ['800+ 监测点', '3 类感知', '实时预警'],
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1200&q=80',
+    previewType: 'gongmao',
+    expLink: '/login?redirect=/gongmao',
+    overview: '工业园区安全监测方案面向化工园区、制造工厂等高风险场景，通过部署多类型环境感知终端（气体、温度、烟感、视频），构建全域安全感知网络。平台支持 MQTT、TCP、HTTP 等多种通信协议，兼容主流传感器厂商设备。AI 引擎实时分析监测数据，发现异常即刻触发分级告警——从现场声光报警到管理端弹窗推送、短信通知，确保响应零延迟。同时联动应急指挥平台，自动匹配预案、调度救援资源。',
+    features: [
+      { title: '多协议设备接入', desc: '支持 MQTT 直连、TCP 直连、HTTP 订阅、Modbus 等 4 种通信协议，兼容 90% 以上主流传感器厂商。' },
+      { title: 'AI 实时研判', desc: '交叉分析多源感知数据，在火花产生前预判电气火灾风险，自动联动降尘和停机指令，误报率 < 3%。' },
+      { title: '分级告警联动', desc: '绿/黄/橙/红四级告警体系，自动匹配应急预案，联动消防广播、排烟、喷淋系统，缩短响应时间 70%。' },
+      { title: '可视化大屏', desc: 'GIS 地图展示监测点位分布与实时状态，告警热力图、设备健康度一目了然，支持多屏联动指挥。' },
+    ],
+    values: [
+      { role: '园区管理方', desc: '一张图掌握全域安全态势，告警自动分级推送，从"被动接警"变为"主动预警"，降低事故发生率。' },
+      { role: '企业安全员', desc: '设备状态实时可见，维保提醒自动推送，告别人工巡检盲区，合规记录自动生成。' },
+      { role: '应急管理部门', desc: '实时接入园区监测数据，突发事件秒级知晓，远程调度指挥，提升区域应急协同效率。' },
+    ],
+  },
 ]
 
 const current = computed(() => CASES.find(c => c.slug === slug.value) || CASES[0])
+
+const PREVIEW_SCREENSHOTS: Record<string, string> = {
+  resumption: '/screenshots/fgfc_cz.png',
+  gongmao: '/screenshots/gongmao.png',
+}
+const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value.previewType || ''] || '')
 
 // ===== Nav scroll =====
 const scrolled = ref(false)
@@ -238,14 +256,4 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 .cd-value-role { font-size: 16px; font-weight: 700; color: #3678E3; margin-bottom: 10px; }
 .cd-value-desc { font-size: 15px; color: #5E5E5E; line-height: 1.7; margin: 0; }
 
-/* ===== Footer CTA ===== */
-.cd-ft-cta { text-align: center; padding: 80px 32px; background: linear-gradient(180deg, #eef3ff 0%, #f4f7ff 100%); }
-.cd-ft-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 12px; }
-@media (min-width: 640px) { .cd-ft-title { font-size: 30px; } }
-.cd-ft-sub { font-size: 16px; color: #5E5E5E; margin: 0 0 32px; }
-.cd-ft-btns { display: flex; justify-content: center; gap: 16px; }
-.cd-ft-btn { display: inline-flex; align-items: center; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; color: #fff; background: #3678E3; box-shadow: 0 4px 20px rgba(54,120,227,0.45); transition: background 0.2s; }
-.cd-ft-btn:hover { background: rgba(54,120,227,0.9); }
-.cd-ft-ghost { display: inline-flex; align-items: center; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 500; text-decoration: none; color: #5E5E5E; border: 1px solid rgba(0,0,0,0.12); transition: all 0.2s; }
-.cd-ft-ghost:hover { background: rgba(0,0,0,0.04); }
 </style>
