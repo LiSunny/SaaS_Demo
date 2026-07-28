@@ -434,7 +434,7 @@ const caseTabs = [
 ]
 const CASES = [
   { slug: 'gangnan-campus', name: '港南二中校园安全', tag: '教育', desc: '部署 AI 防欺凌系统、消防监测终端与应急指挥平台，实现校园安全事件早发现、快响应，覆盖 200+ 终端设备。', nums: ['200+ 设备', '6 类终端', '4 种协议'], image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
-  { slug: 'industrial-park', name: '工业园区安全监测', tag: '工业', desc: '面向化工园区、制造工厂部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。', nums: ['800+ 监测点', '3 类感知', '实时预警'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
+  { slug: 'industrial-park', name: '工贸企业安全监测', tag: '工业', desc: '面向化工、制造等工贸企业部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。', nums: ['800+ 监测点', '3 类感知', '实时预警'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
   { slug: 'fire-maintenance', name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
   { slug: 'hot-work', name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80' },
   { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&q=80' },

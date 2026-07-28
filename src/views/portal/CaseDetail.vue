@@ -18,6 +18,9 @@
       </div>
     </nav>
 
+    <!-- ===== 已发布案例内容 ===== -->
+    <template v-if="current">
+
     <!-- ===== Hero ===== -->
     <section class="cd-hero" :style="{ backgroundImage: `url(${current.image})` }">
       <div class="cd-hero-overlay"></div>
@@ -59,8 +62,9 @@
     <section v-if="current.previewType" class="cd-section">
       <div class="sec-wrap">
         <h2 class="cd-sec-title">可视化大屏预览</h2>
-        <p class="cd-sec-sub">7×24 实时数据看板，多维度展示复工态势</p>
+        <p class="cd-sec-sub">{{ current.name }}数据看板 · 多端协同展示</p>
         <div class="cd-preview-mock">
+          <!-- Web 大屏 -->
           <div class="cd-preview-frame">
             <div class="cd-preview-bar">
               <span class="cd-preview-dot dot-red"></span>
@@ -72,6 +76,10 @@
               :src="previewSrc"
               :alt="current.name + '可视化大屏'"
             />
+          </div>
+          <!-- 移动端 -->
+          <div v-if="mobileSrc" class="cd-phone-frame">
+            <img class="cd-phone-img" :src="mobileSrc" alt="移动端预览" />
           </div>
         </div>
         <div class="cd-cta-row">
@@ -93,6 +101,18 @@
         </div>
       </div>
     </section>
+
+    </template>
+
+    <!-- ===== 尚未发布 ===== -->
+    <div v-else class="cd-coming">
+      <div class="cd-coming-card">
+        <div class="cd-coming-icon">📋</div>
+        <h1 class="cd-coming-title">案例详情尚未发布</h1>
+        <p class="cd-coming-desc">该案例的详细内容正在准备中，敬请期待</p>
+        <a href="/portal#案例展示" class="cd-coming-back">← 返回案例展示</a>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -143,14 +163,14 @@ const CASES: CaseData[] = [
   },
   {
     slug: 'industrial-park',
-    name: '工业园区安全监测',
+    name: '工贸企业安全监测',
     tag: '工业',
-    desc: '面向化工园区、制造工厂部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。',
+    desc: '面向化工、制造等工贸企业部署环境感知与安全监测终端，实时预警可燃气体、有毒物质，联动应急响应机制。',
     nums: ['800+ 监测点', '3 类感知', '实时预警'],
     image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1200&q=80',
     previewType: 'gongmao',
     expLink: '/login?redirect=/gongmao',
-    overview: '工业园区安全监测方案面向化工园区、制造工厂等高风险场景，通过部署多类型环境感知终端（气体、温度、烟感、视频），构建全域安全感知网络。平台支持 MQTT、TCP、HTTP 等多种通信协议，兼容主流传感器厂商设备。AI 引擎实时分析监测数据，发现异常即刻触发分级告警——从现场声光报警到管理端弹窗推送、短信通知，确保响应零延迟。同时联动应急指挥平台，自动匹配预案、调度救援资源。',
+    overview: '工贸企业安全监测方案面向化工、制造等高风险工贸企业，通过部署多类型环境感知终端（气体、温度、烟感、视频），构建企业全域安全感知网络。平台支持 MQTT、TCP、HTTP 等多种通信协议，兼容主流传感器厂商设备。AI 引擎实时分析监测数据，发现异常即刻触发分级告警——从现场声光报警到管理端弹窗推送、短信通知，确保响应零延迟。同时联动应急指挥平台，自动匹配预案、调度救援资源。',
     features: [
       { title: '多协议设备接入', desc: '支持 MQTT 直连、TCP 直连、HTTP 订阅、Modbus 等 4 种通信协议，兼容 90% 以上主流传感器厂商。' },
       { title: 'AI 实时研判', desc: '交叉分析多源感知数据，在火花产生前预判电气火灾风险，自动联动降尘和停机指令，误报率 < 3%。' },
@@ -158,20 +178,25 @@ const CASES: CaseData[] = [
       { title: '可视化大屏', desc: 'GIS 地图展示监测点位分布与实时状态，告警热力图、设备健康度一目了然，支持多屏联动指挥。' },
     ],
     values: [
-      { role: '园区管理方', desc: '一张图掌握全域安全态势，告警自动分级推送，从"被动接警"变为"主动预警"，降低事故发生率。' },
+      { role: '企业负责人', desc: '一张图掌握全厂安全态势，告警自动分级推送，从"被动接警"变为"主动预警"，降低事故发生率。' },
       { role: '企业安全员', desc: '设备状态实时可见，维保提醒自动推送，告别人工巡检盲区，合规记录自动生成。' },
-      { role: '应急管理部门', desc: '实时接入园区监测数据，突发事件秒级知晓，远程调度指挥，提升区域应急协同效率。' },
+      { role: '应急管理部门', desc: '实时接入企业监测数据，突发事件秒级知晓，远程调度指挥，提升应急协同效率。' },
     ],
   },
 ]
 
-const current = computed(() => CASES.find(c => c.slug === slug.value) || CASES[0])
+const current = computed(() => CASES.find(c => c.slug === slug.value) || null)
 
 const PREVIEW_SCREENSHOTS: Record<string, string> = {
   resumption: '/screenshots/fgfc_cz.png',
   gongmao: '/screenshots/gongmao.png',
 }
-const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value.previewType || ''] || '')
+const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value?.previewType || ''] || '')
+
+const MOBILE_SCREENSHOTS: Record<string, string> = {
+  gongmao: '/screenshots/gongmao-mobile.png',
+}
+const mobileSrc = computed(() => MOBILE_SCREENSHOTS[current.value?.previewType || ''] || '')
 
 // ===== Nav scroll =====
 const scrolled = ref(false)
@@ -233,14 +258,24 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 .cd-feature-desc { font-size: 15px; color: #5E5E5E; line-height: 1.7; margin: 0; }
 
 /* ===== Preview Screenshot ===== */
-.cd-preview-mock { max-width: 960px; margin: 0 auto; }
-.cd-preview-frame { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 20px 60px rgba(0,0,0,0.2); background: #fff; border: 1px solid rgba(0,0,0,0.06); }
-.cd-preview-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #f5f5f7; }
+.cd-preview-mock { max-width: 1080px; margin: 0 auto; display: flex; align-items: flex-end; gap: 16px; }
+.cd-preview-frame { flex: 1; min-width: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 20px 60px rgba(0,0,0,0.2); background: #1a1a1a; border: 1px solid rgba(255,255,255,0.06); }
+.cd-preview-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #2a2a2a; }
 .cd-preview-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .dot-red { background: #ff5f57; }
 .dot-yellow { background: #febc2e; }
 .dot-green { background: #28c840; }
 .cd-preview-img { width: 100%; display: block; }
+
+/* 移动端 */
+.cd-phone-frame {
+  width: 220px;
+  flex-shrink: 0;
+}
+.cd-phone-img {
+  width: 100%;
+  display: block;
+}
 
 /* CTA */
 .cd-cta-row { display: flex; justify-content: center; gap: 16px; margin-top: 32px; }
@@ -255,5 +290,14 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 .cd-value-card { background: #fff; border: 1px solid rgba(54,120,227,0.08); border-radius: 12px; padding: 28px; }
 .cd-value-role { font-size: 16px; font-weight: 700; color: #3678E3; margin-bottom: 10px; }
 .cd-value-desc { font-size: 15px; color: #5E5E5E; line-height: 1.7; margin: 0; }
+
+/* ===== Coming Soon ===== */
+.cd-coming { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding-top: 64px; }
+.cd-coming-card { text-align: center; padding: 64px 32px; }
+.cd-coming-icon { font-size: 64px; margin-bottom: 24px; }
+.cd-coming-title { font-size: 28px; font-weight: 700; color: #101010; margin: 0 0 12px; }
+.cd-coming-desc { font-size: 16px; color: #5E5E5E; margin: 0 0 32px; }
+.cd-coming-back { font-size: 16px; font-weight: 500; color: #3678E3; text-decoration: none; transition: opacity 0.2s; }
+.cd-coming-back:hover { opacity: 0.7; }
 
 </style>
