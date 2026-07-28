@@ -84,7 +84,7 @@
         </div>
         <div class="cd-cta-row">
           <a :href="`/portal/preview/${current.previewType}`" class="cd-cta-btn">查看全屏大屏</a>
-          <a :href="current.expLink" class="cd-cta-ghost">立即体验完整功能 →</a>
+          <button class="cd-cta-ghost" @click="goExperience">立即体验完整功能 →</button>
         </div>
       </div>
     </section>
@@ -191,7 +191,7 @@ const CASES: CaseData[] = [
     nums: ['14 模块', 'AI 研判', '多端协同'],
     image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
     previewType: 'quanzhou',
-    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523',
     overview: '泉州"人工智能+应消联勤"一体化管控平台是面向城市级应急消防治理的数字化中枢。平台以泉州全域为基底，串联监测预警、应消联动、台账管理、大数据研判考核各大模块，覆盖工贸企业自律驾驶舱、危化企业监控、沿街门店应消预警、消防控制室监管、风险源作业管控等14个核心业务场景。通过AI大模型、物联网、5G技术，实现风险动态感知、责任精准监管、治理闭环长效，推动消防工作从"被动响应"向"主动防控"深度转型。',
     features: [
       { title: '企业驾驶舱', desc: '规上/规下企业接入统计、自查隐患整改报备、安全生产应急预案管理，构建企业自律监管闭环。' },
@@ -222,6 +222,17 @@ const MOBILE_SCREENSHOTS: Record<string, string> = {
   gongmao: '/screenshots/gongmao-mobile.png',
 }
 const mobileSrc = computed(() => MOBILE_SCREENSHOTS[current.value?.previewType || ''] || '')
+
+function goExperience() {
+  const u = current.value
+  if (!u) return
+  const params = new URLSearchParams({
+    redirect: '/enterprise-cockpit',
+    phone: '13000001111',
+    password: 'admin123!@#',
+  })
+  window.location.href = `/login?${params.toString()}`
+}
 
 // ===== Nav scroll =====
 const scrolled = ref(false)

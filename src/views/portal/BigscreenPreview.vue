@@ -54,7 +54,7 @@ const PREVIEWS: Record<string, PreviewInfo> = {
     src: '/screenshots/quanzhou-cockpit.png',
     title: '泉州应消联勤监管大屏',
     backLink: '/portal/case/quanzhou-cockpit',
-    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523',
   },
 }
 

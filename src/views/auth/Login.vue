@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -224,6 +224,19 @@ function fillDemo(account: typeof demoAccounts[0]) {
   errorMsg.value = ''
   handleLogin()
 }
+
+// 案例详情页"去体验" → URL参数自动填充并登录
+onMounted(async () => {
+  const phone = route.query.phone as string
+  const pwd = route.query.password as string
+  if (phone && pwd) {
+    form.phone = phone
+    form.password = pwd
+    errorMsg.value = ''
+    await nextTick()
+    handleLogin()
+  }
+})
 
 async function handleLogin() {
   const valid = await formRef.value?.validate().catch(() => false)
