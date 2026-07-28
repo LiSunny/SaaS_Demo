@@ -61,7 +61,7 @@
     <!-- ===== 大屏预览截图 ===== -->
     <section v-if="current.previewType" class="cd-section">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title">可视化大屏预览</h2>
+        <h2 class="cd-sec-title">平台多端展示</h2>
         <p class="cd-sec-sub">{{ current.name }}数据看板 · 多端协同展示</p>
         <div class="cd-preview-mock">
           <!-- Web 大屏 -->
@@ -183,6 +183,30 @@ const CASES: CaseData[] = [
       { role: '应急管理部门', desc: '实时接入企业监测数据，突发事件秒级知晓，远程调度指挥，提升应急协同效率。' },
     ],
   },
+  {
+    slug: 'quanzhou-cockpit',
+    name: '泉州应消联勤监管平台',
+    tag: '城市治理',
+    desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，实现一屏观全域、一网管消防。',
+    nums: ['14 模块', 'AI 研判', '多端协同'],
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
+    previewType: 'quanzhou',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23',
+    overview: '泉州"人工智能+应消联勤"一体化管控平台是面向城市级应急消防治理的数字化中枢。平台以泉州全域为基底，串联监测预警、应消联动、台账管理、大数据研判考核各大模块，覆盖工贸企业自律驾驶舱、危化企业监控、沿街门店应消预警、消防控制室监管、风险源作业管控等14个核心业务场景。通过AI大模型、物联网、5G技术，实现风险动态感知、责任精准监管、治理闭环长效，推动消防工作从"被动响应"向"主动防控"深度转型。',
+    features: [
+      { title: '企业驾驶舱', desc: '规上/规下企业接入统计、自查隐患整改报备、安全生产应急预案管理，构建企业自律监管闭环。' },
+      { title: 'GIS风险一张图', desc: '高德地图为底图，红黄蓝绿四色标注企业风险等级，一键查看企业详情、风险点位、履职记录。' },
+      { title: '消防控制室值守监管', desc: '8路监控画面实时轮播，REC录制、时间戳叠加、暗角扫描线写实风格，在线/离线状态一目了然。' },
+      { title: 'AI智能风险预警', desc: '消防主机报警、人员脱岗、设备故障、隐患超期等6类告警实时推送，红/橙/蓝三级分级处置。' },
+      { title: '风险源作业管控', desc: '覆盖动火、受限空间、高处、临时用电等八大特殊作业审批，从申请到验收全生命周期闭环。' },
+      { title: '安全履责打卡', desc: '未履职/已履职双环统计，8行打卡记录实时追踪，红绿状态一眼识别，压实企业主体责任。' },
+    ],
+    values: [
+      { role: '应急管理部门', desc: '一屏统观全市消防态势，告警自动分级推送，从"被动接警"变为"主动预警"，指挥调度精准高效。' },
+      { role: '企业安全负责人', desc: '自查自改自管自纠全留痕，履职打卡自动记录，合规台账一键生成，降低监管处罚风险。' },
+      { role: '基层消防站', desc: '告警信息双向推送，巡查任务协同派发，突发事件就近联动，补齐基层末端响应短板。' },
+    ],
+  },
 ]
 
 const current = computed(() => CASES.find(c => c.slug === slug.value) || null)
@@ -190,6 +214,7 @@ const current = computed(() => CASES.find(c => c.slug === slug.value) || null)
 const PREVIEW_SCREENSHOTS: Record<string, string> = {
   resumption: '/screenshots/fgfc_cz.png',
   gongmao: '/screenshots/gongmao.png',
+  quanzhou: '/screenshots/quanzhou-cockpit.png',
 }
 const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value?.previewType || ''] || '')
 
@@ -245,7 +270,7 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
 /* ===== Overview ===== */
-.cd-body-card { background: #fff; border-radius: 14px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.cd-body-card { padding: 0; }
 .cd-body-text { font-size: 16px; color: #5E5E5E; line-height: 1.9; margin: 0; }
 
 /* ===== Features ===== */

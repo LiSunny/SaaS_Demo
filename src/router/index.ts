@@ -83,6 +83,7 @@ const router = createRouter({
         { path: 'landing/street-detail', name: 'StreetDetail', component: () => import('@/views/bigscreen/StreetDetailPage.vue') },
         { path: 'landing/fire-control', name: 'FireControlDetail', component: () => import('@/views/bigscreen/FireControlPage.vue') },
         { path: 'gongmao', name: 'BigscreenGongmao', component: () => import('@/views/bigscreen/BigscreenGongmao.vue') },
+        { path: 'enterprise-cockpit', name: 'EnterpriseCockpit', component: () => import('@/views/bigscreen/EnterpriseCockpit.vue') },
         { path: 'resumption-bigscreen', name: 'BigscreenResumption', component: () => import('@/views/bigscreen/BigscreenResumption.vue') },
       ],
     },

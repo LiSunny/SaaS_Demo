@@ -130,6 +130,19 @@
       <!-- ===== 编辑用户弹窗 ===== -->
       <el-dialog v-model="showEditDialog" title="编辑用户" width="480px" destroy-on-close>
         <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="80px">
+          <!-- 头像 -->
+          <el-form-item label="头像">
+            <div class="avatar-edit-row">
+              <div class="avatar-edit-wrap" @click="triggerAvatarInput">
+                <img class="avatar-preview" :src="editForm.avatar || dicebearAvatar" alt="头像" />
+                <div class="avatar-edit-overlay">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <span>编辑</span>
+                </div>
+                <input ref="avatarInput" type="file" accept="image/*" class="avatar-file-input" @change="handleAvatarUpload" />
+              </div>
+            </div>
+          </el-form-item>
           <el-form-item label="手机号">
             <el-input :model-value="editForm.phone" disabled />
           </el-form-item>
@@ -316,7 +329,24 @@ const showEditDialog = ref(false)
 const saving = ref(false)
 const editFormRef = ref<FormInstance>()
 const editingId = ref(0)
-const editForm = reactive<{ phone: string; realName: string; email: string; systemRole: string | null }>({ phone: '', realName: '', email: '', systemRole: null })
+const editForm = reactive<{ phone: string; realName: string; email: string; avatar: string; systemRole: string | null }>({ phone: '', realName: '', email: '', avatar: '', systemRole: null })
+const dicebearAvatar = computed(() => `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(editForm.realName || editForm.phone)}`)
+
+// 头像上传
+const avatarInput = ref<HTMLInputElement | null>(null)
+function triggerAvatarInput() { avatarInput.value?.click() }
+async function handleAvatarUpload(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  try {
+    const { uploadFile } = await import('@/api/upload')
+    const url = await uploadFile(file, 'avatars')
+    editForm.avatar = url
+    ElMessage.success('头像上传成功')
+  } catch {
+    ElMessage.error('上传失败')
+  }
+}
 const editRules: FormRules = {
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   email: [{ type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }],
@@ -327,6 +357,7 @@ function openEditDialog(row: UserItem) {
   editForm.phone = row.phone
   editForm.realName = row.realName
   editForm.email = row.email
+  editForm.avatar = (row as any).avatar || ''
   editForm.systemRole = row.systemRole
   showEditDialog.value = true
 }
@@ -336,7 +367,7 @@ async function submitEdit() {
   if (!valid) return
   saving.value = true
   try {
-    await store.handleUpdate(editingId.value, { realName: editForm.realName, email: editForm.email, systemRole: editForm.systemRole })
+    await store.handleUpdate(editingId.value, { realName: editForm.realName, email: editForm.email, avatar: editForm.avatar, systemRole: editForm.systemRole })
     showEditDialog.value = false
   } catch { /* */ } finally { saving.value = false }
 }
@@ -598,14 +629,54 @@ async function submitAddEnterprise() {
 
 /* ===== 表单/弹窗按钮区：右对齐 + 按钮间距 ===== */
 .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-lg);
-  width: 100%;
+  display: flex; gap: var(--spacing-sm, 8px); justify-content: flex-end; margin-top: var(--spacing-md, 12px);
 }
-:deep(.el-dialog__footer) {
+
+/* ===== 头像编辑 ===== */
+.avatar-edit-row {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-lg);
+  align-items: center;
+  gap: var(--spacing-md, 12px);
+}
+
+.avatar-edit-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.avatar-edit-wrap:hover .avatar-edit-overlay {
+  opacity: 1;
+}
+
+.avatar-file-input {
+  display: none;
 }
 </style>

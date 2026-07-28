@@ -15,6 +15,7 @@
         <EnterpriseSwitcher v-if="userStore.isLoggedIn && !userStore.systemRole" />
         
         <span v-if="userStore.isLoggedIn" class="user-name">{{ userStore.user?.realName }}</span>
+        <img v-if="userStore.isLoggedIn" class="user-avatar" :src="adminAvatarUrl" alt="头像" />
         <button v-if="userStore.isLoggedIn" class="logout-btn" title="退出登录" @click="handleLogout">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -228,6 +229,11 @@ import {
 const router = useRouter()
 const userStore = useUserStore()
 const { confirmLogout } = useConfirm()
+
+const adminAvatarUrl = computed(() => {
+  const u = userStore.user
+  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
+})
 
 async function handleLogout() {
   try {
@@ -550,6 +556,7 @@ if (typeof window !== 'undefined') {
   background: var(--border-high); flex-shrink: 0;
 }
 .user-name { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); white-space: nowrap; }
+.user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .logout-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all .2s; }
 .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
 

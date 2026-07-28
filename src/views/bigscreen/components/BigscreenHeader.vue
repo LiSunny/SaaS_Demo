@@ -46,21 +46,38 @@
     <div class="user-area">
       <slot name="user">
         <div class="user-text">
-          <p class="user-name">{{ username }}</p>
+          <p class="user-name">{{ displayName }}</p>
         </div>
       </slot>
       <el-dropdown trigger="click" @command="handleCommand">
         <div class="user-avatar">
           <img
-            src="@/assets/bigscreen/avatar.svg"
+            :src="avatarUrl"
             alt="用户头像"
           />
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="voice">语音播报</el-dropdown-item>
-            <el-dropdown-item command="alarm">告警弹窗</el-dropdown-item>
-            <el-dropdown-item command="backend" divided>管理后台</el-dropdown-item>
+            <template v-if="bigscreens && bigscreens.length > 1">
+              <el-dropdown-item
+                v-for="bs in bigscreens"
+                :key="bs.id"
+                :command="`switch:${bs.id}`"
+                :class="{ 'is-active': bs.id === currentBigscreenId }"
+              >
+                <span class="screen-switch-item">
+                  <span v-if="bs.id === currentBigscreenId" class="screen-check">✓</span>
+                  <span v-else class="screen-check-placeholder" />
+                  {{ bs.name }}
+                </span>
+              </el-dropdown-item>
+              <el-dropdown-item divided command="backend">管理后台</el-dropdown-item>
+            </template>
+            <template v-else>
+              <el-dropdown-item command="voice">语音播报</el-dropdown-item>
+              <el-dropdown-item command="alarm">告警弹窗</el-dropdown-item>
+              <el-dropdown-item command="backend" divided>管理后台</el-dropdown-item>
+            </template>
             <el-dropdown-item command="logout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -89,10 +106,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useConfirm } from '@/composables/useConfirm'
+import type { UserBigscreenItem } from '@/types/bigscreen'
+import { getBigscreenRoute } from '@/config/bigscreen-templates'
 
 /**
  * 大标题 / 顶部导航栏组件
@@ -101,18 +120,30 @@ import { useConfirm } from '@/composables/useConfirm'
  * 当前使用: Property 1=5 (完整版 1920×86)
  */
 const props = withDefaults(defineProps<{
-  /** 平台标题, 默认 "港南区"人工智能+安全自律"监管平台" */
+  /** 平台标题 */
   title?: string
   /** 用户名 */
   username?: string
+  /** 用户可用大屏列表（多屏切换） */
+  bigscreens?: UserBigscreenItem[]
+  /** 当前大屏 ID */
+  currentBigscreenId?: number
 }>(), {
-  title: '港南区“人工智能+安全自律”监管平台',
-  username: '王猛',
+  title: '\u6E2F\u5357\u533A\u201C\u4EBA\u5DE5\u667A\u80FD+\u5B89\u5168\u81EA\u5F8B\u201D\u76D1\u7BA1\u5E73\u53F0',
+  username: '\u738B\u731B',
+  bigscreens: () => [],
+  currentBigscreenId: 0,
 })
 
 const router = useRouter()
 const userStore = useUserStore()
 const { confirmLogout } = useConfirm()
+
+const displayName = computed(() => props.username || userStore.user?.realName || '')
+const avatarUrl = computed(() => {
+  const u = userStore.user
+  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
+})
 
 const timeStr = ref('')
 const dateStr = ref('')
@@ -138,6 +169,14 @@ async function handleLogout(): Promise<void> {
 }
 
 function handleCommand(command: string): void {
+  if (command.startsWith('switch:')) {
+    const bigscreenId = Number(command.slice(7))
+    const target = props.bigscreens?.find(bs => bs.id === bigscreenId)
+    if (target) {
+      window.location.href = getBigscreenRoute(target.type, target.id)
+    }
+    return
+  }
   switch (command) {
     case 'backend':
       window.open('/workbench', '_blank')
@@ -394,5 +433,22 @@ onUnmounted(() => {
   background-clip: text;
   margin: 0;
   line-height: vh(43);
+}
+
+/* ===== 大屏切换菜单项 ===== */
+.screen-switch-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.screen-check {
+  color: #3cd3d7;
+  font-weight: 700;
+}
+
+.screen-check-placeholder {
+  display: inline-block;
+  width: 12px;
 }
 </style>

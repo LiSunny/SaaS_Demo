@@ -10,6 +10,7 @@ import type { BigscreenType } from '@/types/bigscreen'
 const TYPE_ROUTES: Record<BigscreenType, string> = {
   landing: '/landing',
   gongmao: '/gongmao',
+  'enterprise-cockpit': '/enterprise-cockpit',
 }
 
 /**

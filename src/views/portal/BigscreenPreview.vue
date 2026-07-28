@@ -50,6 +50,12 @@ const PREVIEWS: Record<string, PreviewInfo> = {
     backLink: '/portal/case/industrial-park',
     expLink: '/login?redirect=/gongmao',
   },
+  quanzhou: {
+    src: '/screenshots/quanzhou-cockpit.png',
+    title: '泉州应消联勤监管大屏',
+    backLink: '/portal/case/quanzhou-cockpit',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23',
+  },
 }
 
 const preview = computed(() => PREVIEWS[type.value] || PREVIEWS.resumption)

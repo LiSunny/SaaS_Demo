@@ -583,10 +583,21 @@ onMounted(async () => { await store.fetchList() })
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.card-meta > * {
+  flex-shrink: 0;
 }
 
 .card-scenario {
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
   font-size: var(--font-xs, 12px);
 }
 

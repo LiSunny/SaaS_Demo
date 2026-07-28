@@ -1,16 +1,20 @@
 <template>
   <Teleport to="body">
-    <div class="agent-floating-chat" :class="{ 'is-open': store.isOpen }">
-      <!-- ===== 折叠态：浮动按钮 ===== -->
-      <button
-        v-if="!store.isOpen"
-        class="chat-fab"
-        @click="store.open()"
-        :title="'AI 助手'"
-      >
-        <span class="fab-icon">🤖</span>
-        <span v-if="store.hasNewMessage" class="fab-dot" />
-      </button>
+    <div class="agent-floating-chat" :class="[{ 'is-open': store.isOpen }, robotPhase]">
+      <!-- ===== 折叠态：机器人 ===== -->
+      <div v-if="!store.isOpen" class="robot-wrapper">
+        <button
+          class="chat-fab"
+          @click="handleRobotClick"
+          title="AI 助手"
+        >
+          <img src="@/assets/agent-robot.svg" alt="AI助手" class="fab-robot-img" />
+        </button>
+        <!-- 打招呼气泡 -->
+        <div v-if="robotPhase === 'greeting'" class="robot-greeting">
+          <span>嗨，我是AI助手 👋</span>
+        </div>
+      </div>
 
       <!-- ===== 展开态：遮罩 + 居中面板 ===== -->
       <div v-if="store.isOpen" class="chat-overlay" @click.self="store.close()">
@@ -20,6 +24,7 @@
           <span class="chat-header-title">韧性AI助手</span>
           <div class="chat-header-actions">
             <button
+              v-if="isDev"
               class="chat-header-debug-btn"
               :class="{ active: store.debugOpen }"
               @click="store.debugOpen = !store.debugOpen"
@@ -35,7 +40,9 @@
         <div class="chat-body" ref="bodyRef">
           <!-- 欢迎消息 -->
           <div v-if="store.messages.length === 0" class="chat-welcome">
-            <p class="welcome-icon">🤖</p>
+            <div class="welcome-icon">
+              <img src="@/assets/agent-robot-chat.svg" alt="AI助手" class="welcome-robot-img" />
+            </div>
             <p class="welcome-text">你好！我是韧性AI助手。</p>
             <p class="welcome-hint">可以帮你查询数据、打开页面：</p>
             <div class="welcome-chips">
@@ -50,7 +57,8 @@
             :class="['chat-msg', `chat-msg--${msg.role}`]"
           >
             <div class="chat-msg-avatar">
-              {{ msg.role === 'user' ? '👤' : '🤖' }}
+              <template v-if="msg.role === 'user'">👤</template>
+              <img v-else src="@/assets/agent-robot-chat.svg" alt="AI" class="chat-msg-robot-img" />
             </div>
             <div class="chat-msg-bubble" v-if="msg.role === 'user'">
               <!-- 文件附件卡片 -->
@@ -172,8 +180,8 @@
             >发送</button>
           </div>
 
-          <!-- 语音通话入口 -->
-          <div class="chat-voice-row">
+          <!-- 语音通话入口（暂隐藏） -->
+          <div v-if="false" class="chat-voice-row">
             <button class="chat-voice-btn" @click="startVoiceChat" title="语音通话">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -206,6 +214,9 @@ import { marked } from 'marked'
 import { ElMessage } from 'element-plus'
 import VoiceChatPanel from './VoiceChatPanel.vue'
 
+// 开发环境标识
+const isDev = import.meta.env.DEV
+
 // 配置 marked
 marked.setOptions({ breaks: true, gfm: true })
 
@@ -217,6 +228,19 @@ import { useAiChatStore, type FileAttachment, type FileUploadResult } from '@/st
 
 const store = useAiChatStore()
 const router = useRouter()
+
+// 机器人动画阶段：hidden → flying-in → greeting → peeking
+type RobotPhase = 'hidden' | 'flying-in' | 'greeting' | 'peeking'
+const robotPhase = ref<RobotPhase>('hidden')
+
+function handleRobotClick() {
+  if (robotPhase.value !== 'peeking') return
+  store.open()
+}
+
+// 在已有 onMounted 中追加机器人动画逻辑
+// 页面加载 800ms → flying-in, 1500ms → greeting, 4500ms → peeking
+;
 const inputText = ref('')
 const bodyRef = ref<HTMLElement | null>(null)
 const debugBodyRef = ref<HTMLElement | null>(null)
@@ -501,6 +525,10 @@ function handleNavigate(e: Event) {
 
 onMounted(() => {
   window.addEventListener('agent:navigate', handleNavigate)
+  // 机器人入场动画
+  setTimeout(() => { robotPhase.value = 'flying-in' }, 800)
+  setTimeout(() => { robotPhase.value = 'greeting' }, 1500)
+  setTimeout(() => { robotPhase.value = 'peeking' }, 4500)
 })
 
 onUnmounted(() => {
@@ -511,55 +539,97 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-/* ===== 容器 ===== */
+/* ===== 机器人容器 ===== */
 .agent-floating-chat {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 9999;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  &.hidden .robot-wrapper { opacity: 0; }
+
+  &.flying-in .robot-wrapper {
+    animation: robot-fly-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  &.peeking .robot-wrapper {
+    transform: translateX(60px); /* 只露出一半 */
+    transition: transform 0.5s ease-out;
+    opacity: 1;
+  }
+}
+
+/* ===== 飞入动画（从右侧外部飞入） ===== */
+@keyframes robot-fly-in {
+  0%   { transform: translateX(160px); opacity: 0; }
+  60%  { transform: translateX(-12px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.robot-wrapper {
+  position: relative;
+  transition: transform 0.5s ease-out, opacity 0.5s;
 }
 
 /* ===== 浮动按钮 ===== */
 .chat-fab {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(86, 240, 244, 0.4);
-  background: linear-gradient(135deg, rgba(0, 63, 118, 0.92), rgba(0, 44, 98, 0.95));
-  box-shadow: 0 0 20px rgba(86, 240, 244, 0.25), 0 4px 16px rgba(0, 0, 0, 0.4);
+  width: 112px;
+  height: 112px;
+  border: none;
+  background: none;
+  box-shadow: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: 0;
+  transition: transform 0.2s;
 
   &:hover {
-    transform: scale(1.08);
-    box-shadow: 0 0 28px rgba(86, 240, 244, 0.4), 0 6px 20px rgba(0, 0, 0, 0.5);
-  }
-
-  &:active {
-    transform: scale(0.96);
+    transform: scale(1.15);
   }
 }
 
-.fab-icon {
-  font-size: 26px;
-  line-height: 1;
+.fab-robot-img {
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
 }
 
-.fab-dot {
+/* ===== 打招呼气泡 ===== */
+.robot-greeting {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ff4757;
-  border: 2px solid rgba(0, 44, 98, 0.95);
-  animation: dot-pulse 2s ease-in-out infinite;
+  bottom: 100%;
+  right: -10px;
+  margin-bottom: 12px;
+  background: #fff;
+  color: #1a1a2e;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 16px 16px 4px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  animation: greeting-bounce 0.4s ease-out;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 24px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #fff;
+  }
+}
+
+@keyframes greeting-bounce {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 @keyframes dot-pulse {
@@ -572,8 +642,8 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 9998;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -586,9 +656,9 @@ onUnmounted(() => {
   max-width: 900px;
   max-height: 800px;
   border-radius: 16px;
-  border: 1px solid rgba(86, 240, 244, 0.3);
-  background: linear-gradient(180deg, rgba(0, 55, 110, 0.98), rgba(0, 34, 78, 0.99));
-  box-shadow: 0 0 60px rgba(86, 240, 244, 0.2), 0 16px 48px rgba(0, 0, 0, 0.6);
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -614,8 +684,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(86, 240, 244, 0.12);
+  border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
+  background: #ffffff;
+}
+
+.chat-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
 }
 
 .chat-header-actions {
@@ -624,19 +701,13 @@ onUnmounted(() => {
   gap: 6px;
 }
 
-.chat-header-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #e0f4ff;
-}
-
 .chat-header-debug-btn {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid rgba(86, 240, 244, 0.15);
-  background: rgba(255, 255, 255, 0.04);
-  color: #7a9bb5;
+  border: 1px solid #e0e0e0;
+  background: #f5f5f5;
+  color: #9ca3af;
   cursor: pointer;
   font-size: 13px;
   display: flex;
@@ -645,16 +716,16 @@ onUnmounted(() => {
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 
   &:hover {
-    background: rgba(86, 240, 244, 0.1);
-    color: #56f0f4;
-    border-color: rgba(86, 240, 244, 0.3);
+    background: #e8f0fe;
+    color: #2563eb;
+    border-color: #93c5fd;
   }
 
   &.active {
-    background: rgba(86, 240, 244, 0.15);
-    color: #56f0f4;
-    border-color: rgba(86, 240, 244, 0.4);
-    box-shadow: 0 0 8px rgba(86, 240, 244, 0.2);
+    background: #dbeafe;
+    color: #2563eb;
+    border-color: #60a5fa;
+    box-shadow: 0 0 4px rgba(37, 99, 235, 0.2);
   }
 }
 
@@ -663,8 +734,8 @@ onUnmounted(() => {
   height: 28px;
   border-radius: 6px;
   border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: #9ab8d4;
+  background: #f5f5f5;
+  color: #9ca3af;
   cursor: pointer;
   font-size: 14px;
   display: flex;
@@ -673,8 +744,8 @@ onUnmounted(() => {
   transition: background 0.15s, color 0.15s;
 
   &:hover {
-    background: rgba(255, 71, 87, 0.2);
-    color: #ff6b7a;
+    background: #fee2e2;
+    color: #ef4444;
   }
 }
 
@@ -686,6 +757,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background: #fafbfc;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -694,7 +766,7 @@ onUnmounted(() => {
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(86, 240, 244, 0.15);
+    background: #d1d5db;
     border-radius: 2px;
   }
 }
@@ -703,10 +775,10 @@ onUnmounted(() => {
 .chat-debug-panel {
   width: 380px;
   flex-shrink: 0;
-  border-left: 1px solid rgba(86, 240, 244, 0.12);
+  border-left: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.15);
+  background: #fafbfc;
 }
 
 .debug-header {
@@ -714,20 +786,20 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(86, 240, 244, 0.08);
+  border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
 .debug-title {
   font-size: 12px;
   font-weight: 600;
-  color: #8ec8f0;
+  color: #374151;
 }
 
 .debug-count {
   font-size: 10px;
-  color: #5a7a9a;
-  background: rgba(86, 240, 244, 0.08);
+  color: #6b7280;
+  background: #e5e7eb;
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -744,7 +816,7 @@ onUnmounted(() => {
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(86, 240, 244, 0.12);
+    background: #d1d5db;
     border-radius: 2px;
   }
 }
@@ -756,7 +828,7 @@ onUnmounted(() => {
   gap: 8px;
   padding: 32px 16px;
   text-align: center;
-  color: #5a7a9a;
+  color: #9ca3af;
   font-size: 12px;
 }
 
@@ -772,10 +844,10 @@ onUnmounted(() => {
   font-size: 11px;
   line-height: 1.5;
 
-  &--input  .debug-node-summary { color: #8ec8f0; }
-  &--output .debug-node-summary { color: #56f0f4; }
-  &--info   .debug-node-summary { color: #7a9bb5; }
-  &--error  .debug-node-summary { color: #ff6b7a; }
+  &--input  .debug-node-summary { color: #2563eb; }
+  &--output .debug-node-summary { color: #059669; }
+  &--info   .debug-node-summary { color: #6b7280; }
+  &--error  .debug-node-summary { color: #ef4444; }
 }
 
 .debug-timeline {
@@ -793,16 +865,16 @@ onUnmounted(() => {
   flex-shrink: 0;
   margin-top: 3px;
 
-  &.dot--input  { background: #8ec8f0; box-shadow: 0 0 4px rgba(142, 200, 240, 0.4); }
-  &.dot--output { background: #56f0f4; box-shadow: 0 0 6px rgba(86, 240, 244, 0.5); }
-  &.dot--info   { background: #5a7a9a; }
-  &.dot--error  { background: #ff6b7a; box-shadow: 0 0 4px rgba(255, 107, 122, 0.5); }
+  &.dot--input  { background: #2563eb; box-shadow: 0 0 4px rgba(37, 99, 235, 0.3); }
+  &.dot--output { background: #059669; box-shadow: 0 0 4px rgba(5, 150, 105, 0.3); }
+  &.dot--info   { background: #9ca3af; }
+  &.dot--error  { background: #ef4444; box-shadow: 0 0 4px rgba(239, 68, 68, 0.3); }
 }
 
 .debug-line {
   width: 1px;
   flex: 1;
-  background: rgba(86, 240, 244, 0.1);
+  background: #e5e7eb;
   min-height: 8px;
 }
 
@@ -823,7 +895,7 @@ onUnmounted(() => {
 
 .debug-node-label {
   font-weight: 600;
-  color: #b8d8f0;
+  color: #374151;
   font-size: 11px;
   flex-shrink: 0;
 }
@@ -835,23 +907,23 @@ onUnmounted(() => {
 
 .debug-expand {
   font-size: 9px;
-  color: #5a7a9a;
+  color: #9ca3af;
   flex-shrink: 0;
   cursor: pointer;
   padding: 0 3px;
   transition: color 0.15s;
 
   .debug-node-head:hover & {
-    color: #8ec8f0;
+    color: #2563eb;
   }
 }
 
 .debug-node-detail {
   margin-top: 4px;
   padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.25);
+  background: #f3f4f6;
   border-radius: 6px;
-  border: 1px solid rgba(86, 240, 244, 0.08);
+  border: 1px solid #e5e7eb;
   overflow: auto;
   max-height: 200px;
 
@@ -862,7 +934,7 @@ onUnmounted(() => {
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(86, 240, 244, 0.15);
+    background: #d1d5db;
     border-radius: 2px;
   }
 }
@@ -872,7 +944,7 @@ onUnmounted(() => {
   font-family: 'SF Mono', 'Cascadia Code', 'Menlo', monospace;
   font-size: 10px;
   line-height: 1.45;
-  color: #c8dff0;
+  color: #374151;
   white-space: pre-wrap;
   word-break: break-all;
 }
@@ -888,15 +960,23 @@ onUnmounted(() => {
   margin: 0 0 12px;
 }
 
+.welcome-robot-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
 .welcome-text {
   font-size: 15px;
-  color: #c8e4ff;
+  color: #1f2937;
   margin: 0 0 4px;
 }
 
 .welcome-hint {
   font-size: 12px;
-  color: #7a9bb5;
+  color: #9ca3af;
   margin: 0 0 14px;
 }
 
@@ -910,17 +990,17 @@ onUnmounted(() => {
 .welcome-chip {
   padding: 6px 14px;
   border-radius: 16px;
-  border: 1px solid rgba(86, 240, 244, 0.3);
-  background: rgba(86, 240, 244, 0.06);
-  color: #8ec8f0;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #374151;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 
   &:hover {
-    background: rgba(86, 240, 244, 0.15);
-    border-color: rgba(86, 240, 244, 0.5);
-    color: #c0f0ff;
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
   }
 
   &:disabled {
@@ -939,19 +1019,19 @@ onUnmounted(() => {
     flex-direction: row-reverse;
 
     .chat-msg-bubble {
-      background: rgba(86, 240, 244, 0.12);
-      border-color: rgba(86, 240, 244, 0.25);
+      background: #eff6ff;
+      border-color: #bfdbfe;
       border-radius: 14px 4px 14px 14px;
-      color: #d0ecff;
+      color: #1f2937;
     }
   }
 
   &--assistant {
     .chat-msg-bubble {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.08);
+      background: #f3f4f6;
+      border-color: #e5e7eb;
       border-radius: 4px 14px 14px 14px;
-      color: #c8dff0;
+      color: #1f2937;
     }
   }
 }
@@ -960,12 +1040,19 @@ onUnmounted(() => {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 15px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-msg-robot-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .chat-msg-bubble {
@@ -989,9 +1076,9 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #56f0f4;
+  background: #2563eb;
   animation: ld-bounce 0.6s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(86, 240, 244, 0.5);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
 }
 
 @keyframes ld-bounce {
@@ -1005,28 +1092,30 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 0;
   padding: 10px 14px;
-  border-top: 1px solid rgba(86, 240, 244, 0.12);
+  border-top: 1px solid #f0f0f0;
   flex-shrink: 0;
+  background: #ffffff;
 }
 
 .chat-input {
   flex: 1;
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(86, 240, 244, 0.2);
-  background: rgba(255, 255, 255, 0.04);
-  color: #d0e8ff;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #1f2937;
   font-size: 13px;
   outline: none;
   font-family: inherit;
   transition: border-color 0.15s;
 
   &::placeholder {
-    color: #5a7a9a;
+    color: #9ca3af;
   }
 
   &:focus {
-    border-color: rgba(86, 240, 244, 0.5);
+    border-color: #93c5fd;
+    background: #ffffff;
   }
 
   &:disabled {
@@ -1038,17 +1127,17 @@ onUnmounted(() => {
   padding: 8px 16px;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(135deg, rgba(0, 168, 210, 0.8), rgba(0, 120, 180, 0.8));
+  background: #2563eb;
   color: #fff;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  transition: background 0.15s;
   font-family: inherit;
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    background: #1d4ed8;
   }
 
   &:disabled {
@@ -1060,9 +1149,9 @@ onUnmounted(() => {
 .chat-stop-btn {
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 71, 87, 0.4);
-  background: rgba(255, 71, 87, 0.15);
-  color: #ff6b7a;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #ef4444;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1071,7 +1160,7 @@ onUnmounted(() => {
   transition: background 0.15s;
 
   &:hover {
-    background: rgba(255, 71, 87, 0.25);
+    background: #fee2e2;
   }
 }
 
@@ -1079,7 +1168,7 @@ onUnmounted(() => {
 .chat-voice-row {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(86, 240, 244, 0.08);
+  border-top: 1px solid #f0f0f0;
   display: flex;
   justify-content: center;
 }
@@ -1090,9 +1179,9 @@ onUnmounted(() => {
   gap: 6px;
   padding: 8px 20px;
   border-radius: 20px;
-  border: 1px solid rgba(86, 240, 244, 0.25);
-  background: rgba(86, 240, 244, 0.06);
-  color: #56f0f4;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #6b7280;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -1100,9 +1189,10 @@ onUnmounted(() => {
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(86, 240, 244, 0.14);
-    border-color: rgba(86, 240, 244, 0.45);
-    box-shadow: 0 0 16px rgba(86, 240, 244, 0.12);
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.08);
     transform: translateY(-1px);
   }
 
@@ -1130,19 +1220,19 @@ onUnmounted(() => {
   gap: 5px;
   padding: 4px 4px 4px 8px;
   border-radius: 6px;
-  background: rgba(86, 240, 244, 0.1);
+  background: #f3f4f6;
   font-size: 12px;
   position: relative;
   transition: background 0.15s;
 
   &:hover {
-    background: rgba(86, 240, 244, 0.16);
+    background: #e5e7eb;
   }
 }
 
 .file-tag-type {
-  color: #5a8aaa;
-  background: rgba(86, 240, 244, 0.15);
+  color: #6b7280;
+  background: #e5e7eb;
   padding: 2px 5px;
   border-radius: 3px;
   font-size: 10px;
@@ -1156,8 +1246,8 @@ onUnmounted(() => {
 .file-tag-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(86, 240, 244, 0.2);
-  border-top-color: #56f0f4;
+  border: 2px solid #d1d5db;
+  border-top-color: #2563eb;
   border-radius: 50%;
   flex-shrink: 0;
   animation: tag-spin 0.8s linear infinite;
@@ -1169,11 +1259,11 @@ onUnmounted(() => {
 
 /* 上传完成状态 */
 .file-tag.is-done {
-  .file-tag-type { background: rgba(86, 240, 244, 0.2); color: #56f0f4; }
+  .file-tag-type { background: #dbeafe; color: #2563eb; }
 }
 
 .file-tag-name {
-  color: #c8e4ff;
+  color: #374151;
   max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1181,7 +1271,7 @@ onUnmounted(() => {
 }
 
 .file-tag-meta {
-  color: #5a7a9a;
+  color: #9ca3af;
   font-size: 11px;
   flex-shrink: 0;
 }
@@ -1192,7 +1282,7 @@ onUnmounted(() => {
   border-radius: 4px;
   border: none;
   background: transparent;
-  color: #7a9bb5;
+  color: #9ca3af;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1206,8 +1296,8 @@ onUnmounted(() => {
   }
 
   &:hover:not(:disabled) {
-    background: rgba(255, 71, 87, 0.25);
-    color: #ff6b7a;
+    background: #fee2e2;
+    color: #ef4444;
   }
 
   &:disabled {
@@ -1219,13 +1309,13 @@ onUnmounted(() => {
 .file-tag-progress {
   height: 2px;
   border-radius: 1px;
-  background: rgba(86, 240, 244, 0.1);
+  background: #e5e7eb;
   overflow: hidden;
 }
 
 .file-tag-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, rgba(86, 240, 244, 0.6), #56f0f4);
+  background: #2563eb;
   border-radius: 1px;
   transition: width 0.3s ease;
 }
@@ -1236,10 +1326,10 @@ onUnmounted(() => {
   max-height: 240px;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(86, 240, 244, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 10001;
-  background: rgba(0, 24, 52, 0.96);
+  background: #ffffff;
   pointer-events: none;
 
   img {
@@ -1261,9 +1351,9 @@ onUnmounted(() => {
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  border: 1px solid rgba(86, 240, 244, 0.2);
-  background: rgba(255, 255, 255, 0.04);
-  color: #7a9bb5;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #9ca3af;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1272,9 +1362,9 @@ onUnmounted(() => {
   transition: border-color 0.15s, color 0.15s, background 0.15s;
 
   &:hover:not(:disabled) {
-    border-color: rgba(86, 240, 244, 0.4);
-    color: #56f0f4;
-    background: rgba(86, 240, 244, 0.08);
+    border-color: #93c5fd;
+    color: #2563eb;
+    background: #eff6ff;
   }
 
   &:disabled {
@@ -1291,16 +1381,16 @@ onUnmounted(() => {
   padding: 8px 10px;
   margin-bottom: 6px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 
   &:last-child { margin-bottom: 0; }
 
   &:hover {
-    background: rgba(86, 240, 244, 0.1);
-    border-color: rgba(86, 240, 244, 0.25);
+    background: #eff6ff;
+    border-color: #bfdbfe;
   }
 }
 
@@ -1319,7 +1409,7 @@ onUnmounted(() => {
 
 .file-card-name {
   font-size: 12px;
-  color: #c8dff0;
+  color: #374151;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1327,17 +1417,17 @@ onUnmounted(() => {
 
 .file-card-meta {
   font-size: 11px;
-  color: #6a8ea8;
+  color: #9ca3af;
 }
 
 .file-card-dl {
   font-size: 14px;
-  color: #6a8ea8;
+  color: #9ca3af;
   flex-shrink: 0;
   transition: color 0.15s;
 
   .chat-file-card:hover & {
-    color: #56f0f4;
+    color: #2563eb;
   }
 }
 
@@ -1350,31 +1440,31 @@ onUnmounted(() => {
     font-size: 12px;
   }
   :deep(th) {
-    background: rgba(86, 240, 244, 0.1);
-    color: #56f0f4;
+    background: #eff6ff;
+    color: #2563eb;
     padding: 4px 8px;
     text-align: left;
-    border-bottom: 1px solid rgba(86, 240, 244, 0.2);
+    border-bottom: 1px solid #bfdbfe;
     font-weight: 500;
   }
   :deep(td) {
     padding: 3px 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: #c8dff0;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
   }
   :deep(strong) {
-    color: #56f0f4;
+    color: #1f2937;
     font-weight: 600;
   }
   :deep(em) {
-    color: #8ec8f0;
+    color: #6b7280;
   }
   :deep(code) {
-    background: rgba(255, 255, 255, 0.08);
+    background: #f3f4f6;
     padding: 1px 5px;
     border-radius: 3px;
     font-size: 12px;
-    color: #f0c060;
+    color: #d97706;
   }
   :deep(ul), :deep(ol) {
     margin: 4px 0;
@@ -1382,7 +1472,7 @@ onUnmounted(() => {
   }
   :deep(li) {
     margin: 2px 0;
-    color: #c8dff0;
+    color: #374151;
   }
   :deep(p) {
     margin: 0 0 4px;
@@ -1390,7 +1480,7 @@ onUnmounted(() => {
   }
   :deep(hr) {
     border: none;
-    border-top: 1px solid rgba(86, 240, 244, 0.15);
+    border-top: 1px solid #e5e7eb;
     margin: 8px 0;
   }
 }
