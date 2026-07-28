@@ -113,6 +113,18 @@
         <a href="/portal#案例展示" class="cd-coming-back">← 返回案例展示</a>
       </div>
     </div>
+
+    <!-- ===== Mobile tip modal ===== -->
+    <div v-if="showMobileTip" class="mobile-tip-overlay" @click.self="showMobileTip = false">
+      <div class="mobile-tip-card">
+        <div class="mobile-tip-icon">💻</div>
+        <h3 class="mobile-tip-title">目前仅支持电脑端体验</h3>
+        <p class="mobile-tip-sub">请复制链接在电脑浏览器中打开</p>
+        <button class="mobile-tip-btn" @click="copyExpUrl">
+          {{ copied ? '复制成功，去体验吧' : '复制体验地址' }}
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -223,15 +235,38 @@ const MOBILE_SCREENSHOTS: Record<string, string> = {
 }
 const mobileSrc = computed(() => MOBILE_SCREENSHOTS[current.value?.previewType || ''] || '')
 
+// ===== 移动端检测 + 体验跳转 =====
+const isMobile = () => window.innerWidth < 768
+const showMobileTip = ref(false)
+const copied = ref(false)
+
 function goExperience() {
-  const u = current.value
-  if (!u) return
+  if (isMobile()) {
+    showMobileTip.value = true
+    return
+  }
   const params = new URLSearchParams({
     redirect: '/enterprise-cockpit',
     phone: '13000001111',
     password: 'admin123!@#',
   })
   window.location.href = `/login?${params.toString()}`
+}
+
+const copyExpUrl = async () => {
+  const url = window.location.origin + '/login'
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = url
+    ta.style.position = 'fixed'; ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select(); document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
+  copied.value = true
+  setTimeout(() => { copied.value = false }, 2000)
 }
 
 // ===== Nav scroll =====
@@ -335,5 +370,14 @@ onUnmounted(() => window.removeEventListener('scroll', scrollFn))
 .cd-coming-desc { font-size: 16px; color: #5E5E5E; margin: 0 0 32px; }
 .cd-coming-back { font-size: 16px; font-weight: 500; color: #3678E3; text-decoration: none; transition: opacity 0.2s; }
 .cd-coming-back:hover { opacity: 0.7; }
+
+/* ===== Mobile tip ===== */
+.mobile-tip-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.mobile-tip-card { background: #fff; border-radius: 16px; padding: 40px 32px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.mobile-tip-icon { font-size: 48px; margin-bottom: 16px; }
+.mobile-tip-title { font-size: 18px; font-weight: 700; color: #101010; margin: 0 0 8px; }
+.mobile-tip-sub { font-size: 14px; color: #5E5E5E; margin: 0 0 24px; line-height: 1.6; }
+.mobile-tip-btn { width: 100%; padding: 12px 24px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; background: #3678E3; color: #fff; cursor: pointer; transition: background 0.2s; }
+.mobile-tip-btn:hover { background: rgba(54,120,227,0.9); }
 
 </style>
