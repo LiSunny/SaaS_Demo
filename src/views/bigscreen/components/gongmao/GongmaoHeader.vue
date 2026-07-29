@@ -136,7 +136,7 @@
       </div>
       <el-dropdown trigger="click" @command="handleCommand">
         <div class="user-avatar">
-          <img src="@/assets/bigscreen/avatar.svg" alt="用户头像" />
+          <img :src="avatarUrl" alt="用户头像" />
         </div>
         <template #dropdown>
           <el-dropdown-menu>
@@ -190,6 +190,11 @@ const userStore = useUserStore()
 const { confirmLogout } = useConfirm()
 
 const username = computed(() => userStore.user?.realName || '')
+
+const avatarUrl = computed(() => {
+  const u = userStore.user
+  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
+})
 
 const timeStr = ref('')
 const dateStr = ref('')

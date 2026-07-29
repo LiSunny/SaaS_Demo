@@ -130,7 +130,7 @@ const props = withDefaults(defineProps<{
   currentBigscreenId?: number
 }>(), {
   title: '\u6E2F\u5357\u533A\u201C\u4EBA\u5DE5\u667A\u80FD+\u5B89\u5168\u81EA\u5F8B\u201D\u76D1\u7BA1\u5E73\u53F0',
-  username: '\u738B\u731B',
+  username: '',
   bigscreens: () => [],
   currentBigscreenId: 0,
 })

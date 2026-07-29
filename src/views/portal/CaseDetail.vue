@@ -249,6 +249,8 @@ interface CaseData {
   image: string
   previewType: string | null
   expLink: string
+  demoPhone?: string
+  demoPassword?: string
   overview: string[]
   features: { title: string; desc: string }[]
   values: { person: string; name: string; duty: string }[]
@@ -299,6 +301,8 @@ const CASES: CaseData[] = [
     image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1200&q=80',
     previewType: 'gongmao',
     expLink: '/login?redirect=/gongmao',
+    demoPhone: '13000000009',
+    demoPassword: 'admin123!@#',
     overview: [
       '中国有超过 300 万家工贸企业，共同面临一个无法回避的现实：只要有生产，就有安全风险。设备底数不清——哪台该保养全靠"老师傅"脑子记；巡查走过场——纸质签到表打钩，人没到也能签；隐患口头传——跟班组长说了就算"处理了"；危险作业靠胆子——无证人员也能上阵；告警没人应——消控室晚上无人值班，系统被静音。五个缺口连成一条链，每一个环节都靠人自觉，而人的自觉不堪一击。',
       '平台的做法不是替代人，而是把人的经验固化为系统流程。移动端扫码巡更、拍照查隐患、15 步审批动火票、实时响应告警——企业端管"做"。每台设备有数字档案、每条隐患有闭环链路、每次告警有时间戳——让每一个环节从"信得过"变成"看得见"。',
@@ -413,11 +417,13 @@ function goExperience() {
     showMobileTip.value = true
     return
   }
-  const params = new URLSearchParams({
-    redirect: '/enterprise-cockpit',
-    phone: '13000001111',
-    password: 'admin123!@#',
-  })
+  const c = current.value
+  // 从 expLink 提取 redirect 目标
+  const redirectMatch = c?.expLink?.match(/redirect=([^&]+)/)
+  const redirect = redirectMatch ? decodeURIComponent(redirectMatch[1]) : '/enterprise-cockpit'
+  const params = new URLSearchParams({ redirect })
+  if (c?.demoPhone) params.set('phone', c.demoPhone)
+  if (c?.demoPassword) params.set('password', c.demoPassword)
   window.location.href = `/login?${params.toString()}`
 }
 
