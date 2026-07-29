@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工贸企业安全监测 — 业务协同示意</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',-apple-system,sans-serif;background:#fafafa;display:flex;justify-content:center;padding:48px 24px}
+
+.wrap{max-width:760px;width:100%;position:relative}
+h2{text-align:center;font-size:24px;font-weight:700;color:#101010;margin-bottom:6px}
+.sub{text-align:center;font-size:16px;color:#5e5e5e;margin-bottom:40px}
+
+/* ---- Layer ---- */
+.layer{border-radius:14px;padding:20px 24px 24px;position:relative}
+.l1{background:#e6f0f8}
+.l2{background:#eeebf6}
+.l3{background:#e8f5e9}
+
+.role-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.role-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.l1 .role-dot{background:#3678e3}
+.l2 .role-dot{background:#7c3aed}
+.l3 .role-dot{background:#059669}
+.role-name{font-size:15px;font-weight:700;color:#1d2838}
+.role-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin-left:6px}
+.l1 .role-badge{background:#a7c6ef;color:#1d2838}
+.l2 .role-badge{background:#d2c0ea;color:#1d2838}
+.l3 .role-badge{background:#a5d6a7;color:#1d2838}
+
+.cards{display:flex;gap:16px}
+.card{flex:1;min-width:0;background:#fff;border-radius:10px;padding:14px 16px;position:relative}
+.l1 .card{border:2px solid #84b3f6}
+.l2 .card{border:2px solid #c99df6}
+.l3 .card{border:2px solid #81c784}
+
+.card-label{font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.04em;margin-bottom:8px}
+.card-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;font-size:13px;color:#495565;line-height:1.55}
+.card-item:last-child{margin-bottom:0}
+.card-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:6px;opacity:0.5}
+.l1 .card-dot{background:#3678e3}
+.l2 .card-dot{background:#7c3aed}
+.l3 .card-dot{background:#059669}
+
+/* ---- Arrow gap between layers ---- */
+.arrow-gap{height:56px;position:relative;overflow:visible}
+
+.bottom{text-align:center;margin-top:28px;font-size:13px;color:#5e5e5e;line-height:1.7}
+.bottom strong{color:#3678e3}
+
+/* SVG overlay spans the entire wrap */
+#arrow-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+
+@media(max-width:600px){
+  .layer{padding:16px 12px}
+  .cards{flex-direction:column}
+  .arrow-gap{height:36px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="wrap">
+  <h2>业务协同示意</h2>
+  <p class="sub">数据自下而上汇聚，决策自上而下贯通</p>
+
+  <!-- ===== Layer 1: 决策层 ===== -->
+  <div class="layer l1" id="layer1">
+    <div class="role-bar">
+      <span class="role-dot"></span><span class="role-name">企业负责人</span><span class="role-badge">决策层</span>
+    </div>
+    <div class="cards">
+      <div class="card" id="c1a">
+        <div class="card-label">我看到</div>
+        <div class="card-item"><span class="card-dot"></span>全厂安全态势总览与告警热力图</div>
+        <div class="card-item"><span class="card-dot"></span>各车间设备健康度与巡检完成率</div>
+        <div class="card-item"><span class="card-dot"></span>隐患整改进度与合规审计报告</div>
+      </div>
+      <div class="card" id="c1b">
+        <div class="card-label">我决策</div>
+        <div class="card-item"><span class="card-dot"></span>审批重大告警处置方案</div>
+        <div class="card-item"><span class="card-dot"></span>调整安全资源配置与巡检策略</div>
+        <div class="card-item"><span class="card-dot"></span>一键导出合规台账应对监管</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow gap 1→2 -->
+  <div class="arrow-gap" id="gap1"></div>
+
+  <!-- ===== Layer 2: 管理层 ===== -->
+  <div class="layer l2" id="layer2">
+    <div class="role-bar">
+      <span class="role-dot"></span><span class="role-name">安全员 / 车间主任</span><span class="role-badge">管理层</span>
+    </div>
+    <div class="cards">
+      <div class="card" id="c2a">
+        <div class="card-label">我看到</div>
+        <div class="card-item"><span class="card-dot"></span>分级告警推送与异常点位定位</div>
+        <div class="card-item"><span class="card-dot"></span>员工处置进度与整改状态</div>
+        <div class="card-item"><span class="card-dot"></span>设备维保到期提醒与巡检排期</div>
+      </div>
+      <div class="card" id="c2b">
+        <div class="card-label">我管理</div>
+        <div class="card-item"><span class="card-dot"></span>组织核查、指派员工现场处置</div>
+        <div class="card-item"><span class="card-dot"></span>向上汇报处置结果与设备状态</div>
+        <div class="card-item"><span class="card-dot"></span>调整维保计划与巡检频次</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow gap 2→3 -->
+  <div class="arrow-gap" id="gap2"></div>
+
+  <!-- ===== Layer 3: 执行层 ===== -->
+  <div class="layer l3" id="layer3">
+    <div class="role-bar">
+      <span class="role-dot"></span><span class="role-name">现场员工</span><span class="role-badge">执行层</span>
+    </div>
+    <div class="cards">
+      <div class="card" id="c3a">
+        <div class="card-label">我看到</div>
+        <div class="card-item"><span class="card-dot"></span>手机收到处置任务与点位信息</div>
+        <div class="card-item"><span class="card-dot"></span>现场声光报警与疏散指引</div>
+        <div class="card-item"><span class="card-dot"></span>待巡检设备清单与历史记录</div>
+      </div>
+      <div class="card" id="c3b">
+        <div class="card-label">我执行</div>
+        <div class="card-item"><span class="card-dot"></span>到点位核查、拍照上传留证</div>
+        <div class="card-item"><span class="card-dot"></span>发现隐患即时上报，整改闭环</div>
+        <div class="card-item"><span class="card-dot"></span>按预案响应声光报警</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <strong>数据上行</strong>（反馈 → 汇聚 → 呈现）&ensp;支撑 &ensp;<strong>决策下行</strong>（派发 → 指派 → 执行）
+  </div>
+
+  <!-- SVG overlay for arrows -->
+  <svg id="arrow-svg"></svg>
+</div>
+
+<script>
+(function(){
+  const wrap = document.getElementById('wrap');
+  const svg = document.getElementById('arrow-svg');
+
+  // 层间箭头（参照 Figma 布局）：左侧绿↑数据上行、右侧蓝↓指令下行
+  // LEFT: 下层左卡(我看到)顶部 → 上层左卡(我看到)底部  — 数据上报
+  // RIGHT: 上层右卡(我决策/管理)底部 → 下层右卡(我管理/执行)顶部 — 指令派发
+  const arrowDefs = [
+    // Gap 1→2 LEFT: 数据上报 (绿↑)  c2a top → c1a bottom
+    { from: 'c2a', to: 'c1a', label: '数据上报', color: '#059669', dir: 'up' },
+    // Gap 1→2 RIGHT: 指令派发 (蓝↓)  c1b bottom → c2b top
+    { from: 'c1b', to: 'c2b', label: '指令派发', color: '#3678e3', dir: 'down' },
+    // Gap 2→3 LEFT: 结果反馈 (绿↑)  c3a top → c2a bottom
+    { from: 'c3a', to: 'c2a', label: '结果反馈', color: '#059669', dir: 'up' },
+    // Gap 2→3 RIGHT: 任务指派 (蓝↓)  c2b bottom → c3b top
+    { from: 'c2b', to: 'c3b', label: '任务指派', color: '#3678e3', dir: 'down' },
+  ];
+
+  function getCardCenterX(el) {
+    const r = el.getBoundingClientRect();
+    const wr = wrap.getBoundingClientRect();
+    return r.left - wr.left + r.width / 2;
+  }
+
+  function getCardEdgeY(el, edge) {
+    const r = el.getBoundingClientRect();
+    const wr = wrap.getBoundingClientRect();
+    if (edge === 'top') return r.top - wr.top;
+    if (edge === 'bottom') return r.bottom - wr.top;
+    return 0;
+  }
+
+  function drawArrows() {
+    const wr = wrap.getBoundingClientRect();
+    const h = wr.height;
+    const w = wr.width;
+
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.style.width = w + 'px';
+    svg.style.height = h + 'px';
+
+    let html = '';
+    const arrowSize = 6;
+
+    arrowDefs.forEach(def => {
+      const fromEl = document.getElementById(def.from);
+      const toEl = document.getElementById(def.to);
+      if (!fromEl || !toEl) return;
+
+      const x1 = getCardCenterX(fromEl);
+      const x2 = getCardCenterX(toEl);
+      let y1, y2;
+
+      if (def.dir === 'down') {
+        // From upper card bottom → to lower card top
+        y1 = getCardEdgeY(fromEl, 'bottom');
+        y2 = getCardEdgeY(toEl, 'top');
+      } else {
+        // From lower card top → to upper card bottom
+        y1 = getCardEdgeY(fromEl, 'top');
+        y2 = getCardEdgeY(toEl, 'bottom');
+      }
+
+      // Vertical line: same x (use midpoint), y1→y2
+      const mx = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+
+      // Draw vertical line
+      html += `<line x1="${mx}" y1="${y1}" x2="${mx}" y2="${y2}" stroke="${def.color}" stroke-opacity="0.4" stroke-width="1.5"/>`;
+
+      // Arrow head: tip at y2 (end of SVG line).
+      // 'down': tip at bottom (larger y), triangle above tip → headSign=-1  (▼)
+      // 'up':   tip at top    (smaller y), triangle below tip → headSign=+1  (▲)
+      const headY = y2;
+      const headSign = def.dir === 'down' ? -1 : 1;
+      const points = [
+        `${mx},${headY}`,
+        `${mx - arrowSize},${headY + headSign * arrowSize * 1.6}`,
+        `${mx + arrowSize},${headY + headSign * arrowSize * 1.6}`,
+      ].join(' ');
+      html += `<polygon points="${points}" fill="${def.color}" fill-opacity="0.5"/>`;
+
+      // Label to the right of the vertical line
+      html += `<text x="${mx + 10}" y="${midY + 4}" fill="${def.color}" font-size="11" font-family="Noto Sans SC, sans-serif" font-weight="500">${def.label}</text>`;
+    });
+
+    svg.innerHTML = html;
+  }
+
+  drawArrows();
+  window.addEventListener('resize', drawArrows);
+})();
+</script>
+
+</body>
+</html>

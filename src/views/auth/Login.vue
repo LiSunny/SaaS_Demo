@@ -6,7 +6,7 @@
     <header class="login-header">
       <div class="login-header-left">
         <img class="brand-logo" src="/favicon.svg" alt="平台logo" />
-        <span class="brand-name">韧性云</span>
+        <span class="brand-name">公共安全管理平台</span>
       </div>
     </header>
 
@@ -36,10 +36,26 @@
         <div class="login-card">
           <h2 class="card-title">欢迎使用公共安全管理平台</h2>
 
+          <!-- 登录方式切换 -->
+          <div class="login-mode-tabs">
+            <button
+              class="mode-tab"
+              :class="{ active: loginMode === 'password' }"
+              type="button"
+              @click="switchMode('password')"
+            >密码登录</button>
+            <button
+              class="mode-tab"
+              :class="{ active: loginMode === 'sms' }"
+              type="button"
+              @click="switchMode('sms')"
+            >验证码登录</button>
+          </div>
+
           <el-form
             ref="formRef"
             :model="form"
-            :rules="rules"
+            :rules="currentRules"
             label-width="0"
             size="large"
             class="login-form"
@@ -49,22 +65,53 @@
               <el-input
                 v-model="form.phone"
                 placeholder="请输入手机号"
+                autocomplete="username"
+                aria-label="手机号"
                 clearable
                 maxlength="11"
                 class="login-input"
               />
             </el-form-item>
 
-            <el-form-item prop="password">
-              <el-input
-                v-model="form.password"
-                type="password"
-                placeholder="请输入密码"
-                show-password
-                class="login-input"
-                @keyup.enter="handleLogin"
-              />
-            </el-form-item>
+            <!-- 密码登录：密码框 -->
+            <template v-if="loginMode === 'password'">
+              <el-form-item prop="password">
+                <el-input
+                  v-model="form.password"
+                  type="password"
+                  placeholder="请输入密码"
+                  autocomplete="current-password"
+                  aria-label="密码"
+                  show-password
+                  class="login-input"
+                  @keyup.enter="handleLogin"
+                />
+              </el-form-item>
+            </template>
+
+            <!-- 验证码登录：验证码输入 + 发送按钮 -->
+            <template v-if="loginMode === 'sms'">
+              <el-form-item prop="smsCode">
+                <div class="sms-code-row">
+                  <el-input
+                    v-model="form.smsCode"
+                    placeholder="请输入短信验证码"
+                    autocomplete="one-time-code"
+                    aria-label="短信验证码"
+                    maxlength="6"
+                    class="login-input sms-code-input"
+                    @keyup.enter="handleLogin"
+                  />
+                  <el-button
+                    class="sms-send-btn"
+                    :disabled="codeSending || countdown > 0"
+                    @click="sendSmsCode"
+                  >
+                    {{ countdown > 0 ? `${countdown}s 后重发` : codeSending ? '发送中...' : '获取验证码' }}
+                  </el-button>
+                </div>
+              </el-form-item>
+            </template>
 
             <el-form-item>
               <el-button
@@ -73,16 +120,39 @@
                 class="login-btn"
                 @click="handleLogin"
               >
-                {{ loading ? '登录中...' : '开始体验' }}
+                {{ loading ? '登录中...' : '登录' }}
               </el-button>
             </el-form-item>
           </el-form>
 
+          <!-- 忘记密码 + 协议 -->
+          <div class="form-footer-row">
+
+            <label class="agreement-check">
+              <input type="checkbox" v-model="agreed" />
+              <span class="agreement-check-text">
+                同意<a href="/portal" target="_blank">《用户协议》</a>和<a href="/portal" target="_blank">《隐私政策》</a>
+              </span>
+            </label>
+            <a
+              v-if="loginMode === 'password'"
+              class="forgot-link-inline"
+              href="javascript:void(0)"
+              @click="handleForgotPassword"
+            >忘记密码？</a>
+            <span v-else></span>
+            
+          </div>
+
           <p class="login-error" v-if="errorMsg">{{ errorMsg }}</p>
+
+          <!-- 体验账号区分隔 -->
+          <div class="demo-divider">
+            <span class="demo-divider-text">快速体验 · 选择角色一键登录</span>
+          </div>
 
           <!-- 体验账号区 -->
           <div class="demo-section">
-            <p class="demo-label">体验账号</p>
             <div class="demo-rows">
               <div class="demo-row">
                 <div
@@ -122,7 +192,7 @@
 
     <!-- 底部版权 -->
     <footer class="login-footer">
-      <a href="/portal" target="_blank" class="footer-portal">关于韧性云 | 人工智能+公共安全管理平台</a>
+      <a href="/portal" target="_blank" class="footer-portal">关于公共安全管理平台</a>
       <div class="footer-copyright">
         <span>版权所有©️北京韧性科技2026</span>
         <span class="footer-divider">|</span>
@@ -133,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -158,10 +228,18 @@ const userStore = useUserStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const errorMsg = ref('')
+const agreed = ref(true)
+
+// 登录方式
+const loginMode = ref<'password' | 'sms'>('password')
+const codeSending = ref(false)
+const countdown = ref(0)
+let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 const form = reactive({
   phone: '',
   password: '',
+  smsCode: '',
 })
 
 const rules: FormRules = {
@@ -170,7 +248,25 @@ const rules: FormRules = {
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
   ],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  smsCode: [
+    { required: true, message: '请输入短信验证码', trigger: 'blur' },
+    { pattern: /^\d{4,6}$/, message: '验证码为4-6位数字', trigger: 'blur' },
+  ],
 }
+
+// 根据登录方式动态切换校验规则
+const currentRules = computed<FormRules>(() => {
+  if (loginMode.value === 'sms') {
+    return {
+      phone: rules.phone,
+      smsCode: rules.smsCode,
+    }
+  }
+  return {
+    phone: rules.phone,
+    password: rules.password,
+  }
+})
 
 // 左侧功能卡片
 const featureCards = [
@@ -225,6 +321,44 @@ function fillDemo(account: typeof demoAccounts[0]) {
   handleLogin()
 }
 
+function handleForgotPassword() {
+  ElMessage.info('请联系系统管理员重置密码')
+}
+
+// 切换登录方式
+function switchMode(mode: 'password' | 'sms') {
+  if (loginMode.value === mode) return
+  loginMode.value = mode
+  form.password = ''
+  form.smsCode = ''
+  errorMsg.value = ''
+  formRef.value?.clearValidate()
+}
+
+// 发送短信验证码
+function sendSmsCode() {
+  // 先校验手机号
+  const phoneValid = /^1[3-9]\d{9}$/.test(form.phone)
+  if (!phoneValid) {
+    ElMessage.warning('请先输入正确的手机号')
+    return
+  }
+  codeSending.value = true
+  // 模拟发送
+  setTimeout(() => {
+    codeSending.value = false
+    countdown.value = 60
+    ElMessage.success('验证码已发送')
+    countdownTimer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        if (countdownTimer) clearInterval(countdownTimer)
+        countdownTimer = null
+      }
+    }, 1000)
+  }, 800)
+}
+
 // 案例详情页"去体验" → URL参数自动填充并登录
 onMounted(async () => {
   const phone = route.query.phone as string
@@ -239,6 +373,10 @@ onMounted(async () => {
 })
 
 async function handleLogin() {
+  if (!agreed.value) {
+    ElMessage.warning('请先阅读并同意用户协议和隐私政策')
+    return
+  }
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
@@ -246,9 +384,10 @@ async function handleLogin() {
   errorMsg.value = ''
 
   try {
+    // 验证码模式：目前暂用密码接口，后续替换为短信登录接口
     const res = await loginApi({
       phone: form.phone,
-      password: form.password,
+      password: loginMode.value === 'sms' ? form.smsCode : form.password,
     })
 
     userStore.setLogin(res.token, res.user)
@@ -422,13 +561,24 @@ async function handleLogin() {
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: calc(14 * var(--min-scale));
   padding: calc(16 * var(--min-scale));
   display: flex;
   flex-direction: column;
   gap: calc(12 * var(--min-scale));
   min-height: calc(194 * var(--h));
+  box-shadow: 0 4px 24px rgba(31, 38, 135, 0.08);
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.feature-card:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 32px rgba(31, 38, 135, 0.12);
 }
 
 .feature-icon {
@@ -484,6 +634,84 @@ async function handleLogin() {
   line-height: 1.3;
 }
 
+/* ---------- 登录方式切换 Tab ---------- */
+.login-mode-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--bg-sub-card, #f5f5f5);
+  border-radius: calc(8 * var(--min-scale));
+  padding: calc(4 * var(--min-scale));
+}
+
+.mode-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #5e5e5e);
+  font-size: clamp(13px, calc(14 * var(--min-scale)), 14px);
+  padding: calc(8 * var(--min-scale)) 0;
+  border-radius: calc(6 * var(--min-scale));
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-family: inherit;
+}
+
+.mode-tab.active {
+  background: #fff;
+  color: var(--text-secondary, #2e2e2e);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- 短信验证码行 ---------- */
+.sms-code-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: calc(12 * var(--w));
+  align-items: center;
+  width: 100%;
+}
+
+.sms-code-input {
+  min-width: 0;
+}
+
+.sms-send-btn {
+  min-width: 0;
+  height: calc(58 * var(--h));
+  border-radius: calc(8 * var(--min-scale));
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
+  white-space: nowrap;
+  padding: 0 calc(16 * var(--w));
+  --el-button-bg-color: var(--accent-primary, #3678E3);
+  --el-button-border-color: var(--accent-primary, #3678E3);
+  --el-button-text-color: #fff;
+  --el-button-disabled-bg-color: #d9d9d9;
+  --el-button-disabled-border-color: #d9d9d9;
+  --el-button-disabled-text-color: #999;
+}
+
+/* ---------- 体验账号分隔 ---------- */
+.demo-divider {
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--w));
+}
+
+.demo-divider::before,
+.demo-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-default, #dedede);
+}
+
+.demo-divider-text {
+  font-size: clamp(12px, calc(13 * var(--min-scale)), 13px);
+  color: var(--text-muted, #5e5e5e);
+  white-space: nowrap;
+}
+
 /* ---------- 表单 ---------- */
 .login-form {
   display: flex;
@@ -492,18 +720,19 @@ async function handleLogin() {
 }
 
 .login-form :deep(.el-form-item) {
-  margin-bottom: calc(28 * var(--min-scale));
+  margin-bottom: calc(14 * var(--min-scale));
   position: relative;
-  padding-bottom: calc(18 * var(--min-scale));
+  padding-bottom: calc(9 * var(--min-scale));
 }
 
 .login-form :deep(.el-form-item.is-error) {
-  margin-bottom: calc(18 * var(--min-scale));
+  margin-bottom: calc(9 * var(--min-scale));
 }
 
 .login-form :deep(.el-form-item:last-child) {
   margin-bottom: 0;
   padding-bottom: 0;
+  margin-top: calc(23 * var(--min-scale));
 }
 
 /* 表单验证错误信息 */
@@ -526,6 +755,7 @@ async function handleLogin() {
   padding: 0 calc(16 * var(--w)) !important;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .login-input :deep(.el-input__wrapper:hover) {
@@ -538,6 +768,7 @@ async function handleLogin() {
 }
 
 .login-input :deep(.el-input__inner) {
+  height: 100%;
   color: var(--text-primary, #101010) !important;
   font-size: clamp(14px, calc(16 * var(--min-scale)), 16px) !important;
 }
@@ -583,6 +814,62 @@ async function handleLogin() {
   font-size: clamp(11px, calc(12 * var(--min-scale)), 12px);
   text-align: center;
   color: var(--danger, #dc2626);
+}
+
+/* 表单底部：忘记密码 + 协议 */
+.form-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8 * var(--w));
+}
+
+.forgot-link-inline {
+  font-size: clamp(13px, calc(14 * var(--min-scale)), 14px);
+  color: var(--accent-primary, #3678e3);
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.forgot-link-inline:hover {
+  opacity: 0.75;
+}
+
+.agreement-check {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: calc(6 * var(--w));
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.agreement-check input[type="checkbox"] {
+  width: calc(16 * var(--min-scale));
+  height: calc(16 * var(--min-scale));
+  accent-color: var(--accent-primary, #3678e3);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.agreement-check-text {
+  font-size: clamp(12px, calc(13 * var(--min-scale)), 13px);
+  color: var(--text-muted, #5e5e5e);
+  white-space: nowrap;
+}
+
+.agreement-check-text a {
+  color: var(--accent-primary, #3678e3);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.agreement-check-text a:hover {
+  opacity: 0.75;
 }
 
 /* ============================================

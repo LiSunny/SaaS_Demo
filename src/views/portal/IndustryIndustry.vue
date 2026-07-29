@@ -4,7 +4,7 @@
       <div class="nav-inner">
         <a href="/portal" class="nav-brand">
           <img class="nav-logo" src="/favicon.svg" alt="logo" width="28" height="28" />
-          <span class="nav-name" :class="{ scrolled }">韧性云</span>
+          <span class="nav-name" :class="{ scrolled }">公共安全管理平台</span>
         </a>
         <div class="nav-links">
           <a v-for="(item, i) in navItems" :key="item.id"
@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ArrowRight, Monitor, ScanEye, AlertTriangle, Bell, Image } from 'lucide-vue-next'
+import { ArrowRight, Monitor, ScanEye, AlertTriangle, Bell, HardHat, Image } from 'lucide-vue-next'
 import { useMobileGuard } from '@/composables/useMobileGuard'
 import MobileTipModal from '@/components/base/MobileTipModal.vue'
 
@@ -108,13 +108,19 @@ const scenes = [{
   journey: [{ time: '08:30', title: '发现隐患，上报', role: '巡检员 · 赵师傅', desc: 'B 车间东侧消防通道被纸箱杂物占一半。拍照→选"消防通道堵塞"→填描述→提交。', shot: '移动端隐患上报页' },{ time: '09:00', title: '分派整改人，设期限', role: '安全管理员 · 张工', desc: '确认为有效隐患。点击分派给 B 车间班长王师傅，期限今日 17:00。系统推送至王师傅手机。', shot: 'Web 端隐患分派页' },{ time: '10:00', title: '整改，拍对比照', role: '整改人 · 王师傅', desc: '手机收到推送。安排人把纸箱清走，站在同角度拍通道畅通的对比图——"堵→通"一目了然。', shot: '移动端整改上传页' },{ time: '14:00', title: '验收闭环', role: '安全管理员 · 张工', desc: '看对比照片——通道清空了。点"确认验收"，系统记录确认人、时间。"已闭环"出现在台账中。', shot: 'Web 端隐患台账' },{ time: '17:00', title: '超期自动亮红', role: '系统 + 管理方', desc: '大屏上 1 条隐患标红——"超期未整改"。灭火器隐患昨天到期还没交。管理方决定明天去店里看。', shot: 'Web 端超期隐患标记' }],
   values: [{ role: '隐患上报人', desc: '上报即有记录——"我说过了"变成"系统里有"' },{ role: '安全管理员', desc: '分派→跟踪→验收，一步不可跳过，超时自动提醒' },{ role: '监管方', desc: '辖区闭环率、超期数——不需到现场' }],
 },{
+  id: 'hotwork', icon: HardHat, title: '危险作业管控', tagline: '动火票谁签的、有无证——出了事找得到人',
+  roles: [{ person: '老周', name: '动火申请人', duty: '发起动火申请、选作业类型、上传资质证件' },{ person: '张工', name: '安全管理员', duty: '审核动火方案、检查防护措施、现场确认' },{ person: '赵总', name: '企业负责人', duty: '最终审批授权、查看合规报告' }],
+  case: { date: '', text: '一张纸质审批票，签字全看关系——无证人员也能上阵，票可以事后补签。每一次动火都是一次赌博：赌焊接火花不会引燃旁边的杂物、赌审批手续不会被抽查。一旦出事，追责找不到人——因为从头到尾没有完整的审批链。', if: '15 步 × 4 阶段审批流程，每一步拍照或签名，跳过即阻止。从申请到验收全生命周期闭环，合规报告自动生成——不是靠胆子，是靠流程。' },
+  journey: [{ time: '08:30', title: '发起动火申请', role: '动火申请人 · 老周', desc: '手机端选择"动火作业"，填写作业类型、位置、时段。上传焊工证照片——系统自动校验有效期。提交后推送给安全管理员。', shot: '移动端动火申请页' },{ time: '09:00', title: '安全员现场确认', role: '安全管理员 · 张工', desc: '手机收到待审批。到现场检查灭火器是否到位、可燃物是否清理、看火人是否就位。逐项确认后拍照签字。', shot: '移动端现场确认页' },{ time: '09:15', title: '审批授权，开始作业', role: '企业负责人 · 赵总', desc: '看到安全员已现场确认，点击审批通过。系统记录审批人、审批时间、审批意见——一条完整的审批时间线。', shot: 'Web 端审批授权页' },{ time: '16:00', title: '完工关闭，生成报告', role: '动火申请人 · 老周', desc: '作业完成，现场清理，拍照确认无残留火源。提交完工——系统自动生成合规报告，全过程可追溯。', shot: 'Web 端合规报告' }],
+  values: [{ role: '动火申请人', desc: '15 步引导式操作，资质自动校验，不会漏' },{ role: '安全管理员', desc: '现场确认逐项打勾，拍照不可跳过，责任到人' },{ role: '企业负责人', desc: '一张审批时间线，出了事有完整的证据链' }],
+},{
   id: 'alert', icon: Bell, title: '告警与值守', tagline: '消控室无人、系统被静音——大屏弹窗 + 批量处置',
   roles: [{ person: '李明辉', name: '消控值班员', duty: '24h 值守，告警弹窗响应、分级确认、一键核实' },{ person: '张工', name: '安全管理员', duty: '配置联动规则、看告警趋势' },{ person: '刘师傅', name: '处置人员', duty: '收到推送到场核实、处置、拍照回执' }],
   case: { date: '', text: '消控室晚上没人值班、报警系统被静音——不是没有报警，是没有人响应。批量误报消耗精力，真正危险的告警反而被淹没在海量通知里。', if: '大屏实时弹窗推送至值班员手机，系统自动记录响应时间。批量确认误报一键处理，精力留给真正需要警觉的告警。' },
   journey: [{ time: '07:30', title: '交接班：看过去 12 小时', role: '消控值班员 · 李明辉', desc: '系统展示：总告警 47 条、已确认 45、待确认 2（灰尘误报）、真实告警 4（均处置）、1 台设备离线。确认 2 条误报，为离线水泵建工单。', shot: 'Web 端值班工作台交接班页' },{ time: '10:15', title: '告警弹窗！火警响起', role: '消控值班员 · 李明辉', desc: '大屏红色告警条：1 号厂房二层烟感 ×2。调实时监控——没烟雾火光。判定焊接误报，推送巡检员核实，6 分钟闭环。', shot: 'Web 端告警弹窗+实时视频' },{ time: '11:00', title: '批量确认误报', role: '消控值班员 · 李明辉', desc: '装修施工连续触发 4 条烟感——全是误报。勾选全部→一键关联理由→批量关闭。精力留给真实的、需要警觉的告警。', shot: 'Web 端告警列表批量操作' },{ time: '14:30', title: '看告警趋势', role: '安全管理员 · 张工', desc: '近 30 天趋势：火警 2、故障 47、误报 689。某区域上周起告警密度翻倍——和工厂装修同期。决定：降低装修区域灵敏度，夜间正常。', shot: 'Web 端告警趋势分析' }],
   values: [{ role: '消控值班员', desc: '弹窗+视频分辨真假，批量确认省重复点击' },{ role: '安全管理员', desc: '告警趋势自动生成——哪里多了、响应慢了' },{ role: '企业负责人', desc: '响应率和平均时间——判断值守团队在不在状态' }],
 }]
-const navItems = [{ id: 'device', nav: '设备保养' },{ id: 'patrol', nav: '巡查检查' },{ id: 'hazard', nav: '隐患整改' },{ id: 'alert', nav: '告警值守' }]
+const navItems = [{ id: 'device', nav: '设备保养' },{ id: 'patrol', nav: '巡查检查' },{ id: 'hazard', nav: '隐患整改' },{ id: 'hotwork', nav: '危险作业' },{ id: 'alert', nav: '告警值守' }]
 
 const scrolled = ref(false)
 const activeNav = ref(0)

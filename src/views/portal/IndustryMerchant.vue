@@ -4,7 +4,7 @@
       <div class="nav-inner">
         <a href="/portal" class="nav-brand">
           <img class="nav-logo" src="/favicon.svg" alt="logo" width="28" height="28" />
-          <span class="nav-name" :class="{ scrolled }">韧性云</span>
+          <span class="nav-name" :class="{ scrolled }">公共安全管理平台</span>
         </a>
         <div class="nav-links">
           <a v-for="(item, i) in navItems" :key="item.id"
