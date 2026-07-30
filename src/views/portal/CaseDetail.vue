@@ -672,13 +672,6 @@ onUnmounted(() => {
   margin: 8px auto 0;
   background: #3678E3;
 }
-/* 渐变背景 */
-.cd-sec-title--alt .cd-sec-num {
-  color: rgba(255, 255, 255, 0.85);
-}
-.cd-sec-title--alt .cd-sec-num::after {
-  background: rgba(255, 255, 255, 0.5);
-}
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
 /* ===== Section Divider ===== */
