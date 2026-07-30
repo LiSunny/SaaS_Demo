@@ -36,7 +36,7 @@ app.use(errorHandler)
 // ========== 启动 ==========
 const server = app.listen(env.PORT, async () => {
   // 启用 SQLite WAL 模式：允许读写并发，消除间歇性超时的根因
-  await db.$executeRawUnsafe('PRAGMA journal_mode=WAL;')
+  await db.$queryRawUnsafe('PRAGMA journal_mode=WAL;')
 
   console.log(`
 ╔══════════════════════════════════════════╗
