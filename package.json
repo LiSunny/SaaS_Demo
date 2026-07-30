@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:fresh": "bash scripts/dev-fresh.sh",
+    "deploy": "bash deploy.sh",
     "icons": "node scripts/build-sprite.cjs",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
