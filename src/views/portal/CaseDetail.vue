@@ -275,7 +275,9 @@ const CASES: CaseData[] = [
     nums: ['4 阶段', '11 步骤', '全链追踪'],
     image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg',
     previewType: 'resumption',
-    expLink: '/login?redirect=/resumption-bigscreen',
+    expLink: '/login?redirect=/resumption-bigscreen&phone=13000000009&password=admin123!@%2523',
+    demoPhone: '13000000009',
+    demoPassword: 'admin123!@#',
     overview: [
       '复工复产管理是面向工贸企业的安全管理核心模块，以"六个一"安全标准为指导，将复工流程拆解为4个阶段、11个标准化步骤。',
       '从组建复工团队、签订安全承诺书，到安全培训、技术交底、隐患排查、设备体检，再到整改闭环、联合验收、签发复工令，最后完成试产值班和归档组卷——每一步操作带时间戳、执行人签名、照片附件。',
