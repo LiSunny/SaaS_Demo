@@ -654,23 +654,19 @@ onUnmounted(() => {
   border-radius: 50%;
   pointer-events: none;
 }
-.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; position: relative; }
+.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; }
 .cd-sec-num {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
+  display: block;
   font-family: 'Douyin Sans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
-  font-size: 80px;
+  font-size: 14px;
   font-weight: 700;
-  color: rgba(54, 120, 227, 0.06);
-  line-height: 1;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 0;
+  color: #3678E3;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
 }
-/* 渐变背景区域编号稍加深 */
+/* 渐变背景区域编号用白色 */
 .cd-sec-title--alt .cd-sec-num {
-  color: rgba(54, 120, 227, 0.09);
+  color: rgba(255, 255, 255, 0.7);
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
