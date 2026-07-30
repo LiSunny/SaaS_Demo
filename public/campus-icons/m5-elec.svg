@@ -1,0 +1,172 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="50.092" height="33.7534" viewBox="0 0 50.092 33.7534" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<rect id="Rectangle 162" width="50.092" height="33.7534" fill="url(#pattern0_0_61)"/>
+<defs>
+<pattern id="pattern0_0_61" patternUnits="userSpaceOnUse" patternTransform="matrix(60 0 0 60 -4.95399 -13.1233)" preserveAspectRatio="none" viewBox="0 0 60 60" width="1" height="1">
+<g id="pattern0_0_61_inner">
+<g id="Frame 75">
+<g id="Group 39">
+<g id="Group 42">
+<g id="Rectangle 158">
+<mask id="path-2-inside-1_0_61" fill="white">
+<path d="M0 0H12V12H0V0Z"/>
+</mask>
+<path d="M0 0V-1H-1V0H0ZM12 0H13V-1H12V0ZM0 0V1H12V0V-1H0V0ZM12 0H11V12H12H13V0H12ZM0 12H1V0H0H-1V12H0Z" fill="#001939" mask="url(#path-2-inside-1_0_61)"/>
+</g>
+<g id="Rectangle 159">
+<mask id="path-4-inside-2_0_61" fill="white">
+<path d="M12 0H24V12H12V0Z"/>
+</mask>
+<path d="M24 0H25V-1H24V0ZM12 0V1H24V0V-1H12V0ZM24 0H23V12H24H25V0H24Z" fill="#001939" mask="url(#path-4-inside-2_0_61)"/>
+</g>
+<g id="Rectangle 162_2">
+<mask id="path-6-inside-3_0_61" fill="white">
+<path d="M24 0H36V12H24V0Z"/>
+</mask>
+<path d="M36 0H37V-1H36V0ZM24 0V1H36V0V-1H24V0ZM36 0H35V12H36H37V0H36Z" fill="#001939" mask="url(#path-6-inside-3_0_61)"/>
+</g>
+<g id="Rectangle 163">
+<mask id="path-8-inside-4_0_61" fill="white">
+<path d="M36 0H48V12H36V0Z"/>
+</mask>
+<path d="M48 0H49V-1H48V0ZM36 0V1H48V0V-1H36V0ZM48 0H47V12H48H49V0H48Z" fill="#001939" mask="url(#path-8-inside-4_0_61)"/>
+</g>
+<g id="Rectangle 164">
+<mask id="path-10-inside-5_0_61" fill="white">
+<path d="M48 0H60V12H48V0Z"/>
+</mask>
+<path d="M60 0H61V-1H60V0ZM48 0V1H60V0V-1H48V0ZM60 0H59V12H60H61V0H60Z" fill="#001939" mask="url(#path-10-inside-5_0_61)"/>
+</g>
+</g>
+<g id="Group 41">
+<g id="Rectangle 165">
+<mask id="path-12-inside-6_0_61" fill="white">
+<path d="M0 12H12V24H0V12Z"/>
+</mask>
+<path d="M0 12V11H-1V12H0ZM12 12H13V11H12V12ZM0 12V13H12V12V11H0V12ZM12 12H11V24H12H13V12H12ZM0 24H1V12H0H-1V24H0Z" fill="#001939" mask="url(#path-12-inside-6_0_61)"/>
+</g>
+<g id="Rectangle 166">
+<mask id="path-14-inside-7_0_61" fill="white">
+<path d="M12 12H24V24H12V12Z"/>
+</mask>
+<path d="M24 12H25V11H24V12ZM12 12V13H24V12V11H12V12ZM24 12H23V24H24H25V12H24Z" fill="#001939" mask="url(#path-14-inside-7_0_61)"/>
+</g>
+<g id="Rectangle 167">
+<mask id="path-16-inside-8_0_61" fill="white">
+<path d="M24 12H36V24H24V12Z"/>
+</mask>
+<path d="M36 12H37V11H36V12ZM24 12V13H36V12V11H24V12ZM36 12H35V24H36H37V12H36Z" fill="#001939" mask="url(#path-16-inside-8_0_61)"/>
+</g>
+<g id="Rectangle 168">
+<mask id="path-18-inside-9_0_61" fill="white">
+<path d="M36 12H48V24H36V12Z"/>
+</mask>
+<path d="M48 12H49V11H48V12ZM36 12V13H48V12V11H36V12ZM48 12H47V24H48H49V12H48Z" fill="#001939" mask="url(#path-18-inside-9_0_61)"/>
+</g>
+<g id="Rectangle 169">
+<mask id="path-20-inside-10_0_61" fill="white">
+<path d="M48 12H60V24H48V12Z"/>
+</mask>
+<path d="M60 12H61V11H60V12ZM48 12V13H60V12V11H48V12ZM60 12H59V24H60H61V12H60Z" fill="#001939" mask="url(#path-20-inside-10_0_61)"/>
+</g>
+</g>
+<g id="Group 43">
+<g id="Rectangle 165_2">
+<mask id="path-22-inside-11_0_61" fill="white">
+<path d="M0 24H12V36H0V24Z"/>
+</mask>
+<path d="M0 24V23H-1V24H0ZM12 24H13V23H12V24ZM0 24V25H12V24V23H0V24ZM12 24H11V36H12H13V24H12ZM0 36H1V24H0H-1V36H0Z" fill="#001939" mask="url(#path-22-inside-11_0_61)"/>
+</g>
+<g id="Rectangle 166_2">
+<mask id="path-24-inside-12_0_61" fill="white">
+<path d="M12 24H24V36H12V24Z"/>
+</mask>
+<path d="M24 24H25V23H24V24ZM12 24V25H24V24V23H12V24ZM24 24H23V36H24H25V24H24Z" fill="#001939" mask="url(#path-24-inside-12_0_61)"/>
+</g>
+<g id="Rectangle 167_2">
+<mask id="path-26-inside-13_0_61" fill="white">
+<path d="M24 24H36V36H24V24Z"/>
+</mask>
+<path d="M36 24H37V23H36V24ZM24 24V25H36V24V23H24V24ZM36 24H35V36H36H37V24H36Z" fill="#001939" mask="url(#path-26-inside-13_0_61)"/>
+</g>
+<g id="Rectangle 168_2">
+<mask id="path-28-inside-14_0_61" fill="white">
+<path d="M36 24H48V36H36V24Z"/>
+</mask>
+<path d="M48 24H49V23H48V24ZM36 24V25H48V24V23H36V24ZM48 24H47V36H48H49V24H48Z" fill="#001939" mask="url(#path-28-inside-14_0_61)"/>
+</g>
+<g id="Rectangle 169_2">
+<mask id="path-30-inside-15_0_61" fill="white">
+<path d="M48 24H60V36H48V24Z"/>
+</mask>
+<path d="M60 24H61V23H60V24ZM48 24V25H60V24V23H48V24ZM60 24H59V36H60H61V24H60Z" fill="#001939" mask="url(#path-30-inside-15_0_61)"/>
+</g>
+</g>
+<g id="Group 44">
+<g id="Rectangle 165_3">
+<mask id="path-32-inside-16_0_61" fill="white">
+<path d="M0 36H12V48H0V36Z"/>
+</mask>
+<path d="M0 36V35H-1V36H0ZM12 36H13V35H12V36ZM0 36V37H12V36V35H0V36ZM12 36H11V48H12H13V36H12ZM0 48H1V36H0H-1V48H0Z" fill="#001939" mask="url(#path-32-inside-16_0_61)"/>
+</g>
+<g id="Rectangle 166_3">
+<mask id="path-34-inside-17_0_61" fill="white">
+<path d="M12 36H24V48H12V36Z"/>
+</mask>
+<path d="M24 36H25V35H24V36ZM12 36V37H24V36V35H12V36ZM24 36H23V48H24H25V36H24Z" fill="#001939" mask="url(#path-34-inside-17_0_61)"/>
+</g>
+<g id="Rectangle 167_3">
+<mask id="path-36-inside-18_0_61" fill="white">
+<path d="M24 36H36V48H24V36Z"/>
+</mask>
+<path d="M36 36H37V35H36V36ZM24 36V37H36V36V35H24V36ZM36 36H35V48H36H37V36H36Z" fill="#001939" mask="url(#path-36-inside-18_0_61)"/>
+</g>
+<g id="Rectangle 168_3">
+<mask id="path-38-inside-19_0_61" fill="white">
+<path d="M36 36H48V48H36V36Z"/>
+</mask>
+<path d="M48 36H49V35H48V36ZM36 36V37H48V36V35H36V36ZM48 36H47V48H48H49V36H48Z" fill="#001939" mask="url(#path-38-inside-19_0_61)"/>
+</g>
+<g id="Rectangle 169_3">
+<mask id="path-40-inside-20_0_61" fill="white">
+<path d="M48 36H60V48H48V36Z"/>
+</mask>
+<path d="M60 36H61V35H60V36ZM48 36V37H60V36V35H48V36ZM60 36H59V48H60H61V36H60Z" fill="#001939" mask="url(#path-40-inside-20_0_61)"/>
+</g>
+</g>
+<g id="Group 45">
+<g id="Rectangle 165_4">
+<mask id="path-42-inside-21_0_61" fill="white">
+<path d="M0 48H12V60H0V48Z"/>
+</mask>
+<path d="M0 48V47H-1V48H0ZM12 48H13V47H12V48ZM0 48V49H12V48V47H0V48ZM12 48H11V60H12H13V48H12ZM0 60H1V48H0H-1V60H0Z" fill="#001939" mask="url(#path-42-inside-21_0_61)"/>
+</g>
+<g id="Rectangle 166_4">
+<mask id="path-44-inside-22_0_61" fill="white">
+<path d="M12 48H24V60H12V48Z"/>
+</mask>
+<path d="M24 48H25V47H24V48ZM12 48V49H24V48V47H12V48ZM24 48H23V60H24H25V48H24Z" fill="#001939" mask="url(#path-44-inside-22_0_61)"/>
+</g>
+<g id="Rectangle 167_4">
+<mask id="path-46-inside-23_0_61" fill="white">
+<path d="M24 48H36V60H24V48Z"/>
+</mask>
+<path d="M36 48H37V47H36V48ZM24 48V49H36V48V47H24V48ZM36 48H35V60H36H37V48H36Z" fill="#001939" mask="url(#path-46-inside-23_0_61)"/>
+</g>
+<g id="Rectangle 168_4">
+<mask id="path-48-inside-24_0_61" fill="white">
+<path d="M36 48H48V60H36V48Z"/>
+</mask>
+<path d="M48 48H49V47H48V48ZM36 48V49H48V48V47H36V48ZM48 48H47V60H48H49V48H48Z" fill="#001939" mask="url(#path-48-inside-24_0_61)"/>
+</g>
+<g id="Rectangle 169_4">
+<mask id="path-50-inside-25_0_61" fill="white">
+<path d="M48 48H60V60H48V48Z"/>
+</mask>
+<path d="M60 48H61V47H60V48ZM48 48V49H60V48V47H48V48ZM60 48H59V60H60H61V48H60Z" fill="#001939" mask="url(#path-50-inside-25_0_61)"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</pattern></defs>
+</svg>

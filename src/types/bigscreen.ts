@@ -2,13 +2,14 @@
  * bigscreen.ts — 可视化大屏类型定义
  */
 
-export type BigscreenType = 'landing' | 'gongmao' | 'enterprise-cockpit'
+export type BigscreenType = 'landing' | 'gongmao' | 'enterprise-cockpit' | 'campus'
 
 /** 大屏类型显示名称 */
 export const BIGSCREEN_TYPE_LABELS: Record<BigscreenType, string> = {
   landing: '港南\u201C人工智能+工贸企业\u201D自律远程监管平台',
   gongmao: '工贸企业驾驶舱',
   'enterprise-cockpit': '泉州\u201C人工智能+应消联勤\u201D一体化管控平台',
+  campus: '“人工智能+平安校园”应用管理平台',
 }
 
 /** 应用场景预设选项 */

@@ -11,6 +11,7 @@ const TYPE_ROUTES: Record<BigscreenType, string> = {
   landing: '/landing',
   gongmao: '/gongmao',
   'enterprise-cockpit': '/enterprise-cockpit',
+  campus: '/landing/campus',
 }
 
 /**

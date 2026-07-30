@@ -1,0 +1,19 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="78" height="78" viewBox="0 0 78 78" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Ellipse 1">
+<mask id="path-1-inside-1_0_4" fill="white">
+<path d="M78 39C78 60.5391 60.5391 78 39 78C17.4609 78 0 60.5391 0 39C0 17.4609 17.4609 0 39 0C60.5391 0 78 17.4609 78 39Z"/>
+</mask>
+<path d="M78 39C78 60.5391 60.5391 78 39 78C17.4609 78 0 60.5391 0 39C0 17.4609 17.4609 0 39 0C60.5391 0 78 17.4609 78 39Z" fill="url(#paint0_radial_0_4)" fill-opacity="0.24"/>
+<g clip-path="url(#paint1_diamond_0_4_clip_path)" data-figma-skip-parse="true" mask="url(#path-1-inside-1_0_4)"><g transform="matrix(4.9819e-09 0.0805 -0.134244 8.30795e-09 39 39)"><rect x="0" y="0" width="496.894" height="297.965" fill="url(#paint1_diamond_0_4)" opacity="1" shape-rendering="crispEdges"/><rect x="0" y="0" width="496.894" height="297.965" transform="scale(1 -1)" fill="url(#paint1_diamond_0_4)" opacity="1" shape-rendering="crispEdges"/><rect x="0" y="0" width="496.894" height="297.965" transform="scale(-1 1)" fill="url(#paint1_diamond_0_4)" opacity="1" shape-rendering="crispEdges"/><rect x="0" y="0" width="496.894" height="297.965" transform="scale(-1)" fill="url(#paint1_diamond_0_4)" opacity="1" shape-rendering="crispEdges"/></g></g><path d="M78 39H77C77 59.9868 59.9868 77 39 77V78V79C61.0914 79 79 61.0914 79 39H78ZM39 78V77C18.0132 77 1 59.9868 1 39H0H-1C-1 61.0914 16.9086 79 39 79V78ZM0 39H1C1 18.0132 18.0132 1 39 1V0V-1C16.9086 -1 -1 16.9086 -1 39H0ZM39 0V1C59.9868 1 77 18.0132 77 39H78H79C79 16.9086 61.0914 -1 39 -1V0Z" data-figma-gradient-fill="{&#34;type&#34;:&#34;GRADIENT_DIAMOND&#34;,&#34;stops&#34;:[{&#34;color&#34;:{&#34;r&#34;:0.27450981736183167,&#34;g&#34;:0.97647058963775635,&#34;b&#34;:1.0,&#34;a&#34;:0.050000000745058060},&#34;position&#34;:0.0},{&#34;color&#34;:{&#34;r&#34;:0.27450981736183167,&#34;g&#34;:0.97647058963775635,&#34;b&#34;:1.0,&#34;a&#34;:0.250},&#34;position&#34;:1.0}],&#34;stopsVar&#34;:[{&#34;color&#34;:{&#34;r&#34;:0.27450981736183167,&#34;g&#34;:0.97647058963775635,&#34;b&#34;:1.0,&#34;a&#34;:0.050000000745058060},&#34;position&#34;:0.0},{&#34;color&#34;:{&#34;r&#34;:0.27450981736183167,&#34;g&#34;:0.97647058963775635,&#34;b&#34;:1.0,&#34;a&#34;:0.250},&#34;position&#34;:1.0}],&#34;transform&#34;:{&#34;m00&#34;:9.9638000392587855e-06,&#34;m01&#34;:-268.4880371093750,&#34;m02&#34;:173.24400329589844,&#34;m10&#34;:161.0,&#34;m11&#34;:1.6615906133665703e-05,&#34;m12&#34;:-41.500007629394531},&#34;opacity&#34;:1.0,&#34;blendMode&#34;:&#34;NORMAL&#34;,&#34;visible&#34;:true}" mask="url(#path-1-inside-1_0_4)"/>
+</g>
+<defs>
+<clipPath id="paint1_diamond_0_4_clip_path"><path d="M78 39H77C77 59.9868 59.9868 77 39 77V78V79C61.0914 79 79 61.0914 79 39H78ZM39 78V77C18.0132 77 1 59.9868 1 39H0H-1C-1 61.0914 16.9086 79 39 79V78ZM0 39H1C1 18.0132 18.0132 1 39 1V0V-1C16.9086 -1 -1 16.9086 -1 39H0ZM39 0V1C59.9868 1 77 18.0132 77 39H78H79C79 16.9086 61.0914 -1 39 -1V0Z"/></clipPath><radialGradient id="paint0_radial_0_4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(39 39) rotate(90) scale(39)">
+<stop stop-color="#48E5E5" stop-opacity="0.8"/>
+<stop offset="1" stop-color="#48E5E5" stop-opacity="0.35"/>
+</radialGradient>
+<linearGradient id="paint1_diamond_0_4" x1="0" y1="0" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+<stop stop-color="#46F9FF" stop-opacity="0.05"/>
+<stop offset="1" stop-color="#46F9FF" stop-opacity="0.25"/>
+</linearGradient>
+</defs>
+</svg>

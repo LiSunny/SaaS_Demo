@@ -88,9 +88,11 @@ const router = createRouter({
         { path: 'landing', name: 'BigscreenLanding', component: () => import('@/views/bigscreen/BigscreenLanding.vue') },
         { path: 'landing/street-detail', name: 'StreetDetail', component: () => import('@/views/bigscreen/StreetDetailPage.vue') },
         { path: 'landing/fire-control', name: 'FireControlDetail', component: () => import('@/views/bigscreen/FireControlPage.vue') },
+        { path: 'landing/campus', name: 'BigscreenCampus', component: () => import('@/views/bigscreen/CampusBigscreen.vue') },
         { path: 'gongmao', name: 'BigscreenGongmao', component: () => import('@/views/bigscreen/BigscreenGongmao.vue') },
         { path: 'enterprise-cockpit', name: 'EnterpriseCockpit', component: () => import('@/views/bigscreen/EnterpriseCockpit.vue') },
         { path: 'resumption-bigscreen', name: 'BigscreenResumption', component: () => import('@/views/bigscreen/BigscreenResumption.vue') },
+
       ],
     },
 
@@ -223,8 +225,10 @@ router.beforeEach((to) => {
     return { path: '/workbench' }
   }
 
-  // 系统角色用户访问根路由（大屏）→ 工作台
-  if (systemRole && (to.path === '/' || to.path.startsWith('/landing') || to.path.startsWith('/gongmao'))) {
+  // 系统角色用户访问根路由（大屏）→ 工作台（校园大屏 POC 期间放行）
+  if (systemRole && (to.path === '/' || to.path.startsWith('/gongmao'))
+    && !to.path.startsWith('/landing/campus')
+  ) {
     return { path: '/workbench' }
   }
 

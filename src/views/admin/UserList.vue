@@ -254,8 +254,8 @@
   </div>
 </template>
 
-<script setup>
-import { avatarUrl } from '@/composables/useAvatar' lang="ts">
+<script setup lang="ts">
+
 import { ref, reactive, computed, onMounted, h } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
@@ -331,7 +331,7 @@ const saving = ref(false)
 const editFormRef = ref<FormInstance>()
 const editingId = ref(0)
 const editForm = reactive<{ phone: string; realName: string; email: string; avatar: string; systemRole: string | null }>({ phone: '', realName: '', email: '', avatar: '', systemRole: null })
-const defaultAvatar = computed(() => avatarUrl(u?.realName || 'default'))
+const defaultAvatar = computed(() => `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(editForm.realName || 'default')}`)
 
 // 头像上传
 const avatarInput = ref<HTMLInputElement | null>(null)

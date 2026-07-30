@@ -206,8 +206,8 @@
   </div>
 </template>
 
-<script setup>
-import { avatarUrl } from '@/composables/useAvatar' lang="ts">
+<script setup lang="ts">
+import { avatarUrl } from '@/composables/useAvatar'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'

@@ -1,0 +1,26 @@
+<svg width="1920" height="84" viewBox="0 0 1920 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1920" height="84" fill="#1E1E1E"/>
+<g id="&#228;&#186;&#186;&#229;&#183;&#165;&#230;&#153;&#186;&#232;&#131;&#189;+&#229;&#185;&#179;&#229;&#174;&#137;&#230;&#160;&#161;&#229;&#155;&#173;">
+<g id="Frame 143">
+<rect width="1920" height="84" fill="url(#paint0_linear_0_1)"/>
+<g id="Frame 154">
+<path id="Rectangle 1" d="M0 0H815C815 0 781.132 55 763.186 66.5C745.24 78 734.917 78 734.917 78H685.923H587.934H391.956H0V0Z" fill="#1462A1"/>
+<path id="Subtract" d="M815 0C815 0 781.132 54.9997 763.187 66.5C745.241 78 734.917 78 734.917 78H0V76H733.698C733.742 75.9999 744.06 75.9752 761.967 64.5C777.866 54.3118 806.26 9.98108 812.531 0H815Z" fill="url(#paint1_radial_0_1)"/>
+</g>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_1" x1="960" y1="0" x2="960" y2="84" gradientUnits="userSpaceOnUse">
+<stop stop-color="#004D8E"/>
+<stop offset="1" stop-color="#005DAC"/>
+</linearGradient>
+<radialGradient id="paint1_radial_0_1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(308 78) rotate(-4.68884) scale(477.097 275.37)">
+<stop stop-color="#46A3FF"/>
+<stop offset="1" stop-color="#9EEDFF"/>
+</radialGradient>
+<linearGradient id="paint2_linear_0_1" x1="322" y1="15" x2="322" y2="62" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="#84D6FF"/>
+</linearGradient>
+</defs>
+</svg>

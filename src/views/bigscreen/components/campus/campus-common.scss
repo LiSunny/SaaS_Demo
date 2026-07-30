@@ -1,0 +1,135 @@
+/**
+ * 校园大屏公共样式 Mixin
+ * 消除各组件中的重复 CSS
+ */
+@use "@/styles/function.scss" as *;
+
+/* ===== 滚动条隐藏 ===== */
+@mixin hide-scrollbar {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== 表格通用样式 ===== */
+@mixin campus-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: vh(8) vw(12);
+    background: #0F437A;
+    font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+    font-size: clamp(11px, calc(16 * var(--min-scale)), 16px);
+    font-weight: 500;
+    color: #40b6b6;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: vh(9) vw(12);
+    font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+    font-size: clamp(11px, calc(16 * var(--min-scale)), 16px);
+    font-weight: 500;
+    color: #e6e6e6;
+    white-space: nowrap;
+  }
+
+  .col-action {
+    text-align: center;
+    width: vw(56);
+  }
+}
+
+/* ===== 表格容器 ===== */
+@mixin table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  @include hide-scrollbar;
+}
+
+/* ===== 查看按钮 ===== */
+@mixin btn-view {
+  width: calc(56 * var(--min-scale));
+  height: calc(24 * var(--min-scale));
+  cursor: pointer;
+}
+
+/* ===== 已完成标签 ===== */
+@mixin tag-done {
+  font-family: 'DingTalk JinBuTi', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(11px, calc(16 * var(--min-scale)), 16px);
+  color: #21dcdb;
+  padding: vh(2) vw(8);
+  background: rgba(0, 164, 164, 0.3);
+  border-radius: 4px;
+}
+
+/* ===== Tab 激活状态 ===== */
+@mixin tab-active {
+  background: linear-gradient(180deg, rgba(0, 215, 215, 0.15) 0%, rgba(0, 215, 215, 0) 100%);
+  span { color: #ffffff; }
+}
+
+/* ===== Tab 按钮基础 ===== */
+@mixin tab-btn-base {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: vw(10);
+  flex: 1;
+  padding: vh(10) vw(10);
+  border: none;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+
+  img {
+    width: calc(24 * var(--min-scale));
+    height: calc(24 * var(--min-scale));
+    flex-shrink: 0;
+  }
+
+  span {
+    font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+    font-size: clamp(11px, calc(20 * var(--min-scale)), 20px);
+    font-weight: 500;
+    color: #00c0c0;
+    white-space: nowrap;
+  }
+
+  &.active { @include tab-active; }
+}
+
+/* ===== Tab 行容器 ===== */
+@mixin tab-row {
+  display: flex;
+  gap: vw(12);
+  flex-shrink: 0;
+}
+
+/* ===== 状态标签 ===== */
+@mixin status-badge {
+  font-family: 'DingTalk JinBuTi', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(11px, calc(16 * var(--min-scale)), 16px);
+  padding: vh(6) vw(6);
+  border-radius: 4px;
+  white-space: nowrap;
+
+  &.status--pending {
+    color: #da372e;
+    background: rgba(244, 67, 54, 0.3);
+  }
+
+  &.status--done {
+    color: #21dcdb;
+    background: rgba(0, 164, 164, 0.3);
+  }
+}

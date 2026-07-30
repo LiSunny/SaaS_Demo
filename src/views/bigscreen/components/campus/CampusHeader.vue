@@ -22,8 +22,7 @@
   </div>
 </template>
 
-<script setup>
-import { avatarUrl } from '@/composables/useAvatar' lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -36,7 +35,7 @@ const { confirmLogout } = useConfirm()
 const displayName = computed(() => userStore.user?.realName || '')
 const avatarUrl = computed(() => {
   const u = userStore.user
-  return u?.avatar || avatarUrl(u?.realName || 'default')
+  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
 })
 
 async function handleLogout() {

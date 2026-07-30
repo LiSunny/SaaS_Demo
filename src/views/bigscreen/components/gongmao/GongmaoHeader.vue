@@ -169,8 +169,7 @@
   </div>
 </template>
 
-<script setup>
-import { avatarUrl } from '@/composables/useAvatar' lang="ts">
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -194,7 +193,7 @@ const username = computed(() => userStore.user?.realName || '')
 
 const avatarUrl = computed(() => {
   const u = userStore.user
-  return u?.avatar || avatarUrl(u?.realName || 'default')
+  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
 })
 
 const timeStr = ref('')
