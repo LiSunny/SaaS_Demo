@@ -654,28 +654,23 @@ onUnmounted(() => {
   border-radius: 50%;
   pointer-events: none;
 }
-.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
+.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; position: relative; }
 .cd-sec-num {
-  font-family: 'Douyin Sans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
-  font-size: 52px;
-  font-weight: 700;
-  color: rgba(54, 120, 227, 0.18);
-  line-height: 0.85;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
-}
-.cd-sec-num::before {
-  content: '';
   position: absolute;
-  left: 0; right: 0; bottom: 2px;
-  height: 6px;
-  background: #3678E3;
-  z-index: -1;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Douyin Sans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
+  font-size: 80px;
+  font-weight: 700;
+  color: rgba(54, 120, 227, 0.06);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
 }
-/* 渐变背景区域编号稍加深，与马克线形成双层对比 */
+/* 渐变背景区域编号稍加深 */
 .cd-sec-title--alt .cd-sec-num {
-  color: rgba(54, 120, 227, 0.22);
+  color: rgba(54, 120, 227, 0.09);
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
