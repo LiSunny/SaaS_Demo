@@ -38,7 +38,7 @@
     <!-- ===== 方案概述 ===== -->
     <section class="cd-section">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title">方案概述</h2>
+        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.overview }}</span>方案概述</h2>
         <div class="cd-body-card">
           <p v-for="(para, i) in current.overview" :key="i"
              class="cd-body-text"
@@ -52,7 +52,7 @@
     <!-- ===== 业务协同示意 ===== -->
     <section v-if="current.collaboration" class="cd-section cd-section-alt">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title">业务协同示意</h2>
+        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.collaboration }}</span>业务协同示意</h2>
         <p class="cd-sec-sub">数据自下而上汇聚，决策自上而下贯通</p>
         <div class="cd-collab-flow" ref="collabFlowRef">
           <div v-for="(layer, li) in current.collaboration" :key="li">
@@ -98,7 +98,7 @@
 
     <section class="cd-section">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title">核心功能</h2>
+        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.features }}</span>核心功能</h2>
         <div class="cd-features">
           <div v-for="(f, i) in current.features" :key="i" class="cd-feature-card">
             <div class="cd-feature-num">{{ String(i + 1).padStart(2, '0') }}</div>
@@ -114,7 +114,7 @@
     <!-- ===== 大屏预览截图 ===== -->
     <section v-if="current.previewType" class="cd-section cd-section-alt">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title">平台多端展示</h2>
+        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.preview }}</span>平台多端展示</h2>
         <p class="cd-sec-sub">{{ current.name }}数据看板 · 多端协同展示</p>
         <div class="cd-preview-mock">
           <!-- Web 大屏 -->
@@ -148,7 +148,7 @@
     <!-- ===== 价值总结 ===== -->
     <section class="cd-section">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title">客户价值</h2>
+        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.values }}</span>客户价值</h2>
         <div class="cd-value-grid">
           <div v-for="v in current.values" :key="v.person" class="cd-value-card">
             <div class="cd-value-top">
@@ -455,6 +455,18 @@ const CASES: CaseData[] = [
 
 const current = computed(() => CASES.find(c => c.slug === slug.value) || null)
 
+// 章节编号（业务协同示意有条件渲染，编号需动态计算）
+const secNum = computed(() => {
+  let n = 0
+  const m: Record<string, string> = {}
+  m.overview = String(++n).padStart(2, '0')
+  if (current.value?.collaboration) m.collaboration = String(++n).padStart(2, '0')
+  m.features = String(++n).padStart(2, '0')
+  if (current.value?.previewType) m.preview = String(++n).padStart(2, '0')
+  m.values = String(++n).padStart(2, '0')
+  return m
+})
+
 // 自动马克笔高亮：三段式概述中始终高亮第2段（方案/怎么做）
 const isHighlighted = (i: number) => {
   const len = current.value?.overview?.length || 0
@@ -643,6 +655,15 @@ onUnmounted(() => {
   pointer-events: none;
 }
 .cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; }
+.cd-sec-num {
+  display: block;
+  font-size: 64px;
+  font-weight: 300;
+  color: rgba(54, 120, 227, 0.08);
+  line-height: 1;
+  margin-bottom: -4px;
+  letter-spacing: -2px;
+}
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
 /* ===== Section Divider ===== */
