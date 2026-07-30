@@ -152,7 +152,7 @@
         <div class="cd-value-grid">
           <div v-for="v in current.values" :key="v.person" class="cd-value-card">
             <div class="cd-value-top">
-              <img class="cd-value-avatar" :src="`/images/avatars/${v.person}.svg`" :alt="v.person" loading="lazy" />
+              <img class="cd-value-avatar" :src="avatarUrl(v.person)" :alt="v.person" loading="lazy" />
               <div class="cd-value-meta">
                 <div class="cd-value-person">{{ v.person }}</div>
                 <div class="cd-value-role">{{ v.name }}</div>
@@ -235,6 +235,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ArrowRight, Phone, Mail } from 'lucide-vue-next'
+import { avatarUrl } from '@/composables/useAvatar'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
