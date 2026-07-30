@@ -663,18 +663,19 @@ onUnmounted(() => {
   line-height: 0.85;
   flex-shrink: 0;
   position: relative;
+  z-index: 1;
 }
-.cd-sec-num::after {
+.cd-sec-num::before {
   content: '';
   position: absolute;
   left: 0; right: 0; bottom: 2px;
   height: 6px;
   background: #3678E3;
-  border-radius: 3px;
+  z-index: -1;
 }
-/* 渐变背景区域编号用白色调 */
+/* 渐变背景区域编号用白色调，提高不透明度确保可见 */
 .cd-sec-title--alt .cd-sec-num {
-  color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.40);
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
