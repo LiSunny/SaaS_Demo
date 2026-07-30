@@ -654,15 +654,14 @@ onUnmounted(() => {
   border-radius: 50%;
   pointer-events: none;
 }
-.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; }
+.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 6px; }
 .cd-sec-num {
-  display: block;
-  font-size: 64px;
-  font-weight: 300;
-  color: rgba(54, 120, 227, 0.08);
+  font-family: 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
+  font-size: 40px;
+  font-weight: 400;
+  color: rgba(54, 120, 227, 0.12);
   line-height: 1;
-  margin-bottom: -4px;
-  letter-spacing: -2px;
+  flex-shrink: 0;
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
@@ -886,6 +885,14 @@ onUnmounted(() => {
 
 <!-- 箭头流动动画：非 scoped，因为 SVG 元素是 JS 动态创建的 -->
 <style>
+/* 优设标题黑 — 章节编号用 */
+@font-face {
+  font-family: 'YouSheBiaoTiHei';
+  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 .cd-collab-arrow-line {
   animation: collabDashFlow 1.6s linear infinite;
 }
