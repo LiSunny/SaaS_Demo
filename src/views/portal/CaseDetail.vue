@@ -642,7 +642,7 @@ onUnmounted(() => {
   border-radius: 50%;
   pointer-events: none;
 }
-.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 8px; text-align: center; }
+.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
 /* ===== Section Divider ===== */
