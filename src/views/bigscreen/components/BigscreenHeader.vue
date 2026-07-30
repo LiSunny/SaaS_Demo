@@ -105,7 +105,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
+import { avatarUrl } from '@/composables/useAvatar' lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -142,7 +143,7 @@ const { confirmLogout } = useConfirm()
 const displayName = computed(() => props.username || userStore.user?.realName || '')
 const avatarUrl = computed(() => {
   const u = userStore.user
-  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
+  return u?.avatar || avatarUrl(u?.realName || 'default')
 })
 
 const timeStr = ref('')

@@ -206,7 +206,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
+import { avatarUrl } from '@/composables/useAvatar' lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'
@@ -232,7 +233,7 @@ const { confirmLogout } = useConfirm()
 
 const adminAvatarUrl = computed(() => {
   const u = userStore.user
-  return u?.avatar || `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(u?.realName || 'default')}`
+  return u?.avatar || avatarUrl(u?.realName || 'default')
 })
 
 async function handleLogout() {

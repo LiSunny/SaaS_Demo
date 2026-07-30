@@ -16,7 +16,7 @@
         </div>
       </div>
     </nav>
-    <section class="ind-hero" style="background-image:url(https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1200&q=80);">
+    <section class="ind-hero" style="background-image:url(/images/unsplash/photo-1581092160607-ee22621dd758.jpg);">
       <div class="ind-hero-grid"></div>
       <div class="ind-hero-content">
         <h1 class="ind-hero-title">{{ pageTitle }}</h1>
@@ -33,7 +33,7 @@
           <span class="scene-label">涉及角色</span>
           <div class="role-cards">
             <div v-for="r in sc.roles" :key="r.name" class="role-card">
-              <img class="role-avatar" :src="`https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(r.person)}`" :alt="r.person" loading="lazy" />
+              <img class="role-avatar" :src="`/images/avatars/${r.person}.svg`" :alt="r.person" loading="lazy" />
               <div class="role-info">
                 <div class="role-person">{{ r.person }}</div>
                 <div class="role-title">{{ r.name }}</div>

@@ -59,7 +59,7 @@
             <div :class="['cd-collab-layer', layer.cls]">
               <div class="cd-collab-header">
                 <div class="cd-collab-role">
-                  <img class="cd-collab-avatar" :src="`https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(layer.avatar)}`" :alt="layer.name" loading="lazy" />
+                  <img class="cd-collab-avatar" :src="`/images/avatars/${layer.avatar}.svg`" :alt="layer.name" loading="lazy" />
                   <div>
                     <div class="cd-collab-name">{{ layer.name }}</div>
                     <div class="cd-collab-dept">{{ layer.role }}</div>
@@ -152,7 +152,7 @@
         <div class="cd-value-grid">
           <div v-for="v in current.values" :key="v.person" class="cd-value-card">
             <div class="cd-value-top">
-              <img class="cd-value-avatar" :src="`https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(v.person)}`" :alt="v.person" loading="lazy" />
+              <img class="cd-value-avatar" :src="`/images/avatars/${v.person}.svg`" :alt="v.person" loading="lazy" />
               <div class="cd-value-meta">
                 <div class="cd-value-person">{{ v.person }}</div>
                 <div class="cd-value-role">{{ v.name }}</div>
@@ -272,7 +272,7 @@ const CASES: CaseData[] = [
     tag: '垂直业务',
     desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规。',
     nums: ['4 阶段', '11 步骤', '全链追踪'],
-    image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=1200&q=80',
+    image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg',
     previewType: 'resumption',
     expLink: '/login?redirect=/resumption-bigscreen',
     overview: [
@@ -298,7 +298,7 @@ const CASES: CaseData[] = [
     tag: '工业',
     desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。',
     nums: ['5 个场景', '18 业务域', '全链闭环'],
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1200&q=80',
+    image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg',
     previewType: 'gongmao',
     expLink: '/login?redirect=/gongmao',
     demoPhone: '13000000009',
@@ -353,7 +353,7 @@ const CASES: CaseData[] = [
     tag: '城市治理',
     desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，实现一屏观全域、一网管消防。',
     nums: ['14 模块', 'AI 研判', '多端协同'],
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
+    image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
     previewType: 'quanzhou',
     expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523',
     overview: [
@@ -375,6 +375,51 @@ const CASES: CaseData[] = [
       { person: '吴站长', name: '基层消防站', duty: '告警双向推送，巡查任务协同派发，突发事件就近联动，补齐了末端响应短板。' },
     ],
   },
+  {
+    slug: 'campus-safety',
+    name: '平安校园',
+    tag: '教育',
+    desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动三大场景，将学校安全管理每个环节数字化，从"人管人"走向"数据管安全"。',
+    nums: ['3 大场景', 'AI 防欺凌', '7×24 值守'],
+    image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg',
+    previewType: 'campus',
+    expLink: '/login?redirect=/landing/campus',
+    demoPhone: '13100001234',
+    demoPassword: 'admin123!@#',
+    overview: [
+      '中国有超过 50 万所各级各类学校，每天超过 2 亿学生在校用餐、数千万学生住在学校宿舍。校园安全不是"别出事"，而是"出不起事"——食堂食材从哪来、什么时候到期？厕所角落里有人在求救，谁听到了？宿舍那层楼的烟感早就不响了，有没有人知道？三件事反复发生，指向同一个根子：信息在采集时不完整，在传递时层层衰减。巡检员发现隐患→写在纸上→队长月底汇总→学期总结只剩"总体良好"——安全管理的真实信号就这样消失在层层衰减中。',
+      '平台将学校安全管理的每一个环节数字化。食堂从食材入库、留样登记到陪餐评价全链条可追溯——临期自动提醒、过保自动拦截；宿舍与卫生间部署 AI 声音识别设备，在监控盲区捕捉求救信号，检测→弹窗→值班确认→保安到场，全程时间戳记录；巡更扫码定位确保人到点位、手报与声光报警设备状态实时监控。每一个动作"做完即记录"，不是靠签字本和口头汇报，而是用数据证明每一步都落实了。',
+      '覆盖校园食品安全全链条管控、AI 防欺凌预警与处置、宿舍安全与应急联动三大场景，支撑寄宿制与非寄宿制学校的差异化监管——寄宿制重点防护欺凌、电消隐患与应急响应，非寄宿制侧重上下学高峰流控和日常巡检。从食材入库到陪餐评价、从 AI 听到求救声到保安到场处置、从手报按钮状态到声光报警联动——不是用人管人，是用数据管安全。',
+    ],
+    features: [
+      { title: '校园食品安全全链条管控', desc: '从食材入库、食品台账、出库加工到留样登记、明厨亮灶实时监控、陪餐多维评价——每批食材有电子档案、每餐留样有记录、每次陪餐有照片。临期自动提醒、过保自动拦截，校长在大屏可查看后厨视频和台账完整率。' },
+      { title: '校园防欺凌预警与处置', desc: '在宿舍与卫生间等监控盲区部署 AI 声音识别设备，检测异常声响与关键词（"救命""别打我"）。大屏 6 区域 Tab 独立告警——检测→弹窗→值班确认→保安到场→处置回执，全程时间戳记录。校长可查看各区域告警趋势和高发时段分布。' },
+      { title: '宿舍安全与应急联动', desc: '巡更扫码定位、电消隐患巡检、手报与声光报警设备在线状态实时监控。入寝前查违禁品（打火机、违规电器）、8 类校园专项应急预案（消防灭火/应急疏散/校园暴力/心理健康）卡片化展示。教师+保安双角色履职数据大屏统一呈现。' },
+    ],
+    values: [
+      { person: '陈校长', name: '校长', duty: '打开大屏看清全校安全态势——巡检覆盖率、告警处置率、隐患闭环率一目了然。在问题恶化之前先着手解决，在上级打电话之前先把事情处理好。' },
+      { person: '刘老师', name: '安全干部/值班员', duty: '大屏实时弹窗告警，AI 帮你先筛一遍——确认即派保安到场。从"等人来敲门才知道出事了"变成"第一时间就知道"。' },
+      { person: '王世豪', name: '保安/宿管/班主任', duty: '手机推送巡检任务、告警处置指令、每日履职提醒。扫码定位确定你到了点位、拍照证明你查了设备——不是靠签字本证明"我来过了"，而是数据证明每一步都落实了。' },
+    ],
+    collaboration: [
+      {
+        cls: 'cd-cl1', badgeCls: 'cd-cl1-badge', cardCls: 'cd-cl1-card',
+        leftId: 'cdl1a', rightId: 'cdl1b',
+        avatar: '陈校长', name: '陈校长', role: '校长/安全干部', dept: '学校', badge: '决策层',
+        rightLabel: '我决策',
+        leftItems: ['全校巡检覆盖率、告警处置率与隐患闭环率', '各区域（宿舍/教室/公共）安全态势', '教师与保安双角色履职打卡完成率'],
+        rightItems: ['指派巡检任务与巡查策略调整', '审阅告警处置、督办未闭环隐患', '突发情况启动应急预案、调度校内应急资源'],
+      },
+      {
+        cls: 'cd-cl2', badgeCls: 'cd-cl2-badge', cardCls: 'cd-cl2-card',
+        leftId: 'cdl2a', rightId: 'cdl2b',
+        avatar: '王世豪', name: '王世豪', role: '保安/班主任/宿管', dept: '学校', badge: '执行层',
+        rightLabel: '我执行',
+        leftItems: ['手机推送每日巡检任务与点位清单', '告警处置指令与现场处置指引', '履职打卡提醒与未完成清单'],
+        rightItems: ['扫码定位巡更打卡、拍照留证', '到场处置告警、填写处置回执', '发现隐患即时上报，拍照记录整改前后对比'],
+      },
+    ],
+  },
 ]
 
 const current = computed(() => CASES.find(c => c.slug === slug.value) || null)
@@ -391,11 +436,13 @@ const PREVIEW_SCREENSHOTS: Record<string, string> = {
   resumption: '/screenshots/fgfc_cz.png',
   gongmao: '/screenshots/gongmao.png',
   quanzhou: '/screenshots/quanzhou-cockpit.png',
+  campus: '/screenshots/campus-safety.png',
 }
 const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value?.previewType || ''] || '')
 
 const MOBILE_SCREENSHOTS: Record<string, string> = {
   gongmao: '/screenshots/gongmao-mobile.png',
+  campus: '/screenshots/campus-safety-mobile.png',
 }
 const mobileSrc = computed(() => MOBILE_SCREENSHOTS[current.value?.previewType || ''] || '')
 
@@ -528,7 +575,7 @@ onUnmounted(() => {
 .cd-breadcrumb-link { position: absolute; top: 80px; left: 32px; z-index: 2; font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.85); text-decoration: none; transition: opacity 0.2s; }
 .cd-breadcrumb-link:hover { opacity: 0.7; }
 .cd-hero-content { position: relative; z-index: 1; text-align: center; max-width: 720px; padding: 64px 32px; }
-.cd-hero-tag { display: inline-block; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); background: rgba(54,120,227,0.5); padding: 4px 14px; border-radius: 4px; margin-bottom: 16px; letter-spacing: 0.06em; }
+.cd-hero-tag { display: inline-block; font-size: 14px; font-weight: 600; color: #fff; background: rgba(54,120,227,0.65); padding: 4px 14px; border-radius: 4px; margin-bottom: 16px; letter-spacing: 0.5px; }
 .cd-hero-title { font-size: clamp(28px, 5vw, 48px); font-weight: 800; color: #fff; margin: 0 0 16px; }
 .cd-hero-desc { font-size: 18px; color: rgba(255,255,255,0.8); line-height: 1.7; margin: 0 auto 24px; max-width: 560px; }
 .cd-hero-nums { display: flex; justify-content: center; gap: 8px; }
@@ -571,8 +618,8 @@ onUnmounted(() => {
 
 /* ===== Overview ===== */
 .cd-body-card { padding: 0; }
-.cd-body-text { font-size: 16px; color: #5E5E5E; line-height: 1.9; margin: 0; }
-.cd-body-text + .cd-body-text { margin-top: 16px; }
+.cd-body-text { font-size: 16px; color: #5E5E5E; line-height: 1.9; margin: 0 0 28px; }
+.cd-body-text:last-child { margin-bottom: 0; }
 
 /* 首字下沉：第一段开头第一个字放大，跨两行 */
 .cd-body-text:first-child::first-letter {

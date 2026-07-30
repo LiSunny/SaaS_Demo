@@ -171,6 +171,7 @@
               @click="goCase(c.slug)"
             >
               <div class="case-slant-overlay"></div>
+              <span v-if="c.coming" class="case-slant-coming">即将上线</span>
               <div class="case-slant-content">
                 <span class="case-slant-tag">{{ c.tag }}</span>
                 <h4 class="case-slant-title">{{ c.name }}</h4>
@@ -372,9 +373,9 @@ const TRUST_NUMS = [
 
 // ===== Positioning =====
 const POSITIONING = [
-  { tag: '单点管控', title: '企业自主管理', body: '面向单个项目或企业的"大安全自主管理"。通过构建智能化的安全管理平台，实现对消防设施、应急预案、风险隐患等要素的实时监测与动态管理，提升单位自身的安全防控能力和应急响应效率。', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80' },
-  { tag: '全域协同', title: '区域联勤联动', body: '围绕监管部门为核心的"区域联勤联动"机制。打通区域内多个单位、部门之间的信息壁垒，建立统一指挥、快速响应、多方协同的应急联动体系，提升对突发事件的综合处置能力。', image: 'https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=600&q=80' },
-  { tag: '集团统管', title: '垂直穿透管控', body: '针对大型集团公司的"垂直穿透管控"模式。通过搭建集团级安全管理中枢平台，实现对下属各级子公司、项目单位的安全状况进行统一监管与调度，强化集团对全链条安全风险的掌控能力。', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
+  { tag: '单点管控', title: '企业自主管理', body: '面向单个项目或企业的"大安全自主管理"。通过构建智能化的安全管理平台，实现对消防设施、应急预案、风险隐患等要素的实时监测与动态管理，提升单位自身的安全防控能力和应急响应效率。', image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg' },
+  { tag: '全域协同', title: '区域联勤联动', body: '围绕监管部门为核心的"区域联勤联动"机制。打通区域内多个单位、部门之间的信息壁垒，建立统一指挥、快速响应、多方协同的应急联动体系，提升对突发事件的综合处置能力。', image: '/images/unsplash/photo-1434626881859-194d67b2b86f.jpg' },
+  { tag: '集团统管', title: '垂直穿透管控', body: '针对大型集团公司的"垂直穿透管控"模式。通过搭建集团级安全管理中枢平台，实现对下属各级子公司、项目单位的安全状况进行统一监管与调度，强化集团对全链条安全风险的掌控能力。', image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
 ]
 
 // ===== Scenarios =====
@@ -433,13 +434,13 @@ const caseTabs = [
   { key: '垂直业务', label: '垂直业务' },
 ]
 const CASES = [
-  { slug: 'gangnan-campus', name: '港南二中校园安全', tag: '教育', desc: '部署 AI 防欺凌系统、消防监测终端与应急指挥平台，实现校园安全事件早发现、快响应，覆盖 200+ 终端设备。', nums: ['200+ 设备', '6 类终端', '4 种协议'], image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
-  { slug: 'industrial-park', name: '工贸企业安全管理', tag: '工业', desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。', nums: ['5 个场景', '18 业务域', '全链闭环'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
-  { slug: 'fire-maintenance', name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80' },
-  { slug: 'hot-work', name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80' },
-  { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&q=80' },
-  { slug: 'commercial-street', name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80' },
-  { slug: 'quanzhou-cockpit', name: '泉州应消联勤监管平台', tag: '城市治理', desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，覆盖工贸企业自律、消防控制室值守、风险源作业审批等14个核心模块，实现一屏观全域、一网管消防。', nums: ['14 模块', 'AI 研判', '多端协同'], image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80' },
+  { slug: 'campus-safety', name: '平安校园', tag: '教育', desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动三大场景，将学校安全管理每个环节数字化，从"人管人"走向"数据管安全"。', nums: ['3 大场景', 'AI 防欺凌', '7×24 值守'], image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg' },
+  { slug: 'industrial-park', name: '工贸企业安全管理', tag: '工业', desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。', nums: ['5 个场景', '18 业务域', '全链闭环'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg' },
+  { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg' },
+  { slug: 'quanzhou-cockpit', name: '泉州应消联勤监管平台', tag: '城市治理', desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，覆盖工贸企业自律、消防控制室值守、风险源作业审批等14个核心模块，实现一屏观全域、一网管消防。', nums: ['14 模块', 'AI 研判', '多端协同'], image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
+  { slug: 'fire-maintenance', name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg', coming: true },
+  { slug: 'hot-work', name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: '/images/unsplash/photo-1534528741775-53994a69daeb.jpg', coming: true },
+  { slug: 'commercial-street', name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: '/images/unsplash/photo-1517457373958-b7bdd4587205.jpg', coming: true },
 ]
 
 const filteredCases = computed(() =>
@@ -679,12 +680,13 @@ html, body { margin: 0; padding: 0; }
 .case-slant { position: relative; flex: 0 0 calc(33.333% - 11px); margin-right: 16px; transform: skewX(-6deg); background-size: cover; background-position: center; border-radius: 16px; overflow: hidden; min-height: 320px; transition: transform 0.3s; cursor: pointer; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
 .case-slant:hover { transform: skewX(-6deg) scale(1.02); z-index: 4; box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
 .case-slant-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 100%); z-index: 1; }
+.case-slant-coming { position: absolute; top: 12px; right: 12px; z-index: 3; font-size: 13px; font-weight: 600; color: #fff; background: linear-gradient(135deg, rgba(234,88,12,0.85), rgba(220,38,38,0.75)); padding: 5px 14px; border-radius: 4px; transform: skewX(6deg); font-family: var(--f-display); letter-spacing: 1px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .case-slant-content { position: relative; z-index: 2; padding: 36px 40px; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; transform: skewX(6deg); }
-.case-slant-tag { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(54,120,227,0.4); padding: 4px 12px; border-radius: 4px; align-self: flex-start; margin-bottom: 12px; font-family: var(--f-display); flex-shrink: 0; }
+.case-slant-tag { font-size: 14px; font-weight: 600; color: #fff; background: rgba(54,120,227,0.65); padding: 4px 14px; border-radius: 4px; align-self: flex-start; margin-bottom: 12px; font-family: var(--f-display); flex-shrink: 0; letter-spacing: 0.5px; }
 .case-slant-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 8px; font-family: var(--f-display); flex-shrink: 0; min-height: 28px; }
 .case-slant-desc { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.6; margin: 0 0 14px; flex: 1; overflow: hidden; }
 .case-slant-nums { display: flex; gap: 6px; flex-wrap: nowrap; margin-top: auto; flex-shrink: 0; }
-.case-slant-nums span { font-size: 13px; color: #93c5fd; background: rgba(54,120,227,0.2); padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+.case-slant-nums span { font-size: 11px; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
 @media (max-width: 640px) {
   .case-slant { flex: 0 0 calc(100% - 20px); transform: none; min-height: 280px; }
   .case-slant-content { transform: none; padding: 24px; }

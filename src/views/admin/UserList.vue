@@ -134,7 +134,7 @@
           <el-form-item label="头像">
             <div class="avatar-edit-row">
               <div class="avatar-edit-wrap" @click="triggerAvatarInput">
-                <img class="avatar-preview" :src="editForm.avatar || dicebearAvatar" alt="头像" />
+                <img class="avatar-preview" :src="editForm.avatar || defaultAvatar" alt="头像" />
                 <div class="avatar-edit-overlay">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   <span>编辑</span>
@@ -254,7 +254,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
+import { avatarUrl } from '@/composables/useAvatar' lang="ts">
 import { ref, reactive, computed, onMounted, h } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useConfirm } from '@/composables/useConfirm'
@@ -330,7 +331,7 @@ const saving = ref(false)
 const editFormRef = ref<FormInstance>()
 const editingId = ref(0)
 const editForm = reactive<{ phone: string; realName: string; email: string; avatar: string; systemRole: string | null }>({ phone: '', realName: '', email: '', avatar: '', systemRole: null })
-const dicebearAvatar = computed(() => `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(editForm.realName || editForm.phone)}`)
+const defaultAvatar = computed(() => avatarUrl(u?.realName || 'default'))
 
 // 头像上传
 const avatarInput = ref<HTMLInputElement | null>(null)

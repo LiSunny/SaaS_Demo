@@ -56,6 +56,12 @@ const PREVIEWS: Record<string, PreviewInfo> = {
     backLink: '/portal/case/quanzhou-cockpit',
     expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523',
   },
+  campus: {
+    src: '/screenshots/campus-safety.png',
+    title: '校园安全管理大屏',
+    backLink: '/portal/case/campus-safety',
+    expLink: '/login?redirect=/landing/campus',
+  },
 }
 
 const preview = computed(() => PREVIEWS[type.value] || PREVIEWS.resumption)
