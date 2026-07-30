@@ -19,8 +19,8 @@ deploy_frontend() {
   npm run build
 
   echo ""
-  echo "📤 上传前端到服务器..."
-  scp -r dist/* "${SERVER}:${FRONTEND_PATH}/"
+  echo "📤 上传前端到服务器（清理旧版本）..."
+  rsync -av --delete dist/ "${SERVER}:${FRONTEND_PATH}/"
 
   echo ""
   echo "✅ 前端更新完成 → https://www.lyspace.top"
