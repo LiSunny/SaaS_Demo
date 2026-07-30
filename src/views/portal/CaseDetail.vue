@@ -656,9 +656,9 @@ onUnmounted(() => {
 }
 .cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
 .cd-sec-num {
-  font-family: 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
+  font-family: 'Douyin Sans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
   font-size: 52px;
-  font-weight: 400;
+  font-weight: 700;
   color: rgba(54, 120, 227, 0.18);
   line-height: 0.85;
   flex-shrink: 0;
@@ -894,6 +894,14 @@ onUnmounted(() => {
   font-family: 'YouSheBiaoTiHei';
   src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
   font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* 抖音美好体 — 章节编号用 */
+@font-face {
+  font-family: 'Douyin Sans';
+  src: url('/fonts/DouyinSansBold.ttf') format('truetype');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
