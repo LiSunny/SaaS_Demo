@@ -52,7 +52,7 @@
     <!-- ===== 业务协同示意 ===== -->
     <section v-if="current.collaboration" class="cd-section cd-section-alt">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.collaboration }}</span>业务协同示意</h2>
+        <h2 class="cd-sec-title cd-sec-title--alt"><span class="cd-sec-num">{{ secNum.collaboration }}</span>业务协同示意</h2>
         <p class="cd-sec-sub">数据自下而上汇聚，决策自上而下贯通</p>
         <div class="cd-collab-flow" ref="collabFlowRef">
           <div v-for="(layer, li) in current.collaboration" :key="li">
@@ -114,7 +114,7 @@
     <!-- ===== 大屏预览截图 ===== -->
     <section v-if="current.previewType" class="cd-section cd-section-alt">
       <div class="sec-wrap">
-        <h2 class="cd-sec-title"><span class="cd-sec-num">{{ secNum.preview }}</span>平台多端展示</h2>
+        <h2 class="cd-sec-title cd-sec-title--alt"><span class="cd-sec-num">{{ secNum.preview }}</span>平台多端展示</h2>
         <p class="cd-sec-sub">{{ current.name }}数据看板 · 多端协同展示</p>
         <div class="cd-preview-mock">
           <!-- Web 大屏 -->
@@ -654,14 +654,18 @@ onUnmounted(() => {
   border-radius: 50%;
   pointer-events: none;
 }
-.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.cd-sec-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 24px; text-align: center; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
 .cd-sec-num {
   font-family: 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
-  font-size: 40px;
+  font-size: 52px;
   font-weight: 400;
-  color: rgba(54, 120, 227, 0.12);
-  line-height: 1;
+  color: rgba(54, 120, 227, 0.18);
+  line-height: 0.85;
   flex-shrink: 0;
+}
+/* 渐变背景区域编号用白色调 */
+.cd-sec-title--alt .cd-sec-num {
+  color: rgba(255, 255, 255, 0.22);
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
