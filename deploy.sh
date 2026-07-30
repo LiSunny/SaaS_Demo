@@ -10,8 +10,17 @@
 SERVER="root@60.205.170.250"
 FRONTEND_PATH="/opt/myapp/frontend"
 BACKEND_PATH="/opt/myapp/backend"
+NGINX_CONF="/etc/nginx/sites-enabled/myapp"
 
 set -e
+
+sync_nginx() {
+  echo ""
+  echo "🔧 同步 Nginx 配置..."
+  scp nginx/myapp.conf "${SERVER}:${NGINX_CONF}"
+  ssh "${SERVER}" "nginx -t && systemctl reload nginx"
+  echo "✅ Nginx 配置已同步并重载"
+}
 
 deploy_frontend() {
   echo ""
@@ -55,6 +64,7 @@ deploy_all() {
   echo "║  目标: ${SERVER}                     ║"
   echo "╚══════════════════════════════════════╝"
 
+  sync_nginx
   deploy_frontend
   deploy_backend
 
@@ -73,11 +83,14 @@ case "${1:-all}" in
   backend)
     deploy_backend
     ;;
+  nginx)
+    sync_nginx
+    ;;
   all)
     deploy_all
     ;;
   *)
-    echo "用法: npm run deploy | ./deploy.sh {frontend|backend|all}"
+    echo "用法: npm run deploy | ./deploy.sh {frontend|backend|nginx|all}"
     exit 1
     ;;
 esac
