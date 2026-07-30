@@ -302,20 +302,22 @@ const titleChars = '人工智能 + 公共安全管理平台'.split('')
 // ===== Hero stack carousel =====
 import heroCampusImg from '@/assets/portal/hero-campus.png'
 import heroIndustryImg from '@/assets/portal/hero-industry.png'
-import heroMerchantImg from '@/assets/portal/hero-merchant.png'
 
 const HERO_IMAGES = [
   { src: heroCampusImg, alt: '校园安全管理大屏' },
   { src: heroIndustryImg, alt: '工贸企业安全管理大屏' },
-  { src: heroMerchantImg, alt: '小商户安全监管大屏' },
+  { src: '/screenshots/fgfc_cz.png', alt: '复工复产管理大屏' },
+  { src: '/screenshots/quanzhou-cockpit.png', alt: '泉州应消联勤监管大屏' },
+  { src: '/screenshots/ebike-safety.png', alt: '电动自行车安防监管大屏' },
 ]
 const heroCards = ref(HERO_IMAGES.map((img, i) => ({ ...img, pos: i })))
+const STACK_SIZE = HERO_IMAGES.length
 let stackTimer: ReturnType<typeof setInterval>
 onMounted(() => {
   stackTimer = setInterval(() => {
     heroCards.value = heroCards.value.map(c => ({
       ...c,
-      pos: (c.pos + 1) % 3,
+      pos: (c.pos + 1) % STACK_SIZE,
     }))
   }, 4000)
 })
@@ -583,8 +585,12 @@ html, body { margin: 0; padding: 0; }
 .hero-stack-pos1 { z-index: 2; opacity: 0.7; transform: rotate(1.5deg) translateX(8px); }
 /* Position 2 = back */
 .hero-stack-pos2 { z-index: 1; opacity: 0.55; transform: rotate(-3deg) translateX(-12px); }
+/* Position 3-4 = hidden behind */
+.hero-stack-pos3, .hero-stack-pos4 { z-index: 0; opacity: 0; transform: rotate(0deg) translateX(0); pointer-events: none; }
 .hero-stack:hover .hero-stack-pos1 { transform: rotate(3deg) translateX(20px) !important; }
 .hero-stack:hover .hero-stack-pos2 { transform: rotate(-5deg) translateX(-28px) !important; }
+.hero-stack:hover .hero-stack-pos3 { transform: rotate(-2deg) translateX(-8px) !important; opacity: 0.3; }
+.hero-stack:hover .hero-stack-pos4 { transform: rotate(1deg) translateX(4px) !important; opacity: 0.15; }
 .hero-stack-card img {
   width: 100%; height: 100%;
   object-fit: cover;
