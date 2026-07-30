@@ -420,6 +420,34 @@ const CASES: CaseData[] = [
       },
     ],
   },
+  {
+    slug: 'ebike-safety',
+    name: '电动自行车充电桩安防监管',
+    tag: '城市治理',
+    desc: '面向居民小区与企事业单位的电动自行车充电安全监管平台，覆盖充电桩消安台账、火灾预警联动、消控室离岗监控与共享单车投放监管，构建从充电设施到应急响应的全链路安防体系。',
+    nums: ['4 大模块', '3 级联动', '全域覆盖'],
+    image: '/images/unsplash/photo-1441986300917-64674bd600d8.jpg',
+    previewType: 'ebike',
+    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%2523',
+    demoPhone: '13200002345',
+    demoPassword: 'admin123!@#',
+    overview: [
+      '全国电动自行车保有量已超 3.5 亿辆，充电引发的火灾事故逐年上升。小区充电棚私拉乱接、电池过充无人管、消控室夜间脱岗、共享单车乱停乱放——每个环节都可能成为火灾隐患。传统管理靠物业巡查和人工台账，发现不及时、整改不闭环、责任难追溯。',
+      '平台以充电桩（棚）为锚点，构建"设施监管—火灾预警—应急联动"三层防线。充电端口与充电桩建立消安电子台账，达标率环形图一目了然；火灾预警点位联动烟感、电气、离岗三类告警，最新告警时间与负责人实时追踪；消控室摄像头 7×24 监控，持证备案人数在线可查。物业、运营、企事业三类主体分 Tab 切换，各自管理各自的数据。',
+      '从充电桩台账达标到火警告警联动、从经营主体日常履责到共享单车投放监管，平台将"人盯人"的低效模式升级为"数据管安全"的闭环体系。物业不再靠纸质签到，监管部门远程即可掌握全域充电安全态势。',
+    ],
+    features: [
+      { title: '充电桩消安台账', desc: '充电端口与充电桩建立电子档案，达标率环形图一目了然，已达标/未达标双指标统计。企事业与社区双主体 Tab 切换，各自管理各自数据。' },
+      { title: '火灾预警点位联动', desc: '烟感报警、离岗报警、电气报警三类告警统一接入，最新告警时间与负责人实时追踪。红黄蓝绿四色标记点位风险等级，一键调取摄像头核实。' },
+      { title: '经营主体日常履责', desc: '物业、运营、企事业三类主体分 Tab 切换，已履责/未履责企业双指标监控。实地巡检打卡排名实时更新，谁在管、谁没管一目了然。' },
+      { title: '消控室值班离岗监控', desc: '消控室摄像头 7×24 在线监控，REC 实时录制叠加时间戳。持证备案人数在线可查，离岗自动检测告警，确保值守不断档。' },
+    ],
+    values: [
+      { person: '张晓明', name: '物业经理/安全负责人', duty: '充电桩达标率、告警处置率、巡检覆盖率三个数字就能判断小区安防是否到位，不用再翻纸质台账了。' },
+      { person: '李建', name: '消控值班员', duty: '不再守着密密麻麻的告警指示灯。大屏弹窗帮筛一遍，精力留给真正需要警觉的时刻，工作从被动变主动。' },
+      { person: '周监管', name: '街道/监管部门', duty: '远程掌握全域充电桩安全态势，隐患整改进度一眼看清。从"跑现场抽查"到"在线精准监管"，效率翻倍。' },
+    ],
+  },
 ]
 
 const current = computed(() => CASES.find(c => c.slug === slug.value) || null)
@@ -437,6 +465,7 @@ const PREVIEW_SCREENSHOTS: Record<string, string> = {
   gongmao: '/screenshots/gongmao.png',
   quanzhou: '/screenshots/quanzhou-cockpit.png',
   campus: '/screenshots/campus-safety.png',
+  ebike: '/screenshots/ebike-safety.png',
 }
 const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value?.previewType || ''] || '')
 

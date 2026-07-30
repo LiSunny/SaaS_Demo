@@ -62,6 +62,12 @@ const PREVIEWS: Record<string, PreviewInfo> = {
     backLink: '/portal/case/campus-safety',
     expLink: '/login?redirect=/landing/campus',
   },
+  ebike: {
+    src: '/screenshots/ebike-safety.png',
+    title: '电动自行车安防监管大屏',
+    backLink: '/portal/case/ebike-safety',
+    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%2523',
+  },
 }
 
 const preview = computed(() => PREVIEWS[type.value] || PREVIEWS.resumption)
