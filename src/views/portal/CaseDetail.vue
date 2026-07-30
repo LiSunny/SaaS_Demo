@@ -662,10 +662,22 @@ onUnmounted(() => {
   color: rgba(54, 120, 227, 0.18);
   line-height: 0.85;
   flex-shrink: 0;
+  position: relative;
+}
+.cd-sec-num::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 2px;
+  height: 6px;
+  background: rgba(54, 120, 227, 0.35);
+  border-radius: 3px;
 }
 /* 渐变背景区域编号用白色调 */
 .cd-sec-title--alt .cd-sec-num {
   color: rgba(255, 255, 255, 0.22);
+}
+.cd-sec-title--alt .cd-sec-num::after {
+  background: rgba(255, 255, 255, 0.3);
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
