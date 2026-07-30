@@ -669,15 +669,12 @@ onUnmounted(() => {
   position: absolute;
   left: 0; right: 0; bottom: 2px;
   height: 6px;
-  background: rgba(54, 120, 227, 0.35);
+  background: #3678E3;
   border-radius: 3px;
 }
 /* 渐变背景区域编号用白色调 */
 .cd-sec-title--alt .cd-sec-num {
   color: rgba(255, 255, 255, 0.22);
-}
-.cd-sec-title--alt .cd-sec-num::after {
-  background: rgba(255, 255, 255, 0.3);
 }
 .cd-sec-sub { font-size: 16px; color: #5E5E5E; text-align: center; margin: 0 0 32px; }
 
