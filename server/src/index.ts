@@ -6,6 +6,7 @@ import { apiRouter } from './routes/index.js'
 import { errorHandler } from './middleware/error-handler.js'
 import { notFound } from './middleware/not-found.js'
 import { ensureDefaultAdmin } from './services/auth.service.js'
+import db from './config/db.js'
 
 const app = express()
 
@@ -33,7 +34,10 @@ app.use(notFound)
 app.use(errorHandler)
 
 // ========== 启动 ==========
-app.listen(env.PORT, async () => {
+const server = app.listen(env.PORT, async () => {
+  // 启用 SQLite WAL 模式：允许读写并发，消除间歇性超时的根因
+  await db.$executeRawUnsafe('PRAGMA journal_mode=WAL;')
+
   console.log(`
 ╔══════════════════════════════════════════╗
 ║  🚀 维保平台后端已启动                   ║
@@ -41,11 +45,15 @@ app.listen(env.PORT, async () => {
 ║  环境: ${env.NODE_ENV.padEnd(31)}║
 ║  健康检查: /api/health                   ║
 ║  登录接口: /api/auth/login               ║
+║  数据库模式: WAL（读写并发）              ║
 ╚══════════════════════════════════════════╝
   `)
 
   // 启动时自动创建默认管理员
   await ensureDefaultAdmin()
 })
+
+// 服务端超时 60s，防止 Nginx/客户端断连后连接堆积
+server.timeout = 60000
 
 export default app
