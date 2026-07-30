@@ -92,6 +92,7 @@ const router = createRouter({
         { path: 'gongmao', name: 'BigscreenGongmao', component: () => import('@/views/bigscreen/BigscreenGongmao.vue') },
         { path: 'enterprise-cockpit', name: 'EnterpriseCockpit', component: () => import('@/views/bigscreen/EnterpriseCockpit.vue') },
         { path: 'resumption-bigscreen', name: 'BigscreenResumption', component: () => import('@/views/bigscreen/BigscreenResumption.vue') },
+        { path: 'landing/ebike', name: 'BigscreenEbike', component: () => import('@/views/bigscreen/EbikeMonitor.vue') },
 
       ],
     },

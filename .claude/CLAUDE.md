@@ -176,61 +176,70 @@ src/api/adapters/
 
 ## 七、工作快照
 
-> 更新时间：2026-07-20
+> 更新时间：2026-07-30
 
-**当前阶段：** 复工复产管理 light 深度开发完成（3 页面 + 4 阶段模型），产品文档持续产出。
+**当前阶段：** 应急局电动车监控大屏（EbikeMonitor）开发完成，视觉调试收敛，bigscreen-implement skill 已加固。
 
 ### 已完成
 
-**复工复产管理（代码）：**
-- [x] 复工计划列表（`PlanList.vue`，338 行）— 列表筛选 + 新建计划（关联管理单元）
-- [x] 复工流程详情（`PlanDetail.vue`，752 行）— 4 阶段进度条 + 子步骤导航（横向布局）+ 步骤录入
-- [x] 复工看板（`Dashboard.vue`，304 行）— 3 统计卡片 + 车间进度卡片网格
-- [x] 类型定义（`resumption.ts`，134 行）— STAGES、STEP_META、4 实体 + 5 岗位
-- [x] DAO 层（`resumption-dao.ts`，260 行）— localStorage Mock + updateStep 状态流转
-- [x] 路由 + 导航注册
+**电动车监控大屏（代码，1 页面 + 11 组件）：**
+- [x] `EbikeMonitor.vue` — 主页面，三列布局 + 暗色滚动条全局样式
+- [x] `EbikeMonitorHeader.vue` — 顶部标题栏（Figma SVG 装饰 + 渐变背景 + 底部分隔线）
+- [x] `EbikeSectionTitle.vue` — 小标题组件（Figma 精确还原：渐变底 + 3 个 SVG 装饰）
+- [x] `StatCardRow.vue` — 4 统计卡片（Figma 导出 `stat-card-bg.svg` 背景 + CSS 文字）
+- [x] `DutyCompliance.vue` — 经营主体日常履责（3 Tab + 已履责/未履责指标 + 排名表）
+- [x] `HazardHandling.vue` — 自查隐患运维处置（2 Tab + 数据表格）
+- [x] `PlatformInfo.vue` — 共享电动自行车监管（美团数据卡片）
+- [x] `ChargingStationStats.vue` — 充电桩消安台账（2 Tab + SVG 圆环 + 达标详情）
+- [x] `MapWithMarkers.vue` — 高德地图 + 4 色 Figma 标记点（SVG 圆点 + 标签）
+- [x] `FireAlarmLinkage.vue` — 火灾预警点位联动（3 Tab + 告警列表）
+- [x] `EnterpriseMonitor.vue` — 消控室值班监控（企业选择 + 持证人数 SVG + 写实摄像头画面）
+- [x] `EmergencyPlan.vue` — 应急预案卡片（Figma SVG 图标 + 水印）
+- [x] 路由注册：`/landing/ebike`、类型 `BigscreenType.ebike`、模板 `bigscreen-templates.ts`
 
-**复工复产管理（文档）：**
-- [x] 设计文档 v2.0（`docs/复工复产管理/design.md`，~210 行）— 4 阶段模型
-- [x] ai-spec ×3（`docs/复工复产管理/ai-spec/`）— 列表/详情/看板
+**Figma 素材（26 个）：**
+- [x] Header: `ebike-header-left/right/glow.svg`
+- [x] 小标题: `section-intersect.svg` / `deco-left/right.svg`
+- [x] Tab 图标: `icon-city/school/operation/smoke/leave/electric.svg`
+- [x] 业务图标: `icon-ebike/battery/personnel/emergency-plan/good/bad.svg`
+- [x] 地图标记: `marker-yellow/blue/red/orange.svg`
+- [x] 履责背景: `compliance-bg-done/undone.svg`
+- [x] 卡片背景: `stat-card-bg.svg`
 
-**产品文档（对外宣传 + 用户手册）：**
-- [x] 动火作业管理 — 场景介绍 + 用户手册
-- [x] 工贸企业安全管理 — 功能探索报告 + 场景介绍
-- [x] FigJam 业务域全景信息图
-
-**代码探索：**
-- [x] 港南项目（Flutter 移动端）全量探索
-- [x] neat-ui（Vue 3 Web 后台）全量探索
+**Skill 改进：**
+- [x] `bigscreen-implement` SKILL.md 新增"硬性约束"10 条
+- [x] Memory `skill-execution-enforcement.md` — 跨 session 技能执行提醒
+- [x] Skill 从 monorepo 根目录复制到 `maintenance-demo/.claude/skills/`，`/` 斜杠可触发
 
 ### 技术要点
 
-- **4 阶段模型**：复工准备（自由编辑）→ 复工审核（验收后锁定）→ 试产观察 → 正式复产（只读）
-- **步骤 1-7 自由顺序**：验收前步骤可任意顺序完成，只有 pending/done 状态
-- **验收为分水岭**：步骤 8（联合验收）完成后前序步骤锁定，后续顺序执行
-- **管理单元集成**：PlanList 创建时通过 el-select + allow-create 选择/输入复工场所
+- **高德地图集成**：复用项目 AMap 2.0 CDN + 暗色主题 `d09c32c3f8fe92f329d2631a674d4441`
+- **写实监控画面**：参考 `FireControlMonitoring.vue`，镜头暗角 + 扫描线动画 + REC 指示灯 + 时间戳 OSD
+- **统一卡片体系**：所有模块 `.module-card` 使用 `rgba(0,80,140,0.45)` + `border rgba(0,152,230,0.2)`
+- **页面背景**：`radial-gradient(#003768, #00244d)` 深蓝底
+- **文字对比度**：渐变终点 `#c8e4ff`，未选中 tab `opacity: 0.45`
+- **暗色滚动条**：非 scoped 全局 `::-webkit-scrollbar`，4px 宽、20% 蓝色滑块
 
 ### 待处理
 
 | 问题 | 优先级 | 来源 |
 |------|--------|------|
-| 大屏内容仍为静态 Mock，无真实数据 | P1 | 上次快照遗留 |
-| 企业成员 CRUD API 完整对接 | P1 | 上次快照遗留 |
-| 其他 15 个业务域的场景介绍 + 用户手册待写 | P2 | 上次 — 已完成 2 域 |
-| Agent 升级数据查询（Function Calling） | P2 | 上次快照遗留 |
-| 复工复产管理 standard/full 升级（后端 API、权限校验） | P2 | 本次 |
+| 监控画面为静态截图，待对接真实 RTSP 流 | P1 | EnterpriseMonitor |
+| 四个统计卡片数据为静态，需对接后端 API | P1 | StatCardRow |
+| 地图标记点坐标为模拟值，需用真实坐标 | P1 | MapWithMarkers |
+| 各列表数据为 Mock，需对接后端 | P2 | DutyCompliance / HazardHandling / FireAlarmLinkage |
+| 充电桩圆环图达标率为固定值 | P2 | ChargingStationStats |
 
 ### 关键决策
 
-- **11 步 → 4 阶段**：进度条从 11 个步骤节点精简为 4 个阶段，子步骤折叠展开。比逐步骤展示更简洁，小白用户也能一眼看懂。
-- **自由顺序 → 顺序执行**：验收前自由、验收后顺序，符合"审核关卡"的业务语义。
-- **验收签发内联**：不单独建验收页，验收和签发信息直接在详情页步骤内展示。
-- **角色按设计文档写**：产品文档角色对齐 `docs/平台岗位设计.md` 的 11 岗位。
-- **合并两端叙事**：场景介绍中 Web 端和移动端功能合并描述。
+- **Figma 素材 > CSS 模拟**：本次最大教训。已在 skill 中固化为硬性约束 #1-3。
+- **逐模块验证 > 批量交付**：9 个模块一次性写完导致 10+ 轮返工。已在 skill 中固化为 #6-7。
+- **非 scoped 样式块**：滚动条 scoped 无效，最终用全局 `<style>` 块解决。
+- **模块底色统一**：尝试了 4 种方案后对齐 stat card 的 `#0063A0` 色相才收敛。
 
 ### 下次建议动作
 
-1. `npm run dev` 预览完整流程：列表 → 新建 → 详情录入步骤 → 看板
-2. 走查后 `/review` 或者继续 other 业务域开发
-3. 按优先级继续写域级场景介绍：设备台账 → 巡查检查 → 隐患整改
+1. `npm run dev` → 访问 `/landing/ebike` 查看完整效果
+2. 对接后端：用 `/design 电动车监控` + `/generate 电动车监控` 创建 API
+3. 替换监控画面为真实 RTSP 流或定期截图
 

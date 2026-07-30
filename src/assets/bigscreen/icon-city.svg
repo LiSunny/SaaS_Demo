@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#89B5FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(1.25, 1.25) scale(1, 0.9756)">
+    <path d="M17.75 0C18.7165 0 19.5 0.7835 19.5 1.75V18.75c0 .085-.0078.1683-.0195.25H20.75c.4142 0 .75.3358.75.75s-.3358.75-.75.75H.75c-.4142 0-.75-.3358-.75-.75s.3358-.75.75-.75h1.2695c-.0117-.0817-.0195-.165-.0195-.25V12.75c0-.9665.7835-1.75 1.75-1.75H5.75c.085 0 .1683.0078.25.0195V1.75C6 .7835 6.7835 0 7.75 0h10zM3.75 12.5c-.1381 0-.25.1119-.25.25v6c0 .1381.1119.25.25.25H5.75c.1381 0 .25-.1119.25-.25v-6c0-.1381-.1119-.25-.25-.25H3.75zm4-11c-.1381 0-.25.1119-.25.25v17c0 .1381.1119.25.25.25h10c.1381 0 .25-.1119.25-.25V1.75c0-.1381-.1119-.25-.25-.25h-10z" fill="url(#grad)"/>
+  </g>
+  <g transform="translate(6, 17) scale(5.75, 1)">
+    <path d="M0.75 0.75H1.25" stroke="url(#grad)" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <rect x="11" y="5" width="2" height="2" rx="0.5" fill="url(#grad)"/>  <rect x="15" y="5" width="2" height="2" rx="0.5" fill="url(#grad)"/>  <rect x="11" y="8.5" width="2" height="2" rx="0.5" fill="url(#grad)"/>  <rect x="15" y="8.5" width="2" height="2" rx="0.5" fill="url(#grad)"/>  <rect x="15" y="10" width="2" height="2" rx="0.5" fill="url(#grad)"/>  <rect x="15" y="15.5" width="2" height="2" rx="0.5" fill="url(#grad)"/>
+</svg>

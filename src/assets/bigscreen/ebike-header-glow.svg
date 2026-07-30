@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="143.925" height="4" viewBox="0 0 143.925 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="Intersect" d="M139.825 0C142.48 0.782334 143.925 1.6229 143.925 2.5C143.925 3.01387 143.429 3.51519 142.484 4H1.44043C0.495984 3.51522 0 3.01383 0 2.5C0 1.62292 1.44494 0.782316 4.09961 0H139.825Z" fill="url(#paint0_radial_0_19)"/>
+<defs>
+<radialGradient id="paint0_radial_0_19" cx="0" cy="0" r="1" gradientTransform="matrix(71.9624 -0.159575 0.0845147 3.8861 71.9624 2.5)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#DDFFFE" stop-opacity="0.86"/>
+<stop offset="0.653846" stop-color="#4F9EDC"/>
+<stop offset="1" stop-color="#418BC9"/>
+</radialGradient>
+</defs>
+</svg>

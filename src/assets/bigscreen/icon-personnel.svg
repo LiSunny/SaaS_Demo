@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60.0545 68.0001" fill="none">
+  <defs>
+    
+<linearGradient id="paint0_linear_0_15" x1="30.0272" y1="9.9879e-05" x2="30.0272" y2="68.0001" gradientUnits="userSpaceOnUse">
+<stop stop-color="#C2E8FF"/>
+<stop offset="1" stop-color="#005CB3"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_15" x1="30.0272" y1="9.9879e-05" x2="30.0272" y2="68.0001" gradientUnits="userSpaceOnUse">
+<stop stop-color="#23C4E8"/>
+<stop offset="0.197115" stop-color="#006EC3"/>
+<stop offset="0.770598" stop-color="#006EC3"/>
+<stop offset="1" stop-color="#23C4E8"/>
+</linearGradient>
+
+<filter id="filter0_f_0_14" x="0" y="0" width="90.0545" height="53.8" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="7.5" result="effect1_foregroundBlur_0_14"/>
+</filter>
+<radialGradient id="paint0_radial_0_14" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(45.0272 15) rotate(90) scale(20.4 27.2593)">
+<stop stop-color="#DFFAFF" stop-opacity="0.68"/>
+<stop offset="0.242586" stop-color="#07C6E8" stop-opacity="0.56"/>
+<stop offset="1" stop-color="#07C6E8" stop-opacity="0"/>
+</radialGradient>
+
+<linearGradient id="paint0_linear_0_10" x1="24.0916" y1="0" x2="24.0916" y2="54.4" gradientUnits="userSpaceOnUse">
+<stop stop-color="#007DBF"/>
+<stop offset="0.340288" stop-color="#0F66B8"/>
+<stop offset="0.770598" stop-color="#1E5294"/>
+<stop offset="1" stop-color="#155EB8"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_10" x1="24.0916" y1="0" x2="24.0916" y2="54.4" gradientUnits="userSpaceOnUse">
+<stop stop-color="#67E3FF"/>
+<stop offset="0.168269" stop-color="#327FBA"/>
+<stop offset="0.802885" stop-color="#327FBA"/>
+<stop offset="1" stop-color="#059ECA"/>
+</linearGradient>
+
+<linearGradient id="paint0_linear_0_11" x1="10.354" y1="0" x2="10.354" y2="20.708" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="#89B5FF"/>
+</linearGradient>
+
+  </defs>
+  <!-- Layer 1: Group 14 背景底板 (60×68, at 0,0) -->
+  <g transform="translate(0, 0)">
+<g id="Group 14">
+<path id="Polygon 1" d="M59.0547 17.5831V50.4161L30.0264 66.8507L1 50.4171V17.5821L30.0264 1.14854L59.0547 17.5831Z" fill="url(#paint0_linear_0_15)" stroke="url(#paint1_linear_0_15)" stroke-width="2"/>
+<rect id="Rectangle 31" x="5.42727e-06" y="29.917" width="2.79323" height="8.16" fill="#00EA7D"/>
+<rect id="Rectangle 33" x="57.2613" y="29.917" width="2.79323" height="8.16" fill="#00EA7D"/>
+</g>
+
+</g>
+  <!-- Layer 2: Polygon 2 六边形轮廓 (48.2×54.4, at 5.59,6.8) -->
+  <g transform="translate(5.59, 6.8)">
+<path id="Polygon 2" d="M47.1836 14.1836V40.2148L24.0908 53.251L1 40.2158V14.1826L24.0908 1.14844L47.1836 14.1836Z" fill="url(#paint0_linear_0_10)" stroke="url(#paint1_linear_0_10)" stroke-width="2"/>
+
+</g>
+  <!-- Layer 3: Vector 1 顶部弧线 (clipped to 60×23.8 at 0,0) -->
+  <g transform="translate(0, 0)" clip-path="url(#topClip)">
+    <clipPath id="topClip"><rect x="0" y="0" width="60.0545" height="23.8"/></clipPath>
+    
+<g id="Vector 1" filter="url(#filter0_f_0_14)">
+<path d="M75.0545 38.8H15V32L45.0272 15L75.0545 32V38.8Z" fill="url(#paint0_radial_0_14)"/>
+</g>
+
+
+  </g>
+  <!-- Layer 4: People 人员图标 (20.7×20.7, at 16.76,19.04) -->
+  <g transform="translate(16.76, 19.04)">
+<path id="Union" d="M13.1289 11.7383C14.3115 11.7383 15.2439 11.7376 15.9932 11.7988C16.7511 11.8608 17.388 11.9899 17.9678 12.2852C18.912 12.7663 19.68 13.5343 20.1611 14.4785C20.4565 15.0583 20.5855 15.6951 20.6475 16.4531C20.7087 17.2024 20.708 18.1348 20.708 19.3174V19.958C20.708 20.3722 20.3722 20.708 19.958 20.708H0.750001C0.335875 20.7079 6.44379e-07 20.3722 6.44379e-07 19.958V19.3174C4.09997e-07 18.1348 -0.00066957 17.2024 0.0605475 16.4531C0.122498 15.6952 0.251489 15.0583 0.546876 14.4785C1.028 13.5343 1.79599 12.7663 2.74024 12.2852C3.32002 11.9898 3.95686 11.8608 4.71484 11.7988C5.46411 11.7376 6.39651 11.7383 7.5791 11.7383H13.1289ZM10.3545 0C12.8312 0.000234487 14.8388 2.00863 14.8389 4.48535C14.8386 6.96196 12.8311 8.96949 10.3545 8.96973C7.87778 8.96961 5.86938 6.96204 5.86914 4.48535C5.86924 2.00856 7.87769 0.000111856 10.3545 0Z" fill="url(#paint0_linear_0_11)"/>
+
+</g>
+</svg>

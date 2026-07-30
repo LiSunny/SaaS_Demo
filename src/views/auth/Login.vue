@@ -295,6 +295,7 @@ const featureCards = [
 // 体验账号 — 根据打包环境自动切换
 // 泉州应急局 体验账号 付凯华 13000001111 admin123!@#
 // 新思维高级中学 体验账号 王世豪 13100001234 admin123!@#
+// 中冶龙熙半岛 体验账号 张晓明 13200002345 admin123!@#
 const demoAccounts = import.meta.env.PROD
   ? [
       { role: '系统运维', phone: '17733550542', password: 'yvdi2f', image: platformAdminImg },
