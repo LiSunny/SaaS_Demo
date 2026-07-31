@@ -382,44 +382,54 @@ const CASES: CaseData[] = [
     slug: 'campus-safety',
     name: '平安校园',
     tag: '教育',
-    desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动三大场景，将学校安全管理每个环节数字化，从"人管人"走向"数据管安全"。',
-    nums: ['3 大场景', 'AI 防欺凌', '7×24 值守'],
+    desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动、隐患闭环、安全履职五大核心能力，将学校安全管理每个环节数字化，从"人管人"走向"数据管安全"。',
+    nums: ['5 项能力', '3 项 AI', '全链闭环'],
     image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg',
     previewType: 'campus',
     expLink: '/login?redirect=/landing/campus',
     demoPhone: '13100001234',
     demoPassword: 'admin123!@#',
     overview: [
-      '中国有超过 50 万所各级各类学校，每天超过 2 亿学生在校用餐、数千万学生住在学校宿舍。校园安全不是"别出事"，而是"出不起事"——食堂食材从哪来、什么时候到期？厕所角落里有人在求救，谁听到了？宿舍那层楼的烟感早就不响了，有没有人知道？三件事反复发生，指向同一个根子：信息在采集时不完整，在传递时层层衰减。巡检员发现隐患→写在纸上→队长月底汇总→学期总结只剩"总体良好"——安全管理的真实信号就这样消失在层层衰减中。',
-      '平台将学校安全管理的每一个环节数字化。食堂从食材入库、留样登记到陪餐评价全链条可追溯——临期自动提醒、过保自动拦截；宿舍与卫生间部署 AI 声音识别设备，在监控盲区捕捉求救信号，检测→弹窗→值班确认→保安到场，全程时间戳记录；巡更扫码定位确保人到点位、手报与声光报警设备状态实时监控。每一个动作"做完即记录"，不是靠签字本和口头汇报，而是用数据证明每一步都落实了。',
-      '覆盖校园食品安全全链条管控、AI 防欺凌预警与处置、宿舍安全与应急联动三大场景，支撑寄宿制与非寄宿制学校的差异化监管——寄宿制重点防护欺凌、电消隐患与应急响应，非寄宿制侧重上下学高峰流控和日常巡检。从食材入库到陪餐评价、从 AI 听到求救声到保安到场处置、从手报按钮状态到声光报警联动——不是用人管人，是用数据管安全。',
+      '中国有超过 50 万所各级各类学校，每天超过 2 亿学生在校用餐、数千万学生住在学校宿舍。校园安全不是"别出事"，而是"出不起事"——昆明长丰学校猪肉发臭、长沙初三女生被欺凌近一年无人发现、河南方城英才学校宿舍火灾 13 个孩子遇难。三件事指向同一个根子：信息在采集时就不完整，在传递时层层衰减。巡检员发现消防栓没水→写在纸上→队长月底汇总为"部分消防设施故障"→学期总结只剩"总体良好"——安全管理的真实信号就这样消失在层层衰减中。寄宿制学校的火灾和欺凌风险是非寄宿的数十倍，但所有学校按同一套标准检查，"没出事"被默认等同于"没问题"。',
+      '平台将学校安全管理的每一个环节数字化，用三个 AI 闭环堵住信息缺口：AI 替代"人听"——在厕所、宿舍等监控盲区部署声音识别，捕捉求救关键词，检测→弹窗→值班确认→保安到场，全程时间戳记录；AI 替代"人看"——一线人员拍照上传消防设施，AI 自动识别设备主体并匹配国标规范，逐项生成检查结论；AI 替代"人写"——每天全量告警自动聚类分析、诊断根因、生成结构化日报。每一个动作"做完即记录"，不是靠签字本和口头汇报，而是用数据证明每一步都落实了。',
+      '覆盖校园食品安全全链条管控、AI 防欺凌预警与处置、宿舍安全与应急联动、校园隐患闭环管理、校园安全履职五大核心场景，支撑寄宿制与非寄宿制学校的差异化监管——寄宿制重点防护欺凌、电消隐患、食品安全与应急响应，非寄宿制侧重上下学高峰流控和日常巡检。从食材入库到陪餐评价、从 AI 听到求救声到保安到场处置、从一键声光报警到应急预案调阅——不是用人管人，是用数据管安全。',
     ],
     features: [
-      { title: '校园食品安全全链条管控', desc: '从食材入库、食品台账、出库加工到留样登记、明厨亮灶实时监控、陪餐多维评价——每批食材有电子档案、每餐留样有记录、每次陪餐有照片。临期自动提醒、过保自动拦截，校长在大屏可查看后厨视频和台账完整率。' },
-      { title: '校园防欺凌预警与处置', desc: '在宿舍与卫生间等监控盲区部署 AI 声音识别设备，检测异常声响与关键词（"救命""别打我"）。多区域独立告警管理——检测→弹窗→值班确认→保安到场→处置回执，全程时间戳记录。校长可查看各区域告警趋势和高发时段分布。' },
-      { title: '宿舍安全与应急联动', desc: '巡更扫码定位、电消隐患巡检、手报与声光报警设备在线状态实时监控。入寝前查违禁品（打火机、违规电器）、8 类校园专项应急预案（消防灭火/应急疏散/校园暴力/心理健康）结构化展示。教师与保安多角色履职数据统一汇聚。' },
+      { title: '校园食品安全全链条管控', desc: '食材从哪来、什么时候到期、后厨干不干净、谁陪的餐——不再靠"相信"。从扫码入库、食品台账、出库加工到留样登记、明厨亮灶实时监控、陪餐多维评价，每批食材有电子档案，临期自动提醒、过保自动拦截。移动端扫码入库、拍照留样，Web 端大屏看后厨视频和台账完整率。' },
+      { title: '校园防欺凌预警与处置', desc: 'AI 用声音补上监控盲区——厕所和宿舍里有人求救，系统听得到。在摄像头无法覆盖的区域部署声音识别设备，检测"救命""别打我"等关键词，大屏实时弹窗告警，值班员确认后一键推送保安到场。从检测到声音、到人到现场——全程时间戳记录，校长可查看各区域告警趋势和高发时段热力图。' },
+      { title: '宿舍安全与应急联动', desc: '消防设备有没有水、烟感有没有电、学生有没有带打火机——不是等出事才知道。巡更扫码定位确保人到点位，电消隐患巡检实时监控，手报与声光报警设备在线状态一目了然。8 类校园专项应急预案（消防灭火/应急疏散/校园暴力/心理健康）结构化展示，一键调阅。教师查寝与保安巡更双线打卡，履职数据统一汇聚。' },
+      { title: '校园隐患闭环管理', desc: '发现小问题之后呢？不是"报了就没了"。一线人员拍照上报→系统自动推送责任人→认领指派→整改处置→复核确认→闭环归档——每条隐患从上报那一刻起就有状态追踪。待认领/待确认/已确认三个数字，就是校长衡量全校隐患管理健康度的标尺。教育局看辖区学校隐患处置率排行。' },
+      { title: '校园安全履职', desc: '保安巡逻了没有、班主任查寝了吗、陪餐老师评价了吗——不是靠签到本。移动端扫码打卡、拍照留证、陪餐评价，每一项操作"做完即记录"。校长大屏看全校履职全貌——已履职数、未完成数、按角色分组人员列表——不是听人汇报"都做了"，是自己看清"谁做了谁没做"。' },
     ],
     values: [
-      { person: '陈校长', name: '校长', duty: '打开大屏看清全校安全态势——巡检覆盖率、告警处置率、隐患闭环率一目了然。在问题恶化之前先着手解决，在上级打电话之前先把事情处理好。' },
-      { person: '刘老师', name: '安全干部/值班员', duty: '大屏实时弹窗告警，AI 帮你先筛一遍——确认即派保安到场。从"等人来敲门才知道出事了"变成"第一时间就知道"。' },
-      { person: '王世豪', name: '保安/宿管/班主任', duty: '手机推送巡检任务、告警处置指令、每日履职提醒。扫码定位确定你到了点位、拍照证明你查了设备——不是靠签字本证明"我来过了"，而是数据证明每一步都落实了。' },
+      { person: '陈校长', name: '校长/安全第一责任人', duty: '打开大屏看清全校态势——巡检覆盖率、告警处置率、隐患闭环率三张成绩单。AI 日报每天自动推送，在上级打电话前先着手解决。' },
+      { person: '刘老师', name: '安全干部/值班员', duty: 'AI 帮筛一遍告警，确认即派保安。隐患每一步都有记录有状态，不再追着问"处理了吗"，不再等人来敲门才知道出事了。' },
+      { person: '张师傅', name: '保安/食堂管理员/班主任', duty: '手机收到推送就出发，扫码打卡、拍照留证、处置回执——做了就有记录。不再靠签到本证明来过，数据证明每一步都落实了。' },
     ],
     collaboration: [
       {
         cls: 'cd-cl1', badgeCls: 'cd-cl1-badge', cardCls: 'cd-cl1-card',
         leftId: 'cdl1a', rightId: 'cdl1b',
-        avatar: '陈校长', name: '陈校长', role: '校长/安全干部', dept: '学校', badge: '决策层',
+        avatar: '陈校长', name: '陈校长', role: '校长/安全第一责任人', dept: '学校', badge: '决策层',
         rightLabel: '我决策',
-        leftItems: ['全校巡检覆盖率、告警处置率与隐患闭环率', '各区域（宿舍/教室/公共）安全态势', '教师与保安双角色履职打卡完成率'],
-        rightItems: ['指派巡检任务与巡查策略调整', '审阅告警处置、督办未闭环隐患', '突发情况启动应急预案、调度校内应急资源'],
+        leftItems: ['全校安全态势总览：巡检覆盖率、告警处置率与隐患闭环率', '各区域告警趋势与高发时段热力图', '教师与保安双角色履职打卡完成率'],
+        rightItems: ['调整巡查策略与安全资源配置', '启动应急预案、调度校内应急资源', '审阅 AI 告警日报、督办未闭环事项'],
       },
       {
         cls: 'cd-cl2', badgeCls: 'cd-cl2-badge', cardCls: 'cd-cl2-card',
         leftId: 'cdl2a', rightId: 'cdl2b',
-        avatar: '王世豪', name: '王世豪', role: '保安/班主任/宿管', dept: '学校', badge: '执行层',
+        avatar: '刘老师', name: '刘老师', role: '安全干部/值班员', dept: '学校', badge: '管理层',
+        rightLabel: '我管理',
+        leftItems: ['大屏实时告警弹窗与分级推送', '各区域隐患上报、整改状态与临期提醒', '当日巡检完成率与陪餐评价汇总'],
+        rightItems: ['认领告警、确认警情级别并指派保安', '分派隐患整改任务、跟踪闭环进度', '审核留样记录与陪餐评价、向上汇报'],
+      },
+      {
+        cls: 'cd-cl3', badgeCls: 'cd-cl3-badge', cardCls: 'cd-cl3-card',
+        leftId: 'cdl3a', rightId: 'cdl3b',
+        avatar: '张师傅', name: '张师傅', role: '保安/班主任/宿管/食堂管理员', dept: '学校', badge: '执行层',
         rightLabel: '我执行',
-        leftItems: ['手机推送每日巡检任务与点位清单', '告警处置指令与现场处置指引', '履职打卡提醒与未完成清单'],
-        rightItems: ['扫码定位巡更打卡、拍照留证', '到场处置告警、填写处置回执', '发现隐患即时上报，拍照记录整改前后对比'],
+        leftItems: ['手机推送每日巡检任务、点位清单与检查项', '告警处置指令、现场处置指引与历史记录', '履职打卡提醒、陪餐评价入口与未完成清单'],
+        rightItems: ['扫码定位巡更打卡、拍照留证与异常上报', '到场处置告警、填写回执并拍照记录', '食材入库扫码、留样拍照、隐患整改前后对比上传'],
       },
     ],
   },
@@ -705,10 +715,54 @@ onUnmounted(() => {
 .cd-features { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
 @media (min-width: 640px) { .cd-features { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1080px) { .cd-features { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
-.cd-feature-card { background: #fff; border: 1px solid rgba(54,120,227,0.08); border-radius: 12px; padding: 28px; position: relative; overflow: hidden; transition: all 0.25s; }
-.cd-feature-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(54,120,227,0.1); }
-.cd-feature-num { position: absolute; top: 16px; right: 20px; font-size: 36px; font-weight: 900; color: rgba(54,120,227,0.08); font-family: 'Outfit', sans-serif; line-height: 1; }
-.cd-feature-title { font-size: 18px; font-weight: 700; color: #101010; margin: 0 0 10px; }
+
+.cd-feature-card {
+  background: linear-gradient(160deg, #fff 0%, #fafcff 100%);
+  border: 1px solid rgba(54,120,227,0.06);
+  border-left: 3px solid #3678e3;
+  border-radius: 12px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s;
+}
+.cd-feature-card::after {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  opacity: 0.04;
+  pointer-events: none;
+  transition: all 0.3s;
+}
+.cd-feature-card:hover::after { transform: scale(1.4); opacity: 0.07; }
+.cd-feature-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(54,120,227,0.1); border-color: rgba(54,120,227,0.14); }
+
+/* 5 色左竖条轮换 */
+.cd-feature-card:nth-child(5n+1) { border-left-color: #3678e3; }
+.cd-feature-card:nth-child(5n+1)::after { background: #3678e3; }
+.cd-feature-card:nth-child(5n+2) { border-left-color: #059669; }
+.cd-feature-card:nth-child(5n+2)::after { background: #059669; }
+.cd-feature-card:nth-child(5n+3) { border-left-color: #7c3aed; }
+.cd-feature-card:nth-child(5n+3)::after { background: #7c3aed; }
+.cd-feature-card:nth-child(5n+4) { border-left-color: #ea580c; }
+.cd-feature-card:nth-child(5n+4)::after { background: #ea580c; }
+.cd-feature-card:nth-child(5n+5) { border-left-color: #0891b2; }
+.cd-feature-card:nth-child(5n+5)::after { background: #0891b2; }
+
+.cd-feature-num {
+  position: absolute;
+  top: 20px; right: 20px;
+  font-size: 40px;
+  font-weight: 900;
+  color: rgba(54,120,227,0.12);
+  font-family: 'Outfit', sans-serif;
+  line-height: 1;
+  transition: color 0.25s;
+}
+.cd-feature-card:hover .cd-feature-num { color: rgba(54,120,227,0.2); }
+.cd-feature-title { font-size: 18px; font-weight: 700; color: #101010; margin: 0 0 10px; padding-right: 40px; }
 .cd-feature-desc { font-size: 16px; color: #5E5E5E; line-height: 1.7; margin: 0; }
 
 /* ===== Preview Screenshot ===== */
