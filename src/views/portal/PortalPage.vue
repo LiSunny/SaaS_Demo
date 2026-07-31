@@ -70,7 +70,7 @@
       <div class="sec-wrap">
         <div ref="posHead" class="pos-head reveal" :class="{ visible: posHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>平台定位<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">深度赋能三类管理模式</h2>
+          <h2 class="sec-title">安全管控生态体系</h2>
           <p class="sec-desc">覆盖从单点管控到全域联动的完整安全治理体系</p>
         </div>
         <!-- 2.5D 场景长图 + 悬浮标注卡片 -->
@@ -267,7 +267,7 @@
         </div>
         <div class="ft-bottom">
           <span>© 2026 人工智能 + 公共安全管理平台. All rights reserved.</span>
-          <span class="footer-divider">|</span>
+          
           <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
         </div>
       </div>
@@ -471,12 +471,15 @@ onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer) })
 // ===== AI =====
 const activeAIPage = ref(0)
 const gifTimestamps = reactive([Date.now(), Date.now(), Date.now()])
+const gifLoadedOnce = reactive([false, false, false])
 
-// 切换标签时刷新对应页的 GIF 时间戳，触发重新加载
+// 切换标签时：首次访问才刷新时间戳+显示加载，后续切回直接用缓存
 watch(activeAIPage, (newIdx) => {
-  gifTimestamps[newIdx] = Date.now()
-  AI_PAGES[newIdx].gifLoading = true
-  AI_PAGES[newIdx].gifError = false
+  if (!gifLoadedOnce[newIdx]) {
+    gifTimestamps[newIdx] = Date.now()
+    AI_PAGES[newIdx].gifLoading = true
+    AI_PAGES[newIdx].gifError = false
+  }
 })
 
 // Each page = a GIF demo corresponding to an AI_LIST item
@@ -486,7 +489,7 @@ const AI_PAGES = reactive([
   { num: '03', title: 'AI 替代"人写"',   gif: '/images/ai-demo-03.gif', gifError: false, gifLoading: true },
 ])
 const onPageGifError = (i: number) => { AI_PAGES[i].gifError = true; AI_PAGES[i].gifLoading = false }
-const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false }
+const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false; gifLoadedOnce[i] = true }
 
 const AI_LIST = [
   { title: 'AI 智能告警接报', body: '语音、烟感、电气等多源告警统一接入平台，AI 自动去重分级，精准弹窗推送至值班大屏。值班员一键确认即可指派保安到场——从告警触发到人到现场，全程自动记录时间戳。', num: '01' },
