@@ -169,14 +169,15 @@
                       </div>
                       <p>加载中…</p>
                     </div>
-                    <img
-                      :src="`${page.gif}?v=${gifTimestamps[i]}`"
+                    <video
+                      :src="`${page.src}?v=${gifTimestamps[i]}`"
                       :alt="page.title"
                       class="ai-player-gif"
                       :class="{ loaded: !page.gifLoading }"
-                      @load="onPageGifLoad(i)"
+                      autoplay loop muted playsinline
+                      @loadeddata="onPageGifLoad(i)"
                       @error="onPageGifError(i)"
-                    />
+                    ></video>
                     <div v-if="page.gifError" class="ai-player-placeholder">
                       <span class="ai-player-ph-icon">🎬</span>
                       <p>{{ page.title }}</p>
@@ -482,11 +483,11 @@ watch(activeAIPage, (newIdx) => {
   }
 })
 
-// Each page = a GIF demo corresponding to an AI_LIST item
+// Each page = a video demo corresponding to an AI_LIST item
 const AI_PAGES = reactive([
-  { num: '01', title: 'AI 智能告警接报', gif: '/images/ai-demo-01.gif', gifError: false, gifLoading: true },
-  { num: '02', title: 'AI 替代"人看"',   gif: '/images/ai-demo-02.gif', gifError: false, gifLoading: true },
-  { num: '03', title: 'AI 替代"人写"',   gif: '/images/ai-demo-03.gif', gifError: false, gifLoading: true },
+  { num: '01', title: 'AI 智能告警接报', src: '/images/ai-demo-01.mp4', gifError: false, gifLoading: true },
+  { num: '02', title: 'AI 替代"人看"',   src: '/images/ai-demo-02.mp4', gifError: false, gifLoading: true },
+  { num: '03', title: 'AI 替代"人写"',   src: '/images/ai-demo-03.mp4', gifError: false, gifLoading: true },
 ])
 const onPageGifError = (i: number) => { AI_PAGES[i].gifError = true; AI_PAGES[i].gifLoading = false }
 const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false; gifLoadedOnce[i] = true }
