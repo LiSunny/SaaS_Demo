@@ -70,20 +70,17 @@
       <div class="sec-wrap">
         <div ref="posHead" class="pos-head reveal" :class="{ visible: posHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>平台定位<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">安全管控生态体系</h2>
+          <h2 class="sec-title">深度赋能三类管理模式</h2>
           <p class="sec-desc">覆盖从单点管控到全域联动的完整安全治理体系</p>
         </div>
-        <div class="pos-grid">
-          <div v-for="(p, i) in POSITIONING" :key="i" class="pos-card reveal" :style="{ transitionDelay: `${i * 100}ms` }">
-            <div class="pos-card-bg" :style="{ backgroundImage: `url(${p.image})` }"></div>
-            <div class="pos-card-overlay"></div>
-            <div class="pos-card-content">
-              <div class="pos-card-top">
-                <span class="pos-card-tag">{{ p.tag }}</span>
-                <h3 class="pos-card-title">{{ p.title }}</h3>
-              </div>
-              <p class="pos-card-body">{{ p.body }}</p>
-            </div>
+        <!-- 2.5D 场景长图 + 悬浮标注卡片 -->
+        <div class="pos-scene reveal" :style="{ transitionDelay: '80ms' }">
+          <img src="/images/safety-ecosystem.svg" alt="安全管理2.5D场景" class="pos-scene-img" />
+          <!-- 悬浮标注 -->
+          <div v-for="(p, i) in POSITIONING" :key="i" class="pos-annot" :class="`pos-annot-${i}`">
+            <span class="pos-annot-tag">{{ p.tag }}</span>
+            <h3 class="pos-annot-title">{{ p.title }}</h3>
+            <p class="pos-annot-body">{{ p.body }}</p>
           </div>
         </div>
       </div>
@@ -428,9 +425,9 @@ const TRUST_NUMS = [
 
 // ===== Positioning =====
 const POSITIONING = [
-  { tag: '单点管控', title: '企业自主管理', body: '面向单个项目或企业的"大安全自主管理"。通过构建智能化的安全管理平台，实现对消防设施、应急预案、风险隐患等要素的实时监测与动态管理，提升单位自身的安全防控能力和应急响应效率。', image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg' },
-  { tag: '全域协同', title: '区域联勤联动', body: '围绕监管部门为核心的"区域联勤联动"机制。打通区域内多个单位、部门之间的信息壁垒，建立统一指挥、快速响应、多方协同的应急联动体系，提升对突发事件的综合处置能力。', image: '/images/unsplash/photo-1434626881859-194d67b2b86f.jpg' },
-  { tag: '集团统管', title: '垂直穿透管控', body: '针对大型集团公司的"垂直穿透管控"模式。通过搭建集团级安全管理中枢平台，实现对下属各级子公司、项目单位的安全状况进行统一监管与调度，强化集团对全链条安全风险的掌控能力。', image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
+  { tag: '单点管控', title: '企业自主管理', body: '面向单个项目的智能化安全管理，消防设施、应急预案、风险隐患实时监测与动态管理。', image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg' },
+  { tag: '全域协同', title: '区域联勤联动', body: '打通区域内多部门信息壁垒，建立统一指挥、快速响应、多方协同的应急联动体系。', image: '/images/unsplash/photo-1434626881859-194d67b2b86f.jpg' },
+  { tag: '集团统管', title: '垂直穿透管控', body: '搭建集团级安全管理中枢，对下属各级子公司安全状况统一监管与调度。', image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
 ]
 
 // ===== Scenarios =====
@@ -691,18 +688,104 @@ html, body { margin: 0; padding: 0; }
 .pos { padding: 80px 0; background: #fafafa; }
 @media (min-width: 640px) { .pos { padding: 112px 0; } }
 .pos-head { text-align: center; margin-bottom: 36px; }
-.pos-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-@media (min-width: 768px) { .pos-grid { grid-template-columns: repeat(3, 1fr); } }
-.pos-card { position: relative; border-radius: 14px; overflow: hidden; min-height: 240px; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-.pos-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(54,120,227,0.12); }
-.pos-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.4s; }
-.pos-card:hover .pos-card-bg { transform: scale(1.05); }
-.pos-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.25) 100%); z-index: 1; }
-.pos-card-content { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; padding: 32px; }
-.pos-card-top { margin-bottom: 16px; }
-.pos-card-tag { display: inline-block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); letter-spacing: 0.06em; background: rgba(54,120,227,0.4); padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; font-family: var(--f-display); }
-.pos-card-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0; font-family: var(--f-display); }
-.pos-card-body { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.65; margin: auto 0 0; min-height: 80px; }
+
+/* 2.5D 场景长图 + 悬浮标注 */
+.pos-scene {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto 24px;
+  border-radius: 16px;
+}
+.pos-scene-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 悬浮标注卡片 — 桌面端叠加在图上 */
+.pos-annot {
+  position: absolute;
+  max-width: 260px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(54,120,227,0.12);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transition: transform 0.25s, box-shadow 0.25s;
+  z-index: 2;
+  /* 小三角指示器 */
+  &::before {
+    content: '';
+    position: absolute; top: -8px; left: 24px;
+    width: 14px; height: 14px;
+    background: rgba(255,255,255,0.88);
+    border: 1px solid rgba(54,120,227,0.12);
+    border-right: none; border-bottom: none;
+    transform: rotate(45deg);
+  }
+}
+.pos-annot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(54,120,227,0.12);
+}
+
+/* 三张标注位置 */
+.pos-annot-0 { bottom: 58%; left: 2%; }
+.pos-annot-0::before {
+  top: auto; left: auto;
+  bottom: -7px; right: 48px;
+  border-left: none; border-top: none;
+}
+.pos-annot-1 { bottom: -12%; left: 50%; transform: translateX(-50%); }
+.pos-annot-1::before {
+  left: auto; right: 24px;
+}
+.pos-annot-1:hover { transform: translateX(-50%) translateY(-2px); }
+.pos-annot-2 { bottom: 18%; right: -15%; }
+.pos-annot-2::before {
+  top: 38%; left: -7px; right: auto;
+  transform: rotate(135deg);
+}
+
+.pos-annot-tag {
+  display: inline-block;
+  font-size: 11px; font-weight: 600;
+  color: #3678E3;
+  letter-spacing: 0.05em;
+  background: rgba(54,120,227,0.08);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-family: var(--f-display);
+}
+.pos-annot-title {
+  font-size: 16px; font-weight: 700;
+  color: #101010;
+  margin: 0 0 6px;
+  font-family: var(--f-display);
+}
+.pos-annot-body {
+  font-size: 14px; color: #5E5E5E;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 移动端：标注回退到图下方正常布局 */
+@media (max-width: 767px) {
+  .pos-scene { overflow: visible; }
+  .pos-annot {
+    position: static;
+    max-width: none;
+    margin-top: 12px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    &::before { display: none; }
+  }
+  .pos-annot-1 { transform: none; }
+  .pos-annot-1:hover { transform: translateY(-2px); }
+}
 
 /* ===== Scenarios ===== */
 .scenarios-sec { padding: 80px 0; background: linear-gradient(180deg, #eef3ff 0%, #e8effc 50%, #f4f7ff 100%); }
