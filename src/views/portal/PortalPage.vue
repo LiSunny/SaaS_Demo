@@ -9,6 +9,7 @@
         </a>
         <div class="nav-links">
           <a v-for="l in navLinks" :key="l" :href="`#${l}`" class="nav-link" :class="{ scrolled }">{{ l }}</a>
+          <a href="https://www.yuque.com/meiyouhoutaideyaoguai/nuwueb?# 《人工智能+公共安全管理平台》" target="_blank" rel="noopener" class="nav-link nav-link-manual" :class="{ scrolled }">使用手册</a>
         </div>
         <div class="nav-actions">
           <button class="nav-btn" @click="handleGoExp">去体验</button>
@@ -69,7 +70,7 @@
       <div class="sec-wrap">
         <div ref="posHead" class="pos-head reveal" :class="{ visible: posHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>平台定位<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">深度赋能三类管理模式</h2>
+          <h2 class="sec-title">安全管控生态体系</h2>
           <p class="sec-desc">覆盖从单点管控到全域联动的完整安全治理体系</p>
         </div>
         <div class="pos-grid">
@@ -134,14 +135,66 @@
       <div class="sec-wrap">
         <div ref="aiHead" class="reveal" :class="{ visible: aiHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>AI赋能<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">AI 如何提升安全管理</h2>
+          <h2 class="sec-title">AI 如何提升安全管理效率</h2>
         </div>
-        <div class="ai-grid">
-          <div v-for="(a, i) in AI_LIST" :key="i" class="ai-card reveal" :style="{ transitionDelay: `${i * 80}ms` }">
-            <span class="ai-num">{{ a.num }}</span>
-            <div class="ai-line"></div>
-            <h3 class="ai-title">{{ a.title }}</h3>
-            <p class="ai-body">{{ a.body }}</p>
+
+        <!-- 顶部：能力导航 Tab -->
+        <div class="ai-nav">
+          <button
+            v-for="(a, i) in AI_LIST" :key="i"
+            class="ai-nav-btn"
+            :class="{ active: activeAIPage === i }"
+            @click="activeAIPage = i"
+          >
+            <span class="ai-nav-num">{{ a.num }}</span>
+            <span class="ai-nav-label">{{ a.title }}</span>
+          </button>
+        </div>
+
+        <!-- 内容区：左播放窗口 + 右文本 -->
+        <div class="ai-demo">
+          <!-- 左侧：GIF 播放窗口 -->
+          <div class="ai-demo-player">
+            <div class="ai-player-frame">
+              <div class="ai-player-chrome">
+                <span class="ai-player-dot dot-red"></span>
+                <span class="ai-player-dot dot-yellow"></span>
+                <span class="ai-player-dot dot-green"></span>
+                <div class="ai-player-url">“人工智能+公共安全”管理平台</div>
+              </div>
+              <div class="ai-player-viewport">
+                <div class="ai-player-track" :style="{ transform: `translateX(-${activeAIPage * 100}%)` }">
+                  <div v-for="(page, i) in AI_PAGES" :key="i" class="ai-player-page">
+                    <!-- 加载动画 -->
+                    <div v-if="page.gifLoading && !page.gifError" class="ai-player-loading">
+                      <div class="ai-loading-ring">
+                        <span class="ai-loading-dot"></span>
+                      </div>
+                      <p>加载中…</p>
+                    </div>
+                    <img
+                      :src="`${page.gif}?v=${gifTimestamps[i]}`"
+                      :alt="page.title"
+                      class="ai-player-gif"
+                      :class="{ loaded: !page.gifLoading }"
+                      @load="onPageGifLoad(i)"
+                      @error="onPageGifError(i)"
+                    />
+                    <div v-if="page.gifError" class="ai-player-placeholder">
+                      <span class="ai-player-ph-icon">🎬</span>
+                      <p>{{ page.title }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：当前能力文本介绍 -->
+          <div class="ai-demo-text">
+            <div class="ai-demo-num-big">{{ AI_LIST[activeAIPage].num }}</div>
+            <h3 class="ai-demo-title-big">{{ AI_LIST[activeAIPage].title }}</h3>
+            <p class="ai-demo-body-big">{{ AI_LIST[activeAIPage].body }}</p>
           </div>
         </div>
       </div>
@@ -152,8 +205,8 @@
       <div class="sec-wrap">
         <div ref="featHead" class="reveal" :class="{ visible: featHeadV }">
           <div class="sec-label"><span class="sec-label-line"></span>案例展示<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">落地案例，真实可见</h2>
-          <p class="sec-desc">已在校园安全、工贸企业等领域完成多个项目交付</p>
+          <h2 class="sec-title">场景实践，持续生长</h2>
+          <p class="sec-desc">覆盖校园安全、工贸企业等多领域</p>
         </div>
         <div class="cases-tabs">
           <button v-for="tab in caseTabs" :key="tab.key"
@@ -202,7 +255,7 @@
       <div class="ft-links-wrap">
         <div class="ft-links">
           <div class="ft-brand">
-            <div class="ft-brand-icon"><img src="/favicon.svg" alt="logo" width="12" height="12" /></div>
+            <div class="ft-brand-icon"><img src="/favicon.svg" alt="logo" width="24" height="24" /></div>
             <span class="ft-brand-name">公共安全管理平台</span>
             <p class="ft-brand-desc">以大安全为核心，赋能企业、教育、政务三大场景。</p>
             <div class="ft-contact">
@@ -238,7 +291,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight, Zap, FileText, Phone, Mail, Store } from 'lucide-vue-next'
 import scenarioCampusImg from '@/assets/portal/scenario-campus.png'
@@ -419,11 +472,29 @@ onMounted(() => {
 onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer) })
 
 // ===== AI =====
+const activeAIPage = ref(0)
+const gifTimestamps = reactive([Date.now(), Date.now(), Date.now()])
+
+// 切换标签时刷新对应页的 GIF 时间戳，触发重新加载
+watch(activeAIPage, (newIdx) => {
+  gifTimestamps[newIdx] = Date.now()
+  AI_PAGES[newIdx].gifLoading = true
+  AI_PAGES[newIdx].gifError = false
+})
+
+// Each page = a GIF demo corresponding to an AI_LIST item
+const AI_PAGES = reactive([
+  { num: '01', title: 'AI 智能告警接报', gif: '/images/ai-demo-01.gif', gifError: false, gifLoading: true },
+  { num: '02', title: 'AI 替代"人看"',   gif: '/images/ai-demo-02.gif', gifError: false, gifLoading: true },
+  { num: '03', title: 'AI 替代"人写"',   gif: '/images/ai-demo-03.gif', gifError: false, gifLoading: true },
+])
+const onPageGifError = (i: number) => { AI_PAGES[i].gifError = true; AI_PAGES[i].gifLoading = false }
+const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false }
+
 const AI_LIST = [
-  { title: 'AI 防欺凌预警', body: '在宿舍区、教学区和公共区域部署 AI 音频感知终端，捕捉敏感求救词；同步视觉算法识别异常聚集与肢体冲突。检测到风险事件即刻触发红色告警，通知安保人员在欺凌升级前到场干预。', num: '01' },
-  { title: '电气火灾风险预判', body: '实时监测配电房电流波形，结合车间粉尘浓度传感器数据，AI 交叉分析发现切割机回路电流异常且粉尘浓度临界时，在火花产生前自动报警，联动降尘系统并推送停机检查指令。', num: '02' },
-  { title: '明厨亮灶 AI 监管', body: '后厨 AI 视觉终端通过红外感应实现鼠患识别并抓拍取证，同时自动识别人员的口罩、工帽穿戴合规及违规吸烟行为。告警即时推送至管理人员，教育局端可远程核查消杀过程记录。', num: '03' },
-  { title: '精准执法导航', body: '平台 AI 模型综合分析辖区内企业的电气监测、巡检记录及搜索行为等多维数据，发现高风险目标时自动标记，建议执法人员定向检查其除尘系统与电气防爆措施，将执法资源精准投放。', num: '04' },
+  { title: 'AI 智能告警接报', body: '语音、烟感、电气等多源告警统一接入平台，AI 自动去重分级，精准弹窗推送至值班大屏。值班员一键确认即可指派保安到场——从告警触发到人到现场，全程自动记录时间戳。', num: '01' },
+  { title: 'AI 替代"人看"', body: '一线人员拍照上传消防设施，AI 自动识别设备主体、匹配对应国标规范、逐项生成检查结论并判定隐患。从"凭经验看一圈"变成"拍照即判定"——不同检查员同一标准，结果可追溯。', num: '02' },
+  { title: 'AI 替代"人写"', body: '每天全量告警自动汇聚，AI 聚类识别风险事件簇、诊断根因，区分安保/工程分别输出行动建议，生成结构化日报并归档——安全员不再花数小时翻日志、归类、写报告。', num: '03' },
 ]
 
 // ===== Cases =====
@@ -436,7 +507,7 @@ const caseTabs = [
   { key: '垂直业务', label: '垂直业务' },
 ]
 const CASES = [
-  { slug: 'campus-safety', name: '平安校园', tag: '教育', desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动三大场景，将学校安全管理每个环节数字化，从"人管人"走向"数据管安全"。', nums: ['3 大场景', 'AI 防欺凌', '7×24 值守'], image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg' },
+  { slug: 'campus-safety', name: '平安校园', tag: '教育', desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动、隐患闭环、安全履职五大核心能力，从"人管人"走向"数据管安全"。', nums: ['5 项能力', '3 项 AI', '全链闭环'], image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg' },
   { slug: 'industrial-park', name: '工贸企业安全管理', tag: '工业', desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。', nums: ['5 个场景', '18 业务域', '全链闭环'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg' },
   { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg' },
   { slug: 'quanzhou-cockpit', name: '泉州应消联勤监管平台', tag: '城市治理', desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，覆盖工贸企业自律、消防控制室值守、风险源作业审批等14个核心模块，实现一屏观全域、一网管消防。', nums: ['14 模块', 'AI 研判', '多端协同'], image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
@@ -525,7 +596,7 @@ html, body { margin: 0; padding: 0; }
 @media (min-width: 640px) { .nav-name { font-size: 16px; } }
 .nav-links { display: none; gap: 28px; }
 @media (min-width: 768px) { .nav-links { display: flex; } }
-.nav-link { font-size: 15px; font-weight: 600; color: rgba(16,16,16,0.6); text-decoration: none; cursor: pointer; transition: color 0.2s; }
+.nav-link { font-size: 15px; font-weight: 600; color: #101010; text-decoration: none; cursor: pointer; transition: color 0.2s; }
 .nav-link:hover { color: #3678E3; }
 .nav-actions { display: flex; align-items: center; gap: 8px; }
 @media (min-width: 640px) { .nav-actions { gap: 12px; } }
@@ -664,16 +735,195 @@ html, body { margin: 0; padding: 0; }
 /* ===== AI ===== */
 .ai { padding: 80px 0; background: #fafafa; }
 @media (min-width: 640px) { .ai { padding: 112px 0; } }
-.ai-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 48px; }
-@media (min-width: 640px) { .ai-grid { grid-template-columns: repeat(2, 1fr); } }
-.ai-card { position: relative; background: #fff; border: 1px solid rgba(54,120,227,0.1); border-radius: 12px; padding: 28px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.25s ease; }
-.ai-num { position: absolute; top: 16px; right: 20px; font-size: 48px; font-weight: 900; color: rgba(54,120,227,0.1); font-family: var(--f-display); line-height: 1; pointer-events: none; user-select: none; transition: color 0.35s; }
-.ai-line { width: 24px; height: 2px; background: #3678E3; margin-bottom: 16px; transition: width 0.35s, background 0.35s; }
-.ai-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(54,120,227,0.12); border-color: rgba(54,120,227,0.25); }
-.ai-card:hover .ai-num { color: rgba(54,120,227,0.18); }
-.ai-card:hover .ai-line { width: 48px; background: rgba(54,120,227,0.5); }
-.ai-title { font-size: 16px; font-weight: 700; color: #101010; margin: 0 0 12px; font-family: var(--f-display); }
-.ai-body { font-size: 16px; color: #5E5E5E; line-height: 1.8; margin: 0; }
+
+/* 顶部：能力导航 Tab */
+.ai-nav {
+  display: flex; justify-content: center; gap: 12px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.ai-nav-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  border: 1px solid rgba(54,120,227,0.15);
+  border-radius: 999px;
+  background: #fff;
+  color: #5E5E5E;
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.ai-nav-btn:hover {
+  border-color: rgba(54,120,227,0.35);
+  color: #3678E3;
+}
+.ai-nav-btn.active {
+  background: #3678E3;
+  color: #fff;
+  border-color: #3678E3;
+}
+.ai-nav-num {
+  font-size: 12px; font-weight: 700;
+  opacity: 0.5;
+}
+.ai-nav-btn.active .ai-nav-num { opacity: 1; }
+.ai-nav-label { line-height: 1; }
+
+/* 内容区：左播放窗口 + 右文本 */
+.ai-demo { display: flex; flex-direction: column; gap: 32px; margin-top: 36px; align-items: flex-start; }
+@media (min-width: 768px) { .ai-demo { flex-direction: row; gap: 48px; } }
+
+/* 左侧：GIF 播放窗口（宽） */
+.ai-demo-player { flex: 1; min-width: 0; width: 100%; }
+@media (min-width: 768px) { .ai-demo-player { flex: 1; position: sticky; top: 100px; } }
+
+/* 黑色浏览器容器 */
+.ai-player-frame {
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 20px 60px rgba(0,0,0,0.2);
+  border-left: 10px solid #2C2C2C;
+  border-right: 10px solid #2C2C2C;
+  border-bottom: 10px solid #2C2C2C;
+}
+.ai-player-chrome {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  background: #2C2C2C;
+  position: relative;
+}
+.ai-player-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-red    { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green  { background: #28c840; }
+.ai-player-url {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3f3f3f;
+  border-radius: 999px;
+  padding: 2px 14px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  font-family: 'Noto Sans SC', 'Outfit', sans-serif;
+  white-space: nowrap;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 横向分页视口 */
+.ai-player-viewport { overflow: hidden; }
+.ai-player-track {
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ai-player-page {
+  flex: 0 0 100%;
+  min-width: 0;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.ai-player-gif {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.ai-player-gif.loaded { opacity: 1; }
+
+/* 加载动画 */
+.ai-player-loading {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px;
+  background: #1a1a1a;
+  z-index: 1;
+}
+.ai-loading-ring {
+  position: relative;
+  width: 48px; height: 48px;
+}
+.ai-loading-ring::before,
+.ai-loading-ring::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.ai-loading-ring::before {
+  animation: ai-ripple 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.ai-loading-ring::after {
+  animation: ai-ripple 2s cubic-bezier(0.4, 0, 0.2, 1) 1s infinite;
+}
+@keyframes ai-ripple {
+  0%   { transform: scale(0.4); opacity: 1; border-color: rgba(255,255,255,0.35); }
+  100% { transform: scale(1.6); opacity: 0; border-color: rgba(255,255,255,0.05); }
+}
+.ai-loading-dot {
+  width: 8px; height: 8px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%; left: 50%;
+  margin: -4px 0 0 -4px;
+  animation: ai-pulse 2s ease-in-out infinite;
+}
+@keyframes ai-pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.4; }
+  50%      { transform: scale(1.4); opacity: 1; }
+}
+.ai-player-loading p {
+  font-size: 13px; color: rgba(255,255,255,0.3);
+  margin: 0;
+  animation: ai-fade-text 2s ease-in-out infinite;
+  letter-spacing: 0.5px;
+}
+@keyframes ai-fade-text {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.65; }
+}
+.ai-player-placeholder {
+  position: absolute; inset: 0;
+  min-height: 200px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.35);
+  background: #1a1a1a;
+}
+.ai-player-ph-icon { font-size: 48px; }
+.ai-player-placeholder p { font-size: 15px; margin: 0; }
+
+/* 右侧：当前能力文本介绍（窄） */
+.ai-demo-text {
+  flex: 0 0 300px;
+  width: 100%;
+  padding: 24px 0 0;
+}
+@media (min-width: 768px) { .ai-demo-text { width: 300px; position: sticky; top: 100px; } }
+
+.ai-demo-num-big {
+  font-size: 56px; font-weight: 900;
+  color: rgba(54,120,227,0.1);
+  font-family: var(--f-display);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.ai-demo-title-big {
+  font-size: 22px; font-weight: 700;
+  color: #101010;
+  margin: 0 0 16px;
+  font-family: var(--f-display);
+  line-height: 1.3;
+}
+.ai-demo-body-big {
+  font-size: 18px; color: #5E5E5E;
+  line-height: 1.85;
+  margin: 0;
+}
 
 /* ===== Case Studies ===== */
 .cases { padding: 80px 0; background: #fff; }
@@ -704,7 +954,7 @@ html, body { margin: 0; padding: 0; }
 .ft { background: linear-gradient(180deg, #eef3ff 0%, #f4f7ff 100%); border-top: 1px solid rgba(54,120,227,0.1); }
 .ft-cta { text-align: center; padding: 64px 20px; border-bottom: 1px solid rgba(54,120,227,0.08); }
 @media (min-width: 640px) { .ft-cta { padding: 80px 20px; } }
-.ft-cta-label { font-size: 16px; color: #3678E3; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--f-display); margin: 0 0 20px; }
+.ft-cta-label { font-size: 18px; color: #3678E3; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--f-display); font-weight: 800; margin: 0 0 20px; }
 .ft-cta-title { font-size: 24px; font-weight: 700; color: #101010; margin: 0 0 16px; font-family: var(--f-display); }
 @media (min-width: 640px) { .ft-cta-title { font-size: 30px; } }
 .ft-cta-sub { font-size: 16px; color: #5E5E5E; max-width: 448px; margin: 0 auto 32px; }
