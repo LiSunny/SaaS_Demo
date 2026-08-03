@@ -167,7 +167,7 @@
                     class="demo-illustration"
                   />
                   <span class="demo-role">{{ account.role }}</span>
-                  <span class="demo-group">{{ account.group }}</span>
+                  <span class="demo-desc">{{ account.desc }}</span>
                 </div>
               </div>
               <div class="demo-row">
@@ -183,7 +183,7 @@
                     class="demo-illustration"
                   />
                   <span class="demo-role">{{ account.role }}</span>
-                  <span class="demo-group">{{ account.group }}</span>
+                  <span class="demo-desc">{{ account.desc }}</span>
                 </div>
               </div>
             </div>
@@ -302,18 +302,18 @@ const featureCards = [
 // 平台方：  测试运营(platform-ops) 13800000001 3xkxr4 → 运营管理
 const demoAccounts = import.meta.env.PROD
   ? [
-      { role: '监管机构', group: '区域监管', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '社会单位', group: '安全管理', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '运营商', group: '项目管理', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
-      { role: '技术服务机构', group: '技术服务', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
-      { role: '平台方', group: '运营管理', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
+      { role: '监管机构', desc: '政府监管 · 区域态势', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
+      { role: '社会单位', desc: '主体责任 · 日常安全', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '运营管理', desc: '项目交付 · 单位组织', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
+      { role: '服务机构', desc: '维保检测 · 服务执行', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
+      { role: '平台管理', desc: '平台运营 · 租户支撑', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
     ]
   : [
-      { role: '监管机构', group: '区域监管', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '社会单位', group: '安全管理', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '运营商', group: '项目管理', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
-      { role: '技术服务机构', group: '技术服务', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
-      { role: '平台方', group: '运营管理', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
+      { role: '监管机构', desc: '政府监管 · 区域态势', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
+      { role: '社会单位', desc: '主体责任 · 日常安全', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '运营管理', desc: '项目交付 · 单位组织', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
+      { role: '服务机构', desc: '维保检测 · 服务执行', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
+      { role: '平台管理', desc: '平台运营 · 租户支撑', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
     ]
 
 // 5 个账号拆为两行：第一行 3 个、第二行 2 个
@@ -941,13 +941,14 @@ async function handleLogin() {
   white-space: nowrap;
 }
 
-.demo-group {
-  font-size: clamp(10px, calc(11 * var(--min-scale)), 11px);
-  color: var(--accent-primary, #3678e3);
-  background: rgba(54, 120, 227, 0.08);
-  border-radius: calc(4 * var(--min-scale));
-  padding: calc(2 * var(--min-scale)) calc(6 * var(--min-scale));
+.demo-desc {
+  font-size: clamp(10px, calc(12 * var(--min-scale)), 16px);
+  color: var(--text-muted, #8c8c8c);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.3;
 }
 
 /* ============================================
