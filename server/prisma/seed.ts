@@ -31,6 +31,7 @@ async function main() {
       region: '杭州市',
       address: '杭州市拱墅区阳光商业街88号',
       creatorName: '系统初始化',
+      groups: JSON.stringify(['unit']),
     },
   })
   console.log(`  ✅ 示例企业: ${property.name}`)
@@ -53,6 +54,7 @@ async function main() {
       region: '杭州市',
       address: '杭州市滨江区蓝盾科技园',
       creatorName: '系统初始化',
+      groups: JSON.stringify(['service']),
     },
   })
   console.log(`  ✅ 示例企业: ${service.name}`)
@@ -76,6 +78,7 @@ async function main() {
       region: '杭州市',
       address: '杭州市拱墅区政府大楼',
       creatorName: '系统初始化',
+      groups: JSON.stringify(['regulator']),
     },
   })
   console.log(`  ✅ 示例企业: ${supervisor.name}`)

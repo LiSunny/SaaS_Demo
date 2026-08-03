@@ -1,9 +1,17 @@
 /**
  * enterprise-dao.ts — 租户管理 DAO 适配器（Mock 数据）
  */
-import type { EnterpriseItem, EnterpriseQuery, EnterpriseForm, SubordinateItem, PartnerItem, OperationLogItem, PaginatedData, PartnerRole } from '@/types/enterprise'
+import type { EnterpriseItem, EnterpriseQuery, EnterpriseForm, SubordinateItem, PartnerItem, OperationLogItem, PaginatedData, PartnerRole, EnterpriseGroup } from '@/types/enterprise'
 import { createPersistentStore } from '@/utils/db-adapter'
 import { INDUSTRY_CATEGORIES, resolveIndustryPath } from '@/config/gbt4754-2017'
+
+/** 使用群体标签归一化：只保留合法值，去重 */
+const VALID_GROUPS: EnterpriseGroup[] = ['regulator', 'unit', 'operator', 'service']
+function normalizeGroups(groups: unknown): EnterpriseGroup[] {
+  if (groups === undefined || groups === null) return []
+  const arr = Array.isArray(groups) ? groups : String(groups).split(',').map(s => s.trim())
+  return [...new Set(arr.filter((g: unknown): g is EnterpriseGroup => VALID_GROUPS.includes(g as EnterpriseGroup)))]
+}
 
 // ===== Mock User 数据（供企业创建时自动初始化管理员） =====
 interface MockUser {
@@ -43,16 +51,18 @@ const mockUEStore = createPersistentStore('mock_user_enterprises', MOCK_USER_ENT
 const MOCK_ENTERPRISES: EnterpriseItem[] = [
   {
     id: '1', name: '尼特', code: 'QY1',
+    groups: [],
     dimB: '', dimC: { sectionCode: '', sectionName: '', code: '', name: '' }, dimD: '',
     region: '', contactName: '管理员', contactPhone: '16666666666',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
-    tags: [], address: '', remark: '', logo: '', qrcode: '', creatorName: '孙文博',
+    tags: [], address: '', remark: '平台建设与维护方', logo: '', qrcode: '', creatorName: '孙文博',
     mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 5, unitCount: 2, relCount: 3,
     deletedAt: '', createdAt: '2024-10-31 15:53:06', updatedAt: '2024-10-31 15:53:06',
   },
   {
     id: '2', name: '港南一中', code: 'QY1013801074735185920',
+    groups: ['unit'],
     dimB: '06', dimC: { sectionCode: '', sectionName: '', code: '85', name: '教育' }, dimD: '12',
     region: '广西壮族自治区 贵港市 港南区', contactName: '李文学', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -63,6 +73,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '3', name: '港南消防队', code: 'QY1044197200894099456',
+    groups: ['regulator'],
     dimB: '', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '', contactName: '李阳', contactPhone: '17733550542',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -73,6 +84,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '4', name: '阳光物业管理有限公司', code: 'QY1000000000000000001',
+    groups: ['unit'],
     dimB: '', dimC: { sectionCode: '', sectionName: '', code: '70', name: '房地产业' }, dimD: '2',
     region: '北京市 朝阳区', contactName: '赵丽萍', contactPhone: '13800001111',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -83,6 +95,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '5', name: '蓝盾消防技术服务公司', code: 'QY1000000000000000002',
+    groups: ['service'],
     dimB: '', dimC: { sectionCode: '', sectionName: '', code: '80', name: '居民服务业' }, dimD: '',
     region: '北京市 海淀区', contactName: '郑晓峰', contactPhone: '13900002222',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -93,6 +106,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '6', name: '应急管理局安全管理中心', code: 'QY1000000000000000003',
+    groups: ['regulator'],
     dimB: '', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '北京市', contactName: '王蕾', contactPhone: '13700003333',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -103,6 +117,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '7', name: '海港区政府', code: 'QY1000000000000000004',
+    groups: ['regulator'],
     dimB: '27', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '河北省 秦皇岛市 海港区', contactName: '李子新', contactPhone: '18751529933',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -113,6 +128,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '8', name: '烟草局', code: 'QY1000000000000000005',
+    groups: ['regulator'],
     dimB: '', dimC: { sectionCode: '', sectionName: '', code: '91', name: '国家机构' }, dimD: '',
     region: '河北省 秦皇岛市', contactName: '宋力志', contactPhone: '17040201428',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -123,6 +139,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '9', name: '秦皇岛一中', code: 'QY1000000000000000006',
+    groups: ['unit'],
     dimB: '06', dimC: { sectionCode: '', sectionName: '', code: '82', name: '教育' }, dimD: '12',
     region: '河北省 秦皇岛市', contactName: '王小康', contactPhone: '18946450602',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -133,6 +150,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '10', name: '盛泰北苑', code: 'QY1000000000000000007',
+    groups: ['unit'],
     dimB: '26', dimC: { sectionCode: '', sectionName: '', code: '70', name: '房地产业' }, dimD: '8',
     region: '河北省 秦皇岛市', contactName: '宋敏', contactPhone: '13781265439',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -143,6 +161,7 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
   },
   {
     id: '11', name: '万达商业管理有限公司', code: 'QY1000000000000000008',
+    groups: ['unit'],
     dimB: '14', dimC: { sectionCode: '', sectionName: '', code: '70', name: '房地产业' }, dimD: '6',
     region: '北京市 朝阳区', contactName: '陈伟强', contactPhone: '18612345678',
     status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
@@ -150,6 +169,17 @@ const MOCK_ENTERPRISES: EnterpriseItem[] = [
     mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
     staffCount: 60, unitCount: 12, relCount: 15,
     deletedAt: '', createdAt: '2025-11-01 08:00:00', updatedAt: '2025-11-01 08:00:00',
+  },
+  {
+    id: '12', name: '安信智慧消防运营有限公司', code: 'QY1000000000000000009',
+    groups: ['operator'],
+    dimB: '25', dimC: { sectionCode: '', sectionName: '', code: '74', name: '专业技术服务业' }, dimD: '',
+    region: '广西壮族自治区 贵港市 港南区', contactName: '梁安信', contactPhone: '18800001234',
+    status: 1, validFrom: '', validTo: '', parentId: '', parentName: '',
+    tags: ['运营商'], address: '贵港市港南区XX产业园', remark: '重点单位联网项目运营商（示例）', logo: '', qrcode: '', creatorName: '孙文博',
+    mapLng: 0, mapLat: 0, mapLocation: '', mapAddress: '',
+    staffCount: 18, unitCount: 30, relCount: 12,
+    deletedAt: '', createdAt: '2025-11-05 09:00:00', updatedAt: '2025-11-05 09:00:00',
   },
 ]
 
@@ -247,6 +277,7 @@ export async function createEnterprise(form: EnterpriseForm): Promise<Enterprise
     id, code,
     name: form.name, contactName: form.contactName, contactPhone: form.contactPhone,
     tags,
+    groups: normalizeGroups(form.groups),
     validFrom: form.validFrom || '', validTo: form.validTo || '',
     region: form.region || '', parentId: form.parentId || '', parentName: '',
     address: form.address || '', remark: form.remark || '', logo: form.logo || '',
@@ -348,6 +379,7 @@ export async function updateEnterprise(id: string, form: Partial<EnterpriseForm>
   const item = store.getById(id) as EnterpriseItem
   if (!item) throw new Error('企业不存在')
   Object.assign(item, form, { updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19) })
+  if (form.groups !== undefined) item.groups = normalizeGroups(form.groups)
   // 维度 B 命中重点单位类别时自动打/去标签
   const hitCodes = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28']
   if (form.dimB && hitCodes.includes(form.dimB)) {

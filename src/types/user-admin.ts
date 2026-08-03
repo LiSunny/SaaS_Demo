@@ -38,6 +38,8 @@ export interface UserEnterpriseItem {
   enterpriseName: string
   positions: string[]
   joinedAt: string
+  /** 使用群体标签（regulator|unit|operator|service） */
+  groups?: string[]
 }
 
 export interface AddUserEnterpriseForm {

@@ -31,6 +31,8 @@ export interface PositionDef {
     name: string
   }
   description: string
+  /** 所属使用群体（企业级导航分组：regulator|unit|operator|service） */
+  group?: 'regulator' | 'unit' | 'operator' | 'service'
 }
 
 /** 组织分组（岗位切换器按此分组显示） */
@@ -50,6 +52,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 1,
     user: { id: 1, name: '周志远' },
     description: '法定负责人，对单位消防安全全面负责',
+    group: 'unit',
   },
   {
     key: 'fire-safety-manager',
@@ -58,6 +61,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 1,
     user: { id: 2, name: '张建国' },
     description: '日常消防管理，发起工单，组织验收',
+    group: 'unit',
   },
   {
     key: 'duty-officer',
@@ -66,6 +70,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 1,
     user: { id: 3, name: '李明辉' },
     description: '告警核实，紧急工单发起，24小时值守',
+    group: 'unit',
   },
 
   // ===== 服务方 — 蓝盾消防技术服务公司 =====
@@ -76,6 +81,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 2,
     user: { id: 5, name: '刘建华' },
     description: '对接甲方，SLA 第一责任人，团队工单全貌',
+    group: 'service',
   },
   {
     key: 'tech-lead',
@@ -84,6 +90,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 2,
     user: { id: 6, name: '孙工' },
     description: '技术把关，审核处置结果，强制改派',
+    group: 'service',
   },
   {
     key: 'maintenance-engineer',
@@ -92,6 +99,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 2,
     user: { id: 7, name: '王志强' },
     description: '接单，现场处置，拍照留痕，转单',
+    group: 'service',
   },
 
   // ===== 监管方 — 应急管理局安全管理中心 =====
@@ -102,6 +110,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 3,
     user: { id: 9, name: '陈浩然' },
     description: '督办超时工单，核查验收，生成监管报告',
+    group: 'regulator',
   },
 
   // ===== 通用企业岗位（新建企业时自动分配） =====
@@ -112,6 +121,7 @@ export const ALL_POSITIONS: PositionDef[] = [
     orgId: 0,
     user: { id: 12, name: '系统默认' },
     description: '通用企业管理员，新建企业时自动分配',
+    group: 'unit',
   },
 ]
 

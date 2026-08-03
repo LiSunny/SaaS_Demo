@@ -1,9 +1,19 @@
 /**
  * 导航数据结构
  *
- * 侧栏主导航：6 个分组 + 工作台（固定）
- * 展开模式（≤8 模块）：侧栏内嵌 2 级子菜单
- * 跳转模式（>10 模块）：侧栏放入口，点击导航到域首页
+ * 侧栏主导航：按"使用群体"组织（四方用户视角），工作台固定。
+ *
+ * 群体分组：
+ *   regulator → 区域监管（监管机构）
+ *   unit      → 安全管理（社会单位-普通）
+ *   operator  → 项目管理（社会单位-运营商）
+ *   service   → 技术服务（技术服务机构）
+ *   platform  → 系统管理（平台方，按 systemRole）
+ *
+ * 过滤逻辑（DefaultLayout）：
+ *   系统角色用户 → 只显示 visibleTo 含其 systemRole 的分组
+ *   普通用户     → 按当前企业的 groups（无企业时按岗位 group 兜底）过滤分组，
+ *                  组内子节点按岗位 key 过滤（visibleTo）
  *
  * @see docs/design/navigation-design.md
  */
@@ -26,7 +36,7 @@ export interface NavGroup {
   icon?: string
   defaultOpen: boolean
   children: NavNode[]
-  /** 岗位 key 白名单，缺省 = 全员可见 */
+  /** 使用群体标签白名单：regulator|unit|operator|service，缺省 = 全员可见 */
   visibleTo?: string[]
 }
 
@@ -41,261 +51,326 @@ export const WORKBENCH_ITEM: NavNode = {
 }
 
 /**
- * 6 个导航分组
- *
- * 分组规则：
- * - defaultOpen: true → 默认展开（核心高频分组）
- * - defaultOpen: false → 默认折叠
- * - NavNode 有 children 且无 route → 展开节点（点击 toggle）
- * - NavNode 无 children 且有 route → 跳转节点（点击导航）
- * - NavNode 有 route（且模块数>10） → 跳转域首页入口
+ * 按使用群体组织的导航分组
  */
 export const NAV_GROUPS: NavGroup[] = [
-  // ===== 1. 监控与值守 =====
+  // ===== 1. 区域监管（监管机构） =====
   {
-    key: 'monitor-duty',
-    label: '监控与值守',
+    key: 'regulator',
+    label: '区域监管',
     icon: 'dashboard',
     defaultOpen: true,
+    visibleTo: ['regulator'],
     children: [
       {
-        key: 'remote-duty',
-        label: '远程值守',
+        key: 'reg-situation',
+        label: '态势总览',
         icon: 'menuicon-48',
         children: [
-          { key: 'duty-workbench', label: '工作台' },
-          { key: 'duty-alarm', label: '告警中心' },
-          { key: 'duty-verify', label: '核实判定' },
-          { key: 'duty-plan', label: '预案管理' },
+          { key: 'reg-bigscreen', label: '监管大屏', route: '/landing' },
+          { key: 'reg-report', label: '智能报表' },
         ],
       },
       {
-        key: 'data-visual',
-        label: '数据可视化',
+        key: 'reg-supervise',
+        label: '督办管理',
         icon: 'menuicon-30',
         children: [
-          { key: 'data-report', label: '智能报表' },
-          { key: 'data-bigscreen', label: '可视化大屏' },
+          { key: 'reg-urge', label: '超时督办' },
+          { key: 'reg-ranking', label: '红黑榜考核' },
         ],
       },
       {
-        key: 'order-mgmt',
-        label: '工单管理',
-        icon: 'menuicon-2',
+        key: 'reg-inspect',
+        label: '监管检查',
+        icon: 'menuicon-25',
         children: [
-          { key: 'order-monitor', label: '工单监控', route: '/system/monitor' },
-          { key: 'order-dashboard', label: '数据看板', route: '/system/dashboard' },
+          { key: 'reg-whitelist', label: '白名单管理' },
+          { key: 'reg-check-record', label: '检查记录' },
+        ],
+      },
+      {
+        key: 'reg-system',
+        label: '系统管理',
+        icon: 'menuicon-43',
+        visibleTo: ['org-admin'],
+        children: [
+          { key: 'reg-members', label: '部门成员', route: '/enterprise/members' },
+          { key: 'reg-positions', label: '部门岗位', route: '/enterprise/positions' },
         ],
       },
     ],
   },
 
-  // ===== 2. 设备与物联 =====
+  // ===== 2. 安全管理（社会单位-普通：学校/企业/商户/物业） =====
   {
-    key: 'device-iot',
-    label: '设备与物联',
-    icon: 'device',
-    defaultOpen: false,
-    children: [
-      { key: 'device', label: '设备管理', icon: 'menuicon-45', route: '/device', children: [
-          { key: 'device-list', label: '设备列表', route: '/device/list' },
-        ] },
-      { key: 'iot', label: 'IOT', icon: 'menuicon-46', route: '/iot' },
-      {
-        key: 'maintain-app',
-        label: '维保应用',
-        icon: 'menuicon-9',
-        children: [
-          { key: 'maintain-contract', label: '合同管理' },
-          { key: 'maintenance-record', label: '维保记录', route: '/maintenance/plans' },
-        ],
-      },
-    ],
-  },
-
-  // ===== 3. 巡查与隐患 =====
-  {
-    key: 'patrol-hazard',
-    label: '巡查与隐患',
-    icon: 'map',
+    key: 'unit',
+    label: '安全管理',
+    icon: 'shield',
     defaultOpen: true,
+    visibleTo: ['unit'],
     children: [
       {
-        key: 'patrol-inspect',
+        key: 'unit-situation',
+        label: '本企态势',
+        icon: 'menuicon-48',
+        children: [
+          { key: 'unit-cockpit', label: '企业驾驶舱', route: '/enterprise-cockpit' },
+          { key: 'unit-bigscreen', label: '可视化大屏' },
+        ],
+      },
+      {
+        key: 'unit-patrol',
         label: '巡查检查',
         icon: 'menuicon-25',
         children: [
-          { key: 'patrol-plan', label: '巡查计划' },
-          { key: 'patrol-task', label: '巡查任务' },
-          { key: 'patrol-report', label: '巡查报表' },
+          { key: 'unit-patrol-plan', label: '巡查计划' },
+          { key: 'unit-patrol-task', label: '巡查任务' },
+          { key: 'unit-patrol-report', label: '巡查报表' },
         ],
       },
       {
-        key: 'hazard-mgmt',
+        key: 'unit-hazard',
         label: '隐患管理',
         icon: 'menuicon-29',
         children: [
-          { key: 'hazard-ledger', label: '隐患台账' },
-          { key: 'hazard-self-report', label: '自查上报' },
+          { key: 'unit-hazard-ledger', label: '隐患台账' },
+          { key: 'unit-hazard-report', label: '自查上报' },
         ],
       },
       {
-        key: 'danger-work',
+        key: 'unit-danger-work',
         label: '危险作业',
         icon: 'menuicon-27',
         children: [
-          { key: 'danger-register', label: '作业备案' },
-          { key: 'danger-approve', label: '特殊作业审批' },
+          { key: 'unit-danger-register', label: '作业备案' },
+          { key: 'unit-danger-approve', label: '特殊作业审批' },
         ],
       },
       {
-        key: 'resumption-mgmt',
-        label: '复工复产管理',
-        icon: 'menuicon-27',
+        key: 'unit-device',
+        label: '设备管理',
+        icon: 'menuicon-45',
+        route: '/device',
         children: [
-          { key: 'resumption-list', label: '复工计划列表', route: '/resumption' },
-          { key: 'resumption-bigscreen', label: '可视化大屏', route: '/resumption-bigscreen' },
-        ],
-      },
-    ],
-  },
-
-  // ===== 4. 合规与管理 =====
-  {
-    key: 'compliance',
-    label: '合规与管理',
-    icon: 'certificate',
-    defaultOpen: false,
-    children: [
-      {
-        key: 'gov-mgmt',
-        label: '政务管理',
-        icon: 'menuicon-3',
-        children: [
-          { key: 'gov-whitelist', label: '白名单管理' },
-          { key: 'gov-inspect', label: '检查记录' },
+          { key: 'unit-device-list', label: '设备列表', route: '/device/list' },
         ],
       },
       {
-        key: 'project-mgmt',
-        label: '项目管理',
-        icon: 'menuicon-28',
-        children: [
-          { key: 'project-list', label: '项目列表' },
-          { key: 'project-task', label: '任务管理' },
-        ],
-      },
-      {
-        key: 'food-mgmt',
+        key: 'unit-food',
         label: '食品安全',
         icon: 'menuicon-40',
         children: [
-          { key: 'food-ledger', label: '数字台账' },
-          { key: 'food-stock', label: '出入库管理' },
-          { key: 'food-sample', label: '食材留样' },
+          { key: 'unit-food-ledger', label: '数字台账' },
+          { key: 'unit-food-stock', label: '出入库管理' },
+          { key: 'unit-food-sample', label: '食材留样' },
         ],
       },
-    ],
-  },
-
-  // ===== 5. 培训与知识 =====
-  {
-    key: 'training',
-    label: '培训与知识',
-    icon: 'file',
-    defaultOpen: false,
-    children: [
       {
-        key: 'training-drill',
-        label: '培训与演练',
+        key: 'unit-training',
+        label: '培训演练',
         icon: 'menuicon-6',
         children: [
-          { key: 'training-knowledge', label: '知识库' },
-          { key: 'training-record', label: '培训记录' },
-          { key: 'training-exercise', label: '演练记录' },
+          { key: 'unit-training-knowledge', label: '知识库' },
+          { key: 'unit-training-record', label: '培训记录' },
+          { key: 'unit-training-exercise', label: '演练记录' },
+        ],
+      },
+      {
+        key: 'unit-order',
+        label: '我的工单',
+        icon: 'menuicon-2',
+        children: [
+          { key: 'unit-order-monitor', label: '工单监控', route: '/system/monitor' },
+          { key: 'unit-order-dashboard', label: '数据看板', route: '/system/dashboard' },
+        ],
+      },
+      {
+        key: 'unit-system',
+        label: '系统管理',
+        icon: 'menuicon-43',
+        visibleTo: ['org-admin'],
+        children: [
+          { key: 'unit-members', label: '企业成员', route: '/enterprise/members' },
+          { key: 'unit-positions', label: '企业岗位', route: '/enterprise/positions' },
+          { key: 'unit-logs', label: '操作日志' },
         ],
       },
     ],
   },
 
-  // ===== 6. 运营管理（platform-ops 可见全部；org-admin 仅见企业管理） =====
+  // ===== 3. 项目管理（社会单位-运营商） =====
+  {
+    key: 'operator',
+    label: '项目管理',
+    icon: 'briefcase',
+    defaultOpen: true,
+    visibleTo: ['operator'],
+    children: [
+      {
+        key: 'op-overview',
+        label: '项目总览',
+        icon: 'menuicon-30',
+        children: [
+          { key: 'op-dashboard', label: '项目看板' },
+          { key: 'op-bigscreen', label: '项目大屏' },
+        ],
+      },
+      {
+        key: 'op-projects',
+        label: '项目列表',
+        icon: 'menuicon-28',
+        children: [
+          { key: 'op-project-list', label: '全部项目', route: '/projects' },
+          { key: 'op-member-delivery', label: '成员交付', route: '/projects/:id/members' },
+        ],
+      },
+      {
+        key: 'op-orders',
+        label: '项目工单',
+        icon: 'menuicon-2',
+        children: [
+          { key: 'op-order-monitor', label: '工单监控', route: '/system/monitor' },
+        ],
+      },
+      {
+        key: 'op-system',
+        label: '系统管理',
+        icon: 'menuicon-43',
+        visibleTo: ['org-admin'],
+        children: [
+          { key: 'op-members', label: '企业成员', route: '/enterprise/members' },
+          { key: 'op-positions', label: '企业岗位', route: '/enterprise/positions' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 4. 技术服务（技术服务机构） =====
+  {
+    key: 'service',
+    label: '技术服务',
+    icon: 'tools',
+    defaultOpen: false,
+    visibleTo: ['service'],
+    children: [
+      {
+        key: 'svc-order',
+        label: '我的工单',
+        icon: 'menuicon-2',
+        children: [
+          { key: 'svc-order-monitor', label: '工单监控', route: '/system/monitor' },
+          { key: 'svc-order-dashboard', label: '数据看板', route: '/system/dashboard' },
+        ],
+      },
+      {
+        key: 'svc-maintain',
+        label: '维保应用',
+        icon: 'menuicon-9',
+        children: [
+          { key: 'svc-maintain-contract', label: '合同管理' },
+          { key: 'svc-maintain-record', label: '维保记录', route: '/maintenance/plans' },
+        ],
+      },
+      {
+        key: 'svc-report',
+        label: '服务报告',
+        icon: 'menuicon-30',
+        children: [
+          { key: 'svc-report-list', label: '报告列表' },
+        ],
+      },
+      {
+        key: 'svc-system',
+        label: '系统管理',
+        icon: 'menuicon-43',
+        visibleTo: ['org-admin'],
+        children: [
+          { key: 'svc-members', label: '企业成员', route: '/enterprise/members' },
+          { key: 'svc-positions', label: '企业岗位', route: '/enterprise/positions' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 5. 运营管理（平台运营方 platform-ops） =====
   {
     key: 'platform-ops',
     label: '运营管理',
     icon: 'setting',
-    defaultOpen: true,
-    visibleTo: ['platform-ops', 'org-admin'],
+    defaultOpen: false,
+    visibleTo: ['platform-ops'],
     children: [
       {
-        key: 'tenant-mgmt-group',
+        key: 'plat-tenant',
         label: '租户管理',
         icon: 'menuicon-43',
-        visibleTo: ['platform-ops'],
         children: [
           { key: 'tenant-mgmt', label: '租户列表', route: '/admin/enterpriseManagement/index' },
         ],
       },
       {
-        key: 'user-mgmt-group',
+        key: 'plat-user',
         label: '用户管理',
         icon: 'menuicon-43',
-        visibleTo: ['platform-ops'],
         children: [
           { key: 'user-list', label: '用户列表', route: '/admin/users' },
         ],
       },
       {
-        key: 'position-mgmt-group',
+        key: 'plat-position',
         label: '岗位管理',
         icon: 'menuicon-43',
-        visibleTo: ['platform-ops'],
         children: [
           { key: 'position-mgmt', label: '岗位列表', route: '/admin/positions' },
         ],
       },
       {
-        key: 'bigscreen-config',
+        key: 'plat-bigscreen',
         label: '大屏配置',
         icon: 'menuicon-43',
-        visibleTo: ['platform-ops'],
         children: [
           { key: 'bigscreen-list', label: '大屏管理', route: '/admin/bigscreens' },
         ],
       },
       {
-        key: 'process-mgmt',
-        label: '流程管理',
+        key: 'plat-process',
+        label: '流程模板',
         icon: 'menuicon-42',
-        visibleTo: ['platform-ops'],
         children: [
           { key: 'flow-template', label: '流程模板', route: '/system/template' },
         ],
       },
       {
-        key: 'enterprise-mgmt',
-        label: '企业管理',
-        icon: 'menuicon-33',
-        visibleTo: ['org-admin'],
+        key: 'plat-member-type',
+        label: '类型注册',
+        icon: 'menuicon-43',
         children: [
-          { key: 'enterprise-members', label: '企业成员', route: '/enterprise/members' },
-          { key: 'enterprise-positions', label: '岗位管理', route: '/enterprise/positions' },
+          { key: 'member-type-list', label: '成员类型', route: '/admin/member-types' },
         ],
       },
     ],
   },
 
-  // ===== 7. 平台管理（platform-admin 可见：技术配置，占位） =====
+  // ===== 6. 平台管理（技术管理 platform-admin；platform-ops 兼看） =====
   {
     key: 'platform-admin',
     label: '平台管理',
     icon: 'server',
     defaultOpen: false,
-    visibleTo: ['platform-admin'],
+    visibleTo: ['platform-admin', 'platform-ops'],
     children: [
-      { key: 'route-config', label: '路由配置' },
-      { key: 'menu-config', label: '菜单管理' },
-      { key: 'system-params', label: '系统参数' },
-      { key: 'upgrade-mgmt', label: '升级管理' },
+      {
+        key: 'plat-tech',
+        label: '技术配置',
+        icon: 'server',
+        children: [
+          { key: 'route-config', label: '路由配置' },
+          { key: 'menu-config', label: '菜单管理' },
+          { key: 'system-params', label: '系统参数' },
+          { key: 'upgrade-mgmt', label: '升级管理' },
+        ],
+      },
     ],
   },
 ]
@@ -306,46 +381,46 @@ export const NAV_GROUPS: NavGroup[] = [
 export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/workbench': 'workbench',
   '/system/template': 'flow-template',
-  '/system/monitor': 'order-monitor',
-  '/system/order': 'order-monitor',
-  '/system/dashboard': 'order-dashboard',
-  '/maintenance/plans': 'maintenance-record',
-  '/maintenance/plans/detail': 'maintenance-record',
-  '/device': 'device',
-  '/device/list': 'device-list',
-  '/iot': 'iot',
-  '/platform': 'platform',
-  '/admin': 'admin',
+  '/system/monitor': 'unit-order-monitor',
+  '/system/order': 'unit-order-monitor',
+  '/system/dashboard': 'unit-order-dashboard',
+  '/maintenance/plans': 'svc-maintain-record',
+  '/maintenance/plans/detail': 'svc-maintain-record',
+  '/device': 'unit-device',
+  '/device/list': 'unit-device-list',
+  '/iot': 'unit-device',
+  '/platform': 'platform-admin',
+  '/admin': 'tenant-mgmt',
   '/admin/enterpriseManagement': 'tenant-mgmt',
   '/admin/enterpriseManagement/index': 'tenant-mgmt',
   '/admin/users': 'user-list',
   '/admin/positions': 'position-mgmt',
   '/admin/bigscreens': 'bigscreen-list',
-  '/enterprise/members': 'enterprise-members',
-  '/enterprise/positions': 'enterprise-positions',
-  '/resumption': 'resumption-list',
-  '/resumption-bigscreen': 'resumption-bigscreen',
+  '/admin/member-types': 'member-type-list',
+  '/enterprise/members': 'unit-members',
+  '/enterprise/positions': 'unit-positions',
+  '/resumption': 'unit-hazard-report',
+  '/resumption-bigscreen': 'unit-bigscreen',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
 export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'workbench': '/workbench',
   'flow-template': '/system/template',
-  'order-monitor': '/system/monitor',
-  'order-dashboard': '/system/dashboard',
-  'maintenance-record': '/maintenance/plans',
-  'device': '/device',
-  'device-list': '/device/list',
-  'iot': '/iot',
-  'platform': '/platform',
-  'admin': '/admin',
+  'unit-order-monitor': '/system/monitor',
+  'unit-order-dashboard': '/system/dashboard',
+  'svc-maintain-record': '/maintenance/plans',
+  'unit-device': '/device',
+  'unit-device-list': '/device/list',
   'tenant-mgmt': '/admin/enterpriseManagement/index',
   'user-list': '/admin/users',
   'position-mgmt': '/admin/positions',
   'bigscreen-list': '/admin/bigscreens',
-  'enterprise-members': '/enterprise/members',
-  'enterprise-positions': '/enterprise/positions',
-  'resumption-list': '/resumption',
+  'member-type-list': '/admin/member-types',
+  'unit-members': '/enterprise/members',
+  'unit-positions': '/enterprise/positions',
+  'reg-bigscreen': '/landing',
+  'unit-cockpit': '/enterprise-cockpit',
 }
 
 // ===== 工具函数 =====

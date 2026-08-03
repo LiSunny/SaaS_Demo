@@ -54,6 +54,7 @@ function toItem(e: any) {
     parentId: String(e.parentId || ''),
     parentName: e.parentName,
     tags: safeJsonParse(e.tags, []),
+    groups: safeJsonParse(e.groups, []),
     address: e.address,
     remark: e.remark,
     logo: e.logo,
@@ -74,6 +75,14 @@ function toItem(e: any) {
 
 function safeJsonParse(raw: string, fallback: any) {
   try { return JSON.parse(raw) } catch { return fallback }
+}
+
+/** 使用群体标签归一化：只保留合法值，去重 */
+const VALID_GROUPS = ['regulator', 'unit', 'operator', 'service']
+function normalizeGroups(groups: any): string[] {
+  if (groups === undefined || groups === null) return []
+  const arr = Array.isArray(groups) ? groups : String(groups).split(',').map(s => s.trim())
+  return [...new Set(arr.filter((g: any) => VALID_GROUPS.includes(g)))]
 }
 
 function formatDate(d: Date | string): string {
@@ -178,6 +187,7 @@ export async function create(form: any, operator?: any) {
       contactName: form.contactName || '',
       contactPhone: form.contactPhone || '',
       tags: JSON.stringify(parseTags(form.tags)),
+      groups: JSON.stringify(normalizeGroups(form.groups)),
       validFrom: form.validFrom || '',
       validTo: form.validTo || '',
       parentId: parseInt(form.parentId) || 0,
@@ -351,6 +361,7 @@ export async function update(id: number, form: any, operator?: any) {
   }
   if (form.dimD !== undefined) data.dimD = form.dimD
   if (form.tags !== undefined) data.tags = JSON.stringify(parseTags(form.tags))
+  if (form.groups !== undefined) data.groups = JSON.stringify(normalizeGroups(form.groups))
   if (form.validFrom !== undefined) data.validFrom = form.validFrom
   if (form.validTo !== undefined) data.validTo = form.validTo
   if (form.parentId !== undefined) data.parentId = parseInt(form.parentId) || 0

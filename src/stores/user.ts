@@ -134,6 +134,30 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // ===== 使用群体（企业级导航分组） =====
+
+  /**
+   * 当前用户的使用群体标签。
+   * 优先取登录用户关联企业的 groups；无企业信息时按岗位 group 兜底。
+   * 系统角色用户返回 []（只看平台分组）。
+   */
+  const currentGroups = computed<string[]>(() => {
+    if (systemRole.value) return []
+    // ① 登录用户关联企业（UserEnterprise）的 groups
+    const enterprises = user.value?.enterprises
+    if (Array.isArray(enterprises) && enterprises.length > 0) {
+      const groups = enterprises[0]?.groups
+      if (Array.isArray(groups) && groups.length > 0) return groups as string[]
+    }
+    // ② 企业详情（平台运营方后台选中当前企业时）
+    const detailGroups = user.value?.groups
+    if (Array.isArray(detailGroups) && detailGroups.length > 0) return detailGroups as string[]
+    // ③ 岗位 group 兜底（Demo 岗位切换器）
+    const pos = findPosition(currentPositionKey.value)
+    if (pos?.group) return [pos.group]
+    return []
+  })
+
   return {
     // 登录态
     token,
@@ -148,5 +172,7 @@ export const useUserStore = defineStore('user', () => {
     currentPosition,
     currentUser,
     switchPosition,
+    // 使用群体
+    currentGroups,
   }
 })

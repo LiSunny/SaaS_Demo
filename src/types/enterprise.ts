@@ -18,6 +18,9 @@ export interface DimC {
 /** 关系角色（相关方关联时指定，"我的"视角，v1.1） */
 export type PartnerRole = 'my_supervisor' | 'my_manager' | 'social_unit' | 'my_service_unit' | 'my_operator'
 
+/** 使用群体标签（企业级，决定导航分组可见性） */
+export type EnterpriseGroup = 'regulator' | 'unit' | 'operator' | 'service'
+
 // ===== 列表相关 =====
 
 export interface EnterpriseItem {
@@ -36,6 +39,8 @@ export interface EnterpriseItem {
   parentId: string
   parentName: string
   tags: string[]
+  /** 使用群体标签：regulator|unit|operator|service（可多值） */
+  groups: EnterpriseGroup[]
   address: string
   remark: string
   logo: string
@@ -81,6 +86,8 @@ export interface EnterpriseForm {
   contactName: string
   contactPhone: string
   tags: string
+  /** 使用群体标签数组（多选） */
+  groups: string[]
   validFrom: string
   validTo: string
   region: string

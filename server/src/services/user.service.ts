@@ -153,12 +153,17 @@ export async function getUserEnterprises(userId: number) {
     orderBy: { joinedAt: 'desc' },
   })
 
-  return relations.map(r => ({
-    enterpriseId: r.enterpriseId,
-    enterpriseName: r.enterprise.name,
-    positions: JSON.parse(r.positions),
-    joinedAt: formatDate(r.joinedAt),
-  }))
+  return relations.map(r => {
+    let groups: string[] = []
+    try { groups = JSON.parse(r.enterprise.groups || '[]') } catch { groups = [] }
+    return {
+      enterpriseId: r.enterpriseId,
+      enterpriseName: r.enterprise.name,
+      positions: JSON.parse(r.positions),
+      joinedAt: formatDate(r.joinedAt),
+      groups,
+    }
+  })
 }
 
 // ===== 添加用户关联企业 =====

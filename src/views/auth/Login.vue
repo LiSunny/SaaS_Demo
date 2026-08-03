@@ -148,10 +148,10 @@
 
           <!-- 体验账号区分隔 -->
           <div class="demo-divider">
-            <span class="demo-divider-text">快速体验 · 选择角色一键登录</span>
+            <span class="demo-divider-text">选择角色 · 一键登录</span>
           </div>
 
-          <!-- 体验账号区 -->
+          <!-- 体验账号区（四方用户视角） -->
           <div class="demo-section">
             <div class="demo-rows">
               <div class="demo-row">
@@ -167,6 +167,7 @@
                     class="demo-illustration"
                   />
                   <span class="demo-role">{{ account.role }}</span>
+                  <span class="demo-group">{{ account.group }}</span>
                 </div>
               </div>
               <div class="demo-row">
@@ -182,6 +183,7 @@
                     class="demo-illustration"
                   />
                   <span class="demo-role">{{ account.role }}</span>
+                  <span class="demo-group">{{ account.group }}</span>
                 </div>
               </div>
             </div>
@@ -292,29 +294,29 @@ const featureCards = [
   },
 ]
 
-// 体验账号 — 根据打包环境自动切换
-// 泉州应急局 体验账号 付凯华 13000001111 admin123!@#
-// 新思维高级中学 体验账号 王世豪 13100001234 admin123!@#
-// 中冶龙熙半岛 体验账号 张晓明 13200002345 admin123!@#
+// 体验账号 — 四方用户视角（与导航分组对齐），根据打包环境自动切换
+// 监管机构：海港应急局 13000000001 admin123!@# → 区域监管
+// 社会单位：新思维中学 13100001234 admin123!@# → 安全管理
+// 运营商：  安信智慧消防 18800001234 admin123!@# → 项目管理
+// 服务机构：蓝盾消防 13900002222 admin123!@# → 技术服务
+// 平台方：  测试运营(platform-ops) 13800000001 3xkxr4 → 运营管理
 const demoAccounts = import.meta.env.PROD
   ? [
-      { role: '系统运维', phone: '17733550542', password: 'yvdi2f', image: platformAdminImg },
-      { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-      { role: '监督管理', phone: '13567890123', password: 'pkwlo6', image: supervisionAdminImg },
-      { role: '企业管理', phone: '13000000009', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '物业管理', phone: '13200002345', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '普通用户', phone: '13567890123', password: 'admin123!@#', image: normalUserImg },
+      { role: '监管机构', group: '区域监管', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
+      { role: '社会单位', group: '安全管理', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '运营商', group: '项目管理', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
+      { role: '技术服务机构', group: '技术服务', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
+      { role: '平台方', group: '运营管理', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
     ]
   : [
-      { role: '系统运维', phone: '17733550542', password: '3jzl8h', image: platformAdminImg },
-      { role: '运营管理', phone: '13800000001', password: '3xkxr4', image: opsManagerImg },
-      { role: '监督管理', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '企业管理', phone: '13600000001', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '物业管理', phone: '13200002345', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '普通用户', phone: '13800000000', password: 'admin123!@#', image: normalUserImg },
+      { role: '监管机构', group: '区域监管', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
+      { role: '社会单位', group: '安全管理', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '运营商', group: '项目管理', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
+      { role: '技术服务机构', group: '技术服务', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
+      { role: '平台方', group: '运营管理', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
     ]
 
-// 将 6 个账号拆为两行：第一行 3 个、第二行 3 个
+// 5 个账号拆为两行：第一行 3 个、第二行 2 个
 const demoRow1 = demoAccounts.slice(0, 3)
 const demoRow2 = demoAccounts.slice(3)
 
@@ -936,6 +938,15 @@ async function handleLogin() {
 .demo-role {
   font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
   color: var(--text-muted, #5e5e5e);
+  white-space: nowrap;
+}
+
+.demo-group {
+  font-size: clamp(10px, calc(11 * var(--min-scale)), 11px);
+  color: var(--accent-primary, #3678e3);
+  background: rgba(54, 120, 227, 0.08);
+  border-radius: calc(4 * var(--min-scale));
+  padding: calc(2 * var(--min-scale)) calc(6 * var(--min-scale));
   white-space: nowrap;
 }
 

@@ -49,17 +49,23 @@ export async function login(input: LoginInput): Promise<LoginResult> {
     data: { lastLoginAt: new Date() },
   })
 
-  // 非系统角色用户：查询岗位
+  // 非系统角色用户：查询岗位 + 企业使用群体
   let position: string | null = null
+  let groups: string[] = []
   if (!user.systemRole) {
     const ue = await db.userEnterprise.findFirst({
       where: { userId: user.id, status: 1 },
+      include: { enterprise: true },
     })
     if (ue) {
       const positions: string[] = JSON.parse(ue.positions)
       if (positions.length > 0) {
         // 去掉 "platform:" 前缀，匹配前端 PositionKey
         position = positions[0].replace(/^[a-z]+:/, '')
+      }
+      // 企业使用群体（决定导航分组）
+      if (ue.enterprise?.groups) {
+        try { groups = JSON.parse(ue.enterprise.groups) } catch { groups = [] }
       }
     }
   }
@@ -86,6 +92,7 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       status: user.status,
       systemRole: user.systemRole,
       position,
+      groups,
     } as {
       id: number
       phone: string
@@ -94,6 +101,7 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       status: number
       systemRole: string | null
       position: string | null
+      groups: string[]
     },
   }
 }
@@ -104,7 +112,12 @@ export async function login(input: LoginInput): Promise<LoginResult> {
 export async function getProfile(userId: number) {
   const user = await db.user.findUnique({
     where: { id: userId },
-    include: { enterprises: { where: { status: 1 } } },
+    include: {
+      enterprises: {
+        where: { status: 1 },
+        include: { enterprise: true },
+      },
+    },
   })
 
   if (!user) {
@@ -118,10 +131,15 @@ export async function getProfile(userId: number) {
     email: user.email,
     status: user.status,
     systemRole: user.systemRole,
-    enterprises: user.enterprises.map(e => ({
-      enterpriseId: e.enterpriseId,
-      positions: JSON.parse(e.positions),
-    })),
+    enterprises: user.enterprises.map(e => {
+      let groups: string[] = []
+      try { groups = JSON.parse((e.enterprise as any)?.groups || '[]') } catch { groups = [] }
+      return {
+        enterpriseId: e.enterpriseId,
+        positions: JSON.parse(e.positions),
+        groups,
+      }
+    }),
   }
 }
 

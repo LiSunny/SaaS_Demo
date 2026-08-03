@@ -352,12 +352,14 @@ const filteredGroups = computed(() => {
       .filter(g => g.children.length > 0)
   }
 
-  // 普通用户 → 按岗位过滤（现有逻辑不变）
+  // 普通用户 → 先按使用群体过滤分组，再按岗位过滤子节点
+  const groups = userStore.currentGroups
   const positionKeys = [userStore.currentPositionKey]
   const positionFiltered = NAV_GROUPS
     .filter(group => {
       if (group.visibleTo && group.visibleTo.length > 0) {
-        return positionKeys.some(k => group.visibleTo!.includes(k))
+        // 群体分组：按企业 groups（或岗位 group 兜底）匹配
+        return groups.some(g => group.visibleTo!.includes(g))
       }
       return true
     })

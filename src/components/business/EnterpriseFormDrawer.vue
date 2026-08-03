@@ -97,6 +97,19 @@
         </div>
       </div>
 
+      <!-- 使用群体 -->
+      <div class="form-row">
+        <div class="form-label">
+          <span class="label-text">使用群体</span>
+        </div>
+        <div class="form-control">
+          <el-select v-model="form.groups" placeholder="请选择该企业的使用群体（决定登录后的菜单）" multiple class="clean-select">
+            <el-option v-for="o in GROUP_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+          </el-select>
+          <div class="form-tip">决定该企业用户登录后看到的导航分组；可多选（如物业兼做项目运营）。</div>
+        </div>
+      </div>
+
       <!-- 授权期限 -->
       <div class="form-row">
         <div class="form-label">
@@ -317,6 +330,7 @@ const form = reactive({
   contactName: '',
   contactPhone: '',
   tags: [] as string[],
+  groups: [] as string[],
   validRange: [] as string[],
   regionArr: [] as string[],
   parentId: '',
@@ -331,6 +345,14 @@ const form = reactive({
   dimC: [] as string[],
   dimD: '',
 })
+
+/** 使用群体选项（企业级导航分组标签） */
+const GROUP_OPTIONS = [
+  { value: 'regulator', label: '监管机构（区域监管）' },
+  { value: 'unit', label: '社会单位（安全管理）' },
+  { value: 'operator', label: '运营商（项目管理）' },
+  { value: 'service', label: '技术服务机构（技术服务）' },
+]
 
 // ===== 表单校验 =====
 function validateForm(): boolean {
@@ -468,6 +490,7 @@ async function handleSave() {
       contactName: form.contactName,
       contactPhone: form.contactPhone,
       tags: form.tags,
+      groups: form.groups,
       validFrom: validFrom || '',
       validTo: validTo || '',
       region: form.regionArr.join(' '),
@@ -544,6 +567,7 @@ watch(() => props.visible, async (v) => {
       Object.assign(form, {
         name: d.name, contactName: d.contactName, contactPhone: d.contactPhone,
         tags: d.tags || [],
+        groups: d.groups || [],
         validRange: [d.validFrom, d.validTo].filter(Boolean),
         regionArr: d.region ? d.region.split(' ') : [],
         parentId: d.parentId || '',
@@ -587,6 +611,7 @@ watch(() => props.visible, async (v) => {
 .label-text { font-size: var(--font-body, 16px); font-weight: 400; color: var(--text-tertiary, #454545); white-space: nowrap; line-height: 1; }
 
 .form-control { flex: 1; min-width: 0; position: relative; }
+.form-tip { font-size: 12px; color: var(--text-tertiary, #8C8C8C); line-height: 1.5; margin-top: 4px; }
 .form-control-group { display: flex; gap: 10px; align-items: center; }
 .flex-1 { flex: 1; min-width: 0; }
 

@@ -142,6 +142,10 @@
                 <span class="form-label">企业标签</span>
                 <span class="form-value">{{ tagsDisplay || '----' }}</span>
               </div>
+              <div class="form-field">
+                <span class="form-label">使用群体</span>
+                <span class="form-value">{{ groupsDisplay || '----' }}</span>
+              </div>
 
               <div class="form-field">
                 <span class="form-label">上级企业</span>
@@ -575,6 +579,18 @@ const tagsDisplay = computed(() => {
   const tags = store.detail?.tags
   if (!tags || tags.length === 0) return ''
   return tags.join('、')
+})
+
+const GROUP_LABELS: Record<string, string> = {
+  regulator: '监管机构（区域监管）',
+  unit: '社会单位（安全管理）',
+  operator: '运营商（项目管理）',
+  service: '技术服务机构（技术服务）',
+}
+const groupsDisplay = computed(() => {
+  const groups = store.detail?.groups
+  if (!groups || groups.length === 0) return ''
+  return groups.map(g => GROUP_LABELS[g] || g).join('、')
 })
 
 const authPeriod = computed(() => {

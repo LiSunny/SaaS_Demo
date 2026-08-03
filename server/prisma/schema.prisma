@@ -101,6 +101,7 @@ model Enterprise {
   qrcode        String   @default("")
   creatorName   String   @default("")
   tags          String   @default("[]")          // JSON 数组
+  groups        String   @default("[]")          // JSON 数组：使用群体标签 regulator|unit|operator|service（决定导航分组可见性）
   // GIS 地图标注
   mapLng        Float    @default(0)             // 经度
   mapLat        Float    @default(0)             // 纬度
