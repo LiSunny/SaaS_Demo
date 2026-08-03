@@ -936,14 +936,14 @@ async function handleLogin() {
 }
 
 .demo-role {
-  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
-  color: var(--text-muted, #5e5e5e);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 18px);
+  color: var(--text-tertiary);
   white-space: nowrap;
 }
 
 .demo-desc {
-  font-size: clamp(10px, calc(12 * var(--min-scale)), 16px);
-  color: var(--text-muted, #8c8c8c);
+  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
+  color: var(--text-muted);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
