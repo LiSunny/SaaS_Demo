@@ -303,17 +303,17 @@ const featureCards = [
 const demoAccounts = import.meta.env.PROD
   ? [
       { role: '监管机构', desc: '区域监管 · 联勤督办', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '社会单位', desc: '自查自管 · 隐患闭环', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '社会单位', desc: '自查自管 · 隐患闭环', phone: '13100001234', password: 'admin123!@#', image: platformAdminImg },
       { role: '运营管理', desc: '安全托管 · 项目服务', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
-      { role: '服务机构', desc: '维保检测 · 接单处置', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
-      { role: '平台管理', desc: '租户开通 · 配置支撑', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
+      { role: '服务机构', desc: '维保检测 · 接单处置', phone: '13900002222', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '平台管理', desc: '租户开通 · 配置支撑', phone: '13800000001', password: '3xkxr4', image: normalUserImg },
     ]
   : [
       { role: '监管机构', desc: '区域监管 · 联勤督办', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '社会单位', desc: '自查自管 · 隐患闭环', phone: '13100001234', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '社会单位', desc: '自查自管 · 隐患闭环', phone: '13100001234', password: 'admin123!@#', image: platformAdminImg },
       { role: '运营管理', desc: '安全托管 · 项目服务', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
-      { role: '服务机构', desc: '维保检测 · 接单处置', phone: '13900002222', password: 'admin123!@#', image: normalUserImg },
-      { role: '平台管理', desc: '租户开通 · 配置支撑', phone: '13800000001', password: '3xkxr4', image: platformAdminImg },
+      { role: '服务机构', desc: '维保检测 · 接单处置', phone: '13900002222', password: 'admin123!@#', image: enterpriseAdminImg },
+      { role: '平台管理', desc: '租户开通 · 配置支撑', phone: '13800000001', password: '3xkxr4', image: normalUserImg },
     ]
 
 // 5 个账号拆为两行：第一行 3 个、第二行 2 个

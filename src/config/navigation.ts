@@ -102,21 +102,22 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2. 安全管理（社会单位-普通：学校/企业/商户/物业） =====
+  // ===== 2. 安全管理 — 日常使用（社会单位：学校/企业/商户/物业） =====
   {
-    key: 'unit',
+    key: 'unit-daily',
     label: '安全管理',
     icon: 'shield',
     defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       {
-        key: 'unit-situation',
-        label: '本企态势',
+        key: 'unit-overview',
+        label: '安全概览',
         icon: 'menuicon-48',
         children: [
-          { key: 'unit-cockpit', label: '企业驾驶舱', route: '/enterprise-cockpit' },
-          { key: 'unit-bigscreen', label: '可视化大屏' },
+          { key: 'unit-dashboard', label: '安全态势', route: '/unit/dashboard' },
+          { key: 'unit-data', label: '数据看板', route: '/unit/data' },
+          { key: 'unit-bigscreen', label: '可视化大屏', route: '/enterprise-cockpit' },
         ],
       },
       {
@@ -124,9 +125,8 @@ export const NAV_GROUPS: NavGroup[] = [
         label: '巡查检查',
         icon: 'menuicon-25',
         children: [
-          { key: 'unit-patrol-plan', label: '巡查计划' },
-          { key: 'unit-patrol-task', label: '巡查任务' },
-          { key: 'unit-patrol-report', label: '巡查报表' },
+          { key: 'unit-patrol-task', label: '巡查任务', route: '/unit/patrol/tasks' },
+          { key: 'unit-patrol-location', label: '点位管理', route: '/unit/patrol/locations' },
         ],
       },
       {
@@ -134,46 +134,47 @@ export const NAV_GROUPS: NavGroup[] = [
         label: '隐患管理',
         icon: 'menuicon-29',
         children: [
-          { key: 'unit-hazard-ledger', label: '隐患台账' },
-          { key: 'unit-hazard-report', label: '自查上报' },
-        ],
-      },
-      {
-        key: 'unit-danger-work',
-        label: '危险作业',
-        icon: 'menuicon-27',
-        children: [
-          { key: 'unit-danger-register', label: '作业备案' },
-          { key: 'unit-danger-approve', label: '特殊作业审批' },
+          { key: 'unit-hazard-ledger', label: '隐患台账', route: '/unit/hazards' },
+          { key: 'unit-hazard-report', label: '自查上报', route: '/unit/hazards/report' },
         ],
       },
       {
         key: 'unit-device',
         label: '设备管理',
         icon: 'menuicon-45',
-        route: '/device',
         children: [
-          { key: 'unit-device-list', label: '设备列表', route: '/device/list' },
+          { key: 'unit-device-ledger', label: '设备台账', route: '/device/list' },
+          { key: 'unit-device-maint-task', label: '保养任务', route: '/unit/device/tasks' },
+          { key: 'unit-device-maint-record', label: '保养记录', route: '/unit/device/records' },
         ],
       },
       {
-        key: 'unit-food',
-        label: '食品安全',
-        icon: 'menuicon-40',
+        key: 'unit-maintenance',
+        label: '维保管理',
+        icon: 'menuicon-9',
         children: [
-          { key: 'unit-food-ledger', label: '数字台账' },
-          { key: 'unit-food-stock', label: '出入库管理' },
-          { key: 'unit-food-sample', label: '食材留样' },
+          { key: 'unit-maint-contract', label: '维保合同', route: '/unit/maintenance/contracts' },
+          { key: 'unit-maint-ledger', label: '维保台账', route: '/unit/maintenance/ledger' },
+          { key: 'unit-maint-record', label: '维保记录', route: '/unit/maintenance/records' },
+          { key: 'unit-maint-report', label: '维保报告', route: '/unit/maintenance/reports' },
         ],
       },
       {
-        key: 'unit-training',
-        label: '培训演练',
-        icon: 'menuicon-6',
+        key: 'unit-alarm',
+        label: '告警处置',
+        icon: 'menuicon-24',
         children: [
-          { key: 'unit-training-knowledge', label: '知识库' },
-          { key: 'unit-training-record', label: '培训记录' },
-          { key: 'unit-training-exercise', label: '演练记录' },
+          { key: 'unit-alarm-list', label: '告警列表', route: '/unit/alarms' },
+          { key: 'unit-alarm-record', label: '处置记录', route: '/unit/alarms/records' },
+        ],
+      },
+      {
+        key: 'unit-danger',
+        label: '危险作业',
+        icon: 'menuicon-27',
+        children: [
+          { key: 'unit-danger-apply', label: '作业申请', route: '/unit/danger/apply' },
+          { key: 'unit-danger-record', label: '作业记录', route: '/unit/danger/records' },
         ],
       },
       {
@@ -181,20 +182,136 @@ export const NAV_GROUPS: NavGroup[] = [
         label: '我的工单',
         icon: 'menuicon-2',
         children: [
-          { key: 'unit-order-monitor', label: '工单监控', route: '/system/monitor' },
-          { key: 'unit-order-dashboard', label: '数据看板', route: '/system/dashboard' },
+          { key: 'unit-order-list', label: '工单列表', route: '/unit/orders' },
+          { key: 'unit-order-stats', label: '工单统计', route: '/unit/orders/stats' },
         ],
       },
       {
-        key: 'unit-system',
-        label: '系统管理',
-        icon: 'menuicon-43',
-        visibleTo: ['org-admin'],
+        key: 'unit-training',
+        label: '培训演练',
+        icon: 'menuicon-6',
         children: [
-          { key: 'unit-members', label: '企业成员', route: '/enterprise/members' },
-          { key: 'unit-positions', label: '企业岗位', route: '/enterprise/positions' },
-          { key: 'unit-logs', label: '操作日志' },
+          { key: 'unit-training-knowledge', label: '知识库', route: '/unit/training/knowledge' },
+          { key: 'unit-training-record', label: '培训记录', route: '/unit/training/records' },
+          { key: 'unit-training-exercise', label: '演练记录', route: '/unit/training/exercises' },
         ],
+      },
+      {
+        key: 'unit-notify',
+        label: '通知提醒',
+        icon: 'menuicon-34',
+        children: [
+          { key: 'unit-notify-list', label: '推送记录', route: '/unit/notifications' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 2b. 安全管理 — 单位设置（社会单位管理员） =====
+  {
+    key: 'unit-settings',
+    label: '单位设置',
+    icon: 'setting',
+    defaultOpen: false,
+    visibleTo: ['unit'],
+    children: [
+      {
+        key: 'unit-set-patrol',
+        label: '巡查设置',
+        icon: 'menuicon-25',
+        children: [
+          { key: 'unit-set-patrol-items', label: '巡查项目', route: '/unit/settings/patrol/items' },
+          { key: 'unit-set-patrol-plan', label: '巡查计划', route: '/unit/settings/patrol/plans' },
+          { key: 'unit-set-patrol-report', label: '巡查报表', route: '/unit/settings/patrol/reports' },
+        ],
+      },
+      {
+        key: 'unit-set-device',
+        label: '设备设置',
+        icon: 'menuicon-45',
+        children: [
+          { key: 'unit-set-device-standard', label: '保养规范', route: '/unit/settings/device/standards' },
+          { key: 'unit-set-device-plan', label: '保养计划', route: '/unit/settings/device/plans' },
+          { key: 'unit-set-device-monitor', label: '运行监控', route: '/unit/settings/device/monitor' },
+          { key: 'unit-set-device-report', label: '设备报表', route: '/unit/settings/device/reports' },
+          { key: 'unit-set-device-config', label: '设备配置', route: '/unit/settings/device/config' },
+          { key: 'unit-set-device-log', label: '系统日志', route: '/unit/settings/device/logs' },
+        ],
+      },
+      {
+        key: 'unit-set-alarm',
+        label: '告警设置',
+        icon: 'menuicon-24',
+        children: [
+          { key: 'unit-set-alarm-config', label: '告警配置', route: '/unit/settings/alarms/config' },
+          { key: 'unit-set-alarm-report', label: '值守报表', route: '/unit/settings/alarms/reports' },
+          { key: 'unit-set-alarm-plan', label: '预案管理', route: '/unit/settings/alarms/plans' },
+        ],
+      },
+      {
+        key: 'unit-set-notify',
+        label: '通知设置',
+        icon: 'menuicon-34',
+        children: [
+          { key: 'unit-set-notify-config', label: '通知配置', route: '/unit/settings/notifications/config' },
+          { key: 'unit-set-notify-push', label: '告警推送', route: '/unit/settings/notifications/push' },
+        ],
+      },
+      {
+        key: 'unit-set-org',
+        label: '组织管理',
+        icon: 'menuicon-43',
+        children: [
+          { key: 'unit-set-org-unit', label: '管理单元', route: '/unit/settings/org/units' },
+          { key: 'unit-set-org-building', label: '建筑管理', route: '/unit/settings/org/buildings' },
+          { key: 'unit-set-org-focus', label: '重点部位', route: '/unit/settings/org/focus' },
+          { key: 'unit-set-org-members', label: '人员管理', route: '/enterprise/members' },
+          { key: 'unit-set-org-perms', label: '权限管理', route: '/unit/settings/org/permissions' },
+          { key: 'unit-set-org-dept', label: '部门管理', route: '/unit/settings/org/departments' },
+          { key: 'unit-set-org-positions', label: '岗位管理', route: '/enterprise/positions' },
+        ],
+      },
+      {
+        key: 'unit-set-policy',
+        label: '制度管理',
+        icon: 'menuicon-8',
+        route: '/unit/settings/policies',
+      },
+      {
+        key: 'unit-set-announce',
+        label: '通知公告',
+        icon: 'menuicon-7',
+        route: '/unit/settings/announcements',
+      },
+      {
+        key: 'unit-set-enterprise',
+        label: '企业配置',
+        icon: 'menuicon-37',
+        children: [
+          { key: 'unit-set-ent-info', label: '基础信息', route: '/unit/settings/enterprise/info' },
+          { key: 'unit-set-ent-custom', label: '个性化', route: '/unit/settings/enterprise/custom' },
+        ],
+      },
+      {
+        key: 'unit-set-log',
+        label: '日志管理',
+        icon: 'menuicon-42',
+        route: '/unit/settings/logs',
+      },
+      {
+        key: 'unit-set-form',
+        label: '动态表单',
+        icon: 'menuicon-47',
+        children: [
+          { key: 'unit-set-form-mgmt', label: '表单管理', route: '/unit/settings/forms' },
+          { key: 'unit-set-form-records', label: '填写记录', route: '/unit/settings/forms/records' },
+        ],
+      },
+      {
+        key: 'unit-set-manual',
+        label: '使用手册',
+        icon: 'menuicon-50',
+        route: '/unit/settings/manual',
       },
     ],
   },
@@ -381,13 +498,13 @@ export const NAV_GROUPS: NavGroup[] = [
 export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/workbench': 'workbench',
   '/system/template': 'flow-template',
-  '/system/monitor': 'unit-order-monitor',
-  '/system/order': 'unit-order-monitor',
-  '/system/dashboard': 'unit-order-dashboard',
+  '/system/monitor': 'unit-order-list',
+  '/system/order': 'unit-order-list',
+  '/system/dashboard': 'unit-order-stats',
   '/maintenance/plans': 'svc-maintain-record',
   '/maintenance/plans/detail': 'svc-maintain-record',
   '/device': 'unit-device',
-  '/device/list': 'unit-device-list',
+  '/device/list': 'unit-device-ledger',
   '/iot': 'unit-device',
   '/platform': 'platform-admin',
   '/admin': 'tenant-mgmt',
@@ -397,30 +514,31 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/admin/positions': 'position-mgmt',
   '/admin/bigscreens': 'bigscreen-list',
   '/admin/member-types': 'member-type-list',
-  '/enterprise/members': 'unit-members',
-  '/enterprise/positions': 'unit-positions',
+  '/enterprise/members': 'unit-set-org-members',
+  '/enterprise/positions': 'unit-set-org-positions',
   '/resumption': 'unit-hazard-report',
   '/resumption-bigscreen': 'unit-bigscreen',
+  '/enterprise-cockpit': 'unit-bigscreen',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
 export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'workbench': '/workbench',
   'flow-template': '/system/template',
-  'unit-order-monitor': '/system/monitor',
-  'unit-order-dashboard': '/system/dashboard',
+  'unit-order-list': '/system/monitor',
+  'unit-order-stats': '/system/dashboard',
   'svc-maintain-record': '/maintenance/plans',
   'unit-device': '/device',
-  'unit-device-list': '/device/list',
+  'unit-device-ledger': '/device/list',
   'tenant-mgmt': '/admin/enterpriseManagement/index',
   'user-list': '/admin/users',
   'position-mgmt': '/admin/positions',
   'bigscreen-list': '/admin/bigscreens',
   'member-type-list': '/admin/member-types',
-  'unit-members': '/enterprise/members',
-  'unit-positions': '/enterprise/positions',
+  'unit-set-org-members': '/enterprise/members',
+  'unit-set-org-positions': '/enterprise/positions',
   'reg-bigscreen': '/landing',
-  'unit-cockpit': '/enterprise-cockpit',
+  'unit-bigscreen': '/enterprise-cockpit',
 }
 
 // ===== 工具函数 =====
