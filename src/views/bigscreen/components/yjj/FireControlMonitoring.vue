@@ -5,7 +5,11 @@
     </div>
     <div v-else class="fc-monitoring__rooms">
       <div v-for="room in enterprise.rooms" :key="room.id" class="fc-room">
-        <BigscreenModuleTitle :title="room.name" subtitle="" />
+        <div class="fc-room__title">
+          <div class="fc-room__title-bg" />
+          <div class="fc-room__title-divider" />
+          <p class="fc-room__title-text">{{ room.name }}</p>
+        </div>
         <div class="fc-room__cameras">
           <div
             v-for="cam in room.cameras"
@@ -55,7 +59,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import BigscreenModuleTitle from '../BigscreenModuleTitle.vue'
 
 interface Camera {
   id: number
@@ -132,6 +135,53 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   gap: vh(14);
 }
 
+/* ===== 消控室分组标题（Figma 500:1984） ===== */
+.fc-room__title {
+  position: relative;
+  width: 100%;
+  height: vh(40);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.fc-room__title-bg {
+  position: absolute;
+  inset: 0;
+  background: #0457a7;
+}
+
+.fc-room__title-divider {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: vh(2);
+  background: linear-gradient(
+    to right,
+    #014c8e 0%,
+    #73a1bb 2.88%,
+    #014c8e 100%
+  );
+}
+
+.fc-room__title-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding-left: vw(20);
+  font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(14px, calc(20 * var(--min-scale)), 20px);
+  font-weight: 900;
+  line-height: vh(29);
+  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
 .fc-room__cameras {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(vw(220), 1fr));
@@ -147,7 +197,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 }
 
 .fc-camera.is-offline .fc-camera__label {
-  color: rgba(137, 181, 255, 0.35);
+  color: #6b7280;
 }
 
 /* ===== 写实监控摄像头样式（复用 RiskControl 风格） ===== */
@@ -158,7 +208,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   overflow: hidden;
   background: #000;
   border-radius: 4px;
-  border: 1px solid rgba(71, 132, 232, 0.25);
+  border: 1px solid #4784e8;
 }
 
 .surveillance-camera img {
@@ -174,7 +224,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(107, 114, 128, 0.4);
+  border: 1px solid #6b7280;
 }
 
 .offline-content {
@@ -182,7 +232,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: rgba(107, 114, 128, 0.7);
+  color: #6b7280;
   font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
 }
 
@@ -289,7 +339,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 
 .fc-camera__label {
   font-size: clamp(10px, calc(11 * var(--min-scale)), 13px);
-  color: rgba(137, 181, 255, 0.6);
+  color: #89b5ff;
   text-align: center;
   white-space: nowrap;
 }

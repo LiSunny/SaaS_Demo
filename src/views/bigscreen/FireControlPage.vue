@@ -24,6 +24,7 @@
           :label="stat.label"
           :value="stat.value"
           :unit="stat.unit"
+          :hex-src="stat.hexSrc"
         />
       </div>
 
@@ -142,6 +143,14 @@ import FireControlRollCall from './components/yjj/FireControlRollCall.vue'
 import FireControlAlerts from './components/yjj/FireControlAlerts.vue'
 import FireControlHandover from './components/yjj/FireControlHandover.vue'
 import FireControlHostLedger from './components/yjj/FireControlHostLedger.vue'
+
+// 辖区统计指标六边形徽章（设计稿 500:1753 区域，Figma 导出）
+import hexCity from '@/assets/bigscreen/metric-hex-city.svg'
+import hexHome from '@/assets/bigscreen/metric-hex-home.svg'
+import hexCamera from '@/assets/bigscreen/metric-hex-camera.svg'
+import hexNetwork from '@/assets/bigscreen/metric-hex-network.svg'
+import hexPeople from '@/assets/bigscreen/metric-hex-people.svg'
+import hexLog from '@/assets/bigscreen/metric-hex-log.svg'
 
 // ============================================================
 // Mock Data
@@ -508,12 +517,12 @@ const jurisdictionStats = computed(() => {
   const totalRecords = allDutyRecords.value.filter(r => r.shiftDate === today()).length
 
   return [
-    { label: '纳管企业', value: enterprises.length, unit: '家' },
-    { label: '消控室总数', value: totalRooms, unit: '间' },
-    { label: '摄像头总数', value: totalCameras, unit: '个' },
-    { label: '摄像头在线率', value: totalCameras > 0 ? (onlineCameras / totalCameras * 100).toFixed(1) : '0', unit: '%' },
-    { label: '在岗值班人员', value: totalOnDuty, unit: '人' },
-    { label: '今日值班记录', value: totalRecords, unit: '条' },
+    { label: '纳管企业', value: enterprises.length, unit: '家', hexSrc: hexCity },
+    { label: '消控室总数', value: totalRooms, unit: '间', hexSrc: hexHome },
+    { label: '摄像头总数', value: totalCameras, unit: '个', hexSrc: hexCamera },
+    { label: '摄像头在线率', value: totalCameras > 0 ? (onlineCameras / totalCameras * 100).toFixed(1) : '0', unit: '%', hexSrc: hexNetwork },
+    { label: '在岗值班人员', value: totalOnDuty, unit: '人', hexSrc: hexPeople },
+    { label: '今日值班记录', value: totalRecords, unit: '条', hexSrc: hexLog },
   ]
 })
 
@@ -801,7 +810,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
   border-radius: 6px;
   overflow: hidden;
   padding: vh(12) vw(14);
-  gap: 0;
+  gap: vh(18);
 }
 
 .detail-panel__ent-header {
@@ -809,21 +818,19 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
   align-items: baseline;
   gap: vw(12);
   flex-shrink: 0;
-  padding-bottom: vh(10);
-  border-bottom: 1px solid rgba(71, 132, 232, 0.2);
 }
 
 .detail-panel__ent-name {
   font-family: 'Source-KeynoteartHans', 'Alibaba PuHuiTi', sans-serif;
   font-size: clamp(16px, calc(18 * var(--min-scale)), 20px);
-  font-weight: 700;
+  font-weight: 900;
   color: #ffffff;
   flex-shrink: 0;
 }
 
 .detail-panel__ent-meta {
   font-size: clamp(11px, calc(12 * var(--min-scale)), 14px);
-  color: rgba(137, 181, 255, 0.6);
+  color: #89b5ff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -832,6 +839,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
 /* ===== Seg 分段控制器 ===== */
 .page-seg {
   display: flex;
+  align-items: flex-start;
   gap: vw(18);
   flex-shrink: 0;
   padding: vh(10) 0;
@@ -856,6 +864,7 @@ function addRollCallRecord(record: Omit<RollCallRecord, 'id'>) {
   background: rgba(22, 70, 145, 0.51);
   -webkit-text-fill-color: #ffffff;
   color: #ffffff;
+  padding: vh(12) vw(12);
   border-radius: 8px 8px 0 0;
 }
 
