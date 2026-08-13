@@ -55,7 +55,7 @@
         v-model:page-size="shopPageSize"
         :page-sizes="[10, 20, 50]"
         :total="shopTableData.length"
-        layout="sizes, prev, pager, next"
+        layout="total, sizes, prev, pager, next"
         :pager-count="5"
         background
       />

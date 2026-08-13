@@ -80,7 +80,7 @@
             v-model:page-size="currentPageSize"
             :page-sizes="[10, 20, 50]"
             :total="tableRows.length"
-            layout="sizes, prev, pager, next"
+            layout="total, sizes, prev, pager, next"
             :pager-count="5"
             background
           />
