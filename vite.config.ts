@@ -30,6 +30,18 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  optimizeDeps: {
+    // ⚠️ 预构建全部 Element Plus 按需组件：懒加载路由（如 StreetDetailPage）首次进入时
+    // 若发现未预构建的 el-* 组件，vite 会触发依赖重优化 + 全页 reload，
+    // 导致正在进行的动态 import 报 "Failed to fetch dynamically imported module"。
+    // 在启动时一次性预构建，运行时不再触发。
+    include: [
+      'element-plus/es',
+      ...['base', 'breadcrumb', 'button', 'card', 'cascader', 'checkbox', 'checkbox-group', 'col', 'collapse', 'collapse-item', 'date-picker', 'dialog', 'divider', 'drawer', 'dropdown', 'dropdown-item', 'dropdown-menu', 'form', 'form-item', 'icon', 'input', 'input-number', 'link', 'message', 'message-box', 'option', 'pagination', 'popover', 'radio', 'radio-group', 'row', 'select', 'skeleton', 'slider', 'step', 'steps', 'switch', 'tab-pane', 'table', 'table-column', 'tabs', 'tag', 'tooltip', 'tree', 'upload'].map(
+        (name) => `element-plus/es/components/${name}/style/css`,
+      ),
+    ],
+  },
   server: {
     port: 3200,
     headers: {
