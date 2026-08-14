@@ -79,6 +79,14 @@ const router = createRouter({
       meta: { standalone: true },
     },
 
+    // ===== 韧性AI助手独立工作台（全屏深色三栏，需登录，无布局） =====
+    {
+      path: '/agent',
+      name: 'AgentWorkbench',
+      component: () => import('@/views/agent/AgentPage.vue'),
+      meta: { standalone: true },
+    },
+
     // ===== 全屏可视化大屏首页 =====
     {
       path: '/',

@@ -94,6 +94,64 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       parameters: { type: 'object', properties: {} },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'query_alarms',
+      description: '查询告警数据（列表与统计）。返回告警点位、类型、等级、处置状态、时间、所属企业。当用户问"今天几条告警"、"未处理的火警"、"告警情况"、"告警统计"时使用此工具',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', description: '按处置状态筛选：未处理 / 已处理。不传则返回全部' },
+          level: { type: 'string', description: '按等级筛选：紧急 / 重要 / 一般。不传则返回全部' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'query_hazards',
+      description: '查询隐患台账数据。返回隐患位置、类别、等级、整改状态、发现时间、所属企业。当用户问"未整改的隐患"、"隐患清单"、"隐患台账"、"隐患整改情况"时使用此工具',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', description: '按整改状态筛选：未整改 / 整改中 / 已整改。不传则返回全部' },
+          level: { type: 'string', description: '按等级筛选：重大 / 重要 / 一般。不传则返回全部' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'query_orders',
+      description: '查询工单数据。返回工单号、标题、类型、状态、优先级、处理人、创建时间、所属企业。当用户问"我的工单"、"工单情况"、"工单统计"、"待处理的工单"时使用此工具',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', description: '按状态筛选：active（进行中）/ closed（已关闭）。不传则返回全部' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'query_devices',
+      description: '查询设备台账与状态数据。返回设备名称、类型、在线状态、位置、所属企业。当用户问"离线设备"、"设备状态"、"设备台账"、"多少设备在线"时使用此工具',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', description: '按在线状态筛选：在线 / 离线。不传则返回全部' },
+        },
+        required: [],
+      },
+    },
+  },
 ]
 
 // 岗位标签映射从数据库动态加载（见 buildPositionLabelMap），不写死
@@ -113,6 +171,81 @@ const DIM_B_LABELS: Record<string, string> = {
   'commercial_complex': '商业综合体',
   'manufacturing': '制造业',
   'emergency_mgmt': '应急管理',
+}
+
+// ===== 四方数据问答 Mock 数据 =====
+// 告警/隐患/设备后端无数据表、工单 WorkOrder 表当前为空，Demo 阶段统一用 mock 数据驱动。
+// 每条带 enterprise 字段，scope 过滤按用户关联企业名匹配（权限在服务层，LLM 不参与过滤）。
+
+export interface AgentScope {
+  systemRole: string | null   // platform-admin / platform-ops / 其他
+  groups: string[]            // 用户关联企业 groups 的并集：regulator|unit|operator|service
+  enterpriseNames: string[]   // 用户关联的企业名称
+  realName?: string           // 当前用户姓名（服务商工单按处理人过滤用）
+}
+
+const MOCK_ALARMS = [
+  { id: 1, point: '1号消控室·烟感A-101', type: '火警', level: '紧急', status: '未处理', time: '08:32', enterprise: '港南二中' },
+  { id: 2, point: '食堂后厨·电气B-03', type: '电气故障', level: '重要', status: '未处理', time: '09:15', enterprise: '港南二中' },
+  { id: 3, point: '宿舍楼·烟感C-207', type: '烟感预警', level: '一般', status: '已处理', time: '07:48', enterprise: '港南二中' },
+  { id: 4, point: '商业街1号铺·烟感', type: '火警', level: '紧急', status: '已处理', time: '08:05', enterprise: '商业街1' },
+  { id: 5, point: '商铺1·电气', type: '电气故障', level: '重要', status: '未处理', time: '10:20', enterprise: '商铺1' },
+  { id: 6, point: '韧性木业·车间烟感', type: '火警', level: '紧急', status: '未处理', time: '09:40', enterprise: '韧性木业' },
+]
+
+const MOCK_HAZARDS = [
+  { id: 1, location: '教学楼1F 灭火器箱', category: '消防设施', level: '一般', status: '未整改', foundAt: '2026-08-12', enterprise: '港南二中' },
+  { id: 2, location: '宿舍楼 消防通道', category: '消防通道', level: '重大', status: '未整改', foundAt: '2026-08-10', enterprise: '港南二中' },
+  { id: 3, location: '商业街1号铺 燃气阀', category: '燃气安全', level: '重大', status: '整改中', foundAt: '2026-08-13', enterprise: '商业街1' },
+  { id: 4, location: '韧性木业 车间电气箱', category: '电气安全', level: '重要', status: '未整改', foundAt: '2026-08-11', enterprise: '韧性木业' },
+]
+
+const MOCK_ORDERS = [
+  { id: 1, orderNo: 'GD20260814001', title: '港南二中 烟感故障维修', type: '设备维修', status: 'active', priority: 'urgent', assignee: '郑晓峰', createdAt: '2026-08-14 08:30', enterprise: '港南二中' },
+  { id: 2, orderNo: 'GD20260814002', title: '商业街 消防通道整改', type: '隐患整改', status: 'active', priority: 'high', assignee: '郑晓峰', createdAt: '2026-08-14 09:00', enterprise: '商业街1' },
+  { id: 3, orderNo: 'GD20260813005', title: '商铺1 电气检测', type: '检测服务', status: 'closed', priority: 'normal', assignee: '郑晓峰', createdAt: '2026-08-13 14:00', enterprise: '商铺1' },
+]
+
+const MOCK_DEVICES = [
+  { id: 1, name: '烟感探测器 A-101', type: '烟感', status: '在线', location: '1号消控室', enterprise: '港南二中' },
+  { id: 2, name: '电气火灾监控 B-03', type: '电气', status: '在线', location: '食堂后厨', enterprise: '港南二中' },
+  { id: 3, name: '烟感探测器 C-207', type: '烟感', status: '离线', location: '宿舍楼', enterprise: '港南二中' },
+  { id: 4, name: '智能摄像头 01', type: '摄像头', status: '在线', location: '商业街1号铺', enterprise: '商业街1' },
+  { id: 5, name: '燃气探测器 01', type: '燃气', status: '离线', location: '商铺1', enterprise: '商铺1' },
+  { id: 6, name: '烟感探测器 车间-1', type: '烟感', status: '在线', location: '车间', enterprise: '韧性木业' },
+]
+
+/** 平台方与监管可看全部数据，其余角色只看本企业 */
+function canSeeAll(scope?: AgentScope): boolean {
+  if (!scope) return true
+  if (scope.systemRole === 'platform-admin' || scope.systemRole === 'platform-ops') return true
+  return scope.groups.includes('regulator')
+}
+
+/** 按 scope 过滤带 enterprise 字段的 mock 数据 */
+function filterByScope<T extends { enterprise: string }>(items: T[], scope?: AgentScope): T[] {
+  if (canSeeAll(scope)) return items
+  const names = scope?.enterpriseNames || []
+  if (names.length === 0) return items
+  return items.filter(i => names.includes(i.enterprise))
+}
+
+/** 工单过滤：服务商按处理人（我接的单），其余角色按企业归属 */
+function filterOrders(scope?: AgentScope): typeof MOCK_ORDERS {
+  if (canSeeAll(scope)) return MOCK_ORDERS
+  if (scope?.groups.includes('service') && scope.realName) {
+    return MOCK_ORDERS.filter(o => o.assignee === scope.realName)
+  }
+  const names = scope?.enterpriseNames || []
+  if (names.length === 0) return MOCK_ORDERS
+  return MOCK_ORDERS.filter(o => names.includes(o.enterprise))
+}
+
+/** 产物副标题里的数据范围文案 */
+function scopeLabel(scope?: AgentScope): string {
+  if (canSeeAll(scope)) return '全部企业'
+  const names = scope?.enterpriseNames || []
+  return names.length ? names.join('、') : '全部'
 }
 
 // ===== DeepSeek 客户端（懒加载，避免模块顶层初始化在没有 Key 时崩进程） =====
@@ -150,6 +283,20 @@ export interface StreamDebugEvent {
   detail?: any       // 可展开的结构化详情
 }
 
+/** 产物类型（技能注册表键） */
+export type ArtifactType = 'alarm-report' | 'hazard-list' | 'order-weekly'
+
+/** 产物事件：一次对话产出的可交付物（HTML），右栏产物 Tab 预览 + 下载 */
+export interface StreamArtifactEvent {
+  type: 'artifact'
+  artifact: {
+    id: string
+    type: ArtifactType
+    title: string
+    html: string
+  }
+}
+
 /** 文件上下文（前端上传解析后传入） */
 export interface FileContext {
   url: string
@@ -160,7 +307,7 @@ export interface FileContext {
 }
 
 // ===== 执行工具调用 =====
-async function executeTool(name: string, args: Record<string, any>): Promise<string> {
+async function executeTool(name: string, args: Record<string, any>, scope?: AgentScope): Promise<string> {
   switch (name) {
     case 'query_enterprise_list': {
       const { data, total } = await enterpriseService.getList({
@@ -241,6 +388,42 @@ async function executeTool(name: string, args: Record<string, any>): Promise<str
       ]
       return JSON.stringify({ total: positions.length, list: positions })
     }
+    case 'query_alarms': {
+      let items = filterByScope(MOCK_ALARMS, scope)
+      if (args.status) items = items.filter(a => a.status === args.status)
+      if (args.level) items = items.filter(a => a.level === args.level)
+      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的告警记录。' })
+      const rows = items.map(a => `| ${a.time} | ${a.point} | ${a.type} | ${a.level} | ${a.status} | ${a.enterprise} |`)
+      const text = `**共 ${items.length} 条告警**\n\n| 时间 | 点位 | 类型 | 等级 | 状态 | 企业 |\n|------|------|------|------|------|------|\n${rows.join('\n')}`
+      return JSON.stringify({ text, total: items.length })
+    }
+    case 'query_hazards': {
+      let items = filterByScope(MOCK_HAZARDS, scope)
+      if (args.status) items = items.filter(h => h.status === args.status)
+      if (args.level) items = items.filter(h => h.level === args.level)
+      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的隐患记录。' })
+      const rows = items.map(h => `| ${h.location} | ${h.category} | ${h.level} | ${h.status} | ${h.foundAt} | ${h.enterprise} |`)
+      const text = `**共 ${items.length} 条隐患**\n\n| 位置 | 类别 | 等级 | 状态 | 发现时间 | 企业 |\n|------|------|------|------|------|------|\n${rows.join('\n')}`
+      return JSON.stringify({ text, total: items.length })
+    }
+    case 'query_orders': {
+      let items = filterOrders(scope)
+      if (args.status) items = items.filter(o => o.status === args.status)
+      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的工单。' })
+      const statusLabel = (s: string) => s === 'active' ? '进行中' : s === 'closed' ? '已关闭' : s
+      const priLabel = (p: string) => ({ urgent: '紧急', high: '高', normal: '普通', low: '低' } as Record<string, string>)[p] || p
+      const rows = items.map(o => `| ${o.orderNo} | ${o.title} | ${o.type} | ${statusLabel(o.status)} | ${priLabel(o.priority)} | ${o.assignee} | ${o.createdAt} |`)
+      const text = `**共 ${items.length} 条工单**\n\n| 工单号 | 标题 | 类型 | 状态 | 优先级 | 处理人 | 创建时间 |\n|------|------|------|------|------|------|------|\n${rows.join('\n')}`
+      return JSON.stringify({ text, total: items.length })
+    }
+    case 'query_devices': {
+      let items = filterByScope(MOCK_DEVICES, scope)
+      if (args.status) items = items.filter(d => d.status === args.status)
+      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的设备。' })
+      const rows = items.map(d => `| ${d.name} | ${d.type} | ${d.status} | ${d.location} | ${d.enterprise} |`)
+      const text = `**共 ${items.length} 台设备**\n\n| 设备名称 | 类型 | 状态 | 位置 | 企业 |\n|------|------|------|------|------|\n${rows.join('\n')}`
+      return JSON.stringify({ text, total: items.length })
+    }
     default:
       return JSON.stringify({ error: `未知工具: ${name}` })
   }
@@ -256,13 +439,198 @@ function debugEvent(node: string, label: string, io: StreamDebugEvent['io'], sum
   return { type: 'debug', node, label, io, summary: prefix + summary, detail }
 }
 
+// ===== 产物生成（技能注册表 + HTML 模板） =====
+// 技能注册表：触发词 + 标题 + 取数工具。HTML 骨架与图表规范另见 server/src/config/agent/skills/*.md（供 LLM 参考素材）。
+// Demo 阶段产物用「内置技能模板 + 真实 mock 数据填充」生成 HTML，不依赖 LLM，无 Key 也能演示。
+
+interface SkillDef {
+  title: string
+  patterns: RegExp[]
+  tool: 'query_alarms' | 'query_hazards' | 'query_orders'
+}
+
+const SKILLS: Record<ArtifactType, SkillDef> = {
+  'alarm-report': {
+    title: '今日告警日报',
+    patterns: [/告警.*日报/, /日报.*告警/, /今日告警/, /告警汇总/, /告警日报/, /告警.*报告/],
+    tool: 'query_alarms',
+  },
+  'hazard-list': {
+    title: '隐患清单',
+    patterns: [/隐患清单/, /未整改隐患/, /隐患汇总/, /隐患台账/, /隐患.*清单/],
+    tool: 'query_hazards',
+  },
+  'order-weekly': {
+    title: '工单汇总',
+    patterns: [/工单周报/, /工单汇总/, /工单总结/, /工单.*周报/, /工单.*汇总/],
+    tool: 'query_orders',
+  },
+}
+
+/** 从用户消息识别产物意图，未命中返回 null */
+function detectArtifactIntent(message: string): ArtifactType | null {
+  for (const [type, skill] of Object.entries(SKILLS) as [ArtifactType, SkillDef][]) {
+    for (const p of skill.patterns) {
+      if (p.test(message)) return type
+    }
+  }
+  return null
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+interface ArtifactStat { label: string; value: string; tone?: 'red' | 'green' | 'amber' | 'blue' }
+
+/** 生成自包含的浅色商务风 HTML 产物（统计卡 + 明细表），iframe 预览 / 下载发领导 */
+function buildArtifactHtml(opts: {
+  title: string
+  subtitle: string
+  stats: ArtifactStat[]
+  columns: string[]
+  rows: string[][]
+}): string {
+  const statCards = opts.stats.map(s => `
+    <div class="stat${s.tone ? ' ' + s.tone : ''}">
+      <div class="v">${escapeHtml(s.value)}</div>
+      <div class="l">${escapeHtml(s.label)}</div>
+    </div>`).join('')
+  const headCells = opts.columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')
+  const bodyRows = opts.rows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('')
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(opts.title)}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:#f5f7fb; color:#1f2937; padding:24px; }
+  .wrap { max-width:880px; margin:0 auto; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.06); overflow:hidden; }
+  .head { background:linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; padding:24px 28px; }
+  .head h1 { font-size:22px; font-weight:700; }
+  .head p { font-size:13px; opacity:.85; margin-top:6px; }
+  .stats { display:flex; gap:14px; padding:20px 28px 8px; }
+  .stat { flex:1; background:#f8fafc; border-radius:10px; padding:16px 12px; text-align:center; }
+  .stat .v { font-size:28px; font-weight:700; color:#1d4ed8; }
+  .stat .l { font-size:12px; color:#64748b; margin-top:4px; }
+  .stat.red .v { color:#b91c1c; } .stat.green .v { color:#1e7a45; } .stat.amber .v { color:#92400e; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; }
+  th, td { padding:11px 16px; text-align:left; font-size:13px; border-bottom:1px solid #eef2f7; }
+  th { background:#f8fafc; color:#475569; font-weight:600; }
+  .foot { padding:16px 28px; font-size:12px; color:#94a3b8; border-top:1px solid #eef2f7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1>${escapeHtml(opts.title)}</h1><p>${escapeHtml(opts.subtitle)}</p></div>
+  <div class="stats">${statCards}</div>
+  <table><thead><tr>${headCells}</tr></thead><tbody>${bodyRows}</tbody></table>
+  <div class="foot">商业街安全管理平台 · 由韧性AI助手生成</div>
+</div>
+</body>
+</html>`
+}
+
+/** 产物生成流程：识别意图 → 取数 → 模板生成 HTML → artifact 事件 → 确认文案 */
+async function* generateArtifact(
+  type: ArtifactType,
+  message: string,
+  scope: AgentScope | undefined,
+  t0: number,
+): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent> {
+  const skill = SKILLS[type]
+
+  yield debugEvent('artifact_intent', '🎯 识别产物意图', 'info',
+    `匹配技能「${skill.title}」`,
+    { 技能: type, 触发消息: message }, t0)
+
+  const tData = Date.now()
+  yield debugEvent('artifact_data', '🔧 取数', 'output',
+    `调用 ${skill.tool} 获取数据，耗时 ${Date.now() - tData}ms`,
+    { 工具: skill.tool }, t0)
+
+  // 按技能构造统计数据与明细（复用 mock 数据 + scope 过滤）
+  let title = skill.title
+  let subtitle = ''
+  let stats: ArtifactStat[] = []
+  let columns: string[] = []
+  let rows: string[][] = []
+
+  if (type === 'alarm-report') {
+    const items = filterByScope(MOCK_ALARMS, scope)
+    const unhandled = items.filter(a => a.status === '未处理')
+    subtitle = `统计时间 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope)}`
+    stats = [
+      { label: '告警总数', value: String(items.length) },
+      { label: '未处理', value: String(unhandled.length), tone: 'red' },
+      { label: '已处置', value: String(items.length - unhandled.length), tone: 'green' },
+    ]
+    columns = ['时间', '点位', '类型', '等级', '状态', '企业']
+    rows = items.map(a => [a.time, a.point, a.type, a.level, a.status, a.enterprise])
+  } else if (type === 'hazard-list') {
+    const items = filterByScope(MOCK_HAZARDS, scope)
+    const major = items.filter(h => h.level === '重大').length
+    subtitle = `截至 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope)}`
+    stats = [
+      { label: '隐患总数', value: String(items.length) },
+      { label: '重大隐患', value: String(major), tone: 'red' },
+      { label: '未整改', value: String(items.filter(h => h.status === '未整改').length), tone: 'amber' },
+    ]
+    columns = ['位置', '类别', '等级', '状态', '发现时间', '企业']
+    rows = items.map(h => [h.location, h.category, h.level, h.status, h.foundAt, h.enterprise])
+  } else if (type === 'order-weekly') {
+    const items = filterOrders(scope)
+    const active = items.filter(o => o.status === 'active').length
+    subtitle = scope?.groups.includes('service') && scope.realName
+      ? `截至 ${new Date().toLocaleDateString('zh-CN')} · 处理人 ${scope.realName}`
+      : `截至 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope)}`
+    stats = [
+      { label: '工单总数', value: String(items.length) },
+      { label: '进行中', value: String(active), tone: 'blue' },
+      { label: '已关闭', value: String(items.length - active), tone: 'green' },
+    ]
+    columns = ['工单号', '标题', '类型', '状态', '优先级', '处理人', '创建时间']
+    const statusLabel = (s: string) => s === 'active' ? '进行中' : s === 'closed' ? '已关闭' : s
+    const priLabel = (p: string) => ({ urgent: '紧急', high: '高', normal: '普通', low: '低' } as Record<string, string>)[p] || p
+    rows = items.map(o => [o.orderNo, o.title, o.type, statusLabel(o.status), priLabel(o.priority), o.assignee, o.createdAt])
+  }
+
+  const html = buildArtifactHtml({ title, subtitle, stats, columns, rows })
+
+  yield debugEvent('artifact_generated', '📄 产物生成', 'output',
+    `已生成「${title}」HTML（${html.length} 字符）`,
+    { 标题: title, HTML长度: html.length }, t0)
+
+  yield { type: 'artifact', artifact: { id: `art-${Date.now()}-${type}`, type, title, html } }
+
+  const reply = `已生成「${title}」，可在右侧「产物」栏预览和下载。`
+  for (let i = 0; i < reply.length; i += 2) {
+    yield { type: 'token', content: reply.slice(i, i + 2) }
+    await sleep(12)
+  }
+
+  yield debugEvent('done', '✅ 完成', 'info', `总耗时 ${since(t0)}`, { 总耗时ms: Date.now() - t0 }, t0)
+  yield { type: 'done' }
+}
+
 // ===== 核心：流式调用 LLM（支持 Function Calling + 文件上下文） =====
 export async function* streamChat(
   message: string,
   history: AgentMessage[] = [],
   fileContext?: FileContext,
-): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent> {
+  scope?: AgentScope,
+): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent> {
   const t0 = Date.now()
+
+  // ===== 节点 0：产物意图识别（先于 LLM，命中则走产物生成流程） =====
+  const artifactIntent = detectArtifactIntent(message)
+  if (artifactIntent) {
+    yield* generateArtifact(artifactIntent, message, scope, t0)
+    return
+  }
 
   // ===== 节点 1：收到请求 =====
   yield debugEvent('request', '📥 收到请求', 'info',
@@ -352,7 +720,7 @@ export async function* streamChat(
 
           // ===== 节点 5：工具执行 =====
           const tTool = Date.now()
-          const result = await executeTool(fnName, args)
+          const result = await executeTool(fnName, args, scope)
           yield debugEvent('tool_exec', '🔧 工具调用', 'output',
             `${fnName}(${JSON.stringify(args)})，耗时 ${Date.now() - tTool}ms`,
             {

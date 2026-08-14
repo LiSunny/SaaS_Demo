@@ -480,8 +480,8 @@ onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer) })
 
 // ===== AI =====
 const activeAIPage = ref(0)
-const gifTimestamps = reactive([Date.now(), Date.now(), Date.now()])
-const gifLoadedOnce = reactive([false, false, false])
+const gifTimestamps = reactive([Date.now(), Date.now(), Date.now(), Date.now()])
+const gifLoadedOnce = reactive([false, false, false, false])
 
 // 切换标签时：首次访问才刷新时间戳+显示加载，后续切回直接用缓存
 watch(activeAIPage, (newIdx) => {
@@ -497,6 +497,7 @@ const AI_PAGES = reactive([
   { num: '01', title: 'AI 智能告警接报', src: '/images/ai-demo-01.mp4', gifError: false, gifLoading: true },
   { num: '02', title: 'AI 替代"人看"',   src: '/images/ai-demo-02.mp4', gifError: false, gifLoading: true },
   { num: '03', title: 'AI 替代"人写"',   src: '/images/ai-demo-03.mp4', gifError: false, gifLoading: true },
+  { num: '04', title: '韧性AI助手',       src: '/images/ai-demo-04.mp4', gifError: false, gifLoading: true },
 ])
 const onPageGifError = (i: number) => { AI_PAGES[i].gifError = true; AI_PAGES[i].gifLoading = false }
 const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false; gifLoadedOnce[i] = true }
@@ -505,6 +506,7 @@ const AI_LIST = [
   { title: 'AI 智能告警接报', body: '语音、烟感、电气等多源告警统一接入平台，AI 自动去重分级，精准弹窗推送至值班大屏。值班员一键确认即可指派保安到场——从告警触发到人到现场，全程自动记录时间戳。', num: '01' },
   { title: 'AI 替代"人看"', body: '一线人员拍照上传消防设施，AI 自动识别设备主体、匹配对应国标规范、逐项生成检查结论并判定隐患。从"凭经验看一圈"变成"拍照即判定"——不同检查员同一标准，结果可追溯。', num: '02' },
   { title: 'AI 替代"人写"', body: '每天全量告警自动汇聚，AI 聚类识别风险事件簇、诊断根因，区分安保/工程分别输出行动建议，生成结构化日报并归档——安全员不再花数小时翻日志、归类、写报告。', num: '03' },
+  { title: '韧性AI助手', body: '"今天几条告警？"一句话就有答案——告警、隐患、设备、工单随口问，各角色只见自己权限内的数据。还能一句话生成告警日报、隐患清单等可视化 HTML 报告，右栏预览、一键下载；每一步工具调用过程都清晰可见，结果可追溯。', num: '04' },
 ]
 
 // ===== Cases =====

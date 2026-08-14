@@ -40,6 +40,14 @@ export interface DebugEvent {
   receivedAt: number
 }
 
+/** 产物（右栏「产物」Tab 展示的可交付物，HTML） */
+export interface Artifact {
+  id: string
+  type: 'alarm-report' | 'hazard-list' | 'order-weekly'
+  title: string
+  html: string
+}
+
 // ===== 工具 =====
 let msgIdCounter = 0
 function nextId(): string { return `msg-${Date.now()}-${++msgIdCounter}` }
@@ -67,6 +75,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
   const hasNewMessage = ref(false)
   const debugEvents = ref<DebugEvent[]>([])
   const debugOpen = ref(false)  // 调试面板是否展开
+  const artifacts = ref<Artifact[]>([])  // 产物列表（本次会话产出的可交付物）
   let abortController: AbortController | null = null
 
   function toggle() { isOpen.value = !isOpen.value; if (isOpen.value) hasNewMessage.value = false }
@@ -124,6 +133,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
     messages.value.push(aiMsg)
     isLoading.value = true
     debugEvents.value = []  // 新消息 → 清空调试日志
+    artifacts.value = []    // 新消息 → 清空产物
 
     const history = messages.value
       .filter(m => !m.isStreaming && m.id !== aiMsg.id)
@@ -202,6 +212,13 @@ export const useAiChatStore = defineStore('aiChat', () => {
                 detail: data.detail,
                 receivedAt: Date.now(),
               })
+            } else if (eventType === 'artifact') {
+              artifacts.value.push({
+                id: data.id,
+                type: data.type,
+                title: data.title,
+                html: data.html,
+              })
             } else if (eventType === 'error') {
               messages.value[idx].content = data.message || '处理请求时出错'
             }
@@ -220,7 +237,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
     isLoading.value = false
   }
 
-  function reset() { messages.value = []; isLoading.value = false }
+  function reset() { messages.value = []; artifacts.value = []; debugEvents.value = []; isLoading.value = false }
 
-  return { messages, isLoading, isOpen, hasNewMessage, debugEvents, debugOpen, toggle, open, close, stop, sendMessage, uploadFile, reset }
+  return { messages, isLoading, isOpen, hasNewMessage, debugEvents, debugOpen, artifacts, toggle, open, close, stop, sendMessage, uploadFile, reset }
 })
