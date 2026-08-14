@@ -17,10 +17,10 @@ import db from '../config/db.js'
  * 权限过滤在服务层（executeTool 按 scope 过滤），LLM 不参与。
  */
 async function resolveScope(user: Request['user']): Promise<AgentScope> {
-  if (!user) return { systemRole: null, groups: [], enterpriseNames: [] }
+  if (!user) return { systemRole: null, groups: [], enterpriseNames: [], enterpriseIds: [] }
 
   const ue = await db.userEnterprise.findMany({ where: { userId: user.id, status: 1 } })
-  if (ue.length === 0) return { systemRole: user.systemRole, groups: [], enterpriseNames: [], realName: user.realName }
+  if (ue.length === 0) return { systemRole: user.systemRole, groups: [], enterpriseNames: [], enterpriseIds: [], realName: user.realName }
 
   const entIds = ue.map(e => e.enterpriseId)
   const ents = await db.enterprise.findMany({ where: { id: { in: entIds } } })
@@ -32,7 +32,7 @@ async function resolveScope(user: Request['user']): Promise<AgentScope> {
     enterpriseNames.push(e.name)
   }
 
-  return { systemRole: user.systemRole, groups: [...groups], enterpriseNames, realName: user.realName }
+  return { systemRole: user.systemRole, groups: [...groups], enterpriseNames, enterpriseIds: entIds, realName: user.realName }
 }
 
 export async function chat(req: Request, res: Response, _next: NextFunction) {

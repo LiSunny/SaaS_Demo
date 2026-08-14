@@ -49,9 +49,10 @@ export async function login(input: LoginInput): Promise<LoginResult> {
     data: { lastLoginAt: new Date() },
   })
 
-  // 非系统角色用户：查询岗位 + 企业使用群体
+  // 非系统角色用户：查询岗位 + 企业使用群体 + 所在企业名称
   let position: string | null = null
   let groups: string[] = []
+  let enterpriseName: string | null = null
   if (!user.systemRole) {
     const ue = await db.userEnterprise.findFirst({
       where: { userId: user.id, status: 1 },
@@ -67,6 +68,8 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       if (ue.enterprise?.groups) {
         try { groups = JSON.parse(ue.enterprise.groups) } catch { groups = [] }
       }
+      // 所在企业名称（Agent 工作台用户卡展示）
+      enterpriseName = ue.enterprise?.name || null
     }
   }
 
@@ -93,6 +96,7 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       systemRole: user.systemRole,
       position,
       groups,
+      enterpriseName,
     } as {
       id: number
       phone: string
@@ -102,6 +106,7 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       systemRole: string | null
       position: string | null
       groups: string[]
+      enterpriseName: string | null
     },
   }
 }

@@ -1,10 +1,13 @@
 <template>
-  <div class="agent-workbench">
+  <div class="agent-workbench" :class="{ light: !isDark }">
     <!-- ===== 左栏：会话列表 ===== -->
-    <aside class="col col-left">
+    <aside class="col col-left" :class="{ collapsed: leftCollapsed }" :style="{ width: leftCollapsed ? 0 : leftWidth + 'px' }">
       <div class="brand">
         <img class="brand-logo" src="@/assets/agent-robot-chat.svg" alt="logo" />
         <span class="brand-name">韧性AI助手</span>
+        <button class="col-collapse-btn" title="收起左栏" @click="leftCollapsed = true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
       </div>
 
       <button class="new-chat-btn" @click="newSession">
@@ -28,7 +31,6 @@
               :class="{ active: s.id === currentSessionId }"
               @click="switchSession(s.id)"
             >
-              <span class="session-dot"></span>
               <span class="session-title">{{ sessionTitle(s) }}</span>
               <span class="session-time">{{ timeLabel(s.updatedAt) }}</span>
             </div>
@@ -41,18 +43,51 @@
         <div class="user-avatar">{{ avatarChar }}</div>
         <div class="user-info">
           <div class="user-name">{{ displayName }}</div>
-          <div class="user-role">{{ roleLabel }}</div>
+          <div class="user-role">{{ orgLabel }}</div>
         </div>
       </div>
     </aside>
 
+    <!-- 左栏拖拽分隔条 -->
+    <div
+      v-if="!leftCollapsed"
+      class="col-divider"
+      :class="{ resizing: resizing === 'left' }"
+      title="拖拽调整宽度"
+      @mousedown="startResize('left', $event)"
+    ></div>
+
     <!-- ===== 中栏：对话区 ===== -->
     <main class="col col-main">
       <div class="main-header">
+        <button v-if="leftCollapsed" class="col-expand-btn" title="展开会话列表" @click="leftCollapsed = false">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
         <span class="main-title">{{ currentTitle }}</span>
+        <button v-if="rightCollapsed" class="col-expand-btn" title="展开时间线与产物" @click="rightCollapsed = false">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <!-- 深色 / 浅色切换 -->
+        <button class="theme-toggle" :class="{ light: !isDark }" :title="isDark ? '切换到浅色模式' : '切换到深色模式'" @click="toggleTheme">
+          <span class="tt-thumb">
+            <svg v-if="isDark" class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg v-else class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </span>
+        </button>
       </div>
 
-      <div ref="chatScrollRef" class="chat-scroll">
+      <div class="chat-wrap">
+        <!-- 左边缘：折叠/展开左栏（Claude 式边缘悬浮） -->
+        <button class="edge-btn edge-left" :class="{ active: leftCollapsed }" :title="leftCollapsed ? '展开会话列表' : '收起会话列表'" @click="leftCollapsed = !leftCollapsed">
+          <svg v-if="leftCollapsed" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <!-- 右边缘：折叠/展开右栏 -->
+        <button class="edge-btn edge-right" :class="{ active: rightCollapsed }" :title="rightCollapsed ? '展开时间线与产物' : '收起时间线与产物'" @click="rightCollapsed = !rightCollapsed">
+          <svg v-if="rightCollapsed" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+        <div ref="chatScrollRef" class="chat-scroll" @scroll="onChatScroll">
         <div class="chat-inner">
           <!-- 欢迎态 -->
           <div v-if="store.messages.length === 0" class="welcome">
@@ -94,6 +129,15 @@
             </div>
           </template>
         </div>
+        </div>
+        <button
+          v-if="showScrollBottom"
+          class="scroll-bottom-btn"
+          title="滚动到底部"
+          @click="scrollToBottom"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
       </div>
 
       <div class="input-wrap">
@@ -141,9 +185,21 @@
       <input ref="fileInputRef" type="file" class="file-input" @change="handleFileSelected" />
     </main>
 
+    <!-- 右栏拖拽分隔条 -->
+    <div
+      v-if="!rightCollapsed"
+      class="col-divider"
+      :class="{ resizing: resizing === 'right' }"
+      title="拖拽调整宽度"
+      @mousedown="startResize('right', $event)"
+    ></div>
+
     <!-- ===== 右栏：调用时间线 / 产物 ===== -->
-    <aside class="col col-right">
+    <aside class="col col-right" :class="{ collapsed: rightCollapsed }" :style="{ width: rightCollapsed ? 0 : rightWidth + 'px' }">
       <div class="right-tabs">
+        <button class="col-collapse-btn right-collapse" title="收起右栏" @click="rightCollapsed = true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
         <button class="right-tab" :class="{ active: activeTab === 'timeline' }" @click="activeTab = 'timeline'">
           调用时间线<span v-if="store.debugEvents.length" class="tab-count">{{ store.debugEvents.length }}</span>
         </button>
@@ -158,9 +214,12 @@
           <p>暂无调用记录</p>
           <p class="right-empty-sub">发送消息后，这里会展示 AI 的每一步调用过程</p>
         </div>
-        <div v-for="(ev, i) in store.debugEvents" :key="i" class="tl-node" :class="`io-${ev.io}`">
+        <div v-for="(ev, i) in store.debugEvents" :key="i" class="tl-node" :class="[`io-${ev.io}`, nodeClass(ev.node)]">
           <div class="tl-line" :class="{ last: i === store.debugEvents.length - 1 }"></div>
-          <div class="tl-dot"></div>
+          <div class="tl-dot">
+            <svg v-if="nodeIcon(ev.node)" class="tl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="nodeIcon(ev.node)"></svg>
+            <span v-else class="tl-dot-blank"></span>
+          </div>
           <div class="tl-content">
             <div class="tl-label">{{ ev.label }}</div>
             <div class="tl-summary">{{ ev.summary }}</div>
@@ -239,26 +298,47 @@ const userStore = useUserStore()
 
 const displayName = computed(() => userStore.user?.realName || '用户')
 const avatarChar = computed(() => displayName.value.slice(0, 1) || '用')
-const roleLabel = computed(() => {
-  const r = localStorage.getItem('system-role')
+const orgLabel = computed(() => {
+  const u = userStore.user
+  if (u?.enterpriseName) return u.enterpriseName
+  const r = u?.systemRole || localStorage.getItem('system-role')
   return r === 'platform-admin' ? '平台管理' : r === 'platform-ops' ? '运营管理' : '安全管理'
 })
 
-// ===== 会话列表（localStorage 持久化） =====
+// ===== 深色 / 浅色主题（localStorage 持久化，默认深色） =====
+const isDark = ref(localStorage.getItem('agent_theme') !== 'light')
+function toggleTheme() {
+  isDark.value = !isDark.value
+  localStorage.setItem('agent_theme', isDark.value ? 'dark' : 'light')
+}
+
+// ===== 会话列表（localStorage 持久化，key 按用户隔离，切换账号互不可见） =====
 interface Session {
   id: string
   messages: ChatMessage[]
   updatedAt: number
 }
 
+function sessionKey(): string {
+  return `agent_sessions_${userStore.user?.id || 'guest'}`
+}
+
 function loadSessions(): Session[] {
-  try { return JSON.parse(localStorage.getItem('agent_sessions') || '[]') as Session[] } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(sessionKey()) || '[]') as Session[] } catch { return [] }
 }
 const sessions = ref<Session[]>(loadSessions())
 const currentSessionId = ref(sessions.value[0]?.id || '')
+// 刷新后自动恢复最近会话到对话区（避免「数据丢了」的错觉；右栏时间线/产物为内存态，刷新即空）
+const restoredSession = sessions.value[0]
+if (restoredSession) {
+  store.messages = [...restoredSession.messages]
+  store.artifacts = []
+  store.debugEvents = []
+  store.isLoading = false
+}
 
 function saveSessions() {
-  localStorage.setItem('agent_sessions', JSON.stringify(sessions.value))
+  localStorage.setItem(sessionKey(), JSON.stringify(sessions.value))
 }
 
 function sessionTitle(s: Session): string {
@@ -347,7 +427,6 @@ const quickChips = [
 
 // ===== 输入与发送 =====
 const inputText = ref('')
-const chatScrollRef = ref<HTMLElement | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const pendingUploads = ref<FileUploadResult[]>([])
 
@@ -438,9 +517,19 @@ function sendQuick(text: string) {
   handleSend()
 }
 
+/** 发送前确保存在当前会话（首次消息自动创建，否则 persist 找不到会话写不进 localStorage） */
+function ensureCurrentSession(): void {
+  const cur = sessions.value.find(s => s.id === currentSessionId.value)
+  if (cur) return
+  const id = 's' + Date.now()
+  sessions.value.unshift({ id, messages: [], updatedAt: Date.now() })
+  currentSessionId.value = id
+}
+
 async function handleSend() {
   const text = inputText.value
   if ((!text.trim() && !pendingUploads.value.length) || store.isLoading) return
+  ensureCurrentSession()
   inputText.value = ''
   const uploads = [...pendingUploads.value]
   pendingUploads.value = []
@@ -449,16 +538,69 @@ async function handleSend() {
   saveSessions()
 }
 
-// ===== 自动滚动到底部 =====
+// ===== 自动滚动到底部（用户在底部才跟随，否则提示按钮） =====
+const chatScrollRef = ref<HTMLElement | null>(null)
+const showScrollBottom = ref(false)
+let followBottom = true
+
+function isNearBottom(): boolean {
+  const el = chatScrollRef.value
+  if (!el) return true
+  return el.scrollHeight - el.scrollTop - el.clientHeight < 80
+}
+
+function onChatScroll() {
+  showScrollBottom.value = !isNearBottom()
+  if (isNearBottom()) followBottom = true
+}
+
+function scrollToBottom() {
+  const el = chatScrollRef.value
+  if (!el) return
+  el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  followBottom = true
+  showScrollBottom.value = false
+}
+
 watch(
-  () => store.messages.length,
+  () => store.messages.map(m => m.content).join(''),
   async () => {
     await nextTick()
-    if (chatScrollRef.value) {
+    if (followBottom && chatScrollRef.value) {
       chatScrollRef.value.scrollTop = chatScrollRef.value.scrollHeight
     }
   },
 )
+
+// ===== 三栏布局：折叠 / 拖拽调宽 =====
+const leftWidth = ref(268)
+const rightWidth = ref(330)
+const leftCollapsed = ref(false)
+const rightCollapsed = ref(false)
+const resizing = ref<'left' | 'right' | null>(null)
+
+function startResize(side: 'left' | 'right', e: MouseEvent) {
+  e.preventDefault()
+  resizing.value = side
+  const startX = e.clientX
+  const startW = side === 'left' ? leftWidth.value : rightWidth.value
+
+  function onMove(ev: MouseEvent) {
+    const dx = ev.clientX - startX
+    if (side === 'left') {
+      leftWidth.value = Math.min(380, Math.max(180, startW + dx))
+    } else {
+      rightWidth.value = Math.min(460, Math.max(220, startW - dx))
+    }
+  }
+  function onUp() {
+    resizing.value = null
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
 
 // ===== 右栏：时间线 / 产物 =====
 const activeTab = ref<'timeline' | 'artifacts'>('timeline')
@@ -485,6 +627,39 @@ function typeLabel(t: string): string {
 
 function formatDetail(detail: any): string {
   try { return JSON.stringify(detail, null, 2) } catch { return String(detail) }
+}
+
+// ===== 时间线节点图标（线性 SVG，替代 emoji） =====
+const NODE_ICONS: Record<string, string> = {
+  request: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  system_prompt: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  llm_call_1: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
+  llm_call_1_response: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
+  llm_call_2: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
+  llm_call_2_response: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
+  llm_direct: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
+  llm_direct_response: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>',
+  tool_exec: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  artifact_intent: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  artifact_data: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
+  artifact_generated: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  done: '<polyline points="20 6 9 17 4 12"/>',
+  llm_error: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  fallback: '<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>',
+}
+function nodeIcon(node: string): string {
+  if (NODE_ICONS[node]) return NODE_ICONS[node]
+  if (node.startsWith('fallback')) return NODE_ICONS.fallback
+  const base = node.replace(/_response$/, '')
+  return NODE_ICONS[base] || ''
+}
+
+/** 时间线节点分类（模型/工具统一语义色） */
+function nodeClass(node: string): string {
+  if (node.startsWith('llm')) return 'node-llm'
+  if (node === 'tool_exec') return 'node-tool'
+  if (node === 'done') return 'node-done'
+  return ''
 }
 
 function copyArtifact() {
@@ -523,60 +698,186 @@ function downloadArtifact() {
   --accent: #5b9bff;
   --accent-strong: #3b76f6;
   --accent-soft: rgba(91, 155, 255, 0.14);
+  --accent-rgb: 91, 155, 255;
   --green: #34d399;
   --red: #f87171;
+  --violet: #a78bfa;
+  --file-card-bg: rgba(0, 0, 0, 0.18);
+  --file-card-bg-hover: rgba(0, 0, 0, 0.28);
+  --user-bubble-bg: rgba(91, 155, 255, 0.22);
+  --user-bubble-color: #eaf1ff;
 
   width: 100vw;
   height: 100vh;
   box-sizing: border-box;
   display: flex;
-  gap: 10px;
+  gap: 6px;
   padding: 10px;
-  background: var(--bg-0);
+  background:
+    radial-gradient(1100px 560px at 12% -12%, rgba(91, 155, 255, 0.09), transparent 62%),
+    radial-gradient(900px 480px at 96% 112%, rgba(99, 102, 241, 0.07), transparent 62%),
+    radial-gradient(700px 400px at 80% -8%, rgba(52, 211, 153, 0.04), transparent 60%),
+    var(--bg-0);
   color: var(--text-1);
   font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   overflow: hidden;
 }
 
+/* ===== 浅色模式 ===== */
+.agent-workbench.light {
+  --bg-0: #eef1f6;
+  --bg-1: #ffffff;
+  --bg-2: #f3f5f9;
+  --bg-3: #e6ebf2;
+  --text-1: #1e293b;
+  --text-2: #475569;
+  --text-3: #64748b;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.10);
+  --accent-rgb: 37, 99, 235;
+  --green: #059669;
+  --red: #dc2626;
+  --violet: #7c3aed;
+  --file-card-bg: rgba(0, 0, 0, 0.05);
+  --file-card-bg-hover: rgba(0, 0, 0, 0.08);
+  --user-bubble-bg: rgba(37, 99, 235, 0.12);
+  --user-bubble-color: #1e293b;
+
+  background:
+    radial-gradient(1100px 560px at 12% -12%, rgba(37, 99, 235, 0.07), transparent 62%),
+    radial-gradient(900px 480px at 96% 112%, rgba(99, 102, 241, 0.05), transparent 62%),
+    var(--bg-0);
+}
+
 .col {
-  background: var(--bg-1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 70px),
+    var(--bg-1);
   border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  box-sizing: border-box;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 10px 28px rgba(0, 0, 0, 0.26);
   display: flex;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  transition: width .18s ease, box-shadow .2s ease;
+}
+.agent-workbench.light .col {
+  border-color: rgba(15, 23, 42, 0.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 10px 28px rgba(15, 23, 42, 0.08);
 }
 .col-left { width: 268px; flex: none; }
-.col-main { flex: 1; min-width: 0; }
+.col-left.collapsed { border-radius: 16px; }
+.col-main { flex: 1; min-width: 0; position: relative; }
 .col-right { width: 330px; flex: none; }
 
-/* ===== 左栏 ===== */
-.brand { display: flex; align-items: center; gap: 9px; padding: 18px 16px 10px; }
+/* ===== 拖拽分隔条 ===== */
+.col-divider {
+  flex: none; width: 6px; cursor: col-resize;
+  position: relative; align-self: stretch;
+}
+.col-divider::after {
+  content: ''; position: absolute; left: 50%; top: 10px; bottom: 10px;
+  width: 2px; transform: translateX(-50%);
+  background: transparent; border-radius: 1px; transition: background .15s;
+}
+.col-divider:hover::after { background: var(--accent); opacity: .45; }
+.col-divider.resizing::after { background: var(--accent); opacity: .9; }
+
+/* ===== 折叠 / 展开按钮 ===== */
+.col-collapse-btn {
+  flex: none; width: 26px; height: 26px;
+  border: 1px solid var(--bg-3); border-radius: 7px;
+  background: var(--bg-2); color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .12s;
+}
+.col-collapse-btn:hover { background: var(--bg-3); color: var(--text-1); border-color: var(--accent); }
+.brand { display: flex; align-items: center; gap: 9px; padding: 18px 14px 10px; }
+.brand .col-collapse-btn { margin-left: auto; }
+
+/* 主栏边缘悬浮折叠按钮（Claude 式边缘提示） */
+.edge-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 46px;
+  border: 1px solid var(--bg-3); border-radius: 8px;
+  background: var(--bg-2); color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 5;
+  opacity: .5; transition: opacity .15s, background .15s, color .15s, border-color .15s;
+}
+.edge-btn:hover { opacity: 1; background: var(--bg-3); color: var(--accent); border-color: var(--accent); }
+.edge-btn.active { opacity: .9; color: var(--accent); }
+.edge-left { left: 8px; }
+.edge-right { right: 8px; }
+.col-expand-btn {
+  flex: none; width: 28px; height: 28px;
+  border: none; border-radius: 8px;
+  background: var(--bg-2); color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .12s;
+}
+.col-expand-btn:hover { background: var(--bg-3); color: var(--accent); }
+
+/* 深色 / 浅色切换开关 */
+.theme-toggle {
+  flex: none; width: 52px; height: 28px;
+  border: 1px solid var(--bg-3); border-radius: 999px;
+  background: var(--bg-2); cursor: pointer;
+  position: relative; padding: 0; transition: background .2s, border-color .2s;
+}
+.theme-toggle:hover { border-color: var(--accent); }
+.tt-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg-3); color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s, background .2s, color .2s;
+}
+.theme-toggle.light .tt-thumb { transform: translateX(24px); background: var(--accent-soft); color: var(--accent); }
+.tt-icon { width: 13px; height: 13px; }
+.right-tabs { flex: none; display: flex; gap: 6px; padding: 14px 14px 10px; }
+.right-tabs .right-collapse { margin-right: 2px; }
 .brand-logo { width: 22px; height: 22px; object-fit: contain; flex: none; }
 .brand-name { font-size: 15px; font-weight: 600; }
 
 .new-chat-btn {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   margin: 4px 12px 10px; height: 38px;
-  border: none; border-radius: 10px;
-  background: var(--accent-strong); color: #fff;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 10px;
+  background: transparent; color: var(--accent);
   font-size: 13.5px; font-weight: 500; cursor: pointer;
-  transition: filter .12s;
+  transition: all .15s;
 }
-.new-chat-btn:hover { filter: brightness(1.12); }
+.new-chat-btn:hover { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.18); }
 
 .search-box { position: relative; padding: 0 14px 8px; }
 .search-input {
   width: 100%; height: 34px; box-sizing: border-box;
-  border: none; border-radius: 8px;
+  border: 1px solid transparent; border-radius: 8px;
   background: var(--bg-3); color: var(--text-1);
   padding: 0 10px 0 33px; font-size: 13px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .search-input::placeholder { color: var(--text-3); }
 .search-icon { position: absolute; left: 25px; top: 10px; color: var(--text-3); pointer-events: none; }
 
-.session-list { flex: 1; overflow-y: auto; padding: 2px 10px 10px; }
-.session-list::-webkit-scrollbar { display: none; }
+.session-list { flex: 1; overflow-y: auto; padding: 2px 10px 10px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.16) transparent; }
+.session-list::-webkit-scrollbar { width: 8px; }
+.session-list::-webkit-scrollbar-track { background: transparent; }
+.session-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
+.session-list::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 .session-group-label { font-size: 12px; color: var(--text-3); padding: 10px 8px 6px; }
 .session-item {
   position: relative; display: flex; align-items: center;
@@ -584,21 +885,23 @@ function downloadArtifact() {
   border-radius: 8px; cursor: pointer;
 }
 .session-item:hover { background: var(--bg-2); }
-.session-item.active { background: var(--bg-3); }
+.session-item.active { background: var(--accent-soft); }
 .session-title { flex: 1; font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.session-item.active .session-title { color: var(--text-1); font-weight: 500; }
+.session-item.active .session-title { color: var(--accent); font-weight: 500; }
 .session-time { font-size: 11px; color: var(--text-3); flex: none; margin-left: 8px; }
-.session-dot { display: none; }
-.session-item.active .session-dot {
-  display: block; width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); position: absolute; left: 3px; top: 50%; transform: translateY(-50%);
-}
+.session-item.active .session-time { color: var(--accent); opacity: .85; }
 .session-empty { font-size: 13px; color: var(--text-3); text-align: center; padding: 30px 0; }
 
 .user-card {
   flex: none; display: flex; align-items: center; gap: 10px;
   padding: 12px 14px; margin: 0 10px 10px;
   border-radius: 10px; background: var(--bg-2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.agent-workbench.light .user-card {
+  border-color: rgba(15, 23, 42, 0.05);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 .user-avatar {
   width: 32px; height: 32px; border-radius: 50%; flex: none;
@@ -607,15 +910,41 @@ function downloadArtifact() {
   display: flex; align-items: center; justify-content: center;
 }
 .user-name { font-size: 13px; font-weight: 500; }
-.user-role { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.user-role { font-size: 11px; color: var(--text-3); margin-top: 1px; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ===== 中栏 ===== */
-.main-header { height: 58px; flex: none; display: flex; align-items: center; padding: 0 22px; }
-.main-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.main-header {
+  height: 58px; flex: none;
+  display: flex; align-items: center; gap: 10px; padding: 0 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.agent-workbench.light .main-header { border-bottom-color: rgba(15, 23, 42, 0.05); }
+.main-title { flex: 1; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.chat-scroll { flex: 1; overflow-y: auto; }
-.chat-scroll::-webkit-scrollbar { display: none; }
+.chat-wrap { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
+.chat-scroll {
+  flex: 1; overflow-y: auto; min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+.chat-scroll::-webkit-scrollbar { width: 8px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
+.chat-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 .chat-inner { max-width: 780px; margin: 0 auto; padding: 16px 28px 8px; }
+
+/* 滚动到底部按钮 */
+.scroll-bottom-btn {
+  position: absolute; right: 22px; bottom: 14px;
+  width: 34px; height: 34px;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 50%;
+  background: var(--bg-3); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: all .15s;
+}
+.scroll-bottom-btn:hover { background: var(--accent-strong); color: #fff; border-color: var(--accent-strong); }
 
 .welcome { text-align: center; padding: 40px 0 20px; }
 .welcome-logo { margin: 0 auto 16px; }
@@ -625,7 +954,7 @@ function downloadArtifact() {
 .welcome-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .welcome-chip {
   padding: 8px 14px; border-radius: 999px;
-  border: 1px solid rgba(91, 155, 255, 0.25);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
   background: transparent; color: var(--text-2);
   font-size: 13px; cursor: pointer; transition: all .15s;
 }
@@ -647,17 +976,30 @@ function downloadArtifact() {
   padding: 11px 14px; font-size: 13.5px; line-height: 1.7;
   border-radius: 12px; word-break: break-word;
 }
-.msg.user .msg-bubble--user { background: rgba(91, 155, 255, 0.22); color: #eaf1ff; border-radius: 12px 12px 4px 12px; }
-.msg.assistant .msg-bubble--md { background: var(--bg-2); color: var(--text-1); border-radius: 12px 12px 12px 4px; }
+.msg.user .msg-bubble--user { background: var(--user-bubble-bg); color: var(--user-bubble-color); border-radius: 12px 12px 4px 12px; }
+.msg.assistant .msg-bubble--md {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 40px),
+    var(--bg-2);
+  color: var(--text-1);
+  border-radius: 12px 12px 12px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+}
+.agent-workbench.light .msg.assistant .msg-bubble--md {
+  border-color: rgba(15, 23, 42, 0.05);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
 
 /* 用户消息里的文件附件卡片 */
 .chat-file-card {
+  background: var(--file-card-bg);
   display: flex; align-items: center; gap: 9px;
   padding: 7px 10px; margin-bottom: 6px;
-  border-radius: 8px; background: rgba(0, 0, 0, 0.18);
+  border-radius: 8px; background: var(--file-card-bg);
   cursor: pointer; transition: background .12s;
 }
-.chat-file-card:hover { background: rgba(0, 0, 0, 0.28); }
+.chat-file-card:hover { background: var(--file-card-bg-hover); }
 .chat-file-card:last-child { margin-bottom: 0; }
 .file-card-icon {
   flex: none; width: 34px; height: 34px; border-radius: 7px;
@@ -692,7 +1034,12 @@ function downloadArtifact() {
   border: 1px solid transparent; padding: 12px 14px 10px;
   transition: border-color .15s;
 }
-.input-box:focus-within { border-color: var(--accent); }
+.input-box:focus-within {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px var(--accent-soft),
+    0 2px 18px rgba(var(--accent-rgb), 0.12);
+}
 .input-area {
   width: 100%; border: none; background: transparent; resize: none;
   color: var(--text-1); font-size: 14px; line-height: 1.6; outline: none;
@@ -735,20 +1082,22 @@ function downloadArtifact() {
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   transition: filter .12s;
 }
-.send-btn:hover:not(:disabled) { filter: brightness(1.12); }
+.send-btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.4);
+}
 .send-btn:disabled { opacity: .4; cursor: not-allowed; }
 .input-disclaimer { font-size: 11.5px; color: var(--text-3); text-align: center; margin: 8px 0 0; }
 .file-input { display: none; }
 
 /* ===== 右栏 ===== */
-.right-tabs { flex: none; display: flex; gap: 6px; padding: 14px 14px 10px; }
 .right-tab {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   height: 32px; border: none; border-radius: 16px;
   background: transparent; color: var(--text-3);
   font-size: 13px; cursor: pointer; transition: all .15s;
 }
-.right-tab.active { background: var(--bg-3); color: var(--text-1); font-weight: 500; }
+.right-tab.active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
 .tab-count {
   min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
   background: var(--accent-soft); color: var(--accent);
@@ -760,20 +1109,31 @@ function downloadArtifact() {
 .right-empty-sub { font-size: 12px !important; color: var(--text-3) !important; line-height: 1.6; }
 
 /* 时间线 */
-.timeline { flex: 1; overflow-y: auto; padding: 4px 16px 16px; }
-.timeline::-webkit-scrollbar { display: none; }
+.timeline { flex: 1; overflow-y: auto; padding: 4px 16px 16px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.16) transparent; }
+.timeline::-webkit-scrollbar { width: 8px; }
+.timeline::-webkit-scrollbar-track { background: transparent; }
+.timeline::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
+.timeline::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 .tl-node { position: relative; display: flex; gap: 12px; padding-bottom: 18px; }
-.tl-line { position: absolute; left: 5px; top: 16px; bottom: 0; width: 2px; background: var(--bg-3); }
+.tl-line { position: absolute; left: 10.5px; top: 24px; bottom: 0; width: 2px; background: var(--bg-3); }
 .tl-line.last { display: none; }
 .tl-dot {
   position: relative; z-index: 1; flex: none;
-  width: 12px; height: 12px; border-radius: 50%; margin-top: 3px;
-  background: var(--bg-3); border: 2px solid var(--text-3);
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg-3); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
-.io-input .tl-dot { border-color: var(--accent); background: var(--accent); }
-.io-output .tl-dot { border-color: var(--green); background: var(--green); }
-.io-error .tl-dot { border-color: var(--red); background: var(--red); }
-.io-info .tl-dot { border-color: var(--text-3); background: var(--text-3); }
+.tl-icon { width: 12px; height: 12px; display: block; }
+.tl-dot-blank { width: 6px; height: 6px; border-radius: 50%; background: var(--text-2); opacity: .6; }
+.io-input .tl-dot { background: var(--accent); }
+.io-output .tl-dot { background: var(--green); }
+.io-error .tl-dot { background: var(--red); }
+.io-info .tl-dot { background: var(--text-3); }
+/* 节点语义色（覆盖 io 色） */
+.node-llm .tl-dot { background: var(--accent); }
+.node-tool .tl-dot { background: var(--violet); }
+.node-done .tl-dot { background: var(--green); }
 .tl-content { flex: 1; min-width: 0; }
 .tl-label { font-size: 13px; font-weight: 500; color: var(--text-1); }
 .tl-summary { font-size: 12px; color: var(--text-3); margin-top: 3px; line-height: 1.5; word-break: break-word; }

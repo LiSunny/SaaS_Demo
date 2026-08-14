@@ -488,6 +488,14 @@ export const NAV_GROUPS: NavGroup[] = [
           { key: 'upgrade-mgmt', label: '升级管理' },
         ],
       },
+      {
+        key: 'plat-test-data',
+        label: 'Agent 测试数据',
+        icon: 'menuicon-43',
+        children: [
+          { key: 'test-data-list', label: '测试数据管理', route: '/test-data' },
+        ],
+      },
     ],
   },
 ]
@@ -514,6 +522,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/admin/positions': 'position-mgmt',
   '/admin/bigscreens': 'bigscreen-list',
   '/admin/member-types': 'member-type-list',
+  '/test-data': 'test-data-list',
   '/enterprise/members': 'unit-set-org-members',
   '/enterprise/positions': 'unit-set-org-positions',
   '/resumption': 'unit-hazard-report',
@@ -535,6 +544,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'position-mgmt': '/admin/positions',
   'bigscreen-list': '/admin/bigscreens',
   'member-type-list': '/admin/member-types',
+  'test-data-list': '/test-data',
   'unit-set-org-members': '/enterprise/members',
   'unit-set-org-positions': '/enterprise/positions',
   'reg-bigscreen': '/landing',

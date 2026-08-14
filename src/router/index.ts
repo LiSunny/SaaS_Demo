@@ -87,6 +87,14 @@ const router = createRouter({
       meta: { standalone: true },
     },
 
+    // ===== 测试数据管理（免登录独立页，Agent 数据链测试工具） =====
+    {
+      path: '/test-data',
+      name: 'TestDataList',
+      component: () => import('@/views/testdata/TestDataPage.vue'),
+      meta: { standalone: true },
+    },
+
     // ===== 全屏可视化大屏首页 =====
     {
       path: '/',
@@ -208,7 +216,7 @@ const router = createRouter({
 // ===== 全局路由守卫 =====
 router.beforeEach((to) => {
   const token = localStorage.getItem('auth_token')
-  const isPublicPage = to.path === '/login' || to.path.startsWith('/portal')
+  const isPublicPage = to.path === '/login' || to.path.startsWith('/portal') || to.path.startsWith('/test-data')
 
   if (!token && !isPublicPage) {
     return { path: '/login', query: { redirect: to.fullPath } }

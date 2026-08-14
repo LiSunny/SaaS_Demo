@@ -119,6 +119,9 @@ model Enterprise {
   userEnterprises       UserEnterprise[]
   positions             Position[]
   bigscreenEnterprises  BigscreenEnterprise[]
+  devices               Device[]
+  alarms                Alarm[]
+  hazards               Hazard[]
 }
 
 // 企业关联（Subordinate / Partner 统一表）
@@ -343,4 +346,61 @@ model BigscreenEnterprise {
   @@unique([bigscreenId, enterpriseId])
   @@index([enterpriseId])
   @@index([enterpriseId, isDefault])
+}
+
+// ============================================================
+// 设备台账（IoT）— 数据链：设备归属企业
+// ============================================================
+model Device {
+  id           Int      @id @default(autoincrement())
+  name         String                      // 设备名称（点位名，如 "1号消控室·烟感A-101"）
+  type         String                      // 设备类型：烟感 | 电气 | 摄像头 | 燃气 ...
+  status       String   @default("在线")    // 在线 | 离线 | 故障
+  location     String   @default("")       // 安装位置
+  enterpriseId Int                         // 所属企业
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+  alarms       Alarm[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([enterpriseId])
+}
+
+// ============================================================
+// 告警（事实表：冗余 enterpriseId 写入快照，永不修改）
+// ============================================================
+model Alarm {
+  id           Int      @id @default(autoincrement())
+  deviceId     Int
+  point        String                      // 点位快照（设备名称，防设备改名后追溯漂移）
+  type         String                      // 火警 | 电气故障 | 烟感预警 ...
+  level        String                      // 紧急 | 重要 | 一般
+  status       String   @default("未处理")   // 未处理 | 已处理
+  occurredAt   DateTime                    // 发生时间
+  enterpriseId Int                         // 冗余快照（来源=设备所属企业）
+  device       Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([enterpriseId, occurredAt])
+  @@index([deviceId])
+}
+
+// ============================================================
+// 隐患台账
+// ============================================================
+model Hazard {
+  id           Int      @id @default(autoincrement())
+  location     String                      // 隐患位置
+  category     String                      // 消防设施 | 消防通道 | 燃气安全 | 电气安全 ...
+  level        String                      // 重大 | 重要 | 一般
+  status       String   @default("未整改")   // 未整改 | 整改中 | 已整改
+  foundAt      DateTime                    // 发现日期
+  description  String   @default("")       // 隐患描述
+  enterpriseId Int
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([enterpriseId])
 }

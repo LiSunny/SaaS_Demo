@@ -83,29 +83,153 @@ async function main() {
   })
   console.log(`  ✅ 示例企业: ${supervisor.name}`)
 
-  // 平台管理员账号由服务启动时的 ensureDefaultAdmin() 创建（systemRole=platform-ops）
   console.log('  ℹ️  用户账号由服务启动时的 ensureDefaultAdmin() 创建')
 
-  // 体验账号（与前端 Login.vue demoAccounts 对应，供 E2E / 手动体验使用）
-  // 注意：13800000000 已被 ensureDefaultAdmin 占用（普通用户 demo 与之冲突，故不在此 seed）
-  const demoUsers = [
-    { phone: '13800000001', realName: '测试运营', password: '3xkxr4', systemRole: 'platform-ops' },
-  ]
-  for (const u of demoUsers) {
-    const hashed = await bcrypt.hash(u.password, 10)
-    await prisma.user.upsert({
-      where: { phone: u.phone },
-      update: {},
-      create: {
-        phone: u.phone,
-        realName: u.realName,
-        password: hashed,
+  // ================================================================
+  // 测试数据（数据链：企业 → 设备 → 告警/隐患）
+  // 幂等：按名称 findFirst，不存在才创建；设备/告警/隐患同理
+  // 场景账号对应：海港应急局(13000000001) / 新思维高级中学(13100001234)
+  //             安信智慧消防运营(18800001234) / 蓝盾消防(13900002222)
+  // ================================================================
+
+  const now = Date.now()
+  const hoursAgo = (h: number) => new Date(now - h * 3600_000)
+  const daysAgo = (d: number) => new Date(now - d * 86400_000)
+
+  async function ensureEnterprise(name: string, extra: Record<string, any> = {}) {
+    const exists = await prisma.enterprise.findFirst({ where: { name } })
+    if (exists) return exists
+    return prisma.enterprise.create({
+      data: {
+        name,
+        code: `TEST_${now}_${Math.random().toString(36).slice(2, 6)}`,
+        dimALevel1: 'social_unit',
+        groups: JSON.stringify(['unit']),
+        region: '杭州市',
         status: 1,
-        systemRole: u.systemRole,
+        creatorName: 'seed',
+        ...extra,
       },
     })
-    console.log(`  ✅ 体验账号: ${u.realName} (${u.phone}, ${u.systemRole})`)
   }
+
+  async function ensureRelation(type: string, enterpriseId: number, relatedId: number, extra: Record<string, any> = {}) {
+    const exists = await prisma.enterpriseRelation.findFirst({ where: { type, enterpriseId, relatedId } })
+    if (exists) return exists
+    const [e, r] = await Promise.all([
+      prisma.enterprise.findUnique({ where: { id: enterpriseId } }),
+      prisma.enterprise.findUnique({ where: { id: relatedId } }),
+    ])
+    return prisma.enterpriseRelation.create({
+      data: { type, enterpriseId, enterpriseName: e?.name || '', relatedId, relatedName: r?.name || '', ...extra },
+    })
+  }
+
+  async function ensureDevice(name: string, data: { type: string; status?: string; location?: string; enterpriseId: number }) {
+    const exists = await prisma.device.findFirst({ where: { name } })
+    if (exists) return exists
+    return prisma.device.create({ data: { name, type: data.type, status: data.status || '在线', location: data.location || '', enterpriseId: data.enterpriseId } })
+  }
+
+  async function ensureAlarm(point: string, data: { deviceId: number; type: string; level: string; status?: string; occurredAt: Date; enterpriseId: number }) {
+    const exists = await prisma.alarm.findFirst({ where: { point } })
+    if (exists) return exists
+    return prisma.alarm.create({ data: { point, ...data } })
+  }
+
+  async function ensureHazard(location: string, data: { category: string; level: string; status?: string; foundAt: Date; description?: string; enterpriseId: number }) {
+    const exists = await prisma.hazard.findFirst({ where: { location } })
+    if (exists) return exists
+    return prisma.hazard.create({ data: { location, ...data } })
+  }
+
+  // ---- 企业定位（已有则复用，幂等；顶部已定义 property/service 直接复用） ----
+  const school = await ensureEnterprise('新思维高级中学', { dimALevel2: 'school', groups: JSON.stringify(['unit']) })
+  const wood = await ensureEnterprise('韧性木业', { dimB: '工贸企业', groups: JSON.stringify(['unit']) })
+  const shop1 = await ensureEnterprise('商铺1', { groups: JSON.stringify(['unit']) })
+  const street1 = await ensureEnterprise('商业街1', { dimB: '商业综合体', groups: JSON.stringify(['unit']) })
+  const superv = await ensureEnterprise('海港应急局', { dimALevel1: 'supervisor', groups: JSON.stringify(['regulator']) })
+  const operatorEnt = await ensureEnterprise('安信智慧消防运营有限公司', { groups: JSON.stringify(['operator']) })
+
+  console.log('  ✅ 测试企业定位完成')
+
+  // ---- 企业关系（对齐现有体系：partner + role 反向表达 / subordinate 上级挂下级） ----
+  // 监管辖区：海港应急局 ← my_supervisor（商业街1 已有，补齐韧性木业/新思维中学/阳光物业）
+  await ensureRelation('partner', wood.id, superv.id, { role: 'my_supervisor/emergency_mgmt', roleLabel: '我的监管方>应急管理部门' })
+  await ensureRelation('partner', school.id, superv.id, { role: 'my_supervisor/emergency_mgmt', roleLabel: '我的监管方>应急管理部门' })
+  await ensureRelation('partner', property.id, superv.id, { role: 'my_supervisor/emergency_mgmt', roleLabel: '我的监管方>应急管理部门' })
+  // 管理方下级：商业街1 → 商户（商铺1 已有 my_manager）；阳光物业 → 商铺1
+  await ensureRelation('partner', shop1.id, street1.id, { role: 'my_manager/space_manager/business_street', roleLabel: '我的管理方>商业街' })
+  await ensureRelation('partner', shop1.id, property.id, { role: 'my_manager/space_manager/property', roleLabel: '我的管理方>物业' })
+  // 服务授权：阳光物业/商业街1 授权蓝盾消防（partner + authUnits）
+  await ensureRelation('partner', property.id, service.id, { role: 'my_service/fire_tech', roleLabel: '我的服务机构>消防维保', authUnits: JSON.stringify([property.id]) })
+  await ensureRelation('partner', street1.id, service.id, { role: 'my_service/fire_tech', roleLabel: '我的服务机构>消防维保', authUnits: JSON.stringify([street1.id, shop1.id]) })
+  // 运营授权：安信智慧消防运营 ← my_operator（阳光物业/商业街1）
+  await ensureRelation('partner', property.id, operatorEnt.id, { role: 'my_operator', roleLabel: '我的运营商', authUnits: JSON.stringify([property.id]) })
+  await ensureRelation('partner', street1.id, operatorEnt.id, { role: 'my_operator', roleLabel: '我的运营商', authUnits: JSON.stringify([street1.id, shop1.id]) })
+  // 上级主动挂下级（subordinate 体系）：海港应急局挂韧性木业/新思维中学为下级
+  await ensureRelation('subordinate', superv.id, wood.id)
+  await ensureRelation('subordinate', superv.id, school.id)
+  await ensureRelation('subordinate', superv.id, property.id)
+
+  console.log('  ✅ 企业关系填充完成')
+
+  // ---- S2 管理方测试账号（本企业 + 下级；密码统一 admin123!@#） ----
+  async function ensureUser(phone: string, data: { realName: string; enterpriseId: number; positions?: string[] }) {
+    const exists = await prisma.user.findUnique({ where: { phone } })
+    if (exists) return exists
+    const user = await prisma.user.create({
+      data: {
+        phone,
+        realName: data.realName,
+        password: bcrypt.hashSync('admin123!@#', 10),
+        status: 1,
+      },
+    })
+    await prisma.userEnterprise.create({
+      data: {
+        userId: user.id,
+        enterpriseId: data.enterpriseId,
+        status: 1,
+        positions: JSON.stringify(data.positions || ['platform:org-admin']),
+      },
+    })
+    return user
+  }
+
+  await ensureUser('13300001111', { realName: '周志远', enterpriseId: property.id }) // 阳光物业（物业方）
+  await ensureUser('13300002222', { realName: '刘伟', enterpriseId: street1.id })    // 商业街1（商业街管理方）
+  console.log('  ✅ S2 管理方测试账号: 阳光物业(13300001111) / 商业街1(13300002222)')
+
+  // ---- 设备 / 告警 / 隐患 ----
+  // 新思维高级中学（S1 社会单位）
+  const d1 = await ensureDevice('教学楼烟感 A-101', { type: '烟感', status: '在线', location: '教学楼 1F', enterpriseId: school.id })
+  const d2 = await ensureDevice('食堂电气监控 B-03', { type: '电气', status: '在线', location: '食堂后厨', enterpriseId: school.id })
+  const d3 = await ensureDevice('宿舍楼烟感 C-207', { type: '烟感', status: '离线', location: '宿舍楼', enterpriseId: school.id })
+  await ensureAlarm('教学楼烟感 A-101', { deviceId: d1.id, type: '火警', level: '紧急', status: '未处理', occurredAt: hoursAgo(2), enterpriseId: school.id })
+  await ensureAlarm('食堂电气监控 B-03', { deviceId: d2.id, type: '电气故障', level: '重要', status: '未处理', occurredAt: hoursAgo(5), enterpriseId: school.id })
+  await ensureAlarm('宿舍楼烟感 C-207', { deviceId: d3.id, type: '烟感预警', level: '一般', status: '已处理', occurredAt: daysAgo(1), enterpriseId: school.id })
+  await ensureHazard('教学楼 1F 灭火器箱', { category: '消防设施', level: '一般', status: '未整改', foundAt: daysAgo(2), enterpriseId: school.id })
+  await ensureHazard('宿舍楼 消防通道', { category: '消防通道', level: '重大', status: '未整改', foundAt: daysAgo(4), enterpriseId: school.id })
+
+  // 韧性木业
+  const d4 = await ensureDevice('车间烟感 01', { type: '烟感', status: '在线', location: '生产车间', enterpriseId: wood.id })
+  await ensureAlarm('车间烟感 01', { deviceId: d4.id, type: '火警', level: '紧急', status: '未处理', occurredAt: hoursAgo(3), enterpriseId: wood.id })
+  await ensureHazard('车间电气箱', { category: '电气安全', level: '重要', status: '未整改', foundAt: daysAgo(3), enterpriseId: wood.id })
+
+  // 商业街1 / 商铺1（S2 管理方场景）
+  const d5 = await ensureDevice('商业街1号铺 摄像头 01', { type: '摄像头', status: '在线', location: '商业街 1 号铺', enterpriseId: street1.id })
+  const d6 = await ensureDevice('商铺1 燃气探测器 01', { type: '燃气', status: '离线', location: '商铺 1', enterpriseId: shop1.id })
+  await ensureAlarm('商业街1号铺 摄像头 01', { deviceId: d5.id, type: '电气故障', level: '重要', status: '未处理', occurredAt: hoursAgo(6), enterpriseId: street1.id })
+  await ensureAlarm('商铺1 燃气探测器 01', { deviceId: d6.id, type: '燃气预警', level: '一般', status: '未处理', occurredAt: hoursAgo(8), enterpriseId: shop1.id })
+  await ensureHazard('商业街1号铺 燃气阀', { category: '燃气安全', level: '重大', status: '整改中', foundAt: daysAgo(1), enterpriseId: street1.id })
+
+  // 阳光物业
+  const d7 = await ensureDevice('物业大楼 烟感 01', { type: '烟感', status: '在线', location: '物业大楼 3F', enterpriseId: property.id })
+  await ensureAlarm('物业大楼 烟感 01', { deviceId: d7.id, type: '烟感预警', level: '一般', status: '已处理', occurredAt: daysAgo(1), enterpriseId: property.id })
+  await ensureHazard('物业大楼 灭火器过期', { category: '消防设施', level: '一般', status: '未整改', foundAt: daysAgo(5), enterpriseId: property.id })
+
+  console.log('  ✅ 设备/告警/隐患测试数据填充完成')
 
   // ===== 平台内置岗位（9 个） =====
   const defaultPermissions = JSON.stringify({

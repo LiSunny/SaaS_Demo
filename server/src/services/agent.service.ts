@@ -13,6 +13,7 @@ import { loadSystemPrompt } from '../config/agent-prompt-loader.js'
 import * as enterpriseService from './enterprise.service.js'
 import * as userService from './user.service.js'
 import * as positionService from './position.service.js'
+import db from '../config/db.js'
 
 // ===== 页面别名映射 =====
 const PAGE_ALIASES: Record<string, { route: string; aliases: string[] }> = {
@@ -24,7 +25,11 @@ const PAGE_ALIASES: Record<string, { route: string; aliases: string[] }> = {
 
 // ===== System Prompt（从 Markdown 文件加载） =====
 function getSystemPrompt(): string {
-  return loadSystemPrompt({ pageList: buildPageListText() })
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const todayLabel = `${today}（${weekdays[now.getDay()]}）`
+  return loadSystemPrompt({ pageList: buildPageListText(), today: todayLabel })
 }
 
 // ===== 工具定义 =====
@@ -104,6 +109,9 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           status: { type: 'string', description: '按处置状态筛选：未处理 / 已处理。不传则返回全部' },
           level: { type: 'string', description: '按等级筛选：紧急 / 重要 / 一般。不传则返回全部' },
+          date: { type: 'string', description: '按日期筛选，格式 YYYY-MM-DD（如 2026-08-15）。用户说"今日/今天/8月15日"时转成此格式传入' },
+          startDate: { type: 'string', description: '起始日期（含），格式 YYYY-MM-DD。查询时间范围（如"最近3天""8月1日到8月10日"）时使用' },
+          endDate: { type: 'string', description: '结束日期（含），格式 YYYY-MM-DD。与 startDate 搭配使用' },
         },
         required: [],
       },
@@ -119,6 +127,9 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           status: { type: 'string', description: '按整改状态筛选：未整改 / 整改中 / 已整改。不传则返回全部' },
           level: { type: 'string', description: '按等级筛选：重大 / 重要 / 一般。不传则返回全部' },
+          date: { type: 'string', description: '按日期筛选，格式 YYYY-MM-DD（如 2026-08-15）。用户说"今日/今天/8月15日"时转成此格式传入' },
+          startDate: { type: 'string', description: '起始日期（含），格式 YYYY-MM-DD。查询时间范围（如"最近3天""8月1日到8月10日"）时使用' },
+          endDate: { type: 'string', description: '结束日期（含），格式 YYYY-MM-DD。与 startDate 搭配使用' },
         },
         required: [],
       },
@@ -181,6 +192,7 @@ export interface AgentScope {
   systemRole: string | null   // platform-admin / platform-ops / 其他
   groups: string[]            // 用户关联企业 groups 的并集：regulator|unit|operator|service
   enterpriseNames: string[]   // 用户关联的企业名称
+  enterpriseIds: number[]     // 用户关联的企业 ID（真实表过滤用）
   realName?: string           // 当前用户姓名（服务商工单按处理人过滤用）
 }
 
@@ -215,19 +227,85 @@ const MOCK_DEVICES = [
   { id: 6, name: '烟感探测器 车间-1', type: '烟感', status: '在线', location: '车间', enterprise: '韧性木业' },
 ]
 
-/** 平台方与监管可看全部数据，其余角色只看本企业 */
+/** 全量可见：仅系统角色（platform-admin / platform-ops）。regulator 走辖区关系树，见 visibleEnterpriseIds */
 function canSeeAll(scope?: AgentScope): boolean {
   if (!scope) return true
-  if (scope.systemRole === 'platform-admin' || scope.systemRole === 'platform-ops') return true
-  return scope.groups.includes('regulator')
+  return scope.systemRole === 'platform-admin' || scope.systemRole === 'platform-ops'
 }
 
-/** 按 scope 过滤带 enterprise 字段的 mock 数据 */
+/**
+ * 可见企业 ID 集合（默认一阶；「全部下级」递归在后续场景扩展）：
+ * - 系统角色 → null（全部）
+ * - unit 管理方 → 本企业 + 下级（subordinate 我挂的下级 ∪ partner 声明我为 my_manager 的发起方）
+ * - regulator → 本企业 + 辖区（subordinate 我挂的下级 ∪ partner 声明我为 my_supervisor 的发起方）
+ * - 其余（商户/operator/service）→ 本企业（服务/运营授权在 S4/S5 扩展）
+ */
+async function visibleEnterpriseIds(scope?: AgentScope): Promise<number[] | null> {
+  if (canSeeAll(scope)) return null
+  const mine = scope?.enterpriseIds || []
+  if (mine.length === 0) return []
+  const groups = scope?.groups || []
+  const roleKey = groups.includes('unit') ? 'my_manager' : groups.includes('regulator') ? 'my_supervisor' : null
+  if (!roleKey) return mine
+  const relations = await db.enterpriseRelation.findMany({
+    where: {
+      OR: [
+        { enterpriseId: { in: mine }, type: 'subordinate' },      // 我主动挂的下级（上级→下级）
+        { relatedId: { in: mine }, role: { contains: roleKey } }, // 对方声明我为管理方/监管方（partner 反向表达）
+      ],
+    },
+  })
+  const visible = new Set<number>(mine)
+  for (const r of relations) visible.add(r.type === 'subordinate' ? r.relatedId : r.enterpriseId)
+  return [...visible]
+}
+
+/** 关系树扩展时的范围自证文案（透明性规则：回答必须说明查询范围，默认一阶） */
+function scopeNote(scope: AgentScope | undefined, entIds: number[] | null): string {
+  if (entIds === null || !scope?.enterpriseIds?.length) return ''
+  const mine = new Set(scope.enterpriseIds)
+  const extra = entIds.filter(id => !mine.has(id)).length
+  if (extra <= 0) return ''
+  return `\n\n> 📌 数据范围：本企业及 ${extra} 家直接下级/辖区企业（未包含下级的下级；如需包含全部层级，请说「全部下级」）`
+}
+
+/** 按 scope 过滤带 enterprise 字段的 mock 数据（产物降级路径保留） */
 function filterByScope<T extends { enterprise: string }>(items: T[], scope?: AgentScope): T[] {
   if (canSeeAll(scope)) return items
   const names = scope?.enterpriseNames || []
   if (names.length === 0) return items
   return items.filter(i => names.includes(i.enterprise))
+}
+
+/** 日期范围参数 → Prisma where 片段（本地时区解析；date 优先于 startDate/endDate） */
+function buildDateRange(args: Record<string, any>): { gte?: Date; lte?: Date } {
+  const range: { gte?: Date; lte?: Date } = {}
+  const oneDay = 86400_000
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  // 「最近 N 天」：startDate 未显式给日期时，LLM 可能传相对天数（如 "最近3天" → startDate=2026-08-12）
+  if (args.date) {
+    const d = new Date(`${args.date}T00:00:00`)
+    if (!isNaN(d.getTime())) {
+      range.gte = d
+      range.lte = new Date(d.getTime() + oneDay - 1)
+    }
+  } else {
+    if (args.startDate) {
+      const s = new Date(`${args.startDate}T00:00:00`)
+      if (!isNaN(s.getTime())) range.gte = s
+    }
+    if (args.endDate) {
+      const e = new Date(`${args.endDate}T00:00:00`)
+      if (!isNaN(e.getTime())) range.lte = new Date(e.getTime() + oneDay - 1)
+    }
+    if (args.days) {
+      const n = parseInt(args.days, 10)
+      if (!isNaN(n) && n > 0) range.gte = new Date(new Date(`${todayStr}T00:00:00`).getTime() - (n - 1) * oneDay)
+    }
+  }
+  return range
 }
 
 /** 工单过滤：服务商按处理人（我接的单），其余角色按企业归属 */
@@ -241,11 +319,17 @@ function filterOrders(scope?: AgentScope): typeof MOCK_ORDERS {
   return MOCK_ORDERS.filter(o => names.includes(o.enterprise))
 }
 
-/** 产物副标题里的数据范围文案 */
-function scopeLabel(scope?: AgentScope): string {
-  if (canSeeAll(scope)) return '全部企业'
+/** 产物副标题里的数据范围文案（entIds 传入时标注关系树扩展） */
+function scopeLabel(scope: AgentScope | undefined, entIds?: number[] | null): string {
+  if (entIds === null) return '全部企业'
   const names = scope?.enterpriseNames || []
-  return names.length ? names.join('、') : '全部'
+  if (names.length === 0) return '全部'
+  if (entIds && scope?.enterpriseIds) {
+    const mine = new Set(scope.enterpriseIds)
+    const extra = entIds.filter(id => !mine.has(id)).length
+    if (extra > 0) return `${names.join('、')} 及 ${extra} 家直接下级/辖区企业`
+  }
+  return names.join('、')
 }
 
 // ===== DeepSeek 客户端（懒加载，避免模块顶层初始化在没有 Key 时崩进程） =====
@@ -389,22 +473,44 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
       return JSON.stringify({ total: positions.length, list: positions })
     }
     case 'query_alarms': {
-      let items = filterByScope(MOCK_ALARMS, scope)
-      if (args.status) items = items.filter(a => a.status === args.status)
-      if (args.level) items = items.filter(a => a.level === args.level)
-      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的告警记录。' })
-      const rows = items.map(a => `| ${a.time} | ${a.point} | ${a.type} | ${a.level} | ${a.status} | ${a.enterprise} |`)
-      const text = `**共 ${items.length} 条告警**\n\n| 时间 | 点位 | 类型 | 等级 | 状态 | 企业 |\n|------|------|------|------|------|------|\n${rows.join('\n')}`
-      return JSON.stringify({ text, total: items.length })
+      const entIds = await visibleEnterpriseIds(scope)
+      const where: any = {}
+      if (entIds !== null) where.enterpriseId = { in: entIds }
+      if (args.status) where.status = args.status
+      if (args.level) where.level = args.level
+      const dateRange = buildDateRange(args)
+      if (dateRange.gte || dateRange.lte) where.occurredAt = dateRange
+      const alarms = await db.alarm.findMany({
+        where,
+        include: { enterprise: { select: { name: true } } },
+        orderBy: { occurredAt: 'desc' },
+        take: 50,
+      })
+      if (alarms.length === 0) return JSON.stringify({ text: '没有找到匹配的告警记录。' })
+      const fmtT = (t: Date) => t.toISOString().slice(0, 16).replace('T', ' ')
+      const rows = alarms.map((a: any) => `| ${fmtT(a.occurredAt)} | ${a.point} | ${a.type} | ${a.level} | ${a.status} | ${a.enterprise.name} |`)
+      const text = `**共 ${alarms.length} 条告警**\n\n| 时间 | 点位 | 类型 | 等级 | 状态 | 企业 |\n|------|------|------|------|------|------|\n${rows.join('\n')}${scopeNote(scope, entIds)}`
+      return JSON.stringify({ text, total: alarms.length })
     }
     case 'query_hazards': {
-      let items = filterByScope(MOCK_HAZARDS, scope)
-      if (args.status) items = items.filter(h => h.status === args.status)
-      if (args.level) items = items.filter(h => h.level === args.level)
-      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的隐患记录。' })
-      const rows = items.map(h => `| ${h.location} | ${h.category} | ${h.level} | ${h.status} | ${h.foundAt} | ${h.enterprise} |`)
-      const text = `**共 ${items.length} 条隐患**\n\n| 位置 | 类别 | 等级 | 状态 | 发现时间 | 企业 |\n|------|------|------|------|------|------|\n${rows.join('\n')}`
-      return JSON.stringify({ text, total: items.length })
+      const entIds = await visibleEnterpriseIds(scope)
+      const where: any = {}
+      if (entIds !== null) where.enterpriseId = { in: entIds }
+      if (args.status) where.status = args.status
+      if (args.level) where.level = args.level
+      const dateRange = buildDateRange(args)
+      if (dateRange.gte || dateRange.lte) where.foundAt = dateRange
+      const hazards = await db.hazard.findMany({
+        where,
+        include: { enterprise: { select: { name: true } } },
+        orderBy: { foundAt: 'desc' },
+        take: 50,
+      })
+      if (hazards.length === 0) return JSON.stringify({ text: '没有找到匹配的隐患记录。' })
+      const fmtD = (t: Date) => t.toISOString().slice(0, 10)
+      const rows = hazards.map((h: any) => `| ${h.location} | ${h.category} | ${h.level} | ${h.status} | ${fmtD(h.foundAt)} | ${h.enterprise.name} |`)
+      const text = `**共 ${hazards.length} 条隐患**\n\n| 位置 | 类别 | 等级 | 状态 | 发现时间 | 企业 |\n|------|------|------|------|------|------|\n${rows.join('\n')}${scopeNote(scope, entIds)}`
+      return JSON.stringify({ text, total: hazards.length })
     }
     case 'query_orders': {
       let items = filterOrders(scope)
@@ -417,12 +523,20 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
       return JSON.stringify({ text, total: items.length })
     }
     case 'query_devices': {
-      let items = filterByScope(MOCK_DEVICES, scope)
-      if (args.status) items = items.filter(d => d.status === args.status)
-      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的设备。' })
-      const rows = items.map(d => `| ${d.name} | ${d.type} | ${d.status} | ${d.location} | ${d.enterprise} |`)
-      const text = `**共 ${items.length} 台设备**\n\n| 设备名称 | 类型 | 状态 | 位置 | 企业 |\n|------|------|------|------|------|\n${rows.join('\n')}`
-      return JSON.stringify({ text, total: items.length })
+      const entIds = await visibleEnterpriseIds(scope)
+      const where: any = {}
+      if (entIds !== null) where.enterpriseId = { in: entIds }
+      if (args.status) where.status = args.status
+      const devices = await db.device.findMany({
+        where,
+        include: { enterprise: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      })
+      if (devices.length === 0) return JSON.stringify({ text: '没有找到匹配的设备。' })
+      const rows = devices.map((d: any) => `| ${d.name} | ${d.type} | ${d.status} | ${d.location} | ${d.enterprise.name} |`)
+      const text = `**共 ${devices.length} 台设备**\n\n| 设备名称 | 类型 | 状态 | 位置 | 企业 |\n|------|------|------|------|------|\n${rows.join('\n')}${scopeNote(scope, entIds)}`
+      return JSON.stringify({ text, total: devices.length })
     }
     default:
       return JSON.stringify({ error: `未知工具: ${name}` })
@@ -543,12 +657,12 @@ async function* generateArtifact(
 ): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent> {
   const skill = SKILLS[type]
 
-  yield debugEvent('artifact_intent', '🎯 识别产物意图', 'info',
+  yield debugEvent('artifact_intent', '识别产物意图', 'info',
     `匹配技能「${skill.title}」`,
     { 技能: type, 触发消息: message }, t0)
 
   const tData = Date.now()
-  yield debugEvent('artifact_data', '🔧 取数', 'output',
+  yield debugEvent('artifact_data', '取数', 'output',
     `调用 ${skill.tool} 获取数据，耗时 ${Date.now() - tData}ms`,
     { 工具: skill.tool }, t0)
 
@@ -560,27 +674,46 @@ async function* generateArtifact(
   let rows: string[][] = []
 
   if (type === 'alarm-report') {
-    const items = filterByScope(MOCK_ALARMS, scope)
-    const unhandled = items.filter(a => a.status === '未处理')
-    subtitle = `统计时间 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope)}`
+    const entIds = await visibleEnterpriseIds(scope)
+    const now = new Date()
+    const todayStart = new Date(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T00:00:00`)
+    const alarms = await db.alarm.findMany({
+      where: {
+        ...(entIds !== null ? { enterpriseId: { in: entIds } } : {}),
+        occurredAt: { gte: todayStart }, // 日报 = 今日告警
+      },
+      include: { enterprise: { select: { name: true } } },
+      orderBy: { occurredAt: 'desc' },
+      take: 100,
+    })
+    const unhandled = alarms.filter(a => a.status === '未处理')
+    subtitle = `统计时间 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope, entIds)}`
     stats = [
-      { label: '告警总数', value: String(items.length) },
+      { label: '告警总数', value: String(alarms.length) },
       { label: '未处理', value: String(unhandled.length), tone: 'red' },
-      { label: '已处置', value: String(items.length - unhandled.length), tone: 'green' },
+      { label: '已处置', value: String(alarms.length - unhandled.length), tone: 'green' },
     ]
     columns = ['时间', '点位', '类型', '等级', '状态', '企业']
-    rows = items.map(a => [a.time, a.point, a.type, a.level, a.status, a.enterprise])
+    const fmtT = (t: Date) => t.toISOString().slice(0, 16).replace('T', ' ')
+    rows = alarms.map((a: any) => [fmtT(a.occurredAt), a.point, a.type, a.level, a.status, a.enterprise.name])
   } else if (type === 'hazard-list') {
-    const items = filterByScope(MOCK_HAZARDS, scope)
-    const major = items.filter(h => h.level === '重大').length
-    subtitle = `截至 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope)}`
+    const entIds = await visibleEnterpriseIds(scope)
+    const hazards = await db.hazard.findMany({
+      where: entIds !== null ? { enterpriseId: { in: entIds } } : {},
+      include: { enterprise: { select: { name: true } } },
+      orderBy: { foundAt: 'desc' },
+      take: 100,
+    })
+    const major = hazards.filter(h => h.level === '重大').length
+    subtitle = `截至 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope, entIds)}`
     stats = [
-      { label: '隐患总数', value: String(items.length) },
+      { label: '隐患总数', value: String(hazards.length) },
       { label: '重大隐患', value: String(major), tone: 'red' },
-      { label: '未整改', value: String(items.filter(h => h.status === '未整改').length), tone: 'amber' },
+      { label: '未整改', value: String(hazards.filter(h => h.status === '未整改').length), tone: 'amber' },
     ]
     columns = ['位置', '类别', '等级', '状态', '发现时间', '企业']
-    rows = items.map(h => [h.location, h.category, h.level, h.status, h.foundAt, h.enterprise])
+    const fmtD = (t: Date) => t.toISOString().slice(0, 10)
+    rows = hazards.map((h: any) => [h.location, h.category, h.level, h.status, fmtD(h.foundAt), h.enterprise.name])
   } else if (type === 'order-weekly') {
     const items = filterOrders(scope)
     const active = items.filter(o => o.status === 'active').length
@@ -600,19 +733,26 @@ async function* generateArtifact(
 
   const html = buildArtifactHtml({ title, subtitle, stats, columns, rows })
 
-  yield debugEvent('artifact_generated', '📄 产物生成', 'output',
+  yield debugEvent('artifact_generated', '产物生成', 'output',
     `已生成「${title}」HTML（${html.length} 字符）`,
     { 标题: title, HTML长度: html.length }, t0)
 
   yield { type: 'artifact', artifact: { id: `art-${Date.now()}-${type}`, type, title, html } }
 
-  const reply = `已生成「${title}」，可在右侧「产物」栏预览和下载。`
+  // 聊天窗口直接展示数据表格（产物作为附带下载）
+  const headRow = '| ' + columns.join(' | ') + ' |'
+  const sepRow = '|' + columns.map(() => '------|').join('')
+  const bodyRows = rows.map(r => '| ' + r.join(' | ') + ' |')
+  const tableText = rows.length
+    ? `**共 ${rows.length} 条**\n\n${headRow}\n${sepRow}\n${bodyRows.join('\n')}`
+    : '（范围内暂无数据）'
+  const reply = `${tableText}\n\n已生成「${title}」，可在右侧「产物」栏预览和下载。`
   for (let i = 0; i < reply.length; i += 2) {
     yield { type: 'token', content: reply.slice(i, i + 2) }
     await sleep(12)
   }
 
-  yield debugEvent('done', '✅ 完成', 'info', `总耗时 ${since(t0)}`, { 总耗时ms: Date.now() - t0 }, t0)
+  yield debugEvent('done', '完成', 'info', `总耗时 ${since(t0)}`, { 总耗时ms: Date.now() - t0 }, t0)
   yield { type: 'done' }
 }
 
@@ -633,7 +773,7 @@ export async function* streamChat(
   }
 
   // ===== 节点 1：收到请求 =====
-  yield debugEvent('request', '📥 收到请求', 'info',
+  yield debugEvent('request', '收到请求', 'info',
     `消息: "${message.slice(0, 80)}${message.length > 80 ? '…' : ''}"`,
     {
       原始消息: message,
@@ -644,7 +784,7 @@ export async function* streamChat(
 
   // 本地降级
   if (!env.DEEPSEEK_API_KEY) {
-    yield debugEvent('fallback_check', '⚠️ 降级模式', 'info',
+    yield debugEvent('fallback_check', '降级模式', 'info',
       '未配置 DEEPSEEK_API_KEY，使用本地规则匹配', { 原因: 'no_api_key' }, t0)
     yield* localFallbackStream(message, t0)
     return
@@ -655,7 +795,7 @@ export async function* streamChat(
   const systemPrompt = getSystemPrompt()
 
   // ===== 节点 2：系统提示词 =====
-  yield debugEvent('system_prompt', '📋 系统提示词', 'info',
+  yield debugEvent('system_prompt', '系统提示词', 'info',
     `已加载（${systemPrompt.length} 字符，${TOOLS.length} 个工具定义）`,
     {
       提示词长度: systemPrompt.length,
@@ -670,7 +810,7 @@ export async function* streamChat(
   ]
 
   // ===== 节点 3：LLM 调用 #1（带 tools） =====
-  yield debugEvent('llm_call_1', '🤖 LLM 调用 #1（工具决策）', 'input',
+  yield debugEvent('llm_call_1', 'LLM 调用 #1（工具决策）', 'input',
     `模型: ${LLM_DEFAULTS.model}，温度: ${LLM_DEFAULTS.temperature}，${messages.length} 条消息`,
     {
       参数: { model: LLM_DEFAULTS.model, temperature: LLM_DEFAULTS.temperature, max_tokens: LLM_DEFAULTS.max_tokens },
@@ -696,7 +836,7 @@ export async function* streamChat(
       const usage1 = (resp1 as any).usage
       const toolCalls = resp1.choices[0]?.message?.tool_calls
 
-      yield debugEvent('llm_call_1_response', '🤖 LLM 响应 #1', 'output',
+      yield debugEvent('llm_call_1_response', 'LLM 响应 #1', 'output',
         toolCalls?.length
           ? `finish_reason: ${finishReason1}，选中 ${toolCalls.length} 个工具调用，耗时 ${Date.now() - t1}ms`
           : `finish_reason: ${finishReason1}，直接文本回复（无工具调用），耗时 ${Date.now() - t1}ms`,
@@ -721,7 +861,7 @@ export async function* streamChat(
           // ===== 节点 5：工具执行 =====
           const tTool = Date.now()
           const result = await executeTool(fnName, args, scope)
-          yield debugEvent('tool_exec', '🔧 工具调用', 'output',
+          yield debugEvent('tool_exec', '工具调用', 'output',
             `${fnName}(${JSON.stringify(args)})，耗时 ${Date.now() - tTool}ms`,
             {
               工具名: fnName,
@@ -735,7 +875,7 @@ export async function* streamChat(
         }
 
         // ===== 节点 6：LLM 调用 #2（带工具结果，流式） =====
-        yield debugEvent('llm_call_2', '🤖 LLM 调用 #2（汇总回复）', 'input',
+        yield debugEvent('llm_call_2', 'LLM 调用 #2（汇总回复）', 'input',
           `${messages.length} 条消息（含工具结果），流式输出`,
           {
             参数: { model: LLM_DEFAULTS.model, temperature: LLM_DEFAULTS.temperature, stream: true },
@@ -757,7 +897,7 @@ export async function* streamChat(
         }
 
         // ===== 节点 7：LLM 响应 #2 完成 =====
-        yield debugEvent('llm_call_2_response', '🤖 LLM 响应 #2', 'output',
+        yield debugEvent('llm_call_2_response', 'LLM 响应 #2', 'output',
           `流式完成，共 ${fullText2.length} 字符，耗时 ${Date.now() - t2}ms`,
           {
             回复预览: fullText2.slice(0, 300) + (fullText2.length > 300 ? '…' : ''),
@@ -765,7 +905,7 @@ export async function* streamChat(
             耗时ms: Date.now() - t2,
           }, t0)
 
-        yield debugEvent('done', '✅ 完成', 'info',
+        yield debugEvent('done', '完成', 'info',
           `总耗时 ${since(t0)}`,
           { 总耗时ms: Date.now() - t0 }, t0)
 
@@ -776,7 +916,7 @@ export async function* streamChat(
 
     // 导航和普通对话：流式调用（无 tools）
     // ===== 节点 8：LLM 直接流式调用 =====
-    yield debugEvent('llm_direct', '🤖 LLM 直接回复（无工具）', 'input',
+    yield debugEvent('llm_direct', 'LLM 直接回复（无工具）', 'input',
       `${messages.length} 条消息，流式输出`,
       {
         参数: { model: LLM_DEFAULTS.model, temperature: LLM_DEFAULTS.temperature, stream: true },
@@ -800,7 +940,7 @@ export async function* streamChat(
 
     // ===== 节点 9：流式完成 + 导航解析 =====
     const navAction = parseAction(fullText)
-    yield debugEvent('llm_direct_response', '🤖 直接回复完成', 'output',
+    yield debugEvent('llm_direct_response', '直接回复完成', 'output',
       navAction
         ? `流式完成（${fullText.length} 字符），识别到导航意图 → ${navAction.pageKey}，耗时 ${Date.now() - tStream}ms`
         : `流式完成（${fullText.length} 字符），无导航意图，耗时 ${Date.now() - tStream}ms`,
@@ -811,7 +951,7 @@ export async function* streamChat(
         耗时ms: Date.now() - tStream,
       }, t0)
 
-    yield debugEvent('done', '✅ 完成', 'info',
+    yield debugEvent('done', '完成', 'info',
       `总耗时 ${since(t0)}`,
       { 总耗时ms: Date.now() - t0 }, t0)
 
@@ -819,7 +959,7 @@ export async function* streamChat(
 
   } catch (err: any) {
     // ===== 节点 E：LLM 异常降级 =====
-    yield debugEvent('llm_error', '❌ LLM 调用失败', 'error',
+    yield debugEvent('llm_error', 'LLM 调用失败', 'error',
       `错误: ${err.message}，降级到本地规则`,
       { 错误类型: err.name, 错误信息: err.message }, t0)
 
@@ -837,7 +977,7 @@ async function* localFallbackStream(message: string, t0?: number): AsyncGenerato
   for (const [pageKey, page] of Object.entries(PAGE_ALIASES)) {
     for (const alias of page.aliases) {
       if (text.includes(alias)) {
-        yield debugEvent('fallback_nav', '🔀 本地匹配 → 导航', 'info',
+        yield debugEvent('fallback_nav', '本地匹配 → 导航', 'info',
           `匹配别名 "${alias}" → ${page.route}`,
           { 匹配关键词: alias, 目标路由: page.route, 页面Key: pageKey }, start)
         const reply = `好的，正在为你打开${alias}页面`
@@ -845,7 +985,7 @@ async function* localFallbackStream(message: string, t0?: number): AsyncGenerato
           yield { type: 'token', content: reply.slice(i, i + 2) }
           await sleep(15)
         }
-        yield debugEvent('done', '✅ 完成（本地降级）', 'info',
+        yield debugEvent('done', '完成（本地降级）', 'info',
           `总耗时 ${since(start)}`,
           { 总耗时ms: Date.now() - start, 模式: 'local_fallback' }, start)
         yield { type: 'done', action: { type: 'navigate', route: page.route, pageKey } }
@@ -856,7 +996,7 @@ async function* localFallbackStream(message: string, t0?: number): AsyncGenerato
 
   // 数据查询：本地降级也能查
   if (text.includes('租户') || text.includes('企业') && (text.includes('多少') || text.includes('几个'))) {
-    yield debugEvent('fallback_query', '🔀 本地匹配 → 数据查询', 'info',
+    yield debugEvent('fallback_query', '本地匹配 → 数据查询', 'info',
       '关键词匹配"租户/企业"+"多少/几个"',
       { 匹配模式: 'enterprise_count' }, start)
     const { total } = await enterpriseService.getList({ page: 1, size: 1 })
@@ -865,7 +1005,7 @@ async function* localFallbackStream(message: string, t0?: number): AsyncGenerato
       yield { type: 'token', content: reply.slice(i, i + 2) }
       await sleep(15)
     }
-    yield debugEvent('done', '✅ 完成（本地降级）', 'info',
+    yield debugEvent('done', '完成（本地降级）', 'info',
       `总耗时 ${since(start)}`,
       { 总耗时ms: Date.now() - start, 模式: 'local_fallback' }, start)
     yield { type: 'done' }
@@ -873,14 +1013,14 @@ async function* localFallbackStream(message: string, t0?: number): AsyncGenerato
   }
 
   // 默认
-  yield debugEvent('fallback_default', '🔀 本地匹配 → 默认回复', 'info',
+  yield debugEvent('fallback_default', '本地匹配 → 默认回复', 'info',
     '未匹配任何规则，返回默认帮助文本', {}, start)
   const reply = '我是大屏AI助手，可以帮你：\n1. 查询数据（如"有多少个租户"）\n2. 导航页面（如"打开商业街专题"）\n3. 自由对话\n\n试试看吧！'
   for (let i = 0; i < reply.length; i += 2) {
     yield { type: 'token', content: reply.slice(i, i + 2) }
     await sleep(15)
   }
-  yield debugEvent('done', '✅ 完成（本地降级）', 'info',
+  yield debugEvent('done', '完成（本地降级）', 'info',
     `总耗时 ${since(start)}`,
     { 总耗时ms: Date.now() - start, 模式: 'local_fallback' }, start)
   yield { type: 'done' }

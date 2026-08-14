@@ -54,6 +54,10 @@ router.use('/api/upload', uploadRouter)
 router.use('/api/admin/bigscreens', bigscreenAdminRouter)
 router.use('/api/user/bigscreens', bigscreenUserRouter)
 
+// ========== 测试数据管理（Agent 数据链测试工具） ==========
+import { testDataRouter } from './test-data.routes.js'
+router.use('/api/test-data', testDataRouter)
+
 // ========== AI Agent ==========
 import { agentUploadRouter } from './agent-upload.routes.js'
 import { agentRouter } from './agent.routes.js'
