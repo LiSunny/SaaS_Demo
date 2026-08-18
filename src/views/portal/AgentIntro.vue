@@ -8,8 +8,15 @@
 
     <!-- ═══ Hero ═══ -->
     <header class="hero">
-      <h1>韧性AI助手<br /><em>一句话，把安全数据问出来</em></h1>
-      <p class="sub">告警、隐患、设备、日报——不用学菜单，开口就能查。每个角色只看自己该看的，问完直接拿结果。</p>
+      <h1>
+        <span class="brand-line">
+          <img class="brand-robot" src="@/assets/agent-robot-chat.svg" alt="小安助手" />
+          <span class="brand-name-art">小安助手</span>
+        </span>
+        <br />
+        <em>有事问小安，安全不犯难</em>
+      </h1>
+      <p class="sub">一句话，把安全数据问出来：告警、隐患、设备、日报，不用学菜单，开口就能查。每个角色只看自己该看的，问完直接拿结果。</p>
       <div class="pills">
         <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><b>问得出</b>　自然语言直查真实数据</span>
         <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><b>看得准</b>　四方权限，系统守住</span>
@@ -21,8 +28,8 @@
           <span class="vt">完整演示 · 1 分 31 秒</span>
         </div>
         <video controls autoplay muted loop playsinline preload="metadata" poster="/agent-intro/demo-shots/幕1-监管问告警.png">
-          <source src="/agent-intro/demo-video/韧性AI助手演示录屏.mp4" type="video/mp4" />
-          <source src="/agent-intro/demo-video/韧性AI助手演示录屏.webm" type="video/webm" />
+          <source src="/agent-intro/demo-video/小安助手演示录屏.mp4" type="video/mp4" />
+          <source src="/agent-intro/demo-video/小安助手演示录屏.webm" type="video/webm" />
           您的浏览器不支持视频播放，请下载视频文件观看。
         </video>
       </div>
@@ -165,6 +172,37 @@
       </div>
     </section>
 
+    <!-- ═══ 四方角色 · 各有问法 ═══ -->
+    <section class="sec roles-sec">
+      <div class="wrap">
+        <div class="roles-head">
+          <div class="roles-slogan">有事问小安，安全不犯难</div>
+        </div>
+        <div class="roles4">
+          <div class="role-card4">
+            <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></svg></div>
+            <div class="rc4-role">监管机构</div>
+            <div class="rc4-line">辖区态势问小安<br />数据说话心里安</div>
+          </div>
+          <div class="role-card4">
+            <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></div>
+            <div class="rc4-role">社会单位</div>
+            <div class="rc4-line">隐患整改问小安<br />闭环管理不犯难</div>
+          </div>
+          <div class="role-card4">
+            <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div>
+            <div class="rc4-role">值班员</div>
+            <div class="rc4-line">深夜值守问小安<br />告警日报一遍办</div>
+          </div>
+          <div class="role-card4">
+            <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></div>
+            <div class="rc4-role">服务机构</div>
+            <div class="rc4-line">维保记录问小安<br />报告生成一眨眼</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ═══ CTA ═══ -->
     <div class="cta">
       <h2>想亲手试试？点一下就能体验</h2>
@@ -173,7 +211,7 @@
       <a class="cta-btn-ghost" href="/portal">← 返回平台门户</a>
     </div>
 
-    <footer class="foot">商业街安全管理平台 · 韧性AI助手介绍资料 · 录屏与截图均为真实系统运行画面</footer>
+    <footer class="foot">商业街安全管理平台 · 小安助手介绍资料 · 录屏与截图均为真实系统运行画面</footer>
 
     <!-- 图片放大弹层（常驻 DOM，opacity 显隐，与静态介绍页同机制） -->
     <div class="img-lightbox" :class="{ open: lbOpen }" @click.self="closeLb">
@@ -241,6 +279,23 @@ onUnmounted(() => {
 }
 .agent-intro * { box-sizing: border-box; margin: 0; padding: 0; }
 .agent-intro ::-webkit-scrollbar { display: none; }
+
+/* 品牌名艺术字体（Source-KeynoteartHans 演示斜黑体，用户提供） */
+@font-face {
+  font-family: 'Source-KeynoteartHans';
+  src: url('/fonts/演示斜黑体.otf') format('opentype');
+  font-display: swap;
+}
+.brand-line { display: inline-flex; align-items: center; justify-content: center; gap: 16px; line-height: 1; }
+.brand-robot { width: 58px; height: 58px; object-fit: contain; display: block; }
+.brand-name-art {
+  font-family: 'Source-KeynoteartHans', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  letter-spacing: 4px;
+  line-height: 1;
+  background: linear-gradient(90deg, #5b9bff 0%, #1d4ed8 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
 
 /* ── Hero ── */
 .hero {
@@ -398,6 +453,44 @@ onUnmounted(() => {
 }
 .cta-btn-ghost:hover { background: rgba(54,120,227,0.06); }
 @media (max-width: 560px) { .cta-btn-ghost { margin-left: 0; margin-top: 12px; } }
+/* ── 四方角色顺口溜 ── */
+.roles-sec { background: linear-gradient(180deg, var(--bg) 0%, #f4f8ff 100%); }
+.roles-head { text-align: center; margin-bottom: 48px; }
+.roles-slogan {
+  font-size: 34px; font-weight: 800; letter-spacing: 3px;
+  background: linear-gradient(90deg, #5b9bff 0%, #1d4ed8 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.roles4 { display: flex; justify-content: center; gap: 18px; align-items: flex-start; }
+.role-card4 {
+  flex: 1; max-width: 250px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 26px 18px 22px; text-align: center;
+  box-shadow: 0 6px 18px rgba(20,40,90,0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+/* 中间两卡上浮，两侧下沉 → 错落节奏（仿门户定位区） */
+.role-card4:nth-child(2), .role-card4:nth-child(3) { transform: translateY(-16px); }
+.role-card4:nth-child(1), .role-card4:nth-child(4) { transform: translateY(12px); }
+.role-card4:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(20,40,90,0.12); }
+.rc4-icon {
+  width: 46px; height: 46px; margin: 0 auto; border-radius: 12px;
+  background: rgba(54,120,227,0.10); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+}
+.rc4-icon svg { width: 21px; height: 21px; }
+.rc4-role { margin-top: 14px; font-size: 15px; font-weight: 700; color: var(--ink); }
+.rc4-line { margin-top: 8px; font-size: 14px; color: var(--ink-2); line-height: 1.8; }
+@media (max-width: 900px) {
+  .roles4 { flex-wrap: wrap; }
+  .role-card4 { flex: 0 0 calc(50% - 9px); max-width: none; }
+  .role-card4:nth-child(n) { transform: none; }
+}
+@media (max-width: 560px) {
+  .role-card4 { flex-basis: 100%; }
+  .roles-slogan { font-size: 26px; letter-spacing: 2px; }
+}
+
 .foot { text-align: center; font-size: 13px; color: #9aa1ad; padding: 20px; border-top: 1px solid var(--line); }
 
 @media (max-width: 640px) {
