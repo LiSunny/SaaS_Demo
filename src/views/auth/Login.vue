@@ -213,11 +213,7 @@ import { useUserStore } from '@/stores/user'
 import { loginApi } from '@/api/auth'
 import { getUserDefaultBigscreen } from '@/api/bigscreen'
 import { getBigscreenRoute } from '@/config/bigscreen-templates'
-import platformAdminImg from '@/assets/demo-roles/platform-admin.svg'
-import opsManagerImg from '@/assets/demo-roles/ops-manager.svg'
-import supervisionAdminImg from '@/assets/demo-roles/supervision-admin.svg'
-import enterpriseAdminImg from '@/assets/demo-roles/enterprise-admin.svg'
-import normalUserImg from '@/assets/demo-roles/normal-user.svg'
+import { ACTIVE_DEMO_ACCOUNTS } from '@/config/demo-accounts'
 import featureMonitor from '@/assets/demo-roles/feature-monitor.svg'
 import featureHelmet from '@/assets/demo-roles/feature-helmet.svg'
 import featureCycle from '@/assets/demo-roles/feature-cycle.svg'
@@ -294,27 +290,9 @@ const featureCards = [
   },
 ]
 
-// 体验账号 — 四方用户视角（与导航分组对齐），根据打包环境自动切换
-// 监管机构：海港应急局 13000000001 admin123!@# → 区域监管
-// 社会单位：新思维中学 13100001234 admin123!@# → 安全管理
-// 运营商：  安信智慧消防 18800001234 admin123!@# → 项目管理
-// 服务机构：蓝盾消防 13900002222 admin123!@# → 技术服务
-// 平台方：  测试运营(platform-ops) 13800000001 3xkxr4 → 运营管理
-const demoAccounts = import.meta.env.PROD
-  ? [
-      { role: '监管机构', desc: '区域监管 · 联勤督办', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '社会单位', desc: '自查自管 · 隐患闭环', phone: '13100001234', password: 'admin123!@#', image: platformAdminImg },
-      { role: '运营管理', desc: '安全托管 · 项目服务', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
-      { role: '服务机构', desc: '维保检测 · 接单处置', phone: '13900002222', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '平台管理', desc: '租户开通 · 配置支撑', phone: '13800000001', password: '3xkxr4', image: normalUserImg },
-    ]
-  : [
-      { role: '监管机构', desc: '区域监管 · 联勤督办', phone: '13000000001', password: 'admin123!@#', image: supervisionAdminImg },
-      { role: '社会单位', desc: '自查自管 · 隐患闭环', phone: '13100001234', password: 'admin123!@#', image: platformAdminImg },
-      { role: '运营管理', desc: '安全托管 · 项目服务', phone: '18800001234', password: 'admin123!@#', image: opsManagerImg },
-      { role: '服务机构', desc: '维保检测 · 接单处置', phone: '13900002222', password: 'admin123!@#', image: enterpriseAdminImg },
-      { role: '平台管理', desc: '租户开通 · 配置支撑', phone: '13800000001', password: '3xkxr4', image: normalUserImg },
-    ]
+// 体验账号 — 唯一数据源 src/config/demo-accounts.ts（登录页体验卡 与 韧性AI助手工作台身份弹窗共用，文案必须一致）
+// 运营管理 / 服务机构 暂被屏蔽（S4/S5 授权扩展实现前，登录后无数据可查）
+const demoAccounts = ACTIVE_DEMO_ACCOUNTS
 
 // 5 个账号拆为两行：第一行 3 个、第二行 2 个
 const demoRow1 = demoAccounts.slice(0, 3)
@@ -399,18 +377,21 @@ async function handleLogin() {
     userStore.setLogin(res.token, res.user)
     ElMessage.success('登录成功')
 
-    // 1. 系统角色 → redirect 优先，兜底工作台
-    if (res.user.systemRole) {
-      const redirect = route.query.redirect as string
-      if (redirect && redirect !== '/login') {
-        router.replace(redirect)
-      } else {
-        router.replace('/workbench')
-      }
+    // 1. 明确指定跳转目标（体验入口：韧性AI助手/案例详情/大屏预览等）→ 优先
+    //    ⚠️ 必须在默认大屏之前判断：企业用户有默认大屏时会吞掉 redirect
+    const redirect = route.query.redirect as string
+    if (redirect && redirect !== '/login' && redirect !== '/') {
+      router.replace(redirect)
       return
     }
 
-    // 2. 企业用户 → 查默认大屏（优先级高于 redirect）
+    // 2. 系统角色 → 兜底工作台
+    if (res.user.systemRole) {
+      router.replace('/workbench')
+      return
+    }
+
+    // 3. 企业用户 → 查默认大屏（优先级高于工作台）
     try {
       const defaultScreen = await getUserDefaultBigscreen()
       if (defaultScreen) {
@@ -418,13 +399,6 @@ async function handleLogin() {
         return
       }
     } catch { /* 静默降级 */ }
-
-    // 3. 企业用户无大屏 → redirect 次之（排除 /，避免无限循环）
-    const redirect = route.query.redirect as string
-    if (redirect && redirect !== '/login' && redirect !== '/') {
-      router.replace(redirect)
-      return
-    }
 
     // 4. 兜底 → 工作台
     router.replace('/workbench')

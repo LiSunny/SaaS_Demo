@@ -45,6 +45,9 @@
           <div class="user-name">{{ displayName }}</div>
           <div class="user-role">{{ orgLabel }}</div>
         </div>
+        <button v-if="isExpMode && userStore.isLoggedIn" class="switch-role-btn" title="切换体验身份" @click="roleDialogVisible = true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+        </button>
       </div>
     </aside>
 
@@ -270,6 +273,36 @@
         </template>
       </div>
     </aside>
+
+    <!-- 体验身份选择弹窗（未登录必选不可关闭；体验模式下可随时切换身份） -->
+    <!-- ⚠️ 必须放在 .agent-workbench 内部：fixed 定位不受 overflow:hidden 裁剪，且能继承深/浅色 CSS 变量 -->
+    <div v-if="roleDialogVisible" class="role-dialog-mask">
+      <div class="role-dialog">
+        <div class="role-dialog-header">
+          <div class="role-dialog-logo">
+            <img src="@/assets/agent-robot-chat.svg" alt="韧性AI助手" />
+          </div>
+          <h3 class="role-dialog-title">选择体验身份</h3>
+          <p class="role-dialog-sub">不同身份看到的告警、隐患、设备数据范围不同，选择后即可开始对话</p>
+        </div>
+        <div class="role-grid">
+          <button
+            v-for="acc in ACTIVE_DEMO_ACCOUNTS"
+            :key="acc.role"
+            class="role-card"
+            :class="{ loading: pickingRole === acc.role }"
+            :disabled="roleLoggingIn"
+            @click="pickRole(acc)"
+          >
+            <img class="role-card-img" :src="acc.image" :alt="acc.role" />
+            <span class="role-card-name">{{ acc.role }}</span>
+            <span class="role-card-desc">{{ acc.desc }}</span>
+          </button>
+        </div>
+        <p v-if="roleLoggingIn" class="role-dialog-loading">正在以「{{ pickingRole }}」身份进入…</p>
+        <p v-else class="role-dialog-hint">选择身份即代表同意《用户协议》和《隐私政策》</p>
+      </div>
+    </div>
   </div>
 
   <!-- 图片悬浮预览（Teleport 到 body，规避父容器 overflow:hidden 截断） -->
@@ -282,9 +315,13 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import { useAiChatStore, type ChatMessage, type FileUploadResult } from '@/stores/ai-chat'
 import { useUserStore } from '@/stores/user'
+import { loginApi } from '@/api/auth'
+import { ACTIVE_DEMO_ACCOUNTS, type DemoAccount } from '@/config/demo-accounts'
 
 marked.setOptions({ breaks: true, gfm: true })
 
@@ -304,6 +341,58 @@ const orgLabel = computed(() => {
   const r = u?.systemRole || localStorage.getItem('system-role')
   return r === 'platform-admin' ? '平台管理' : r === 'platform-ops' ? '运营管理' : '安全管理'
 })
+
+// ===== 体验模式（介绍页 /agent?exp=1 进入）=====
+// 未登录访问 /agent → 强制弹「选择体验身份」（不可关闭，选完才可对话）
+// 体验模式下左下角用户卡提供「切换身份」，可随时换账号再体验
+const route = useRoute()
+const isExpMode = computed(() => route.query.exp === '1')
+const roleDialogVisible = ref(false)
+const roleLoggingIn = ref(false)
+const pickingRole = ref('')
+
+/** 身份切换完成后：会话 key 按 userId 隔离 → 重读新用户会话并恢复最近一条 */
+function afterIdentityChange() {
+  sessions.value = loadSessions()
+  currentSessionId.value = sessions.value[0]?.id || ''
+  const first = sessions.value[0]
+  if (first) {
+    store.messages = [...first.messages]
+  } else {
+    store.reset()
+  }
+  store.artifacts = []
+  store.debugEvents = []
+  store.isLoading = false
+  inputText.value = ''
+  pendingUploads.value = []
+}
+
+async function pickRole(acc: DemoAccount) {
+  if (roleLoggingIn.value) return
+  roleLoggingIn.value = true
+  pickingRole.value = acc.role
+  try {
+    const res = await loginApi({ phone: acc.phone, password: acc.password })
+    // 切换前先落盘旧用户会话（旧 key）
+    persistCurrentSession()
+    saveSessions()
+    userStore.setLogin(res.token, res.user)
+    afterIdentityChange()
+    roleDialogVisible.value = false
+    ElMessage.success(`${acc.role} · 登录成功`)
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.message || err?.message || '登录失败，请重试')
+  } finally {
+    roleLoggingIn.value = false
+    pickingRole.value = ''
+  }
+}
+
+// 未登录访问工作台 → 强制先选体验身份（弹窗不可关闭）
+if (!userStore.isLoggedIn) {
+  roleDialogVisible.value = true
+}
 
 // ===== 深色 / 浅色主题（localStorage 持久化，默认深色） =====
 const isDark = ref(localStorage.getItem('agent_theme') !== 'light')
@@ -416,14 +505,33 @@ function switchSession(id: string) {
   saveSessions()
 }
 
-// ===== 快捷指令 =====
-const quickChips = [
-  '今天有几条未处理的告警',
-  '列出未整改的隐患',
-  '哪些设备离线了',
-  '我的工单情况',
-  '出个今日告警日报',
-]
+// ===== 快捷指令（按登录角色定制，与角色定位 + 数据权限匹配，避免答不出数据） =====
+// 运营管理(operator)/服务机构(service) 的授权扩展（S4/S5）实现前已被体验入口屏蔽，此处预留，实现后启用
+const CHIPS = {
+  /** 监管机构：辖区关系树（本企业 + 下级/辖区） */
+  regulator: ['辖区有哪些告警？', '列出辖区未整改的隐患', '辖区哪些企业有设备离线？'],
+  /** 社会单位：本企业数据 */
+  unit: ['我们单位有哪些告警？', '列出我们未整改的隐患', '哪些设备离线了？'],
+  /** 运营管理（预留，S5 授权单位实现后启用） */
+  operator: ['我服务的单位有哪些告警？', '列出我托管单位的隐患清单', '我负责的单位哪些设备离线？'],
+  /** 服务机构（预留，S4 授权只读实现后启用） */
+  service: ['我的工单情况', '列出我授权的企业隐患', '最近有哪些待处理的工单？'],
+  /** 平台管理：租户 / 用户 / 系统配置视角（全量） */
+  platform: ['当前平台接入了多少租户？', '各行业租户分布怎么样？', '平台有多少个用户账号？', '列出平台全部租户'],
+  /** 默认（非四方角色）：本企业视角 */
+  default: ['我们单位有哪些告警？', '列出我们未整改的隐患', '哪些设备离线了？'],
+}
+const quickChips = computed(() => {
+  const u = userStore.user
+  const role = u?.systemRole || ''
+  if (role === 'platform-ops' || role === 'platform-admin') return CHIPS.platform
+  const groups: string[] = Array.isArray(u?.groups) ? u.groups : []
+  if (groups.includes('regulator')) return CHIPS.regulator
+  if (groups.includes('operator')) return CHIPS.operator
+  if (groups.includes('service')) return CHIPS.service
+  if (groups.includes('unit')) return CHIPS.unit
+  return CHIPS.default
+})
 
 // ===== 输入与发送 =====
 const inputText = ref('')
@@ -912,6 +1020,17 @@ function downloadArtifact() {
 .user-name { font-size: 13px; font-weight: 500; }
 .user-role { font-size: 11px; color: var(--text-3); margin-top: 1px; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* 切换体验身份（仅体验模式显示） */
+.switch-role-btn {
+  flex: none; width: 26px; height: 26px; margin-left: auto;
+  border: 1px solid var(--bg-3); border-radius: 50%;
+  background: transparent; color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.switch-role-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
 /* ===== 中栏 ===== */
 .main-header {
   height: 58px; flex: none;
@@ -931,7 +1050,7 @@ function downloadArtifact() {
 .chat-scroll::-webkit-scrollbar-track { background: transparent; }
 .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
 .chat-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
-.chat-inner { max-width: 780px; margin: 0 auto; padding: 16px 28px 8px; }
+.chat-inner { max-width: 1100px; margin: 0 auto; padding: 16px 28px 8px; }
 
 /* 滚动到底部按钮 */
 .scroll-bottom-btn {
@@ -1185,4 +1304,57 @@ function downloadArtifact() {
   background: var(--bg-1);
 }
 .file-image-preview img { display: block; max-width: 260px; max-height: 200px; object-fit: contain; }
+
+/* ===== 体验身份选择弹窗（未登录必选；体验模式可切换身份） ===== */
+.role-dialog-mask {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(9, 14, 26, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.agent-workbench.light .role-dialog-mask { background: rgba(30, 41, 59, 0.38); }
+.role-dialog {
+  width: 560px; max-width: 92vw;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 64px),
+    var(--bg-1);
+  border: 1px solid var(--bg-3);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  padding: 28px 28px 22px;
+  box-sizing: border-box;
+}
+.role-dialog-header { text-align: center; margin-bottom: 22px; }
+.role-dialog-logo {
+  width: 56px; height: 56px; margin: 0 auto 12px;
+  background: linear-gradient(135deg, rgba(111, 168, 255, 0.18), rgba(59, 118, 246, 0.10));
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.role-dialog-logo img { width: 30px; height: 30px; object-fit: contain; }
+.role-dialog-title { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--text-1); }
+.role-dialog-sub { margin: 0; font-size: 12.5px; color: var(--text-3); line-height: 1.6; }
+.role-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.role-card {
+  width: 160px; height: 98px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--bg-3);
+  border-radius: 12px;
+  cursor: pointer; padding: 0;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.role-card:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); }
+.role-card:disabled { opacity: .55; cursor: default; transform: none; }
+.role-card.loading { border-color: var(--accent); background: var(--accent-soft); }
+.role-card-img { width: 34px; height: 34px; object-fit: contain; }
+.role-card-name { font-size: 14px; font-weight: 600; color: var(--text-1); }
+.role-card-desc { font-size: 11px; color: var(--text-3); }
+.role-dialog-loading {
+  margin: 18px 0 0; text-align: center;
+  font-size: 12px; color: var(--accent);
+}
+.role-dialog-hint { margin: 18px 0 0; text-align: center; font-size: 11px; color: var(--text-3); }
 </style>
