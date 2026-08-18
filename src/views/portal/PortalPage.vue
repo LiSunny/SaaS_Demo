@@ -8,6 +8,10 @@
           <span class="nav-name" :class="{ scrolled }">公共安全管理平台</span>
         </a>
         <div class="nav-links">
+          <a href="/portal/agent-intro" class="nav-link nav-link-agent" :class="{ scrolled }">
+            韧性AI助手
+            <span class="nav-agent-badge">NEW</span>
+          </a>
           <a v-for="l in navLinks" :key="l" :href="`#${l}`" class="nav-link" :class="{ scrolled }">{{ l }}</a>
           <a href="https://www.yuque.com/meiyouhoutaideyaoguai/nuwueb?# 《人工智能+公共安全管理平台》" target="_blank" rel="noopener" class="nav-link nav-link-manual" :class="{ scrolled }">使用手册</a>
         </div>
@@ -185,6 +189,7 @@
                       autoplay loop muted playsinline
                       @loadeddata="onPageGifLoad(i)"
                       @error="onPageGifError(i)"
+                      @click="openLightbox(i)"
                     ></video>
                     <div v-if="page.gifError" class="ai-player-placeholder">
                       <span class="ai-player-ph-icon">🎬</span>
@@ -201,10 +206,27 @@
             <div class="ai-demo-num-big">{{ AI_LIST[activeAIPage].num }}</div>
             <h3 class="ai-demo-title-big">{{ AI_LIST[activeAIPage].title }}</h3>
             <p class="ai-demo-body-big">{{ AI_LIST[activeAIPage].body }}</p>
+            <button v-if="activeAIPage === 3" class="ai-demo-link" @click="goAgentIntro">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+              查看详细介绍
+            </button>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- 视频放大播放弹层 -->
+    <Transition name="lightbox-fade">
+      <div v-if="lightboxOpen" class="ai-lightbox" @click.self="closeLightbox">
+        <button class="ai-lightbox-close" aria-label="关闭" @click="closeLightbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="ai-lightbox-body">
+          <video :src="lightboxSrc" controls autoplay playsinline class="ai-lightbox-video"></video>
+          <p class="ai-lightbox-title">{{ lightboxTitle }}</p>
+        </div>
+      </div>
+    </Transition>
 
     <!-- ===== Case Studies ===== -->
     <section id="案例展示" class="cases">
@@ -341,19 +363,28 @@ const copyExpUrl = async () => {
 const scrolled = ref(false)
 const navLinks = ['平台定位', '应用场景', 'AI 能力', '案例展示']
 let scrollFn: () => void
+const anchorHandlers: Array<[HTMLAnchorElement, (e: Event) => void]> = []
 onMounted(() => {
   scrollFn = () => { scrolled.value = window.scrollY > 48 }
   window.addEventListener('scroll', scrollFn, { passive: true })
   // Smooth scroll for anchor links
+  // ⚠️ 用 getElementById 而非 querySelector：锚点含空格（如「AI 能力」）时
+  // querySelector('#AI 能力') 会把空格当后代组合符，永远匹配不到 → 不滚动
   document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', (e) => {
+    const anchor = a as HTMLAnchorElement
+    const handler = (e: Event) => {
       e.preventDefault()
-      const id = (a as HTMLAnchorElement).getAttribute('href')!
-      document.querySelector(id)?.scrollIntoView({ behavior: 'smooth' })
-    })
+      const id = anchor.getAttribute('href')!.slice(1)
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    }
+    anchor.addEventListener('click', handler)
+    anchorHandlers.push([anchor, handler])
   })
 })
-onUnmounted(() => window.removeEventListener('scroll', scrollFn))
+onUnmounted(() => {
+  window.removeEventListener('scroll', scrollFn)
+  anchorHandlers.forEach(([a, h]) => a.removeEventListener('click', h))
+})
 
 // ===== Hero =====
 const titleChars = '人工智能 + 公共安全管理平台'.split('')
@@ -476,7 +507,7 @@ onMounted(() => {
     if (!carouselPaused.value) activeScenario.value = (activeScenario.value + 1) % SCENARIOS.length
   }, 8000)
 })
-onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer) })
+onUnmounted(() => { clearInterval(carouselTimer); clearInterval(caseTimer); window.removeEventListener('keydown', onLightboxKey); document.body.style.overflow = '' })
 
 // ===== AI =====
 const activeAIPage = ref(0)
@@ -494,13 +525,40 @@ watch(activeAIPage, (newIdx) => {
 
 // Each page = a video demo corresponding to an AI_LIST item
 const AI_PAGES = reactive([
-  { num: '01', title: 'AI 智能告警接报', src: '/images/ai-demo-01.mp4', gifError: false, gifLoading: true },
-  { num: '02', title: 'AI 替代"人看"',   src: '/images/ai-demo-02.mp4', gifError: false, gifLoading: true },
-  { num: '03', title: 'AI 替代"人写"',   src: '/images/ai-demo-03.mp4', gifError: false, gifLoading: true },
-  { num: '04', title: '韧性AI助手',       src: '/images/ai-demo-04.mp4', gifError: false, gifLoading: true },
+  { num: '01', title: '韧性AI助手',  src: '/images/ai-demo-04.mp4', gifError: false, gifLoading: true },
+  { num: '02', title: '替人看',   src: '/images/ai-demo-02.mp4', gifError: false, gifLoading: true },
+  { num: '03', title: '替人写',   src: '/images/ai-demo-03.mp4', gifError: false, gifLoading: true },
+  { num: '04', title: '智能告警', src: '/images/ai-demo-01.mp4', gifError: false, gifLoading: true },
+  
 ])
 const onPageGifError = (i: number) => { AI_PAGES[i].gifError = true; AI_PAGES[i].gifLoading = false }
 const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false; gifLoadedOnce[i] = true }
+
+// 视频放大播放弹层
+const lightboxOpen = ref(false)
+const lightboxSrc = ref('')
+const lightboxTitle = ref('')
+function openLightbox(i: number) {
+  lightboxSrc.value = AI_PAGES[i].src
+  lightboxTitle.value = AI_PAGES[i].title
+  lightboxOpen.value = true
+  document.body.style.overflow = 'hidden'
+}
+function closeLightbox() {
+  lightboxOpen.value = false
+  document.body.style.overflow = ''
+}
+function onLightboxKey(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeLightbox()
+}
+watch(lightboxOpen, (open) => {
+  if (open) window.addEventListener('keydown', onLightboxKey)
+  else window.removeEventListener('keydown', onLightboxKey)
+})
+
+function goAgentIntro() {
+  window.open('/portal/agent-intro', '_blank', 'noopener')
+}
 
 const AI_LIST = [
   { title: 'AI 智能告警接报', body: '语音、烟感、电气等多源告警统一接入平台，AI 自动去重分级，精准弹窗推送至值班大屏。值班员一键确认即可指派保安到场——从告警触发到人到现场，全程自动记录时间戳。', num: '01' },
@@ -610,6 +668,32 @@ html, body { margin: 0; padding: 0; }
 @media (min-width: 768px) { .nav-links { display: flex; } }
 .nav-link { font-size: 15px; font-weight: 600; color: #101010; text-decoration: none; cursor: pointer; transition: color 0.2s; }
 .nav-link:hover { color: #3678E3; }
+/* 韧性AI助手入口：品牌蓝加粗 + NEW 渐变徽章 */
+.nav-link-agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #3678E3;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nav-link-agent:hover { color: #2b5cc4; }
+.nav-agent-badge {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6fa8ff, #3b76f6);
+  box-shadow: 0 2px 8px rgba(59, 118, 246, 0.35);
+  letter-spacing: 0.5px;
+  animation: agent-badge-pulse 2.4s ease-in-out infinite;
+}
+@keyframes agent-badge-pulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(59, 118, 246, 0.35); }
+  50% { box-shadow: 0 2px 14px rgba(59, 118, 246, 0.6); }
+}
 .nav-actions { display: flex; align-items: center; gap: 8px; }
 @media (min-width: 640px) { .nav-actions { gap: 12px; } }
 .nav-btn { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: none; background: #3678E3; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(54,120,227,0.3); transition: background 0.2s; }
@@ -852,6 +936,16 @@ html, body { margin: 0; padding: 0; }
 .ai-nav-btn.active .ai-nav-num { opacity: 1; }
 .ai-nav-label { line-height: 1; }
 
+/* 查看详细介绍入口（韧性AI助手 Tab） */
+.ai-demo-link {
+  margin-top: 20px; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 16px; font-weight: 600; color: #3678E3;
+  background: #fff; border: 1px solid rgba(54,120,227,0.35); border-radius: 8px;
+  padding: 10px 20px; cursor: pointer; transition: all 0.2s;
+}
+.ai-demo-link svg { width: 17px; height: 17px; }
+.ai-demo-link:hover { background: rgba(54,120,227,0.06); border-color: #3678E3; }
+
 /* 内容区：左播放窗口 + 右文本 */
 .ai-demo { display: flex; flex-direction: column; gap: 32px; margin-top: 36px; align-items: flex-start; }
 @media (min-width: 768px) { .ai-demo { flex-direction: row; gap: 48px; } }
@@ -914,8 +1008,37 @@ html, body { margin: 0; padding: 0; }
   display: block;
   opacity: 0;
   transition: opacity 0.3s;
+  cursor: pointer;
 }
 .ai-player-gif.loaded { opacity: 1; }
+
+/* 视频放大播放弹层 */
+.ai-lightbox {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(9, 14, 26, 0.82);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 24px;
+}
+.ai-lightbox-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.08); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .15s;
+}
+.ai-lightbox-close svg { width: 18px; height: 18px; }
+.ai-lightbox-close:hover { background: rgba(255,255,255,0.18); }
+.ai-lightbox-body { width: min(1180px, 92vw); }
+.ai-lightbox-video {
+  width: 100%; max-height: 82vh; display: block;
+  border-radius: 12px; background: #000;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.ai-lightbox-title { text-align: center; color: rgba(255,255,255,0.85); font-size: 14px; margin: 14px 0 0; }
+.lightbox-fade-enter-active, .lightbox-fade-leave-active { transition: opacity .18s ease; }
+.lightbox-fade-enter-from, .lightbox-fade-leave-to { opacity: 0; }
 
 /* 加载动画 */
 .ai-player-loading {

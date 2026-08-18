@@ -70,6 +70,13 @@ const router = createRouter({
       component: () => import('@/views/portal/BigscreenPreview.vue'),
       meta: { standalone: true },
     },
+    // 韧性AI助手介绍页
+    {
+      path: '/portal/agent-intro',
+      name: 'AgentIntro',
+      component: () => import('@/views/portal/AgentIntro.vue'),
+      meta: { standalone: true },
+    },
 
     // ===== 登录页（无布局，独立页面） =====
     {
@@ -216,7 +223,7 @@ const router = createRouter({
 // ===== 全局路由守卫 =====
 router.beforeEach((to) => {
   const token = localStorage.getItem('auth_token')
-  const isPublicPage = to.path === '/login' || to.path.startsWith('/portal') || to.path.startsWith('/test-data')
+  const isPublicPage = to.path === '/login' || to.path.startsWith('/portal') || to.path.startsWith('/test-data') || to.path === '/agent'
 
   if (!token && !isPublicPage) {
     return { path: '/login', query: { redirect: to.fullPath } }
