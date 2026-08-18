@@ -4,7 +4,7 @@
     <aside class="col col-left" :class="{ collapsed: leftCollapsed }" :style="{ width: leftCollapsed ? 0 : leftWidth + 'px' }">
       <div class="brand">
         <img class="brand-logo" src="@/assets/agent-robot-chat.svg" alt="logo" />
-        <span class="brand-name">韧性AI助手</span>
+        <span class="brand-name">小安助手</span>
         <button class="col-collapse-btn" title="收起左栏" @click="leftCollapsed = true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
@@ -280,7 +280,7 @@
       <div class="role-dialog">
         <div class="role-dialog-header">
           <div class="role-dialog-logo">
-            <img src="@/assets/agent-robot-chat.svg" alt="韧性AI助手" />
+            <img src="@/assets/agent-robot-chat.svg" alt="小安助手" />
           </div>
           <h3 class="role-dialog-title">选择体验身份</h3>
           <p class="role-dialog-sub">不同身份看到的告警、隐患、设备数据范围不同，选择后即可开始对话</p>

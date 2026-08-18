@@ -18,7 +18,7 @@
           alt=""
         />
         <div class="bubble-text">
-          <p class="bubble-line">我是韧性AI小助手！</p>
+          <p class="bubble-line">我是小安助手！</p>
           <p class="bubble-line">有什么安全生产相关的问题可以向我提问！</p>
         </div>
       </div>

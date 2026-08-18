@@ -70,7 +70,7 @@ const router = createRouter({
       component: () => import('@/views/portal/BigscreenPreview.vue'),
       meta: { standalone: true },
     },
-    // 韧性AI助手介绍页
+    // 小安助手介绍页
     {
       path: '/portal/agent-intro',
       name: 'AgentIntro',
@@ -86,7 +86,7 @@ const router = createRouter({
       meta: { standalone: true },
     },
 
-    // ===== 韧性AI助手独立工作台（全屏深色三栏，需登录，无布局） =====
+    // ===== 小安助手独立工作台（全屏深色三栏，需登录，无布局） =====
     {
       path: '/agent',
       name: 'AgentWorkbench',

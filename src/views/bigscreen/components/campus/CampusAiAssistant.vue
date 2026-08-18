@@ -7,12 +7,12 @@
         <img class="bubble-bg" src="/campus-icons/m6-bubble.svg" alt="" />
       </div>
       <p class="bubble-text">
-        我是韧性AI小助手！<br />有任何问题可以随时向我提问！
+        我是小安助手！<br />有任何问题可以随时向我提问！
       </p>
     </div>
 
     <!-- 机器人 -->
-    <img class="robot-img" src="@/assets/agent-robot.svg" alt="韧性AI" />
+    <img class="robot-img" src="@/assets/agent-robot.svg" alt="小安助手" />
   </div>
 </template>
 

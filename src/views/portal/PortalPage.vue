@@ -9,7 +9,7 @@
         </a>
         <div class="nav-links">
           <a href="/portal/agent-intro" class="nav-link nav-link-agent" :class="{ scrolled }">
-            韧性AI助手
+            小安助手
             <span class="nav-agent-badge">NEW</span>
           </a>
           <a v-for="l in navLinks" :key="l" :href="`#${l}`" class="nav-link" :class="{ scrolled }">{{ l }}</a>
@@ -525,7 +525,7 @@ watch(activeAIPage, (newIdx) => {
 
 // Each page = a video demo corresponding to an AI_LIST item
 const AI_PAGES = reactive([
-  { num: '01', title: '韧性AI助手',  src: '/images/ai-demo-04.mp4', gifError: false, gifLoading: true },
+  { num: '01', title: '小安助手',  src: '/images/ai-demo-04.mp4', gifError: false, gifLoading: true },
   { num: '02', title: '替人看',   src: '/images/ai-demo-02.mp4', gifError: false, gifLoading: true },
   { num: '03', title: '替人写',   src: '/images/ai-demo-03.mp4', gifError: false, gifLoading: true },
   { num: '04', title: '智能告警', src: '/images/ai-demo-01.mp4', gifError: false, gifLoading: true },
@@ -561,10 +561,10 @@ function goAgentIntro() {
 }
 
 const AI_LIST = [
-  { title: 'AI 智能告警接报', body: '语音、烟感、电气等多源告警统一接入平台，AI 自动去重分级，精准弹窗推送至值班大屏。值班员一键确认即可指派保安到场——从告警触发到人到现场，全程自动记录时间戳。', num: '01' },
-  { title: 'AI 替代"人看"', body: '一线人员拍照上传消防设施，AI 自动识别设备主体、匹配对应国标规范、逐项生成检查结论并判定隐患。从"凭经验看一圈"变成"拍照即判定"——不同检查员同一标准，结果可追溯。', num: '02' },
-  { title: 'AI 替代"人写"', body: '每天全量告警自动汇聚，AI 聚类识别风险事件簇、诊断根因，区分安保/工程分别输出行动建议，生成结构化日报并归档——安全员不再花数小时翻日志、归类、写报告。', num: '03' },
-  { title: '韧性AI助手', body: '"今天几条告警？"一句话就有答案——告警、隐患、设备、工单随口问，各角色只见自己权限内的数据。还能一句话生成告警日报、隐患清单等可视化 HTML 报告，右栏预览、一键下载；每一步工具调用过程都清晰可见，结果可追溯。', num: '04' },
+  { title: '小安助手', body: '"今天几条告警？"一句话就有答案——告警、隐患、设备、工单随口问，各角色只见自己权限内的数据。还能一句话生成告警日报、隐患清单等可视化 HTML 报告，右栏预览、一键下载；每一步工具调用过程都清晰可见，结果可追溯。', num: '01' },
+  { title: '替人看', body: '一线人员拍照上传消防设施，AI 自动识别设备主体、匹配对应国标规范、逐项生成检查结论并判定隐患。从"凭经验看一圈"变成"拍照即判定"——不同检查员同一标准，结果可追溯。', num: '02' },
+  { title: '替人写', body: '每天全量告警自动汇聚，AI 聚类识别风险事件簇、诊断根因，区分安保/工程分别输出行动建议，生成结构化日报并归档——安全员不再花数小时翻日志、归类、写报告。', num: '03' },
+  { title: '智能告警', body: '语音、烟感、电气等多源告警统一接入平台，AI 自动去重分级，精准弹窗推送至值班大屏。值班员一键确认即可指派保安到场——从告警触发到人到现场，全程自动记录时间戳。', num: '04' },
 ]
 
 // ===== Cases =====
@@ -668,7 +668,7 @@ html, body { margin: 0; padding: 0; }
 @media (min-width: 768px) { .nav-links { display: flex; } }
 .nav-link { font-size: 15px; font-weight: 600; color: #101010; text-decoration: none; cursor: pointer; transition: color 0.2s; }
 .nav-link:hover { color: #3678E3; }
-/* 韧性AI助手入口：品牌蓝加粗 + NEW 渐变徽章 */
+/* 小安助手入口：品牌蓝加粗 + NEW 渐变徽章 */
 .nav-link-agent {
   display: inline-flex;
   align-items: center;
@@ -936,7 +936,7 @@ html, body { margin: 0; padding: 0; }
 .ai-nav-btn.active .ai-nav-num { opacity: 1; }
 .ai-nav-label { line-height: 1; }
 
-/* 查看详细介绍入口（韧性AI助手 Tab） */
+/* 查看详细介绍入口（小安助手 Tab） */
 .ai-demo-link {
   margin-top: 20px; display: inline-flex; align-items: center; gap: 8px;
   font-size: 16px; font-weight: 600; color: #3678E3;

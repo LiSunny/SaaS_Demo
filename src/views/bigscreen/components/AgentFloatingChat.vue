@@ -21,7 +21,7 @@
         <div class="chat-panel" :class="{ 'has-debug': store.debugOpen }">
         <!-- 头部 -->
         <div class="chat-header">
-          <span class="chat-header-title">韧性AI助手</span>
+          <span class="chat-header-title">小安助手</span>
           <div class="chat-header-actions">
             <button
               v-if="isDev"
@@ -43,7 +43,7 @@
             <div class="welcome-icon">
               <img src="@/assets/agent-robot-chat.svg" alt="AI助手" class="welcome-robot-img" />
             </div>
-            <p class="welcome-text">你好！我是韧性AI助手。</p>
+            <p class="welcome-text">你好！我是小安助手。</p>
             <p class="welcome-hint">可以帮你查询数据、打开页面：</p>
             <div class="welcome-chips">
               <button v-for="chip in quickChips" :key="chip" class="welcome-chip" @click="sendQuick(chip)" :disabled="store.isLoading">{{ chip }}</button>

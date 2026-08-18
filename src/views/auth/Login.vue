@@ -290,7 +290,7 @@ const featureCards = [
   },
 ]
 
-// 体验账号 — 唯一数据源 src/config/demo-accounts.ts（登录页体验卡 与 韧性AI助手工作台身份弹窗共用，文案必须一致）
+// 体验账号 — 唯一数据源 src/config/demo-accounts.ts（登录页体验卡 与 小安助手工作台身份弹窗共用，文案必须一致）
 // 运营管理 / 服务机构 暂被屏蔽（S4/S5 授权扩展实现前，登录后无数据可查）
 const demoAccounts = ACTIVE_DEMO_ACCOUNTS
 
@@ -377,7 +377,7 @@ async function handleLogin() {
     userStore.setLogin(res.token, res.user)
     ElMessage.success('登录成功')
 
-    // 1. 明确指定跳转目标（体验入口：韧性AI助手/案例详情/大屏预览等）→ 优先
+    // 1. 明确指定跳转目标（体验入口：小安助手/案例详情/大屏预览等）→ 优先
     //    ⚠️ 必须在默认大屏之前判断：企业用户有默认大屏时会吞掉 redirect
     const redirect = route.query.redirect as string
     if (redirect && redirect !== '/login' && redirect !== '/') {

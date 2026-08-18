@@ -4,7 +4,7 @@
       <div class="voice-call-panel">
         <!-- === 顶部栏 === -->
         <div class="vc-header">
-          <span class="vc-title">🎙️ 韧性AI助手 · 语音通话</span>
+          <span class="vc-title">🎙️ 小安助手 · 语音通话</span>
           <div class="vc-header-right">
             <span class="vc-duration" v-if="duration > 0">{{ formatDuration(duration) }}</span>
             <button class="vc-close-btn" @click="hangUp" title="挂断">✕</button>

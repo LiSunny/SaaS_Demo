@@ -642,7 +642,7 @@ function buildArtifactHtml(opts: {
   <div class="head"><h1>${escapeHtml(opts.title)}</h1><p>${escapeHtml(opts.subtitle)}</p></div>
   <div class="stats">${statCards}</div>
   <table><thead><tr>${headCells}</tr></thead><tbody>${bodyRows}</tbody></table>
-  <div class="foot">商业街安全管理平台 · 由韧性AI助手生成</div>
+  <div class="foot">商业街安全管理平台 · 由小安助手生成</div>
 </div>
 </body>
 </html>`
