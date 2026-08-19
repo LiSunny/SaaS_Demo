@@ -1109,7 +1109,7 @@ function downloadArtifact() {
 @keyframes ld-bounce { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
 
 /* ===== 输入区 ===== */
-.input-wrap { flex: none; padding: 10px 22px 14px; }
+.input-wrap { flex: none; max-width: 1100px; width: 100%; margin: 0 auto; padding: 10px 28px 14px; }
 .input-box {
   background: var(--bg-2); border-radius: 14px;
   border: 1px solid transparent; padding: 12px 14px 10px;
