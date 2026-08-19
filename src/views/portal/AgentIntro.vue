@@ -25,7 +25,7 @@
       <div class="video-wrap">
         <div class="video-bar">
           <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-          <span class="vt">完整演示 · 1 分 31 秒</span>
+          <span class="vt">完整演示 · 1 分 27 秒</span>
         </div>
         <video controls autoplay muted loop playsinline preload="metadata" poster="/agent-intro/demo-shots/幕1-监管问告警.png">
           <source src="/agent-intro/demo-video/小安助手演示录屏.mp4" type="video/mp4" />
