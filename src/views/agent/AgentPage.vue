@@ -5,9 +5,6 @@
       <div class="brand">
         <img class="brand-logo" src="@/assets/agent-robot-chat.svg" alt="logo" />
         <span class="brand-name">小安助手</span>
-        <button class="col-collapse-btn" title="收起左栏" @click="leftCollapsed = true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
       </div>
 
       <button class="new-chat-btn" @click="newSession">
@@ -63,33 +60,33 @@
     <!-- ===== 中栏：对话区 ===== -->
     <main class="col col-main">
       <div class="main-header">
-        <button v-if="leftCollapsed" class="col-expand-btn" title="展开会话列表" @click="leftCollapsed = false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <button
+          class="col-expand-btn"
+          :class="{ active: !leftCollapsed }"
+          :title="leftCollapsed ? '展开会话列表' : '收起会话列表'"
+          @click="leftCollapsed = !leftCollapsed"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="14" x="4" y="5" rx="2" /><path d="M9.5 5v14" /></svg>
         </button>
         <span class="main-title">{{ currentTitle }}</span>
-        <button v-if="rightCollapsed" class="col-expand-btn" title="展开时间线与产物" @click="rightCollapsed = false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
         <!-- 深色 / 浅色切换 -->
         <button class="theme-toggle" :class="{ light: !isDark }" :title="isDark ? '切换到浅色模式' : '切换到深色模式'" @click="toggleTheme">
           <span class="tt-thumb">
-            <svg v-if="isDark" class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <svg v-else class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg v-if="isDark" class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+            <svg v-else class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
           </span>
+        </button>
+        <button
+          class="col-expand-btn"
+          :class="{ active: !rightCollapsed }"
+          :title="rightCollapsed ? '展开时间线与产物' : '收起时间线与产物'"
+          @click="rightCollapsed = !rightCollapsed"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="14" x="4" y="5" rx="2" /><path d="M14.5 5v14" /></svg>
         </button>
       </div>
 
       <div class="chat-wrap">
-        <!-- 左边缘：折叠/展开左栏（Claude 式边缘悬浮） -->
-        <button class="edge-btn edge-left" :class="{ active: leftCollapsed }" :title="leftCollapsed ? '展开会话列表' : '收起会话列表'" @click="leftCollapsed = !leftCollapsed">
-          <svg v-if="leftCollapsed" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-          <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
-        <!-- 右边缘：折叠/展开右栏 -->
-        <button class="edge-btn edge-right" :class="{ active: rightCollapsed }" :title="rightCollapsed ? '展开时间线与产物' : '收起时间线与产物'" @click="rightCollapsed = !rightCollapsed">
-          <svg v-if="rightCollapsed" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-        </button>
         <div ref="chatScrollRef" class="chat-scroll" @scroll="onChatScroll">
         <div class="chat-inner">
           <!-- 欢迎态 -->
@@ -133,14 +130,6 @@
           </template>
         </div>
         </div>
-        <button
-          v-if="showScrollBottom"
-          class="scroll-bottom-btn"
-          title="滚动到底部"
-          @click="scrollToBottom"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
       </div>
 
       <div class="input-wrap">
@@ -200,9 +189,6 @@
     <!-- ===== 右栏：调用时间线 / 产物 ===== -->
     <aside class="col col-right" :class="{ collapsed: rightCollapsed }" :style="{ width: rightCollapsed ? 0 : rightWidth + 'px' }">
       <div class="right-tabs">
-        <button class="col-collapse-btn right-collapse" title="收起右栏" @click="rightCollapsed = true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-        </button>
         <button class="right-tab" :class="{ active: activeTab === 'timeline' }" @click="activeTab = 'timeline'">
           调用时间线<span v-if="store.debugEvents.length" class="tab-count">{{ store.debugEvents.length }}</span>
         </button>
@@ -274,6 +260,13 @@
       </div>
     </aside>
 
+    <!-- 手机端侧栏展开时的点击关闭遮罩（点非展开区域收起侧栏） -->
+    <div
+      v-if="isNarrow() && (!leftCollapsed || !rightCollapsed)"
+      class="side-overlay"
+      @click="leftCollapsed = true; rightCollapsed = true"
+    ></div>
+
     <!-- 体验身份选择弹窗（未登录必选不可关闭；体验模式下可随时切换身份） -->
     <!-- ⚠️ 必须放在 .agent-workbench 内部：fixed 定位不受 overflow:hidden 裁剪，且能继承深/浅色 CSS 变量 -->
     <div v-if="roleDialogVisible" class="role-dialog-mask">
@@ -314,7 +307,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
@@ -662,14 +655,6 @@ function onChatScroll() {
   if (isNearBottom()) followBottom = true
 }
 
-function scrollToBottom() {
-  const el = chatScrollRef.value
-  if (!el) return
-  el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  followBottom = true
-  showScrollBottom.value = false
-}
-
 watch(
   () => store.messages.map(m => m.content).join(''),
   async () => {
@@ -681,11 +666,25 @@ watch(
 )
 
 // ===== 三栏布局：折叠 / 拖拽调宽 =====
+// 手机端(<768px)默认折叠左右两栏,保证对话区可用;窗口跨阈值时自动同步折叠状态
+const isNarrow = () => window.innerWidth < 768
 const leftWidth = ref(268)
 const rightWidth = ref(330)
-const leftCollapsed = ref(false)
-const rightCollapsed = ref(false)
+const leftCollapsed = ref(isNarrow())
+const rightCollapsed = ref(isNarrow())
 const resizing = ref<'left' | 'right' | null>(null)
+
+let prevNarrow = isNarrow()
+function onWindowResize() {
+  const narrow = isNarrow()
+  if (narrow !== prevNarrow) {
+    prevNarrow = narrow
+    leftCollapsed.value = narrow
+    rightCollapsed.value = narrow
+  }
+}
+window.addEventListener('resize', onWindowResize)
+onUnmounted(() => window.removeEventListener('resize', onWindowResize))
 
 function startResize(side: 'left' | 'right', e: MouseEvent) {
   e.preventDefault()
@@ -898,40 +897,17 @@ function downloadArtifact() {
 .col-divider:hover::after { background: var(--accent); opacity: .45; }
 .col-divider.resizing::after { background: var(--accent); opacity: .9; }
 
-/* ===== 折叠 / 展开按钮 ===== */
-.col-collapse-btn {
-  flex: none; width: 26px; height: 26px;
-  border: 1px solid var(--bg-3); border-radius: 7px;
-  background: var(--bg-2); color: var(--text-2);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .12s;
-}
-.col-collapse-btn:hover { background: var(--bg-3); color: var(--text-1); border-color: var(--accent); }
+/* ===== 中栏折叠 / 展开按钮（常驻标题栏，侧边栏图标） ===== */
 .brand { display: flex; align-items: center; gap: 9px; padding: 18px 14px 10px; }
-.brand .col-collapse-btn { margin-left: auto; }
-
-/* 主栏边缘悬浮折叠按钮（Claude 式边缘提示） */
-.edge-btn {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 22px; height: 46px;
-  border: 1px solid var(--bg-3); border-radius: 8px;
-  background: var(--bg-2); color: var(--text-2);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 5;
-  opacity: .5; transition: opacity .15s, background .15s, color .15s, border-color .15s;
-}
-.edge-btn:hover { opacity: 1; background: var(--bg-3); color: var(--accent); border-color: var(--accent); }
-.edge-btn.active { opacity: .9; color: var(--accent); }
-.edge-left { left: 8px; }
-.edge-right { right: 8px; }
 .col-expand-btn {
-  flex: none; width: 28px; height: 28px;
-  border: none; border-radius: 8px;
-  background: var(--bg-2); color: var(--text-2);
+  flex: none; width: 30px; height: 30px;
+  border: 1px solid transparent; border-radius: 8px;
+  background: transparent; color: var(--text-3);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all .12s;
 }
-.col-expand-btn:hover { background: var(--bg-3); color: var(--accent); }
+.col-expand-btn:hover { background: var(--bg-2); color: var(--text-1); }
+.col-expand-btn.active { color: var(--accent); background: var(--accent-soft); }
 
 /* 深色 / 浅色切换开关 */
 .theme-toggle {
@@ -951,7 +927,6 @@ function downloadArtifact() {
 .theme-toggle.light .tt-thumb { transform: translateX(24px); background: var(--accent-soft); color: var(--accent); }
 .tt-icon { width: 13px; height: 13px; }
 .right-tabs { flex: none; display: flex; gap: 6px; padding: 14px 14px 10px; }
-.right-tabs .right-collapse { margin-right: 2px; }
 .brand-logo { width: 22px; height: 22px; object-fit: contain; flex: none; }
 .brand-name { font-size: 15px; font-weight: 600; }
 
@@ -1051,19 +1026,6 @@ function downloadArtifact() {
 .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
 .chat-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 .chat-inner { max-width: 1100px; margin: 0 auto; padding: 16px 28px 8px; }
-
-/* 滚动到底部按钮 */
-.scroll-bottom-btn {
-  position: absolute; right: 22px; bottom: 14px;
-  width: 34px; height: 34px;
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  border-radius: 50%;
-  background: var(--bg-3); color: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  transition: all .15s;
-}
-.scroll-bottom-btn:hover { background: var(--accent-strong); color: #fff; border-color: var(--accent-strong); }
 
 .welcome { text-align: center; padding: 40px 0 20px; }
 .welcome-logo { margin: 0 auto 16px; }
@@ -1305,6 +1267,13 @@ function downloadArtifact() {
 }
 .file-image-preview img { display: block; max-width: 260px; max-height: 200px; object-fit: contain; }
 
+/* ===== 手机端侧栏展开时的点击关闭遮罩（点非展开区域收起） ===== */
+.side-overlay {
+  position: fixed; inset: 0; z-index: 25;
+  background: rgba(9, 14, 26, 0.45);
+}
+.agent-workbench.light .side-overlay { background: rgba(30, 41, 59, 0.32); }
+
 /* ===== 体验身份选择弹窗（未登录必选；体验模式可切换身份） ===== */
 .role-dialog-mask {
   position: fixed; inset: 0; z-index: 3000;
@@ -1357,4 +1326,35 @@ function downloadArtifact() {
   font-size: 12px; color: var(--accent);
 }
 .role-dialog-hint { margin: 18px 0 0; text-align: center; font-size: 11px; color: var(--text-3); }
+
+/* ===== 移动端适配(<768px):默认折叠侧栏,对话区优先 ===== */
+@media (max-width: 767px) {
+  .agent-workbench { padding: 6px; gap: 6px; }
+  .col-expand-btn { width: 40px; height: 40px; }
+  .role-dialog { padding: 22px 16px 18px; }
+  .role-card { width: 44%; }
+  /* 手机端侧栏:默认隐藏;展开时悬浮覆盖在中栏之上,不挤压对话区 */
+  .col-left,
+  .col-right {
+    position: fixed;
+    top: 6px; bottom: 6px;
+    width: min(84vw, 340px) !important;
+    z-index: 30;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+    transition: transform .2s ease, width .18s ease, box-shadow .2s ease;
+  }
+  .col-left { left: 6px; }
+  .col-right { right: 6px; }
+  .col-left.collapsed { transform: translateX(-110%); pointer-events: none; box-shadow: none; }
+  .col-right.collapsed { transform: translateX(110%); pointer-events: none; box-shadow: none; }
+  /* 手机端消息表格:保持内容宽度,超宽横向滚动,禁止单元格内容竖排堆叠 */
+  .msg-bubble--md :deep(table) {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+}
 </style>
