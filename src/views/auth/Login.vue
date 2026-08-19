@@ -485,6 +485,7 @@ async function handleLogin() {
   justify-content: space-between;
   padding: 0 calc(139 * var(--w)) 0 calc(215 * var(--w));
   min-height: 0;
+  overflow: hidden;
 }
 
 /* ============================================
@@ -589,14 +590,19 @@ async function handleLogin() {
    ============================================ */
 .login-form-area {
   flex-shrink: 0;
+  align-self: stretch;
+  min-height: 0;
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
 .login-card {
   width: 32vw;
   min-width: 380px;
   max-width: 520px;
+  max-height: 100%;
+  overflow-y: auto;
   padding: calc(48 * var(--min-scale));
   background: var(--bg-card, #ffffff);
   border-radius: calc(14 * var(--min-scale));
@@ -604,6 +610,7 @@ async function handleLogin() {
   display: flex;
   flex-direction: column;
   gap: calc(24 * var(--min-scale));
+  box-sizing: border-box;
 }
 
 .card-title {

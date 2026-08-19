@@ -292,7 +292,8 @@ onUnmounted(() => {
   font-family: 'Source-KeynoteartHans', 'PingFang SC', sans-serif;
   font-weight: 400;
   letter-spacing: 4px;
-  line-height: 1;
+  font-size: 36px;
+  line-height: 2;
   background: linear-gradient(90deg, #5b9bff 0%, #1d4ed8 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
@@ -319,7 +320,7 @@ onUnmounted(() => {
   padding: 6px 16px; border-radius: 999px; letter-spacing: 1px; margin-bottom: 24px;
 }
 .hero h1 { font-size: 44px; font-weight: 800; letter-spacing: 1px; line-height: 1.3; }
-.hero h1 em { font-style: normal; color: var(--brand); }
+.hero h1 em { font-style: normal; color: var(--text-primary) }
 .hero .sub { font-size: 17px; color: var(--ink-2); margin-top: 16px; max-width: 640px; margin-inline: auto; }
 .hero .pills { display: flex; justify-content: center; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
 .pill {
