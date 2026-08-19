@@ -45,12 +45,12 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       parameters: {
         type: 'object',
         properties: {
-          // dimB：行业分类筛选维度
+          // dimB：消防重点单位类别筛选维度
           //   - 类型：string
-          //   - 可选值：'工贸企业' | '教育行业' | '社区物业' | '其他'
-          //   - 作用：按行业筛选返回的企业列表；不传（或为空）则返回全部行业
-          //   - 注意：取值需严格匹配上述枚举，拼写不一致会导致筛选无效
-          dimB: { type: 'string', description: '按行业筛选，可选：工贸企业、教育行业、社区物业、其他。不传则返回全部' },
+          //   - 可选值：消防重点单位类别代码（XF/T 3016.1-2022，'01'~'28'，如 '27'=党政机关、'06'=学校、'04'=餐饮场所）
+          //   - 作用：按类别代码筛选返回的企业列表；不传（或为空）则返回全部
+          //   - 注意：取值需严格匹配上述代码枚举，拼写不一致会导致筛选无效
+          dimB: { type: 'string', description: '按消防重点单位类别代码筛选（XF/T 3016.1-2022，01~28，如 27=党政机关、06=学校、04=餐饮场所）。不传则返回全部' },
           // keyword：企业名称关键词
           //   - 类型：string
           //   - 作用：按企业名称进行模糊搜索（包含匹配）；不传（或为空）则返回全部
@@ -70,7 +70,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       parameters: {
         type: 'object',
         properties: {
-          dimB: { type: 'string', description: '按行业筛选。不传则查询总数和所有行业分布' },
+          dimB: { type: 'string', description: '按消防重点单位类别代码筛选（XF/T 3016.1-2022，01~28，如 27=党政机关、06=学校、04=餐饮场所）。不传则查询总数和所有类别分布' },
         },
       },
     },
@@ -167,22 +167,30 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 
 // 岗位标签映射从数据库动态加载（见 buildPositionLabelMap），不写死
 
-// 这些行业分类来自 enterprise.service.ts 的 DIM_B_OPTIONS
-const DIM_B_LABELS: Record<string, string> = {
+// 消防重点单位类别映射（XF/T 3016.1-2022，01-28 代码）：
+// 主映射来自 enterprise.service.ts 的 DIM_B_OPTIONS（单一数据源），
+// 兼容历史数据里直接存旧中文值的情况。
+const DIM_B_LABELS: Record<string, string> = Object.fromEntries(
+  enterpriseService.DIM_B_OPTIONS.map((o) => [o.value, o.label]),
+)
+// 旧字典/历史数据兜底：存量租户的 dimB 可能是迁移前的中文或英文 key
+Object.assign(DIM_B_LABELS, {
   'industry_trade': '工贸企业',
   'education': '教育行业',
   'community_property': '社区物业',
   'other': '其他行业',
-  // 补充常见原始值映射
-  '工贸企业': '工贸企业',
-  '教育行业': '教育行业',
-  '社区物业': '社区物业',
   'fire_tech_service': '消防技术服务',
   'gov_regulator': '政府监管',
   'commercial_complex': '商业综合体',
   'manufacturing': '制造业',
   'emergency_mgmt': '应急管理',
-}
+  '工贸企业': '工贸企业',
+  '教育行业': '教育行业',
+  '社区物业': '社区物业',
+  '消防技术服务': '消防技术服务',
+  '商业综合体': '商业综合体',
+  '政府监管': '政府监管',
+})
 
 // ===== 四方数据问答 Mock 数据 =====
 // 告警/隐患/设备后端无数据表、工单 WorkOrder 表当前为空，Demo 阶段统一用 mock 数据驱动。

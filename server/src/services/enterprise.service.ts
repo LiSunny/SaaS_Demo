@@ -1064,7 +1064,7 @@ const DIM_A_OPTIONS = [
   { value: 'platform_operator', label: '平台运营方' },
 ]
 
-const DIM_B_OPTIONS = [
+export const DIM_B_OPTIONS = [
   { value: '01', label: '商场市场' }, { value: '02', label: '宾馆饭店' },
   { value: '03', label: '公共娱乐场所' }, { value: '04', label: '餐饮场所' },
   { value: '05', label: '医院' }, { value: '06', label: '学校' },
