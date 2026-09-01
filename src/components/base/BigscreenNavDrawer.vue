@@ -40,7 +40,8 @@
             :class="{ active: it.id === activeId }"
             @click="pick(it.id)"
           >
-            <span v-if="it.icon" class="bsnd-icon" v-html="it.icon"></span>
+            <span v-if="it.iconImg" class="bsnd-icon"><img :src="it.iconImg" alt="" /></span>
+            <span v-else-if="it.icon" class="bsnd-icon" v-html="it.icon"></span>
             <span class="bsnd-body">
               <span class="bsnd-title">{{ it.title }}</span>
               <span v-if="it.tag" class="bsnd-tag">{{ it.tag }}</span>
@@ -67,6 +68,8 @@ export interface BigscreenNavItem {
   tag?: string
   /** 图标 SVG 内部片段（不含 <svg> 外壳），可省略 */
   icon?: string
+  /** 品牌位图图标（如概览页 PNG），存在时优先以 <img> 渲染 */
+  iconImg?: string
 }
 
 const props = withDefaults(defineProps<{
@@ -121,6 +124,7 @@ onBeforeUnmount(clearTimer)
   inset: 0;
   z-index: 60;
   pointer-events: none;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 /* ===== 把手（收起态） ===== */
@@ -135,17 +139,17 @@ onBeforeUnmount(clearTimer)
   align-items: center;
   gap: 6px;
   padding: 14px 8px;
-  border: 1px solid var(--border, rgba(120, 180, 230, 0.35));
+  border: 1px solid rgba(71, 132, 232, 0.45);
   border-left: 0;
   border-radius: 0 10px 10px 0;
-  background: var(--card, rgba(10, 44, 82, 0.88));
-  color: var(--text, #dffaff);
-  box-shadow: var(--shadow, 0 6px 24px rgba(0, 0, 0, 0.35));
+  background: linear-gradient(180deg, rgba(8, 66, 162, 0.88), rgba(5, 51, 125, 0.92));
+  color: #dfeaff;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   transition: background 0.15s;
 }
 .bsnd-handle:hover {
-  background: var(--card-hover, rgba(19, 66, 114, 0.92));
+  background: linear-gradient(180deg, rgba(12, 82, 186, 0.92), rgba(7, 61, 140, 0.95));
 }
 .bsnd-handle svg {
   width: 18px;
@@ -156,7 +160,8 @@ onBeforeUnmount(clearTimer)
   writing-mode: vertical-lr;
   letter-spacing: 4px;
   font-size: 12px;
-  opacity: 0.85;
+  color: #a9c7ff;
+  opacity: 0.9;
 }
 
 /* ===== 抽屉面板 ===== */
@@ -169,12 +174,12 @@ onBeforeUnmount(clearTimer)
   width: 300px;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border, rgba(120, 180, 230, 0.35));
+  border: 1px solid rgba(71, 132, 232, 0.4);
   border-radius: 12px;
-  background: var(--card, rgba(10, 44, 82, 0.92));
-  box-shadow: var(--shadow, 0 10px 36px rgba(0, 0, 0, 0.45));
+  background: linear-gradient(180deg, rgba(8, 66, 162, 0.92) 0%, rgba(5, 51, 125, 0.95) 100%);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45);
   overflow: hidden;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
 }
 .bsnd-head {
   flex: none;
@@ -182,12 +187,15 @@ onBeforeUnmount(clearTimer)
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border, rgba(120, 180, 230, 0.25));
+  border-bottom: 1px solid rgba(71, 132, 232, 0.3);
 }
 .bsnd-head-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text, #dffaff);
+  background: linear-gradient(to bottom, #e5f2ff 0%, #b0cdff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .bsnd-close {
   display: flex;
@@ -196,12 +204,13 @@ onBeforeUnmount(clearTimer)
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  color: var(--muted, #b9dded);
+  color: #89b5ff;
   cursor: pointer;
   transition: background 0.15s;
 }
 .bsnd-close:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(71, 132, 232, 0.18);
+  color: #cfe1ff;
 }
 .bsnd-close svg {
   width: 16px;
@@ -225,31 +234,37 @@ onBeforeUnmount(clearTimer)
   padding: 10px 12px;
   border-radius: 9px;
   border: 1px solid transparent;
-  color: var(--text, inherit);
+  color: #dfeaff;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s, border-color 0.15s;
 }
 .bsnd-item:hover {
-  background: rgba(120, 180, 230, 0.12);
+  background: rgba(71, 132, 232, 0.16);
 }
 .bsnd-item.active {
-  background: rgba(59, 100, 180, 0.28);
-  border-color: var(--border-strong, #33517e);
+  background: rgba(71, 132, 232, 0.26);
+  border-color: rgba(71, 132, 232, 0.55);
 }
 .bsnd-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--icon-bg, rgba(120, 180, 230, 0.14));
-  color: var(--muted, #b9dded);
+  background: rgba(71, 132, 232, 0.2);
+  color: #89b5ff;
+}
+.bsnd-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
 }
 .bsnd-item.active .bsnd-icon {
-  background: var(--border-strong, #33517e);
+  background: #4784e8;
   color: #fff;
 }
 .bsnd-icon :deep(svg) {
@@ -267,16 +282,18 @@ onBeforeUnmount(clearTimer)
   flex-direction: column;
 }
 .bsnd-title {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.5;
+  color: #ffffff;
 }
 .bsnd-item.active .bsnd-title {
-  color: var(--accent-text, #bfe6ff);
+  color: #eaf2ff;
 }
 .bsnd-tag {
   font-size: 12px;
-  color: var(--muted, #b9dded);
+  color: #99b1cf;
   line-height: 1.45;
   margin-top: 1px;
 }
