@@ -1,8 +1,10 @@
 import { cv, disposeCharts, initChart, openOverlay, toolbarHtml } from './shared-engine'
+import { ico } from '../util/ico-map'
 import { icoDevicePin, icoExportSmall, icoGas, icoPin, icoPlusSmall, icoRefreshSmall, icoSmoke } from './icon-consts'
 import { shopDetailHtml, showEventDetail, showShopDetail } from './cross-module'
 import { getAllEvents } from './events-engine'
 import { SHOPS } from '../data/shops'
+import { SHOP_EVENTS, BEFORE_PHOTO_POOL } from '../data/shop-events'
 import { DEVICES, DEV_STATE } from '../data/devices'
 // 模块3引擎：设备运行监测系统（原 renderDevices 族）
 // 原 index.html renderContent 分发对应的渲染函数族，原样提取，仅 content→入参
@@ -29,7 +31,8 @@ export { devStateLabel }
 let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
-export function renderDevices(body: HTMLElement, container?: HTMLElement){
+export function renderDevices(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';
@@ -623,3 +626,5 @@ export function qrSvg(seed){
   }}
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#fff"/>${cells}</svg>`;
 }
+
+export { showEventDetail }

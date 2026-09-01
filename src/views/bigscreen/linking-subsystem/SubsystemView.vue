@@ -7,7 +7,7 @@ import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { MODULES } from './data/modules'
 import { bindModuleSwitch, consumePendingState } from './engine/shared-engine'
-import { mountEngineGlobals, unmountEngineGlobals, REGISTERS } from './engine/subsystem-globals'
+import { mountEngineGlobals, unmountEngineGlobals, REGISTERS, COMMON_GLOBALS } from './engine/subsystem-globals'
 
 const props = defineProps<{ mod: number }>()
 const hostEl = ref<HTMLElement>()
@@ -70,7 +70,10 @@ async function renderModule(mod: number) {
     } else {
       body.innerHTML = `<div class="panel" style="padding:24px"><div class="panel-head"><div class="panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg></div><div><div class="panel-title">${m.title}</div><div class="panel-tagline">载入中…</div></div></div></div>`
     }
-    mountEngineGlobals(engine, REGISTERS[custom] || { fns: [] })
+    // 公共全局（openShopMore 等跨模块弹窗按钮）
+  const common = await import('./engine/shared-engine')
+  COMMON_GLOBALS.forEach(n => { if (typeof (common as any)[n] === 'function') (window as any)[n] = (common as any)[n] })
+  mountEngineGlobals(engine, REGISTERS[custom] || { fns: [] })
   }
   lastCustom = custom
 }

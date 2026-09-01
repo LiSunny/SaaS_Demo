@@ -24,6 +24,9 @@ export function unmountEngineGlobals(register: GlobalFnRegister) {
 }
 
 /** 各模块的全局注册表 + 挂载辅助函数 */
+/** 所有模块共用的全局函数（独立实例，supporter window 持久） */
+export const COMMON_GLOBALS: string[] = ['openShopMore', 'uiToast']
+
 export const REGISTERS: Record<string, GlobalFnRegister> = {
   overview: {
     fns: ['selectShop', 'selectStreet', 'ovToggleTypeShow', 'ovToggleStreetShow', 'ovToggleDutyShow', 'showResponsibility'],
@@ -53,6 +56,6 @@ export const REGISTERS: Record<string, GlobalFnRegister> = {
     fns: ['shSetMetricFilter', 'shSetTypeFilter', 'shSetStatusFilter', 'shSetSearch', 'shSetPage', 'showShopDetail', 'showQRCode'],
   },
   ledger: {
-    fns: ['lgSetTypeFilter', 'lgSetStatusFilter', 'lgSetSearch', 'lgSetPage', 'showDeviceDetail'],
+    fns: ['lgSetTypeFilter', 'lgSetStatusFilter', 'lgSetSearch', 'lgSetPage', 'showDeviceDetail', 'ddTab', 'showDeviceHistory'],
   },
 }

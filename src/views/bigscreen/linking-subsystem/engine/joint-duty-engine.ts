@@ -2,6 +2,7 @@ import { cv, disposeCharts, initChart, openOverlay, uiToast } from './shared-eng
 import { icoFb, icoFile, icoNotice, icoRead } from './icon-consts'
 import { showEventDetail } from './cross-module'
 import { NOTICES, NOTICE_SHOPS } from '../data/notices'
+import { SHOPS } from '../data/shops'
 // 模块7引擎：联勤协同联动系统（原 renderJointDuty 族）
 // 原 index.html renderContent 分发对应的渲染函数族，原样提取，仅 content→入参
 
@@ -20,7 +21,8 @@ const JD_PAGE_SIZE = 15
 let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
-export function renderJointDuty(body: HTMLElement, container?: HTMLElement){
+export function renderJointDuty(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';

@@ -20,7 +20,8 @@ const CR_PAGE_SIZE = 4
 let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
-export function renderControlRooms(body: HTMLElement, container?: HTMLElement){
+export function renderControlRooms(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';

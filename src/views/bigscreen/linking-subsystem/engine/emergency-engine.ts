@@ -21,7 +21,8 @@ const EM_PAGE_SIZE = 15
 let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
-export function renderEmergency(body: HTMLElement, container?: HTMLElement){
+export function renderEmergency(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';

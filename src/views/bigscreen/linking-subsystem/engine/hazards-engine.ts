@@ -3,7 +3,7 @@ import { icoExportSmall, icoPlusSmall, icoRefreshSmall } from './icon-consts'
 import { showEventDetail } from './cross-module'
 import { getAllEvents } from './events-engine'
 import { SHOPS } from '../data/shops'
-import { SHOP_EVENTS } from '../data/shop-events'
+import { SHOP_EVENTS, BEFORE_PHOTO_POOL } from '../data/shop-events'
 // 模块6引擎：隐患排查治理系统（原 renderHazards 族）
 // 原 index.html renderContent 分发对应的渲染函数族，原样提取，仅 content→入参
 
@@ -71,7 +71,8 @@ export function applyPendingState(s: any) {
   if (s.hzCurrentShop !== undefined) hzCurrentShop = s.hzCurrentShop
 }
 
-export function renderHazards(body: HTMLElement, container?: HTMLElement){
+export function renderHazards(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';
@@ -293,3 +294,5 @@ export function hzSetPage(page){
   hzPage = Math.max(1, page);
   renderHazards();
 }
+
+export { showEventDetail }

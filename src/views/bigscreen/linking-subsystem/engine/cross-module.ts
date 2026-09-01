@@ -2,7 +2,50 @@
 import { SHOPS, STREETS } from '../data/shops'
 import * as echarts from 'echarts'
 import { SHOP_EVENTS, BEFORE_PHOTO_POOL } from '../data/shop-events'
+import { DEV_STATE } from '../data/devices'
 import { initChart, cv, openOverlay, cmpFallback } from './shared-engine'
+function beforePhotoOf(ev){
+  if(ev.photos && ev.photos.before) return ev.photos.before;
+  let h = 0;
+  for(const ch of ev.id) h = (h*31 + ch.charCodeAt(0)) >>> 0;
+  return BEFORE_PHOTO_POOL[h % BEFORE_PHOTO_POOL.length];
+}
+function hazardDeadlineMs(title){
+  if(/疏散出口|疏散通道|通道|出口|堆物|堆放/.test(title)) return 24*3600*1000;
+  if(/燃气软管/.test(title)) return 24*3600*1000;
+  if(/电线|线路|私拉乱接/.test(title)) return 48*3600*1000;
+  if(/灭火器/.test(title)) return 24*3600*1000;
+  if(/油烟管道/.test(title)) return 7*24*3600*1000;
+  if(/易燃品/.test(title)) return 48*3600*1000;
+  return 48*3600*1000;
+}
+function hzIsOverdue(e){
+  if(e.status==='done' || e.status==='closed') return false;
+  const t = new Date(e.time.replace(/-/g,'/'));
+  if(isNaN(t)) return false;
+  return Date.now() > t.getTime() + hazardDeadlineMs(e.title);
+}
+function stripDevPrefix(t){ return t.replace(/^(烟感|燃气探测器|燃气)[·・]/, ''); }
+function evTypeLabel(e){
+  if(e.type==='hazard') return '隐患排查';
+  const t = e.title;
+  if(/火警/.test(t)) return '火警';
+  if(/预警/.test(t)) return '预警';
+  if(/故障/.test(t)) return '故障';
+  if(/离线/.test(t)) return '离线';
+  return '其它';
+}
+function evTypeCls(e){
+  if(e.type==='hazard') return 'other';
+  const t = e.title;
+  if(/火警|预警/.test(t)) return 'fire';
+  if(/故障/.test(t)) return 'fault';
+  if(/离线/.test(t)) return 'offline';
+  return 'other';
+}
+let detailBackStreetId: number | null = null
+let selectedStreetId: number | null = null
+
 function fmtDate(date){
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 }
@@ -58,16 +101,16 @@ export function showEventDetail(eventId){
 
   /* 按事件内容匹配写实现场照片 */
   function genScene(ev){
-    let src = '现场处置-设备检修.png';
+    let src = '/linking-subsystem/现场处置-设备检修.png';
     let alt = '设备检修现场照片';
     if(/低电量|离线|故障|拆下|电池|检修/.test(ev.title + ev.desc)){
-      src = '现场处置-设备检修.png';
+      src = '/linking-subsystem/现场处置-设备检修.png';
       alt = '设备异常现场检修照片';
     }else if(ev.type==='smoke' && /火警|烟雾|烟感/.test(ev.title + ev.desc)){
-      src = '现场处置-烟感火警.png';
+      src = '/linking-subsystem/现场处置-烟感火警.png';
       alt = '烟感火警现场核实照片';
     }else if(ev.type==='gas' || /燃气|甲烷|浓度|泄漏|阀/.test(ev.title + ev.desc)){
-      src = '现场处置-燃气排查.png';
+      src = '/linking-subsystem/现场处置-燃气排查.png';
       alt = '燃气浓度超标现场排查照片';
     }
     return `<img src="${src}" alt="${alt}" onerror="this.closest('.ev-tl-photo-box').classList.add('chart-fallback');this.replaceWith(document.createTextNode('现场照片加载失败'))">`;
@@ -336,140 +379,10 @@ export function showHazardDetail(ev){
   }
 }
 
-export function showDeviceDetail(id, mode='monitor'){
-  const d = DEVICES.find(x=>x.id===id);
-  if(!d) return;
-  const isLedger = mode === 'ledger';
-  const stateLabel = devStateLabel(d.state);
-  const typeLabel = d.type==='smoke'?'烟感探测器':'燃气探测器';
-  const stateCls = d.state;
-  const life = getLifeInfo(d);
-  const assetCards = isLedger ? `
-          <div class="dd-asset-card ${life.cls}"><div class="l">生命周期状态</div><div class="v">${life.label}</div></div>
-          <div class="dd-asset-card"><div class="l">寿命进度</div><div class="v">${life.rawPct}<span style="font-size:14px;color:var(--muted);font-weight:400">%</span></div></div>
-          <div class="dd-asset-card"><div class="l">预计到期</div><div class="v">${life.expireText}</div></div>` : `
-          <div class="dd-asset-card ${stateCls}"><div class="l">状态</div><div class="v">${stateLabel}</div></div>
-          <div class="dd-asset-card"><div class="l">${d.readingName}</div><div class="v" style="font-size:22px">${d.readingValue}</div></div>
-          <div class="dd-asset-card"><div class="l">最后心跳</div><div class="v" style="font-size:18px">${d.lastHb}</div></div>`;
-  const basicFields = isLedger ? `
-            <div class="dd-field"><div class="fl">设备编码</div><div class="fv"><b>${d.code}</b></div></div>
-            <div class="dd-field"><div class="fl">设备类型</div><div class="fv">${typeLabel}</div></div>
-            <div class="dd-field"><div class="fl">所属商铺</div><div class="fv">${d.shop}</div></div>
-            <div class="dd-field"><div class="fl">安装位置</div><div class="fv">${d.addr} ${d.pos}</div></div>
-            <div class="dd-field"><div class="fl">安装日期</div><div class="fv">${d.install}</div></div>
-            <div class="dd-field"><div class="fl">设计寿命</div><div class="fv">${life.totalText}</div></div>
-            <div class="dd-field"><div class="fl">已使用</div><div class="fv">${life.usedText.replace('已用 ','')} · ${life.rawPct}%</div></div>
-            <div class="dd-field"><div class="fl">预计到期</div><div class="fv">${d.scrap}</div></div>
-            <div class="dd-field"><div class="fl">最近维保</div><div class="fv">${d.lastMaint}</div></div>
-            <div class="dd-field"><div class="fl">联系人</div><div class="fv">${d.owner}（设备管理人）</div></div>
-            <div class="dd-field"><div class="fl">电话</div><div class="fv">${d.phone}</div></div>` : `
-            <div class="dd-field"><div class="fl">设备编码</div><div class="fv"><b>${d.code}</b></div></div>
-            <div class="dd-field"><div class="fl">设备类型</div><div class="fv">${typeLabel}</div></div>
-            <div class="dd-field"><div class="fl">所属商铺</div><div class="fv">${d.shop}</div></div>
-            <div class="dd-field"><div class="fl">安装位置</div><div class="fv">${d.addr} ${d.pos}</div></div>
-            <div class="dd-field"><div class="fl">状态</div><div class="fv">${stateLabel}</div></div>
-            <div class="dd-field"><div class="fl">实时读数</div><div class="fv">${d.readingName} ${d.readingValue}</div></div>
-            <div class="dd-field"><div class="fl">电量/信号</div><div class="fv">电量 ${d.battery}% · 信号 ${d.signal}%</div></div>
-            <div class="dd-field"><div class="fl">最后心跳</div><div class="fv">${d.lastHb}</div></div>
-            <div class="dd-field"><div class="fl">异常原因</div><div class="fv">${d.faults.length ? d.faults.join('、') : '无'}</div></div>
-            <div class="dd-field"><div class="fl">联系人</div><div class="fv">${d.owner}（设备管理人）</div></div>
-            <div class="dd-field"><div class="fl">电话</div><div class="fv">${d.phone}</div></div>`;
-  const maintRecords = isLedger ? d.maint.filter(m=>/安装|维保|检修|自检|标定/.test(m.act)) : d.maint;
-  const maintRows = maintRecords.map(m=>`<div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">${m.t}</span><div class="c"><div class="act">${m.act}</div><div class="desc">${m.d}</div></div></div>`).join('');
-  const inspectRecords = d.maint.filter(m=>/维保|检修|自检|标定/.test(m.act));
-  const inspectRows = inspectRecords.length>0 ? inspectRecords.map(m=>`<div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">${m.t}</span><div class="c"><div class="act">${m.act}</div><div class="desc">${m.d}</div></div></div>`).join('') : `<div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">--</span><div class="c"><div class="act">待巡检</div><div class="desc">暂无巡检记录</div></div></div>`;
-  const relatedEvents = (SHOP_EVENTS[d.shopId] || [])
-    .filter(e=>e.type===d.type || (d.type==='smoke' && /烟感|火警|烟雾/.test(e.title + e.desc)) || (d.type==='gas' && /燃气|浓度/.test(e.title + e.desc)))
-    .slice(0,5);
-  const relatedRows = relatedEvents.length ? relatedEvents.map(e=>`
-            <div class="dd-event-row" onclick="showEventDetail('${e.id}')">
-              <div class="dd-event-body">
-                <div class="dd-event-title">${e.title.replace(/^(烟感|燃气|燃气探测器)[·・]/, '')}</div>
-                <div class="dd-event-meta">${e.time} · ${e.desc}</div>
-              </div>
-              <span class="sd-tag-sm ${e.status==='done'?'green':'red'}">${e.status==='done'?'已处置':e.status==='processing'?'处置中':'未处置'}</span>
-            </div>`).join('') : '<div class="sd-row" style="color:var(--muted);font-size:13px">暂无关联事件</div>';
-  const monitorBlocks = '';
-  const monitorTabs = isLedger ? `
-          <span class="dd-tab active" data-dtab="basic" onclick="ddTab('basic')">生命周期档案</span>
-          <span class="dd-tab" data-dtab="maint" onclick="ddTab('maint')">保养记录</span>
-          <span class="dd-tab" data-dtab="inspect" onclick="ddTab('inspect')">巡检记录</span>
-          <span class="dd-tab" data-dtab="log" onclick="ddTab('log')">操作日志</span>` : `
-          <span class="dd-tab active" data-dtab="basic" onclick="ddTab('basic')">设备详情</span>
-          <span class="dd-tab" data-dtab="events" onclick="ddTab('events')">告警事件</span>
-          <span class="dd-tab" data-dtab="log" onclick="ddTab('log')">操作日志</span>`;
-  const logRows = isLedger ? `
-            <div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">${d.install}</span><div class="c"><div class="act">设备建档</div><div class="desc">完成一机一码登记，形成生命周期档案</div></div></div>
-            <div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">${d.lastMaint}</span><div class="c"><div class="act">最近维保</div><div class="desc">完成设备外观、联网与功能核查</div></div></div>` : `
-            <div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">${d.install}</span><div class="c"><div class="act">设备接入</div><div class="desc">安装联网并完成自检，上报 ${d.code}</div></div></div>
-            <div class="dd-rec-item"><span class="dd-rec-dot"></span><span class="date">2026-08-25</span><div class="c"><div class="act">运行上报</div><div class="desc">${d.lastHb} · ${d.faults.length ? d.faults.join('、') : '状态正常'}</div></div></div>`;
-  openOverlay('dv-detail-overlay', `
-    <div class="dv-detail" onclick="event.stopPropagation()">
-      <div class="dd-top">
-        <span class="dd-back" onclick="this.closest('.dv-detail-overlay').remove()">← 返回${isLedger?'生命周期台账':'设备列表'}</span>
-        <div class="dd-top-right">
-          <span class="dd-btn edit">编辑</span>
-          <span class="dd-btn del">删除</span>
-        </div>
-      </div>
-      <div class="dv-detail-body">
-        <div class="dd-head">
-          <div class="dd-thumb"><img src="${(d.type==='smoke'?'/linking-subsystem/烟雾报警器_4g-2.svg':'/linking-subsystem/燃气探测器.svg')}" alt=""></div>
-          <div>
-            <div class="dd-title">${d.code} ${typeLabel}</div>
-            <div class="dd-sub">所属商铺：${d.shop}</div>
-          </div>
-        </div>
-
-          <div class="dd-asset">
-${assetCards}
-          </div>
-        ${isLedger ? '' : `
-        <div class="dd-runtime-grid">
-          <div class="dd-runtime-item">
-            <div class="dd-runtime-head"><div class="l">${d.readingName}</div><button type="button" class="dd-history-link" title="查看历史曲线" onclick="showDeviceHistory('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ico('数据')}</svg></button></div>
-            <div class="v">${d.readingValue}</div>
-          </div>
-          <div class="dd-runtime-item">
-            <div class="dd-runtime-head"><div class="l">电池电量</div><button type="button" class="dd-history-link" title="查看历史曲线" onclick="showDeviceHistory('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ico('数据')}</svg></button></div>
-            <div class="v">${d.battery}%</div>
-          </div>
-          <div class="dd-runtime-item">
-            <div class="dd-runtime-head"><div class="l">通信信号</div><button type="button" class="dd-history-link" title="查看历史曲线" onclick="showDeviceHistory('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ico('数据')}</svg></button></div>
-            <div class="v">${d.signal}%</div>
-          </div>
-        </div>`}
-
-        <div class="dd-tabs">
-${monitorTabs}
-        </div>
-        <div class="dd-content" data-content="basic">
-          <div class="dd-form">
-${basicFields}
-          </div>
-${monitorBlocks}
-        </div>
-        <div class="dd-content" data-content="maint" style="display:none">
-          <div class="dd-rec">
-            ${maintRows}
-          </div>
-        </div>
-        <div class="dd-content" data-content="inspect" style="display:none">
-          <div class="dd-rec">
-            ${inspectRows}
-          </div>
-        </div>
-        <div class="dd-content" data-content="events" style="display:none">
-          <div class="dd-monitor-title">告警事件<span class="cnt">${relatedEvents.length} 条</span></div>
-          <div>${relatedRows}</div>
-        </div>
-        <div class="dd-content" data-content="log" style="display:none">
-          <div class="dd-rec">
-${logRows}
-          </div>
-        </div>
-      </div>
-    </div>`);
+/** 转发：原 index.html 的 showDeviceDetail 唯一实现位于 devices-engine（弹窗事件 ddTab/showDeviceHistory 也都在此） */
+export async function showDeviceDetail(id: number, mode = 'monitor') {
+  const m = await import('./devices-engine')
+  return (m as any).showDeviceDetail(id, mode)
 }
 
 export function showShopDetail(id){

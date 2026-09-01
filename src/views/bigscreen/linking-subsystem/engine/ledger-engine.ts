@@ -20,7 +20,8 @@ const LG_PAGE_SIZE = 15
 let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
-export function renderLedger(body: HTMLElement, container?: HTMLElement){
+export function renderLedger(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   const content = container || body;
   body.style.overflowY = 'hidden';
   const total = DEVICES.length;
@@ -147,4 +148,16 @@ export function lgSetSearch(value){
 export function lgSetPage(page){
   lgPage = Math.max(1, page);
   renderLedger();
+}
+
+export { showDeviceDetail, showEventDetail }
+
+/** 设备详情弹窗 Tab/历史（权威实现在 devices-engine，懒加载转发） */
+export async function ddTab(name: string) {
+  const m = await import('./devices-engine')
+  return (m as any).ddTab(name)
+}
+export async function showDeviceHistory(id: string) {
+  const m = await import('./devices-engine')
+  return (m as any).showDeviceHistory(id)
 }

@@ -160,7 +160,8 @@ export function applyPendingState(s: any) {
 }
 export function getEvState() { return { evCurrentTab, evStatusFilter, evSearchKeyword, evPage } }
 
-export function renderEvents(body: HTMLElement, container?: HTMLElement){
+export function renderEvents(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';
@@ -477,16 +478,16 @@ export function showEventDetail(eventId){
 
   /* 按事件内容匹配写实现场照片 */
   function genScene(ev){
-    let src = '现场处置-设备检修.png';
+    let src = '/linking-subsystem/现场处置-设备检修.png';
     let alt = '设备检修现场照片';
     if(/低电量|离线|故障|拆下|电池|检修/.test(ev.title + ev.desc)){
-      src = '现场处置-设备检修.png';
+      src = '/linking-subsystem/现场处置-设备检修.png';
       alt = '设备异常现场检修照片';
     }else if(ev.type==='smoke' && /火警|烟雾|烟感/.test(ev.title + ev.desc)){
-      src = '现场处置-烟感火警.png';
+      src = '/linking-subsystem/现场处置-烟感火警.png';
       alt = '烟感火警现场核实照片';
     }else if(ev.type==='gas' || /燃气|甲烷|浓度|泄漏|阀/.test(ev.title + ev.desc)){
-      src = '现场处置-燃气排查.png';
+      src = '/linking-subsystem/现场处置-燃气排查.png';
       alt = '燃气浓度超标现场排查照片';
     }
     return `<img src="${src}" alt="${alt}" onerror="this.closest('.ev-tl-photo-box').classList.add('chart-fallback');this.replaceWith(document.createTextNode('现场照片加载失败'))">`;

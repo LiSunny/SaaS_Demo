@@ -23,7 +23,8 @@ const HW_PAGE_SIZE = 15
 let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
-export function renderHotWork(body: HTMLElement, container?: HTMLElement){
+export function renderHotWork(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   disposeCharts();
   const content = container || body;
   body.style.overflowY = 'hidden';

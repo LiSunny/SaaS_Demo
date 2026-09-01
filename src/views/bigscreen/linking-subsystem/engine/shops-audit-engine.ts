@@ -24,7 +24,8 @@ export function bindContainer(el: HTMLElement) { activeContainer = el }
 
 export { openOverlay }
 
-export function renderShops(body: HTMLElement, container?: HTMLElement){
+export function renderShops(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
   const content = container || body;
   body.style.overflowY = 'hidden';
   const total = SHOPS.length;
@@ -238,7 +239,7 @@ export function showQRCode(id){
         <div class="sd-modal-close" onclick="this.closest('.sd-modal-overlay').remove()">✕</div>
       </div>
       <div class="sd-modal-body qr-modal-body">
-        <img class="qr-img" src="应消码示例.png" alt="应消码">
+        <img class="qr-img" src="/linking-subsystem/应消码示例.png" alt="应消码">
       </div>
     </div>`);
 }

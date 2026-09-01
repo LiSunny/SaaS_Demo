@@ -59,7 +59,7 @@ export const SHOP_EVENTS = {
     {id:'e1-4', type:'hazard', level:'urgent', status:'done', title:'排查隐患：燃气软管老化', shop:'老张川菜馆',
      device:'每日履职自查上报', addr:'中山路 128 号 后厨燃气软管', time:'2026-06-15 14:30:00',
      desc:'每日履职自查发现燃气软管表面龟裂老化，存在燃气泄漏风险，已当场要求商户更换。',
-     photo:true, photos:{before:'整改前.png', after:'整改后.png'}, timeline:[
+     photo:true, photos:{before:'/linking-subsystem/photos/整改前.png', after:'/linking-subsystem/photos/整改后.png'}, timeline:[
        {dot:'report', time:'14:30:00', title:'自查上报隐患', desc:'每日履职自查发现燃气软管老化龟裂，拍照上报'},
        {dot:'push', time:'14:30:15', title:'整改通知推送', desc:'向商铺经营者下发整改通知单，限3日内更换', channels:['sms','app']},
        {dot:'dispatch', time:'14:31:00', title:'派单整改', desc:'派单至商铺经营者整改，抄送网格员跟踪'},
@@ -83,7 +83,7 @@ export const SHOP_EVENTS = {
     {id:'e3-1', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：疏散通道堆放杂物', shop:'天天便利超市',
      device:'每日履职自查上报', addr:'解放路 88 号 后门疏散通道', time:'2026-06-14 09:15:00',
      desc:'每日履职自查发现后门疏散通道堆放大量纸箱货物，严重影响人员疏散，存在安全隐患。',
-     photo:true, photos:{before:'整改前-e3-1.png', after:'整改后-e3-1.png'}, timeline:[
+     photo:true, photos:{before:'/linking-subsystem/photos/整改前-e3-1.png', after:'/linking-subsystem/photos/整改后-e3-1.png'}, timeline:[
        {dot:'report', time:'09:15:00', title:'自查上报隐患', desc:'发现疏散通道堆放杂物，拍照上报'},
        {dot:'push', time:'09:15:20', title:'整改通知推送', desc:'向商户下发限期整改通知', channels:['sms','app']},
        {dot:'dispatch', time:'09:16:00', title:'派单整改', desc:'派单至商户，限24小时内清理'},
@@ -104,7 +104,7 @@ export const SHOP_EVENTS = {
     {id:'e4-2', type:'hazard', level:'info', status:'done', title:'排查隐患：油烟管道未清洗', shop:'美味烧烤店',
      device:'每日履职自查上报', addr:'解放路 102 号 后厨油烟管道', time:'2026-06-13 16:40:00',
      desc:'油烟管道积油较厚。',
-     photo:true, photos:{before:'整改前-e4-2.png', after:'整改后-e4-2.png'}, timeline:[
+     photo:true, photos:{before:'/linking-subsystem/photos/整改前-e4-2.png', after:'/linking-subsystem/photos/整改后-e4-2.png'}, timeline:[
        {dot:'report', time:'16:40:00', title:'自查上报', desc:'发现油烟管道积油'},
        {dot:'push', time:'16:40:10', title:'整改通知', desc:'通知商户限期清洗', channels:['app']},
        {dot:'handle', time:'06/15 10:00', title:'整改完成', desc:'商户完成清洗并上传照片'},
@@ -135,7 +135,7 @@ export const SHOP_EVENTS = {
     {id:'e6-3', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：电气线路老化', shop:'兴旺五金店',
      device:'每日履职自查上报', addr:'建设路 15 号 库房电气线路', time:'2026-06-17 11:30:00',
      desc:'每日履职自查发现库房电气线路老化严重，绝缘层破损，存在短路火灾风险。',
-     photo:true, photos:{before:'整改前-e6-3.png', after:'整改后-e6-3.png'}, timeline:[
+     photo:true, photos:{before:'/linking-subsystem/photos/整改前-e6-3.png', after:'/linking-subsystem/photos/整改后-e6-3.png'}, timeline:[
        {dot:'report', time:'11:30:00', title:'自查上报隐患', desc:'发现电气线路老化破损，拍照上报'},
        {dot:'push', time:'11:30:15', title:'整改通知推送', desc:'下发限期整改通知，要求2日内更换线路', channels:['sms','app']},
        {dot:'dispatch', time:'11:31:00', title:'派单整改', desc:'派单至商户整改，抄送消防执法部门'},
@@ -144,7 +144,7 @@ export const SHOP_EVENTS = {
     {id:'e6-4', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：灭火器压力不足', shop:'兴旺五金店',
      device:'每日履职自查上报', addr:'建设路 15 号 店铺灭火器', time:'2026-06-15 14:00:00',
      desc:'检查发现2具灭火器压力表指针在红区，无法正常使用。',
-     photo:true, photos:{before:'整改前-e6-4.png', after:'整改后-e6-4.png'}, timeline:[
+     photo:true, photos:{before:'/linking-subsystem/photos/整改前-e6-4.png', after:'/linking-subsystem/photos/整改后-e6-4.png'}, timeline:[
        {dot:'report', time:'14:00:00', title:'自查上报', desc:'灭火器压力不足，拍照上报'},
        {dot:'push', time:'14:00:10', title:'整改通知', desc:'要求立即更换', channels:['sms','app']},
        {dot:'dispatch', time:'14:01:00', title:'派单', desc:'派单至商户更换'},
@@ -173,7 +173,7 @@ export const SHOP_EVENTS = {
        {id:'e7-3', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：后厨电线私拉乱接', shop:'湘味小馆',
        device:'每日履职自查上报', addr:'中山路 210 号 后厨', time:'2026-08-22 15:30:00',
        desc:'每日履职自查发现后厨电器线路私拉乱接，部分线路裸露，存在触电和短路火灾风险。',
-       photo:true, photos:{before:'整改前-e7-3.png', after:'整改后-e7-3.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e7-3.png', after:'/linking-subsystem/photos/整改后-e7-3.png'}, timeline:[
         {dot:'report', time:'15:30:00', title:'自查上报', desc:'发现电线私拉乱接，拍照上报'},
         {dot:'push', time:'15:30:12', title:'整改通知', desc:'下发整改通知，限3日内整改', channels:['sms','app']},
         {dot:'dispatch', time:'15:31:00', title:'派单', desc:'派单至商户整改'},
@@ -182,7 +182,7 @@ export const SHOP_EVENTS = {
        {id:'e7-4', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：燃气软管老化', shop:'湘味小馆',
        device:'每日履职自查上报', addr:'中山路 210 号 后厨', time:'2026-06-13 10:00:00',
        desc:'检查发现燃气软管老化开裂，存在燃气泄漏风险，要求尽快更换。',
-       photo:true, photos:{before:'整改前-e7-4.png', after:'整改后-e7-4.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e7-4.png', after:'/linking-subsystem/photos/整改后-e7-4.png'}, timeline:[
         {dot:'report', time:'10:00:00', title:'自查上报', desc:'燃气软管老化，拍照上报'},
         {dot:'push', time:'10:00:10', title:'整改通知', desc:'限2日内更换', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -201,7 +201,7 @@ export const SHOP_EVENTS = {
        {id:'e8-2', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：灭火器过期', shop:'好又多超市',
        device:'每日履职自查上报', addr:'解放路 55 号 收银台旁', time:'2026-08-23 09:20:00',
        desc:'巡查发现2具灭火器已超过有效期限，需立即更换。',
-       photo:true, photos:{before:'整改前-e8-2.png', after:'整改后-e8-2.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e8-2.png', after:'/linking-subsystem/photos/整改后-e8-2.png'}, timeline:[
         {dot:'report', time:'09:20:00', title:'自查上报', desc:'灭火器过期，拍照上报'},
         {dot:'push', time:'09:20:10', title:'整改通知', desc:'限当日内更换', channels:['sms','app']},
         {dot:'dispatch', time:'09:21:00', title:'派单', desc:'派单至商户'},
@@ -210,7 +210,7 @@ export const SHOP_EVENTS = {
        {id:'e8-3', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：仓库通道堆物', shop:'好又多超市',
        device:'每日履职自查上报', addr:'解放路 55 号 仓库', time:'2026-06-12 16:45:00',
        desc:'仓库疏散通道堆放大量货物，影响紧急疏散。',
-       photo:true, photos:{before:'整改前-e8-3.png', after:'整改后-e8-3.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e8-3.png', after:'/linking-subsystem/photos/整改后-e8-3.png'}, timeline:[
         {dot:'report', time:'16:45:00', title:'自查上报', desc:'通道堆物，拍照上报'},
         {dot:'push', time:'16:45:10', title:'整改通知', desc:'限24小时清理', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户清理中'}
@@ -238,7 +238,7 @@ export const SHOP_EVENTS = {
        {id:'e9-3', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：燃气软管老化', shop:'兰州拉面馆',
        device:'每日履职自查上报', addr:'建设路 28 号 后厨', time:'2026-08-21 14:10:00',
        desc:'燃气软管出现老化龟裂，存在泄漏风险。',
-       photo:true, photos:{before:'整改前-e9-3.png', after:'整改后-e9-3.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e9-3.png', after:'/linking-subsystem/photos/整改后-e9-3.png'}, timeline:[
         {dot:'report', time:'14:10:00', title:'自查上报', desc:'软管老化，拍照上报'},
         {dot:'push', time:'14:10:10', title:'整改通知', desc:'限2日内更换', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -246,7 +246,7 @@ export const SHOP_EVENTS = {
        {id:'e9-4', type:'hazard', level:'warning', status:'processing', title:'排查隐患：疏散通道占用', shop:'兰州拉面馆',
        device:'每日履职自查上报', addr:'建设路 28 号 后门', time:'2026-06-15 11:00:00',
        desc:'后门疏散通道被杂物占用，需清理恢复畅通。',
-       photo:true, photos:{before:'整改前-e9-4.png', after:'整改后-e9-4.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e9-4.png', after:'/linking-subsystem/photos/整改后-e9-4.png'}, timeline:[
         {dot:'report', time:'11:00:00', title:'自查上报', desc:'通道占用，拍照上报'},
         {dot:'push', time:'11:00:10', title:'整改通知', desc:'限24小时清理', channels:['app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户清理中'}
@@ -265,7 +265,7 @@ export const SHOP_EVENTS = {
        {id:'e10-2', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：电器线路老化', shop:'名剪造型',
        device:'每日履职自查上报', addr:'解放路 120 号 店内', time:'2026-08-22 17:40:00',
        desc:'店内电器线路老化，绝缘层破损，存在短路火灾风险。',
-       photo:true, photos:{before:'整改前-e10-2.png', after:'整改后-e10-2.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e10-2.png', after:'/linking-subsystem/photos/整改后-e10-2.png'}, timeline:[
         {dot:'report', time:'17:40:00', title:'自查上报', desc:'线路老化，拍照上报'},
         {dot:'push', time:'17:40:10', title:'整改通知', desc:'限3日内更换', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -284,7 +284,7 @@ export const SHOP_EVENTS = {
        {id:'e11-2', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：易燃品存放不当', shop:'宏发烟酒店',
        device:'每日履职自查上报', addr:'建设路 46 号 库房', time:'2026-08-23 09:50:00',
        desc:'库房内白酒等易燃品存放于电源插座附近，需规范存放。',
-       photo:true, photos:{before:'整改前-e11-2.png', after:'整改后-e11-2.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e11-2.png', after:'/linking-subsystem/photos/整改后-e11-2.png'}, timeline:[
         {dot:'report', time:'09:50:00', title:'自查上报', desc:'易燃品靠近电源，拍照上报'},
         {dot:'push', time:'09:50:10', title:'整改通知', desc:'限当日内规范存放', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -292,7 +292,7 @@ export const SHOP_EVENTS = {
        {id:'e11-3', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：灭火器失效', shop:'宏发烟酒店',
        device:'每日履职自查上报', addr:'建设路 46 号 店内', time:'2026-06-14 13:25:00',
        desc:'店内灭火器压力表指针在红区，无法正常使用。',
-       photo:true, photos:{before:'整改前-e11-3.png', after:'整改后-e11-3.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e11-3.png', after:'/linking-subsystem/photos/整改后-e11-3.png'}, timeline:[
         {dot:'report', time:'13:25:00', title:'自查上报', desc:'灭火器失效，拍照上报'},
         {dot:'push', time:'13:25:10', title:'整改通知', desc:'要求立即更换', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -320,7 +320,7 @@ export const SHOP_EVENTS = {
        {id:'e12-3', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：油烟管道未清洗', shop:'川渝火锅城',
        device:'每日履职自查上报', addr:'中山路 260 号 后厨', time:'2026-08-20 10:30:00',
        desc:'油烟管道积油严重，存在火灾隐患，要求限期清洗。',
-       photo:true, photos:{before:'整改前-e12-3.png', after:'整改后-e12-3.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e12-3.png', after:'/linking-subsystem/photos/整改后-e12-3.png'}, timeline:[
         {dot:'report', time:'10:30:00', title:'自查上报', desc:'积油严重，拍照上报'},
         {dot:'push', time:'10:30:10', title:'整改通知', desc:'限1周内清洗', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -328,7 +328,7 @@ export const SHOP_EVENTS = {
        {id:'e12-4', type:'hazard', level:'urgent', status:'processing', title:'排查隐患：安全出口锁闭', shop:'川渝火锅城',
        device:'每日履职自查上报', addr:'中山路 260 号 侧门', time:'2026-06-15 15:20:00',
        desc:'营业期间侧门安全出口被锁闭，违反消防规定，要求立即解锁。',
-       photo:true, photos:{before:'整改前-e12-4.png', after:'整改后-e12-4.png'}, timeline:[
+       photo:true, photos:{before:'/linking-subsystem/photos/整改前-e12-4.png', after:'/linking-subsystem/photos/整改后-e12-4.png'}, timeline:[
         {dot:'report', time:'15:20:00', title:'自查上报', desc:'出口锁闭，拍照上报'},
         {dot:'push', time:'15:20:10', title:'整改通知', desc:'要求立即解锁', channels:['sms','app']},
         {dot:'handle', time:'--', title:'待整改', desc:'商户整改中'}
@@ -338,9 +338,9 @@ export const SHOP_EVENTS = {
 
 
 export const BEFORE_PHOTO_POOL = [
-  '整改前-e12-4.png','整改前-e11-2.png','整改前-e9-3.png','整改前-e7-4.png',
-  '整改前-e11-3.png','整改前-e8-2.png','整改前-e6-4.png','整改前-e10-2.png',
-  '整改前-e7-3.png','整改前-e6-3.png','整改前-e12-3.png','整改前-e4-2.png',
-  '整改前-e9-4.png','整改前-e8-3.png','整改前-e3-1.png','整改前.png'
+  '/linking-subsystem/photos/整改前-e12-4.png','/linking-subsystem/photos/整改前-e11-2.png','/linking-subsystem/photos/整改前-e9-3.png','/linking-subsystem/photos/整改前-e7-4.png',
+  '/linking-subsystem/photos/整改前-e11-3.png','/linking-subsystem/photos/整改前-e8-2.png','/linking-subsystem/photos/整改前-e6-4.png','/linking-subsystem/photos/整改前-e10-2.png',
+  '/linking-subsystem/photos/整改前-e7-3.png','/linking-subsystem/photos/整改前-e6-3.png','/linking-subsystem/photos/整改前-e12-3.png','/linking-subsystem/photos/整改前-e4-2.png',
+  '/linking-subsystem/photos/整改前-e9-4.png','/linking-subsystem/photos/整改前-e8-3.png','/linking-subsystem/photos/整改前-e3-1.png','/linking-subsystem/photos/整改前.png'
 ];
 
