@@ -6,6 +6,14 @@
     <!-- Layer 1: 顶部标题栏 -->
     <LinkingHeader />
 
+    <!-- Layer 1.5: 通用大屏切换菜单（概览 + 10 系统，与系统壳一致） -->
+    <BigscreenNavDrawer
+      :items="navItems"
+      :active-id="activeId"
+      header="大屏切换"
+      @select="go"
+    />
+
     <!-- Layer 2: 三列系统区（Figma: top 155px，1679px 宽居中，gap 52px，高 802px） -->
     <div class="linking-content">
       <SysColumn v-for="(col, i) in SYS_COLUMNS" :key="i" :column="col" />
@@ -35,10 +43,41 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import './components/linking/linking-fonts.css'
 import LinkingHeader from './components/linking/LinkingHeader.vue'
 import SysColumn from './components/linking/SysColumn.vue'
+import BigscreenNavDrawer from '@/components/base/BigscreenNavDrawer.vue'
 import { SYS_COLUMNS } from './components/linking/linking-systems'
+import { LINKING_NAV_ITEMS, linkingRouteFor, modByTitle } from './linking-subsystem/data/nav'
+import { getBigscreenDetail } from '@/api/bigscreen'
+
+const router = useRouter()
+const route = useRoute()
+
+/* 概览页当前屏 = 平台概览（id=0），通用菜单在此高亮概览项 */
+const activeId: number = 0
+const navItems = LINKING_NAV_ITEMS
+
+function go(id: number | string) {
+  router.push(linkingRouteFor(Number(id)))
+}
+
+/* bigscreenId → 具体系统大屏解析（管理端/顶部大屏切换深链进入时定位到对应系统屏） */
+onMounted(async () => {
+  const bid = Number(route.query.bigscreenId) || 0
+  if (!bid) return
+  try {
+    const detail: any = await getBigscreenDetail(bid)
+    const mod = modByTitle(detail?.name || '')
+    if (mod && mod !== 0) {
+      router.replace(`/landing/linking/sub/${mod}`)
+    }
+  } catch {
+    // 非运营/管理角色无权限按 id 查大屏，保留概览即可
+  }
+})
 </script>
 
 <style lang="scss" scoped>

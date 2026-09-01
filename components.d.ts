@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppIcon: typeof import('./src/components/base/AppIcon.vue')['default']
+    BigscreenNavDrawer: typeof import('./src/components/base/BigscreenNavDrawer.vue')['default']
     CreateOrderDialog: typeof import('./src/components/business/CreateOrderDialog.vue')['default']
     DashboardShell: typeof import('./src/components/dashboard/DashboardShell.vue')['default']
     DashboardToolbar: typeof import('./src/components/dashboard/DashboardToolbar.vue')['default']

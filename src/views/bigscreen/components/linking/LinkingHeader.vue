@@ -32,7 +32,7 @@
     <h1 class="header-title">
       <span>海港区</span>
       <span class="title-quote">&#x201C;</span>
-      <span>人工智能+沿街店铺</span>
+      <span>人工智能+沿街商铺</span>
       <span class="title-quote">&#x201D;</span>
       <span>应消联勤平台</span>
     </h1>

@@ -11,7 +11,7 @@ export const BIGSCREEN_TYPE_LABELS: Record<BigscreenType, string> = {
   'enterprise-cockpit': '泉州\u201C人工智能+应消联勤\u201D一体化管控平台',
   campus: '\u201C人工智能+平安校园\u201D应用管理平台',
   ebike: '\u201C人工智能+电动自行车\u201D充电桩安防监管平台',
-  linking: '海港区“人工智能+沿街店铺”应消联勤平台',
+  linking: '海港区“人工智能+沿街商铺”应消联勤平台',
 }
 
 /** 应用场景预设选项 */

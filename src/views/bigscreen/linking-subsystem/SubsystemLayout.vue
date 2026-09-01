@@ -9,8 +9,8 @@
           </svg>
         </div>
         <div>
-          <h1>海港区“人工智能+沿街商铺”应消联勤平台</h1>
-          <div class="brand-subtitle">风险预警 · 联勤协同处置 · 闭环监管</div>
+          <h1>{{ currentModule?.title ?? '平台概览' }}</h1>
+          <div class="brand-subtitle">{{ currentModule?.tagline ?? '海港区“人工智能+沿街商铺”应消联勤平台' }}</div>
         </div>
       </div>
       <div class="topbar-right">
@@ -28,44 +28,17 @@
     </header>
 
     <div class="main">
-      <!-- ===== 侧栏（原 index.html .sidebar 1:1，含 Figma 装饰） ===== -->
-      <aside class="sidebar">
-        <div class="sidebar-title-decor" aria-hidden="true">
-          <img class="sidebar-decor-bar sidebar-decor-bar-a" src="@/assets/bigscreen/linking-subsystem/figma/sidebar/title-accent-1.svg" alt="">
-          <img class="sidebar-decor-bar sidebar-decor-bar-b" src="@/assets/bigscreen/linking-subsystem/figma/sidebar/title-accent-2.svg" alt="">
-          <img class="sidebar-decor-line" src="@/assets/bigscreen/linking-subsystem/figma/sidebar/title-line.svg" alt="">
-          <img class="sidebar-decor-spark sidebar-decor-spark-a" src="@/assets/bigscreen/linking-subsystem/figma/sidebar/title-spark.svg" alt="">
-          <img class="sidebar-decor-spark sidebar-decor-spark-b" src="@/assets/bigscreen/linking-subsystem/figma/sidebar/title-spark.svg" alt="">
-          <img class="sidebar-decor-spark sidebar-decor-spark-c" src="@/assets/bigscreen/linking-subsystem/figma/sidebar/title-spark.svg" alt="">
-        </div>
-        <div class="mod-list">
-          <button
-            v-for="m in MODULES"
-            :key="m.id"
-            type="button"
-            class="mod-item"
-            :class="{ active: m.id === activeId }"
-            @click="go(m.id)"
-          >
-            <div class="mod-num"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ico(m.icon)"></svg></div>
-            <div class="mod-body">
-              <div class="mod-title">{{ m.title }}</div>
-              <div class="mod-tag">{{ m.tag }}</div>
-            </div>
-          </button>
-        </div>
-      </aside>
+      <!-- ===== 悬浮抽屉导航（通用大屏导航组件） ===== -->
+      <BigscreenNavDrawer
+        :items="navItems"
+        :active-id="activeId"
+        header="大屏切换"
+        @select="go"
+      />
 
-      <!-- ===== 内容区 ===== -->
+      <!-- ===== 内容区（与顶栏构成一整块可视化大屏，模块内容全幅直出） ===== -->
       <section class="content">
-        <div class="iframe-shell" :data-system="currentModule?.custom ?? ''">
-          <div class="iframe-shell-title">{{ currentModule?.title }}</div>
-          <div class="iframe-shell-decor"></div>
-          <div class="iframe-shell-darkstrip"></div>
-          <div class="iframe-shell-body">
-            <SubsystemView :mod="activeId" />
-          </div>
-        </div>
+        <SubsystemView :mod="activeId" />
       </section>
     </div>
   </div>
@@ -75,8 +48,9 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MODULES } from './data/modules'
-import { ico } from './util/ico-map'
+import { LINKING_NAV_ITEMS, linkingRouteFor } from './data/nav'
 import SubsystemView from './SubsystemView.vue'
+import BigscreenNavDrawer from '@/components/base/BigscreenNavDrawer.vue'
 import '@/assets/bigscreen/linking-subsystem/subsystem.css'
 
 /* ===== 主题（原 index.html applyTheme/toggleTheme 1:1） ===== */
@@ -87,11 +61,16 @@ root.setAttribute('data-theme', theme.value)
 const router = useRouter()
 const route = useRoute()
 const activeId = computed(() => Number(route.params.mod) || 1)
-const currentModule = computed(() => MODULES.find(x => x.id === activeId.value))
+
+/* ===== 当前子系统（顶栏标题/标签 = 本屏独立标题） ===== */
+const currentModule = computed(() => MODULES.find((x) => x.id === activeId.value))
+
+/* ===== 通用切换菜单（平台概览 + 10 系统，全局一致） ===== */
+const navItems = LINKING_NAV_ITEMS
 
 /* ===== 模块切换（原 selectModule 1:1，改为路由） ===== */
-function go(id: number) {
-  router.push(`/landing/linking/sub/${id}`)
+function go(id: number | string) {
+  router.push(linkingRouteFor(Number(id)))
 }
 
 /* ===== 时钟（原 tickClock 1:1） ===== */
