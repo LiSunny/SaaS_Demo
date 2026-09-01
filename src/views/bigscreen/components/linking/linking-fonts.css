@@ -1,0 +1,33 @@
+/**
+ * 应消联勤大屏字体声明
+ *
+ * 字体文件放在 public/fonts/ 目录下。
+ * 设计稿字体：YouSheBiaoTiHei（页面主标题）/ Source-KeynoteartHans（列标题）/ DingTalk Sans（英文，用 DingTalk JinBuTi 替代）
+ */
+
+/* ===== 优设标题黑 — 页面主标题 ===== */
+@font-face {
+  font-family: 'YouSheBiaoTiHei';
+  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===== 思源演示斜黑体 — 列标题（Figma: Source-KeynoteartHans） ===== */
+@font-face {
+  font-family: 'Source-KeynoteartHans';
+  src: url('/fonts/演示斜黑体.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===== 钉钉进步体 — 英文副标题（Figma: DingTalk Sans） ===== */
+@font-face {
+  font-family: 'DingTalk JinBuTi';
+  src: url('/fonts/DingTalkJinBuTi.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
