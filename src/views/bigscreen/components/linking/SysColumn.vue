@@ -133,6 +133,7 @@ defineProps<{
   position: absolute;
   left: 0; bottom: 0;
   width: 95.54%; height: vh(12.846);
+  z-index: -1;
   background: linear-gradient(
     56.32deg,
     rgb(25, 82, 170) 0%,

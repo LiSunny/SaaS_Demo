@@ -10,9 +10,8 @@ import { SHOP_EVENTS, BEFORE_PHOTO_POOL } from '../data/shop-events'
 import * as echarts from 'echarts'
 
 
-
-
-
+/* ===== 第一屏/二级页 视图切换（方案A：子系统内 view 状态，无独立路由） ===== */
+let hzView: 'overview' | 'list' = 'overview'
 
 export let bindSelectModule = (id: number) => {}
 export function setModuleSwitch(fn: (id: number) => void) { bindSelectModule = fn }
@@ -68,23 +67,426 @@ let activeContainer: HTMLElement
 export function bindContainer(el: HTMLElement) { activeContainer = el }
 
 export function applyPendingState(s: any) {
-  if (s.hzCurrentShop !== undefined) hzCurrentShop = s.hzCurrentShop
+  if (s.hzCurrentShop !== undefined) { hzCurrentShop = s.hzCurrentShop; hzView = 'list' }
 }
 
-export function renderHazards(body?: HTMLElement, container?: HTMLElement){
-  body = body || activeContainer
-  disposeCharts();
-  const content = container || body;
-  body.style.overflowY = 'hidden';
-
+/* ===== 隐患数据统一获取（第一屏/二级页共用） ===== */
+function hazardData(){
   const allHazards = getAllEvents().filter(e=>e.type==='hazard');
   const pending = allHazards.filter(e=>e.status==='pending').length;
   const processing = allHazards.filter(e=>e.status==='processing').length;
   const done = allHazards.filter(e=>e.status==='done').length;
   const totalHazards = allHazards.length;
+  const shopsWithHazards = SHOPS.filter(s=>{
+    const events = SHOP_EVENTS[s.id] || [];
+    return events.some(e=>e.type==='hazard');
+  });
+  return { allHazards, pending, processing, done, totalHazards, shopsWithHazards };
+}
+
+/* ===== 概览入口：分发 overview / list ===== */
+export function renderHazards(body?: HTMLElement, container?: HTMLElement){
+  disposeHazardsMap();
+  if (hzView === 'list') { renderHazardsList(body, container); return }
+  renderHazardsOverview(body, container);
+}
+
+/* ============ 第一屏：三栏仪表盘（按设计稿 ii478VTDQ5RBGJKeCVmQJ1 112-16669） ============ */
+/* 每个统计卡一个线性 SVG 图标（禁 emoji） */
+function hzKpiIcon(name: string): string {
+  const m: Record<string,string> = {
+    open: '<path d="M12 8a4 4 0 100 8 4 4 0 000-8z"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+    add: '<path d="M12 8v8M8 12h8M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+    done: '<path d="M12 21a9 9 0 100-18 9 9 0 000 18z"/><path d="M8 12l3 3 5-6"/>',
+    shop: '<path d="M3 9l1-5h16l1 5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/><path d="M5 12v8h14v-8"/>',
+    overdue: '<path d="M12 9v4l2.5 2.5"/><path d="M12 21a9 9 0 100-18 9 9 0 000 18z"/>',
+    major: '<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5"/><path d="M12 18h.01"/>',
+    feed: '<path d="M4 6h16M4 12h16M4 18h10"/>',
+    fullscreen: '<path d="M8 3H5a2 2 0 00-2 2v3"/><path d="M16 3h3a2 2 0 012 2v3"/><path d="M8 21H5a2 2 0 01-2-2v-3"/><path d="M16 21h3a2 2 0 002-2v-3"/>',
+  };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${m[name]||m.open}</svg>`;
+}
+
+function hzPanelHead(title: string, right?: string, tip?: string): string {
+  const info = tip
+    ? `<span class="hz-title-info" data-tip="${tip.replace(/"/g, '&quot;')}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><path d="M12 8h.01"/></svg>
+      </span>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hz-title-info"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><path d="M12 8h.01"/></svg>`;
+  return `
+    <div class="hz-panel-head">
+      <div class="hz-panel-title">${title}${info}</div>
+      <div class="hz-panel-right">${right || ''}</div>
+    </div>`;
+}
+
+/* 统计卡：统一封装（设计稿式「图标 + 标题 + 大数值」，无 sub 行） */
+function hzKpiCard(label: string, value: number|string, icon: string, valueClass: string = ''): string {
+  return `
+    <div class="hz-kpi">
+      <div class="hz-kpi-icon">${hzKpiIcon(icon)}</div>
+      <div class="hz-kpi-mid">
+        <div class="hz-kpi-label">${label}</div>
+        <div class="hz-kpi-value ${valueClass}">${value}</div>
+      </div>
+    </div>`;
+}
+
+function hzLevelLabel(lv){ return lv==='urgent'?'重大':lv==='warning'?'较大':'一般'; }
+function hzStatusLabel(st){ return st==='pending'?'待整改':st==='processing'?'处置中':'已闭环'; }
+
+/* ===== 第一屏概览（新增） ===== */
+export function renderHazardsOverview(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
+  disposeCharts();
+  const content = container || body;
+  body.style.overflowY = 'hidden';
+
+  const { allHazards, pending, processing, done } = hazardData();
+  const today = new Date().toISOString().slice(0,10);
+  const todayNew = allHazards.filter(e=>e.time.startsWith(today)).length;
+  const totalHazards = allHazards.length;
+  const overdue = allHazards.filter(e=>hzIsOverdue(e)).length;
+  const closedRate = totalHazards > 0 ? Math.round(done/totalHazards*100) : 0;
+
+  /* 隐患清单：近期若干条 */
+  const recent = [...allHazards].sort((a,b)=> (b.time||'').localeCompare(a.time||'')).slice(0,6);
+  const miniList = recent.map(e=>`
+    <div class="hz-mini-row" onclick="showEventDetail('${e.id}')">
+      <span class="hz-item-level ${e.level}">${hzLevelLabel(e.level)}</span>
+      <span class="hz-mini-title">${e.title.replace('排查隐患：','')}</span>
+      <span class="hz-mini-shop">${e.shop}</span>
+      <span class="hz-item-status ${hzIsOverdue(e)?'overdue':e.status}">${hzIsOverdue(e)?'超期未整改':hzStatusLabel(e.status)}</span>
+    </div>`).join('') || '<div class="hz-mini-empty">暂无隐患记录</div>';
+
+  /* 未闭环隐患商户 TOP5：按商户统计未闭环隐患数，取前 5 */
+  const topShops = SHOPS
+    .map(s=>{
+      const events = SHOP_EVENTS[s.id] || [];
+      const open = events.filter(e=>e.type==='hazard' && (e.status==='pending' || e.status==='processing')).length;
+      return { name:s.name, open };
+    })
+    .filter(s=>s.open > 0)
+    .sort((a,b)=>b.open - a.open)
+    .slice(0,5);
+  const topListHtml = topShops.length
+    ? topShops.map((s,i)=>`
+        <div class="hz-top-row" onclick="hzOpenShopList(${SHOPS.find(x=>x.name===s.name)?.id || 0})">
+          <span class="hz-top-rank">${i+1}</span>
+          <span class="hz-top-name">${s.name}</span>
+          <span class="hz-top-cnt">未闭环 ${s.open} 条</span>
+        </div>`).join('')
+    : '<div class="hz-mini-empty">暂无未闭环隐患商户</div>';
+
+  /* 实时动态：复用智能感知告警系统的「实时告警态势」卡片（ev-shop-card），垂直滚动 */
+  const feedEvents = [...allHazards].sort((a,b)=> (b.time||'').localeCompare(a.time||''));
+  const feedListHtml = feedEvents.map(e=>{
+    const statusLabel = e.status==='pending' ? '待整改' : e.status==='processing' ? '处置中' : '已闭环';
+    const statusColor = e.status==='done'||e.status==='closed' ? 'var(--green)' : (e.level==='urgent' ? 'var(--alert)' : 'var(--orange)');
+    return `
+      <div class="ev-shop-card hz-feed-card" onclick="showEventDetail('${e.id}')">
+        <div class="ev-shop-card-head">
+          <span class="ev-shop-card-name">${e.shop}</span>
+          <span class="ev-shop-card-time">${e.time.slice(5,16).replace('-', '/')}</span>
+        </div>
+        <div class="ev-shop-card-title">${e.title.replace('排查隐患：','')}</div>
+        <div class="ev-shop-card-row">
+          <span><span class="ev-shop-card-dot" style="background:${statusColor}"></span>${evTypeLabel(e)}</span>
+          <span>${statusLabel}</span>
+        </div>
+      </div>`;
+  }).join('') || '<div class="hz-mini-empty">暂无隐患动态</div>';
+
+  content.innerHTML = `
+    <div class="hz-dash">
+      <!-- 左栏 -->
+      <div class="hz-dash-col hz-dash-left">
+        <div class="hz-panel hz-panel-overview" style="flex:1 1 0;">
+          ${hzPanelHead('辖区概览', `<div class="hz-panel-date">${today}</div>`,
+            `「辖区概览」统计口径：\n· 未闭环隐患 = 待整改 + 处置中\n· 超期未整改 = 未闭环隐患中，超整改期限（疏散通道 24h / 电线 48h 等）仍未闭环的数量\n· 今日新增 = 当天新上报隐患数（00:00-24:00）\n· 闭环率 = 已闭环隐患 ÷ 累计上报隐患（含待整改、处置中、已闭环），基于全部历史累计`)}
+          <div class="hz-kpi-grid">
+            ${hzKpiCard('未闭环隐患', pending+processing, 'open', (pending+processing)>0 ? 'value-danger' : '')}
+            ${hzKpiCard('今日新增', todayNew, 'add', todayNew>0 ? 'value-danger' : '')}
+            ${hzKpiCard('超期未整改', overdue, 'overdue', overdue>0 ? 'value-danger' : '')}
+            ${hzKpiCard('闭环率', closedRate + '%', 'done', closedRate<50 ? 'value-danger' : (closedRate<90 ? 'value-warn' : ''))}
+          </div>
+          <div class="hz-chart-block">
+            <div class="hz-chart-title">上报趋势<span class="hz-chart-sub">近 7 日 · 隐患上报数</span></div>
+            <div class="hz-trend-chart" id="hzTrendChart"></div>
+          </div>
+          <div class="hz-chart-block">
+            <div class="hz-chart-title">分类分布<span class="hz-chart-sub">按隐患等级</span></div>
+            <div class="hz-dist-chart" id="hzDistChart"></div>
+          </div>
+          <div class="hz-chart-block">
+            <div class="hz-chart-title">未闭环隐患商户 TOP5<span class="hz-chart-sub">按未闭环数量</span></div>
+            <div class="hz-top-list">${topListHtml}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中栏 -->
+      <div class="hz-dash-col hz-dash-center">
+        <div class="hz-panel hz-map-panel" style="flex:58 1 0;">
+          ${hzPanelHead('隐患地图', `
+            <div class="hz-map-actions">
+              <button type="button" class="hz-icon-btn" title="全屏" onclick="hzMapFs()">${hzKpiIcon('fullscreen').replace('class="','class="hz-fs-ico "')}</button>
+            </div>`)}
+          <div class="hz-map-wrap"><div id="hzMap" class="hz-map-canvas"></div><div class="map-load-state" id="hzMapState">地图初始化中…</div></div>
+        </div>
+        <div class="hz-panel hz-panel-list" style="flex:34 1 0;">
+          ${hzPanelHead('隐患清单', `<div class="hz-panel-more" onclick="hzShowList()">更多 ›</div>`)}
+          <div class="hz-mini-list">${miniList}</div>
+        </div>
+      </div>
+
+      <!-- 右栏 -->
+      <div class="hz-dash-col hz-dash-right">
+        <div class="hz-panel hz-panel-feed" style="flex:1 1 0;">
+          ${hzPanelHead('实时动态', `<div class="hz-panel-date">${today}</div>`)}
+          <div class="hz-feed-card-list" id="hzFeedList">
+            ${feedListHtml}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  renderHazardMap();
+  renderHazardTrend();
+  renderHazardDist();
+  startHazardFeedScroll();
+}
+
+/* ============ 辖区态势：近 7 日隐患上报趋势（ECharts 折线面积图，进场动画） ============ */
+export function renderHazardTrend(){
+  const el = document.getElementById('hzTrendChart') as HTMLElement;
+  if(!el) return;
+  disposeCharts();  /* 释放旧实例 */
+  const chart = initChart(el);
+  if(!chart || typeof chart === 'undefined') return;
+
+  const allHazards = getAllEvents().filter(e=>e.type==='hazard');
+  /* 近 7 天日期轴 */
+  const days: string[] = [];
+  const counts: number[] = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    days.push(key.slice(5));  /* MM-DD */
+    counts.push(allHazards.filter(e=>e.time.startsWith(key)).length);
+  }
+
+  chart.setOption({
+    animation: true,
+    animationDuration: 1200,
+    animationEasing: 'cubicOut',
+    grid: { left: 34, right: 16, top: 24, bottom: 24 },
+    tooltip: { trigger:'axis', backgroundColor:'#fff', borderColor:'#dbe4ef', textStyle:{color:'#233850', fontSize:12}, axisPointer:{ type:'line', lineStyle:{ color:'#c3d2e4' } } },
+    xAxis: {
+      type:'category', boundaryGap:false, data: days,
+      axisLine:{ lineStyle:{ color:'#dbe4ef' } },
+      axisTick:{ show:false },
+      axisLabel:{ color:'#7c8ba0', fontSize:11, interval:0 }
+    },
+    yAxis: {
+      type:'value', minInterval:1,
+      splitLine:{ lineStyle:{ color:'#e7edf6' } },
+      axisLabel:{ color:'#7c8ba0', fontSize:11 }
+    },
+    series: [{
+      name:'上报隐患', type:'line',
+      data: counts, smooth:true, symbol:'circle', symbolSize:6,
+      lineStyle:{ width:2.5, color:'#1754b5' },
+      itemStyle:{ color:'#1754b5', borderColor:'#fff', borderWidth:2 },
+      areaStyle:{
+        color: {
+          type:'linear', x:0, y:0, x2:0, y2:1,
+          colorStops:[
+            { offset:0, color:'rgba(23,84,181,.28)' },
+            { offset:1, color:'rgba(23,84,181,0)' }
+          ]
+        }
+      },
+      emphasis:{ focus:'series' }
+    }]
+  });
+}
+
+/* ============ 辖区态势：隐患分类分布（按等级横向条形图，进场动画） ============ */
+export function renderHazardDist(){
+  const el = document.getElementById('hzDistChart') as HTMLElement;
+  if(!el) return;
+  const chart = initChart(el);
+  if(!chart || typeof chart === 'undefined') return;
+
+  const allHazards = getAllEvents().filter(e=>e.type==='hazard');
+  const urgent = allHazards.filter(e=>e.level==='urgent').length;
+  const warning = allHazards.filter(e=>e.level==='warning').length;
+  const info = allHazards.filter(e=>e.level==='info').length;
+  const data = [
+    { name:'重大', value: urgent, color:'#0d3a7a' },
+    { name:'较大', value: warning, color:'#1754b5' },
+    { name:'一般', value: info, color:'#5b93dd' },
+  ];
+
+  chart.setOption({
+    animation: true,
+    animationDuration: 1200,
+    animationEasing: 'cubicOut',
+    grid: { left: 44, right: 32, top: 8, bottom: 8 },
+    tooltip: { trigger:'axis', axisPointer:{ type:'shadow' }, backgroundColor:'#fff', borderColor:'#dbe4ef', textStyle:{color:'#233850', fontSize:12} },
+    xAxis: { type:'value', minInterval:1, splitLine:{ lineStyle:{ color:'#e7edf6' } }, axisLabel:{ color:'#7c8ba0', fontSize:11 } },
+    yAxis: {
+      type:'category', data: data.map(d=>d.name),
+      axisLine:{ show:false }, axisTick:{ show:false },
+      axisLabel:{ color:'#46586d', fontSize:13, fontWeight:600 }
+    },
+    series: [{
+      type:'bar', barWidth:14,
+      data: data.map(d=>({ value:d.value, itemStyle:{ color:d.color, borderRadius:[0,7,7,0] } })),
+      label:{ show:true, position:'right', color:'#233850', fontSize:13, fontWeight:700 },
+      showBackground: true,
+      backgroundStyle:{ color:'rgba(24,34,50,.04)', borderRadius:[0,7,7,0] },
+      itemStyle:{ borderRadius:[0,7,7,0] }
+    }]
+  });
+}
+
+/* ============ 高德地图：隐患点位标注 ============ */
+let hzMap: any = null
+function hzShopLngLat(s){
+  const baseLng = 119.6004;
+  const baseLat = 39.9354;
+  const lng = baseLng + (s.x - 50) * 0.00072;
+  const lat = baseLat - (s.y - 50) * 0.00054;
+  return [Number(lng.toFixed(6)), Number(lat.toFixed(6))];
+}
+function hzMarkerHtml(s): string {
+  const open = (SHOP_EVENTS[s.id]||[]).filter(e=>e.type==='hazard'&&(e.status==='pending'||e.status==='processing'));
+  const color = open.some(e=>e.level==='urgent') ? '#d62409' : '#ff5252';
+  return `
+    <div class="hz-map-marker open" style="--mk:${color}" data-shop-id="${s.id}" onclick="event.stopPropagation();hzOpenShopList(${s.id})">
+      <span class="hz-map-marker-dot"></span>
+      <span class="hz-map-marker-tip">${s.name} · 未闭环 ${open.length} 条</span>
+    </div>`;
+}
+function disposeHazardsMap(){
+  if(hzMap){ try{ hzMap.destroy(); }catch(_){ /* noop */ } hzMap = null; }
+}
+function renderHazardMap(){
+  const el = document.getElementById('hzMap');
+  if(!el) return;
+  const AMap = (window as any).AMap;
+  if(typeof AMap === 'undefined'){
+    const state = document.getElementById('hzMapState');
+    if(state) state.textContent = '高德地图加载失败，请检查网络或 Key 配置';
+    return;
+  }
+  el.innerHTML = '';
+  const state = document.getElementById('hzMapState');
+  if(state) state.remove();
+
+  hzMap = new AMap.Map('hzMap', {
+    zoom: 15,
+    center: [119.6004, 39.9354],
+    viewMode: '2D',
+    resizeEnable: true,
+    scrollWheel: false,
+    touchZoom: false,
+    doubleClickZoom: false,
+    showBuildingBlock: true,
+    mapStyle: 'amap://styles/whitesmoke'
+  });
+
+  const openShops = SHOPS.filter(s=>(SHOP_EVENTS[s.id]||[]).some(e=>e.type==='hazard'&&(e.status==='pending'||e.status==='processing')));
+  const markers = openShops.map(s=>{
+    const marker = new AMap.Marker({
+      position: hzShopLngLat(s),
+      anchor: 'bottom-center',
+      content: hzMarkerHtml(s),
+      offset: new AMap.Pixel(0, 0),
+      extData: { shopId: s.id }
+    });
+    marker.setMap(hzMap);
+    return marker;
+  });
+
+  hzMap.on('complete', ()=>{
+    if(markers.length) hzMap.setFitView(null, false, [60,60,60,60]);
+  });
+}
+
+/* ============ 实时动态：垂直自动滚动 ============ */
+let hzFeedRaf = 0
+function startHazardFeedScroll(){
+  if(hzFeedRaf) cancelAnimationFrame(hzFeedRaf);
+  const wrap = document.getElementById('hzFeedList') as HTMLElement;
+  if(!wrap) return;
+  /* 内容不溢出则不滚动 */
+  if(wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  let lastTs = 0;
+  let paused = false;
+  wrap.addEventListener('mouseenter', ()=>{ paused = true; });
+  wrap.addEventListener('mouseleave', ()=>{ paused = false; });
+
+  const step = (ts: number)=>{
+    if(!document.body.contains(wrap)) return;
+    if(!lastTs) lastTs = ts;
+    const dt = ts - lastTs;
+    lastTs = ts;
+    if(!paused){
+      wrap.scrollTop += dt * 0.018;
+      const maxTop = wrap.scrollHeight - wrap.clientHeight;
+      if(wrap.scrollTop >= maxTop - 1){
+        wrap.scrollTop = 0;   /* 滚到底后循环回顶部 */
+      }
+    }
+    hzFeedRaf = requestAnimationFrame(step);
+  };
+  hzFeedRaf = requestAnimationFrame(step);
+}
+
+/* 全屏地图 */
+export function hzMapFs(){
+  const wrap = document.querySelector('.hz-map-wrap') as HTMLElement;
+  if(!wrap) return;
+  if(document.fullscreenElement){ document.exitFullscreen(); return; }
+  const fs = wrap.querySelector('.hz-map-canvas') as HTMLElement;
+  if(fs && fs.requestFullscreen) fs.requestFullscreen();
+  else wrap.requestFullscreen?.();
+}
+
+/* 概览 → 二级页（列表） */
+export function hzShowList(){
+  hzView = 'list';
+  hzPage = 1;
+  renderHazards();
+}
+/* 二级页 → 概览 */
+export function hzShowOverview(){
+  hzView = 'overview';
+  renderHazards();
+}
+/* 地图标注 → 该商户隐患列表 */
+export function hzOpenShopList(shopId: number){
+  hzCurrentShop = shopId;
+  hzView = 'list';
+  hzPage = 1;
+  renderHazards();
+}
+
+/* ============ 二级页：隐患治理台账（原第一屏整体保留） ============ */
+function renderHazardsList(body?: HTMLElement, container?: HTMLElement){
+  body = body || activeContainer
+  disposeCharts();
+  const content = container || body;
+  body.style.overflowY = 'hidden';
+
+  const { allHazards, pending, processing, done, totalHazards, shopsWithHazards } = hazardData();
 
   /* 有隐患的商户列表 */
-  const shopsWithHazards = SHOPS.filter(s=>{
+  const shopsWithHazardsList = SHOPS.filter(s=>{
     const events = SHOP_EVENTS[s.id] || [];
     return events.some(e=>e.type==='hazard');
   });
@@ -129,7 +531,7 @@ export function renderHazards(body?: HTMLElement, container?: HTMLElement){
   /* 商户筛选 */
   const shopFilterHtml = [
     {key:0, label:'全部商户'},
-    ...shopsWithHazards.map(s=>({key:s.id, label:s.name}))
+    ...shopsWithHazardsList.map(s=>({key:s.id, label:s.name}))
   ].map(f=>`<option value="${f.key}" ${hzCurrentShop===f.key?'selected':''}>${f.label}</option>`).join('');
 
   /* 隐患列表 */
@@ -161,6 +563,10 @@ export function renderHazards(body?: HTMLElement, container?: HTMLElement){
       {label:'导出', icon:icoExportSmall},
       {label:'发起复核', icon:icoPlusSmall, primary:true}
     ])}
+    <div class="hz-list-backbar">
+      <button type="button" class="ev-page-btn" onclick="hzShowOverview()">← 返回概览</button>
+      <span class="hz-list-title-tx">隐患治理台账</span>
+    </div>
     <div class="hz-stats">
       <div class="hz-stat">
         <div class="hz-stat-left">

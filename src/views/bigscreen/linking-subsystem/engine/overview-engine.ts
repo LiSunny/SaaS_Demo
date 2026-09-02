@@ -146,7 +146,7 @@ export function renderGaodeMap(){
     center: [119.6004, 39.9354],
     viewMode: '2D',
     resizeEnable: true,
-    mapStyle: 'amap://styles/darkblue'
+    mapStyle: 'amap://styles/349dd62f0c95fd4de6fae2e8e043966b'
   });
 
   gaodeMarkers = SHOPS.map(s=>{
@@ -290,7 +290,7 @@ export function shopDetailHtml(id: number, full?: boolean, container?: HTMLEleme
   const weekdays = ['日','一','二','三','四','五','六'];
   const today = 23;
   let calHtml = '';
-  weekdays.forEach(d=>{ calHtml += `<div class="sd-cal-cell" style="color:#b9b9b9">${d}</div>`; });
+  weekdays.forEach(d=>{ calHtml += `<div class="sd-cal-cell" style="color:#C0D7E8">${d}</div>`; });
   calHtml += '<div class="sd-cal-cell"></div>'; /* 6/1=周一, 前面1个空格 */
   for(let d=1; d<=30; d++){
     let cls = '';
@@ -322,10 +322,10 @@ export function shopDetailHtml(id: number, full?: boolean, container?: HTMLEleme
 
   const dev = s.devices;
   const devRows = [
-    {c:'#4a79ee', t:'烟感', n:dev.smoke},
-    {c:'#39b54a', t:'灭火器', n:dev.extinguisher},
-    {c:'#f0a040', t:'燃气报警', n:dev.gas},
-    {c:'#8d8d8d', t:'其他', n:dev.other}
+    {c:'#6CB8F0', t:'烟感', n:dev.smoke},
+    {c:'#3DDC97', t:'灭火器', n:dev.extinguisher},
+    {c:'#F5B027', t:'燃气报警', n:dev.gas},
+    {c:'#9BAEC4', t:'其他', n:dev.other}
   ].filter(d=>d.n>0).map(d=>`
     <div class="sd-device-row">
       <span class="sd-device-dot" style="background:${d.c}"></span>
@@ -465,10 +465,10 @@ export function renderShopDeviceChart(shopId){
   if(!el) return;
   const chart = echarts.init(el);
   const data = [
-    {value:parseInt(el.dataset.smoke||0), name:'烟感', itemStyle:{color:'#4a79ee'}},
-    {value:parseInt(el.dataset.extinguisher||0), name:'灭火器', itemStyle:{color:'#39b54a'}},
-    {value:parseInt(el.dataset.gas||0), name:'燃气报警', itemStyle:{color:'#f0a040'}},
-    {value:parseInt(el.dataset.other||0), name:'其他', itemStyle:{color:'#8d8d8d'}}
+    {value:parseInt(el.dataset.smoke||0), name:'烟感', itemStyle:{color:'#6CB8F0'}},
+    {value:parseInt(el.dataset.extinguisher||0), name:'灭火器', itemStyle:{color:'#3DDC97'}},
+    {value:parseInt(el.dataset.gas||0), name:'燃气报警', itemStyle:{color:'#F5B027'}},
+    {value:parseInt(el.dataset.other||0), name:'其他', itemStyle:{color:'#9BAEC4'}}
   ];
   chart.setOption({
     tooltip:{trigger:'item', formatter:'{b}: {c} 台'},

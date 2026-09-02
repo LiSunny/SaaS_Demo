@@ -1,9 +1,9 @@
 <template>
-  <div ref="hostEl" class="subsystem-view"></div>
+  <div ref="hostEl" class="subsystem-view" :data-system="custom"></div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
+import { onMounted, onBeforeUnmount, watch, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { MODULES } from './data/modules'
 import { bindModuleSwitch, consumePendingState } from './engine/shared-engine'
@@ -12,6 +12,9 @@ import { mountEngineGlobals, unmountEngineGlobals, REGISTERS, COMMON_GLOBALS } f
 const props = defineProps<{ mod: number }>()
 const hostEl = ref<HTMLElement>()
 const router = useRouter()
+
+/* 当前系统的 custom 标记，供差异化 CSS [data-system=...] 选择器使用 */
+const custom = computed(() => MODULES.find((x: any) => x.id === props.mod)?.custom || '')
 
 /** 各模块引擎（懒加载），mod.custom → engine 文件 */
 const engineLoaders: Record<string, () => Promise<any>> = {
@@ -95,5 +98,15 @@ onBeforeUnmount(() => {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+}
+/* 统一内容区四周 20px 内边距 + 顶层兄弟块间 14px 间距（所有系统一致）；
+   overview 例外——其 .responsibility-system 自带 20px padding + 背景铺满宿主，宿主再补会叠加成 40px */
+.subsystem-view:not([data-system="overview"]) {
+  padding: 20px;
+  gap: 14px;
+}
+/* hazards 第一屏（三栏仪表盘）按设计稿：内容容器四周 0 内边距（用户 2026-09-02 确认：整个内容容器不留边距，由面板自带） */
+.subsystem-view[data-system="hazards"] {
+  padding: 0;
 }
 </style>

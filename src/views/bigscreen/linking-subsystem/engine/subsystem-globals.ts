@@ -35,7 +35,7 @@ export const REGISTERS: Record<string, GlobalFnRegister> = {
     fns: ['evSwitchTab', 'evSetStatusFilter', 'evSetSearch', 'evSetPage', 'evApplyMetricFilter', 'showEventDetail', 'evFilterShop'],
   },
   hazards: {
-    fns: ['hzSetStatusFilter', 'hzSetLevelFilter', 'hzSetSearch', 'hzSetPage', 'hzFilterShop', 'showEventDetail'],
+    fns: ['hzSetStatusFilter', 'hzSetLevelFilter', 'hzSetSearch', 'hzSetPage', 'hzFilterShop', 'showEventDetail', 'hzShowList', 'hzShowOverview', 'hzOpenShopList', 'hzMapFs'],
   },
   controlRooms: {
     fns: ['crSetFilter', 'crSetSearch', 'crSetPage', 'showCamVideo', 'showControlRoomDetail', 'showLeaveShot', 'showLeaveDetail'],

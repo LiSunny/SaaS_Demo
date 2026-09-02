@@ -30,11 +30,7 @@
 
     <!-- ===== 主标题（Figma: top 13px 居中，YouSheBiaoTiHei 32px，渐变 #e5f2ff→#b0cdff） ===== -->
     <h1 class="header-title">
-      <span>海港区</span>
-      <span class="title-quote">&#x201C;</span>
-      <span>人工智能+沿街商铺</span>
-      <span class="title-quote">&#x201D;</span>
-      <span>应消联勤平台</span>
+      <span>海港区“人工智能+沿街商铺”应消联勤平台</span>
     </h1>
 
     <!-- ===== 标题下方光晕条（Figma Rectangle 198: 259×5 @ (828,70)，radial 渐变白芯→青蓝 + box-shadow 光晕） ===== -->
@@ -154,7 +150,6 @@
   background: linear-gradient(to bottom, #e5f2ff 0%, #b0cdff 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 vh(4) vh(8) rgba(0, 45, 122, 0.47);
 }
 
 /* 引号负字距（Figma: tracking -10.56px，让弯引号贴近文字）
