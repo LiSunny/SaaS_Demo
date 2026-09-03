@@ -19,8 +19,10 @@
       <SysColumn v-for="(col, i) in SYS_COLUMNS" :key="i" :column="col" />
     </div>
 
-    <!-- Layer 3: 左侧装饰线（Figma: 80.89×1065 @ (13,3)） -->
-    <img class="deco-side-line" src="@/assets/bigscreen/linking/linking-side-line.svg" alt="" />
+    <!-- Layer 3: 左侧大装饰（合并版，Figma 125:17825 侧线+底部线+角块一体导出，与右侧对称） -->
+    <div class="deco-side-left">
+      <img src="@/assets/bigscreen/linking/linking-side-deco-left-full.svg" alt="" />
+    </div>
 
     <!-- Layer 4: 左侧箭头装饰（Figma: 27.6×696 @ (13.99,192)） -->
     <img class="deco-side-arrow-l" src="@/assets/bigscreen/linking/linking-side-deco-left.svg" alt="" />
@@ -31,14 +33,8 @@
     </div>
 
     <!-- Layer 6: 右侧箭头装饰（Figma: 27.6×696 @ (1878.39,192)，水平镜像） -->
-    <div class="deco-side-arrow-r">
-      <img src="@/assets/bigscreen/linking/linking-side-deco-right-small.svg" alt="" />
-    </div>
+    <img class="deco-side-arrow-r" src="@/assets/bigscreen/linking/linking-side-deco-right-small.svg" alt="" />
 
-    <!-- Layer 7: 底部装饰线（Figma: Vector9 922×19.5 @ (24.84,1050) / Vector10 721×7.5 @ (108.19,1050.5) / Rectangle201 57.2×5 @ (902.79,1046)） -->
-    <img class="deco-bottom-1" src="@/assets/bigscreen/linking/linking-bottom-line-1.svg" alt="" />
-    <img class="deco-bottom-2" src="@/assets/bigscreen/linking/linking-bottom-line-2.svg" alt="" />
-    <img class="deco-bottom-3" src="@/assets/bigscreen/linking/linking-bottom-deco.svg" alt="" />
   </div>
 </template>
 
@@ -112,12 +108,17 @@ onMounted(async () => {
   gap: vw(52);
 }
 
-/* Layer 3: 左侧装饰线（Figma: 80.89×1065 @ (13,3)） */
-.deco-side-line {
+/* Layer 3: 左侧大装饰（合并版，Figma 125:17825 947×1066.5 @ (13,3)，侧线+底部线+角块一体导出，与右侧对称） */
+.deco-side-left {
   position: absolute;
-  left: vw(13); top: vh(3);
-  width: vw(80.89); height: vh(1065);
-  display: block; pointer-events: none;
+  left: vw(13); top: vh(3.6);
+  width: vw(947); height: vh(1066.5);
+  pointer-events: none;
+}
+
+.deco-side-left img {
+  width: 100%; height: 100%;
+  display: block;
 }
 
 /* Layer 4: 左侧箭头装饰（Figma: 27.6×696 @ (13.99,192)） */
@@ -155,27 +156,5 @@ onMounted(async () => {
 .deco-side-arrow-r img {
   width: 100%; height: 100%;
   display: block;
-}
-
-/* Layer 7: 底部装饰线 */
-.deco-bottom-1 {
-  position: absolute;
-  left: vw(24.84); top: vh(1050);
-  width: vw(922.339); height: vh(19.5);
-  display: block; pointer-events: none;
-}
-
-.deco-bottom-2 {
-  position: absolute;
-  left: vw(108.19); top: vh(1050.5);
-  width: vw(721.101); height: vh(7.5);
-  display: block; pointer-events: none;
-}
-
-.deco-bottom-3 {
-  position: absolute;
-  left: vw(902.79); top: vh(1046);
-  width: vw(57.215); height: vh(5);
-  display: block; pointer-events: none;
 }
 </style>
