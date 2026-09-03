@@ -33,7 +33,8 @@
       <span>海港区“人工智能+沿街商铺”应消联勤平台</span>
     </h1>
 
-    <!-- ===== 标题下方光晕条（Figma Rectangle 198: 259×5 @ (828,70)，radial 渐变白芯→青蓝 + box-shadow 光晕） ===== -->
+    <!-- ===== 标题下方光晕条（Figma Rectangle 198: 259×5 @ (828,70)，居中）
+         单个整体元素：横向扁菱形渐变——中间最高、向两端渐窄收尖，整体更矮 ===== -->
     <div class="title-line" />
   </header>
 </template>
@@ -69,7 +70,7 @@
    右侧镜像同宽 → 两板在中心重叠闭合接缝；不足时会露出描边竖线） */
 .h-decor-mid {
   position: absolute;
-  left: vw(608); top: vh(-0.75);
+  left: vw(610); top: vh(-0.75);
   width: vw(350.779); height: vh(85.63);
   display: block;
 }
@@ -160,17 +161,21 @@
   letter-spacing: vw(-10.56);
 }
 
-/* ===== 标题下方光晕条（Figma Rectangle 198 原样 CSS） =====
-   Figma 代码：
-   width: 259px; height: 5px; left: 828px; top: 70px;
-   background: radial-gradient(50% 50% at 50% 50%, #D9D9D9 0%, #1DA6DA 100%);
-   box-shadow: 0px 0px 6px rgba(98, 185, 218, 0.74); */
+/* ===== 标题下方光晕条（Figma Rectangle 198，居中，整体菱形渐变） =====
+   Figma 原值：width 259px; height 5px; left 828px; top 70px。
+   现改为单个整体元素：横向扁菱形（梭形）——正中间最高、向两端渐窄收尖，
+   中心最大高度从 5px 降为 4px（整体更矮更纤细）。
+   - clip-path 裁出菱形轮廓
+   - filter: drop-shadow 使光晕贴合菱形轮廓（box-shadow 会被 clip-path 裁掉，故用 drop-shadow） */
 .title-line {
   position: absolute;
-  left: vw(828); top: vh(70);
-  width: vw(259); height: vh(5);
+  left: 50%; top: vh(70);
+  transform: translateX(-50%);
+  width: vw(259);
+  height: vh(4); /* 正中间最大高度，两端为 0（收尖） */
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
   background: radial-gradient(50% 50% at 50% 50%, #d9d9d9 0%, #1da6da 100%);
-  box-shadow: 0 0 6px rgba(98, 185, 218, 0.74);
+  filter: drop-shadow(0 0 6px rgba(98, 185, 218, 0.74));
   pointer-events: none;
 }
 </style>
