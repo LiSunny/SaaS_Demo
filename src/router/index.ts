@@ -118,6 +118,7 @@ const router = createRouter({
         { path: 'landing/ebike', name: 'BigscreenEbike', component: () => import('@/views/bigscreen/EbikeMonitor.vue') },
         { path: 'landing/linking', name: 'BigscreenLinking', component: () => import('@/views/bigscreen/LinkingPlatform.vue') },
         { path: 'landing/linking/sub/:mod', name: 'BigscreenLinkingSub', component: () => import('@/views/bigscreen/linking-subsystem/SubsystemLayout.vue') },
+        { path: 'landing/linking/responsibility', name: 'BigscreenLinkingResponsibility', component: () => import('@/views/bigscreen/linking-subsystem/ResponsibilityBigscreen.vue') },
 
       ],
     },

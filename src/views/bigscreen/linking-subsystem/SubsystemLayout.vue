@@ -1,5 +1,5 @@
 <template>
-  <div class="app subsystem-app">
+  <div class="app subsystem-app" :data-system="currentModule?.custom">
     <!-- ===== 顶栏（原 index.html .topbar 1:1） ===== -->
     <header class="topbar">
       <!-- 大标题组件（白色主题装饰 + 标题文字，按设计稿 108:15008 Frame 430 重构；dark 下仅标题文字） -->

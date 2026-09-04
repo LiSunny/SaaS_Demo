@@ -40,64 +40,11 @@ export function renderOverview(body: HTMLElement, container: HTMLElement){
   activeContainer = container
   body.style.overflowY = 'hidden';
 
-  const todayDutyShops = SHOPS.filter(s=>s.todayDuty).length;
-  const notDutyShops = SHOPS.length - todayDutyShops;
-  const streetsTotal = STREETS.length, streetsDuty = STREETS.filter(s=>s.todayDuty).length, streetsNotDuty = streetsTotal - streetsDuty;
-  const tasksTotal = SHOPS.length, tasksDone = todayDutyShops;
-  const tasksPct = Math.round(tasksDone/tasksTotal*100);
-
   body.innerHTML = `
     <div class="responsibility-system">
-    <div class="ov-stats">
-      <div class="ov-stat ov-stat-progress">
-        <div class="ov-label">今日履职进度</div>
-        <div class="ov-value">${tasksPct}%</div>
-        <div class="ov-subs">
-          <div class="ov-sub"><span class="ov-dot green"></span><span class="ov-num">${tasksDone}</span><span class="ov-lbl">已完成</span></div>
-          <div class="ov-sub"><span class="ov-num">${tasksTotal}</span><span class="ov-lbl">总任务</span></div>
-        </div>
-      </div>
-      <div class="ov-stat">
-        <div class="ov-label">纳管商业街</div>
-        <div class="ov-value">${streetsTotal}</div>
-        <div class="ov-subs">
-          <div class="ov-sub ${ovShowStreetDuty?'':'off'}" data-duty="streetduty" onclick="ovToggleStreetShow('streetduty')"><span class="ov-dot green"></span><span class="ov-num">${streetsDuty}</span><span class="ov-lbl">今日履职</span></div>
-          <div class="ov-sub ${ovShowStreetNotDuty?'':'off'}" data-duty="streetnotduty" onclick="ovToggleStreetShow('streetnotduty')"><span class="ov-dot red"></span><span class="ov-num">${streetsNotDuty}</span><span class="ov-lbl">今日未履职</span></div>
-        </div>
-      </div>
-      <div class="ov-stat">
-        <div class="ov-label">纳管店铺</div>
-        <div class="ov-value">${SHOPS.length}</div>
-        <div class="ov-subs">
-          <div class="ov-sub ${ovShowDuty?'':'off'}" data-duty="duty" onclick="ovToggleDutyShow('duty')"><span class="ov-dot green"></span><span class="ov-num">${todayDutyShops}</span><span class="ov-lbl">今日履职</span></div>
-          <div class="ov-sub ${ovShowNotDuty?'':'off'}" data-duty="notduty" onclick="ovToggleDutyShow('notduty')"><span class="ov-dot red"></span><span class="ov-num">${notDutyShops}</span><span class="ov-lbl">今日未履职</span></div>
-        </div>
-      </div>
-      <div class="ov-stat">
-        <div class="ov-label">今日履职任务数</div>
-        <div class="ov-value">${tasksTotal}</div>
-        <div class="ov-subs">
-          <div class="ov-sub"><span class="ov-num">${tasksDone}</span><span class="ov-lbl">已完成</span></div>
-          <div class="ov-sub"><span class="ov-num">${tasksPct}%</span><span class="ov-lbl">完成比例</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="ov-split">
-      <div class="ov-map">
-        <div class="map-label">
-          <span class="ml-title">商铺与商业街分布地图</span>
-          <div class="ml-items">
-            <div class="ml-item ${ovShowStreets?'active':'off'}" data-duty="streets" onclick="ovToggleTypeShow('streets')"><span class="ml-check"></span><span class="ml-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l8-4 8 4v13"/><path d="M9 21v-6h6v6"/><path d="M12 5v3"/></svg></span><span class="ml-label">商业街</span><span class="ml-count green">${streetsDuty}</span><span class="ml-count red">${streetsNotDuty}</span></div>
-            <div class="ml-item ${ovShowShops?'active':'off'}" data-duty="shops" onclick="ovToggleTypeShow('shops')"><span class="ml-check"></span><span class="ml-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/><path d="M5 12v8h14v-8"/><path d="M9 20v-5h6v5"/></svg></span><span class="ml-label">商铺</span><span class="ml-count green">${todayDutyShops}</span><span class="ml-count red">${notDutyShops}</span></div>
-          </div>
-          <div class="ml-color-note">
-            <span class="ml-note-item"><span class="ml-dot duty"></span>今日履职 <b>${todayDutyShops + streetsDuty}</b></span>
-            <span class="ml-note-item"><span class="ml-dot notduty"></span>今日未履职 <b>${notDutyShops + streetsNotDuty}</b></span>
-          </div>
-        </div>
-        <div id="gaodeMap" class="gaode-map"><div class="map-load-state">高德地图加载中...</div></div>
-        <div class="ov-detail" id="shopDetail"></div>
-      </div>
+    <div class="ov-map">
+      <!-- 图例已迁移至 OverviewOverlay 底部图例条（原 .map-label 随底部筛选条一并移除） -->
+      <div id="gaodeMap" class="gaode-map"><div class="map-load-state">高德地图加载中...</div></div>
     </div>
     </div>`;
 
@@ -257,7 +204,10 @@ export function selectStreet(id){
 }
 
 export function renderStreetDetail(id: number, container?: HTMLElement){
-  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement) || activeContainer;
+  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement);
+  /* 框架阶段：#shopDetail 浮动卡已移除，详情改为弹窗（OverviewOverlay 下一阶段接入），
+     无容器时不覆盖整屏地图/内容 */
+  if(!el) return;
   el.innerHTML = streetDetailHtml(id);
 }
 
@@ -455,7 +405,10 @@ export function streetDetailHtml(id: number){
 }
 
 export function renderShopDetail(id: number, container?: HTMLElement){
-  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement) || activeContainer;
+  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement);
+  /* 框架阶段：#shopDetail 浮动卡已移除，详情改为弹窗（OverviewOverlay 下一阶段接入），
+     无容器时不覆盖整屏地图/内容 */
+  if(!el) return;
   el.innerHTML = shopDetailHtml(id);
 }
 

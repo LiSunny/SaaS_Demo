@@ -3195,6 +3195,76 @@
   min-width:0;
 }
 
+/* ===== 模块01 overview（商铺主体责任系统）大屏全屏化：地图铺满整个视口（含顶栏后面），
+   顶栏 / 右侧面板 / 底部筛选条 / 弹窗全部悬浮在地图之上 ===== */
+[data-theme] .app[data-system="overview"]{
+  position:relative;
+}
+/* 地图承载层：absolute 铺满整个 .app（贯穿顶栏区），各悬浮浮层在其上叠加 */
+[data-theme] .app[data-system="overview"] .main{
+  position:absolute;
+  inset:0;
+  padding:0;
+  gap:0;
+  background:transparent;
+  overflow:hidden;
+}
+[data-theme] .app[data-system="overview"] .content{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+}
+/* 顶栏：脱离文档流，absolute 悬浮地图之上，背景 = 设计稿 130:20163「大标题_bg」图层导出 SVG（overview-title-bg.svg，1924×68）
+   素材为矢量可无损拉伸（PNG 版缩放发糊，2026-09-03 用户要求换回 SVG）；
+   SVG 保留 Figma 图层的半透明渐变 alpha（底部渐透），叠地图上形成渐变透明效果（用户确认保留） */
+[data-theme] .app[data-system="overview"] .topbar{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  z-index:40;
+  height:68px;
+  min-height:68px;
+  padding:0;
+  background:url("/linking-subsystem/figma/topbar/overview-title-bg.svg") no-repeat center top / 100% 68px;
+  box-shadow:none;
+  border:0;
+  color:#fff;
+}
+/* 深蓝主题全局装饰伪元素 / 角落在设计稿中不存在（overview 背景 PNG 已含全部装饰），全部禁用：
+   header-left.svg（左上角隅）/ header-line.svg（贴底 4px 亮线）/ header-right.svg（右上角隅） */
+[data-theme] .app[data-system="overview"] .topbar::after,
+[data-theme] .app[data-system="overview"] .topbar::before,
+[data-theme] .app[data-system="overview"] .topbar-right::before{
+  display:none;
+}
+/* overview 大标题文字：按设计稿 130:20188 定位 (44,10) 28px Regular 白→天蓝渐变（字重 400，非粗体；无 letter-spacing）
+   字号等比缩放：1920×1080 = 28px 精确，小屏不小于 22px、超大屏不超 32px（--min-scale 由 StandaloneLayout :root 提供） */
+[data-theme] .app[data-system="overview"] .topbar .wt-title{
+  position:absolute;
+  left:44px;
+  top:10px;
+  margin:0;
+  font-size:clamp(22px, calc(28 * var(--min-scale)), 32px);
+  font-weight:400;
+  line-height:1.1;
+  letter-spacing:normal;
+  white-space:nowrap;
+  color:transparent;
+  background:linear-gradient(180deg,#ffffff 0%,#7fd4ff 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+/* 副标题：设计稿「大标题」无副标题，2026-09-03 用户拍板按设计稿删除 */
+[data-theme] .app[data-system="overview"] .topbar .wt-subtitle{
+  display:none;
+}
+/* 场景容器铺满内容区 */
+[data-theme] .app[data-system="overview"] .subsystem-scene{
+  position:absolute;
+  inset:0;
+}
+
 /* 模块01: 商铺主体责任系统 - 独立履责运行台 */
 [data-theme] .responsibility-system{
   --rs-panel:#0C4E80;
@@ -3209,8 +3279,8 @@
   flex:1;
   min-height:0;
   flex-direction:column;
-  gap:12px;
-  padding:20px 20px 20px;
+  gap:0;
+  padding:0;
   overflow:hidden;
   color:var(--rs-text);
   font-family:"PingFang SC","Microsoft YaHei",sans-serif;
@@ -3381,10 +3451,14 @@
 [data-theme] .responsibility-system .ov-stat-progress .ov-sub .ov-num{color:#C9F7DF}
 [data-theme] .responsibility-system .ov-split{gap:0}
 [data-theme] .responsibility-system .ov-map{
-  border:1px solid var(--rs-line);
+  flex:1;
+  min-height:0;
+  border:0;
   border-radius:0;
   background:var(--rs-panel-deep);
   box-shadow:none;
+  position:relative;
+  overflow:hidden;
 }
 [data-theme] .responsibility-system .ov-map::after{
   inset:8px;

@@ -23,6 +23,10 @@
 </template>
 
 <script setup lang="ts">
+// 标题字体「演示斜黑体(Source-KeynoteartHans)」的 @font-face 只在 LinkingPlatform 引入，
+// 子系统页直接访问路由时不会加载 → 组件内显式引入，保证标题字体独立可用
+import '@/views/bigscreen/components/linking/linking-fonts.css'
+
 defineProps<{
   /** 主标题（如「隐患排查治理系统」） */
   title: string

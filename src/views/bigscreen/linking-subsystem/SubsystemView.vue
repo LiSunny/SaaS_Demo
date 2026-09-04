@@ -1,5 +1,11 @@
 <template>
-  <div ref="hostEl" class="subsystem-view" :data-system="custom"></div>
+  <!-- overview（商铺主体责任系统）：引擎注入全屏地图 + 悬浮浮层（右侧面板/筛选条/弹窗）
+       非 overview：单一 hostEl 直出引擎内容 -->
+  <div v-if="custom === 'overview'" class="subsystem-scene">
+    <div ref="hostEl" class="subsystem-view" :data-system="custom"></div>
+    <OverviewOverlay />
+  </div>
+  <div v-else ref="hostEl" class="subsystem-view" :data-system="custom"></div>
 </template>
 
 <script setup lang="ts">
@@ -8,6 +14,7 @@ import { useRouter } from 'vue-router'
 import { MODULES } from './data/modules'
 import { bindModuleSwitch, consumePendingState } from './engine/shared-engine'
 import { mountEngineGlobals, unmountEngineGlobals, REGISTERS, COMMON_GLOBALS } from './engine/subsystem-globals'
+import OverviewOverlay from './OverviewOverlay.vue'
 
 const props = defineProps<{ mod: number }>()
 const hostEl = ref<HTMLElement>()
@@ -108,5 +115,20 @@ onBeforeUnmount(() => {
 /* hazards 第一屏（三栏仪表盘）按设计稿：内容容器四周 0 内边距（用户 2026-09-02 确认：整个内容容器不留边距，由面板自带） */
 .subsystem-view[data-system="hazards"] {
   padding: 0;
+}
+/* ===== overview（商铺主体责任系统 · 全屏辖区态势）场景容器 =====
+   地图由 overview-engine 注入 hostEl（.responsibility-system 铺满），
+   OverviewOverlay 以 absolute 悬浮叠加。容器作 relative 定位基准 + flex 全屏。 */
+.subsystem-scene {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.subsystem-scene .subsystem-view {
+  flex: 1;
+  min-height: 0;
 }
 </style>
