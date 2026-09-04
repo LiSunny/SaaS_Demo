@@ -3,6 +3,9 @@
        内容 = 全屏辖区地图 + OverviewOverlay 悬浮（右侧2列模块面板 / 底部筛选条 / 弹窗），
        顶部 = 独立大标题组件 BigTitle（右侧插槽：时钟 + 当前用户） -->
   <div class="app rsb-app">
+    <!-- 大屏切换抽屉（与 11 屏壳同一导航组件；本屏 active=1 商铺主体责任系统） -->
+    <BigscreenNavDrawer :items="LINKING_NAV_ITEMS" :active-id="1" header="大屏切换" @select="go" />
+
     <BigTitle title="商铺主体责任系统">
       <template #right>
         <span class="clock">{{ clock }}</span>
@@ -26,14 +29,24 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import BigTitle from './responsibility/BigTitle.vue'
 import OverviewOverlay from './OverviewOverlay.vue'
+import BigscreenNavDrawer from '@/components/base/BigscreenNavDrawer.vue'
+import { LINKING_NAV_ITEMS, linkingRouteFor } from './data/nav'
 import { useUserStore } from '@/stores/user'
 import '@/assets/bigscreen/linking-subsystem/subsystem.css'
+
+/* ===== 大屏切换（与壳内 SubsystemLayout 同源：linkingRouteFor 已含模块1→独立大屏例外） ===== */
+const router = useRouter()
+function go(id: number | string) {
+  router.push(linkingRouteFor(Number(id)))
+}
 
 /* ===== 引擎渲染（复用 overview-engine：全屏地图注入 hostEl） ===== */
 const hostEl = ref<HTMLElement>()
 let disposed = false
+let ro: ResizeObserver | undefined
 
 async function render() {
   const body = hostEl.value
@@ -42,6 +55,9 @@ async function render() {
   if (disposed) return
   engine.renderOverview(body, body)
   engine.mountOverviewGlobals?.()
+  /* 窗口/容器尺寸变化时强制高德重算画布，避免缩放后底部露出底色（resizeEnable 覆盖不到的场景） */
+  ro = new ResizeObserver(() => engine.resizeGaodeMap())
+  ro.observe(body)
 }
 
 onMounted(() => {
@@ -54,6 +70,7 @@ onMounted(() => {
 let timer: ReturnType<typeof setInterval> | undefined
 onBeforeUnmount(() => {
   disposed = true
+  ro?.disconnect()
   if (timer) clearInterval(timer)
   document.documentElement.removeAttribute('data-theme')
   import('./engine/overview-engine').then(m => m.unmountOverviewGlobals?.())
