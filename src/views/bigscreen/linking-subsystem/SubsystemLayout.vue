@@ -65,6 +65,15 @@ const currentModule = computed(() => MODULES.find((x) => x.id === activeId.value
 /* ===== 通用切换菜单（平台概览 + 10 系统，全局一致） ===== */
 const navItems = LINKING_NAV_ITEMS
 
+/* ===== 商铺主体责任系统=独立大屏：深链接 /sub/1 一律替换到独立路由（2026-09-04 产品拍板） ===== */
+watch(
+  activeId,
+  (id) => {
+    if (id === 1) router.replace('/landing/linking/responsibility')
+  },
+  { immediate: true }
+)
+
 /* ===== 模块切换（原 selectModule 1:1，改为路由） ===== */
 function go(id: number | string) {
   router.push(linkingRouteFor(Number(id)))

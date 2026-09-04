@@ -53,9 +53,13 @@ export const LINKING_NAV_ITEMS: LinkingNavItem[] = [
   ...MODULES.map((m) => ({ id: m.id, title: m.title, tag: m.tag, iconImg: MOD_ICONS[m.id] })),
 ]
 
-/** id → 路由（0=概览 / 1-10=系统） */
+/** id → 路由（0=概览 / 1-10=系统）
+ *  例外：商铺主体责任系统(1) 定位为独立大屏（2026-09-04 产品拍板），壳内不再渲染，
+ *  菜单/跨模块跳转统一导向 /landing/linking/responsibility */
 export function linkingRouteFor(id: number): string {
-  return id === 0 ? '/landing/linking' : `/landing/linking/sub/${id}`
+  if (id === 0) return '/landing/linking'
+  if (id === 1) return '/landing/linking/responsibility'
+  return `/landing/linking/sub/${id}`
 }
 
 /** 按系统标题解析 mod（概览页 由 bigscreenId → 大屏 name 匹配用） */
