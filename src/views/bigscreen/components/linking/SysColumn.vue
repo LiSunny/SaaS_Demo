@@ -20,6 +20,8 @@
           <!-- 英文标题（Figma: DingTalk Sans 20px #1e4b93，绝对定位）
                注意：left 不能用 scss 的 vw() 函数（编译期），模板里需写浏览器可解析的 calc -->
           <p class="col-en" :style="{ left: `calc(${column.enLeft} / 1920 * 100vw)` }">{{ column.enTitle }}</p>
+          <!-- 规划中标识（列级：功能规划但尚未实现，2026-09-04） -->
+          <span v-if="column.planned" class="col-planned-tag">规划中 · 尚未开放</span>
         </div>
         <!-- 列副标题（Figma: 20px #99b1cf） -->
         <p class="col-desc">{{ column.desc }}</p>
@@ -161,6 +163,24 @@ defineProps<{
   font-weight: 400;
   line-height: normal;
   color: #99b1cf;
+  white-space: nowrap;
+}
+
+/* 规划中标识（列头右侧居中） */
+.col-planned-tag {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: clamp(11px, calc(14 * var(--min-scale)), 14px);
+  font-weight: 400;
+  line-height: 1;
+  color: #99b1cf;
+  padding: vh(5) vw(10);
+  border: 1px solid rgba(153, 177, 207, 0.55);
+  border-radius: vmin(3);
+  background: rgba(0, 20, 50, 0.55);
   white-space: nowrap;
 }
 
