@@ -1,6 +1,9 @@
 <template>
   <!-- 模块小标题（Figma 节点 128:19601「模块小标题」：384×39 SVG 背景原样导出 + 文字浮上层）
-       标题最多 6 个汉字（2026-09-03 用户定） -->
+       标题最多 6 个汉字（2026-09-03 用户定）
+       SVG 已加 preserveAspectRatio="none"：vw(384)/vh(39) 在非 16:9 视口比例失衡时
+       背景仍拉伸铺满父容器宽度（默认 xMidYMid meet 会等比留白，导致左右露底）；
+       若从 Figma 重新导出该 SVG，务必保留此属性 -->
   <div class="ov-module-title">
     <span class="ov-module-title-text">{{ title }}</span>
   </div>
@@ -18,7 +21,7 @@ defineProps<{ title: string }>()
   position: relative;
   flex-shrink: 0;
   height: vh(39);
-  background: url('/linking-subsystem/figma/overview/ov-module-title-bg.svg') no-repeat 0 0 / 100% vh(39);
+  background: url('/linking-subsystem/figma/overview/ov-module-title-bg.svg') no-repeat 0 0 / 100% 100%;
 }
 .ov-module-title-text {
   position: absolute;
