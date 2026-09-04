@@ -121,11 +121,17 @@ export function renderGaodeMap(){
   });
 
   gaodeMap.on('complete', ()=>{
-    /* 默认居中显示全部点位 */
+    /* 默认居中显示全部点位；complete 后再校正一次尺寸（容器布局可能晚于地图初始化稳定） */
     gaodeMap.setFitView(null, false, [60,60,60,60]);
+    gaodeMap.invalidateSize?.();
   });
 
   updateGaodeMarkers();
+}
+
+/* 容器尺寸变化后强制高德重算画布/瓦片（resizeEnable 对部分缩放场景不重绘，底部会露出底色） */
+export function resizeGaodeMap(){
+  gaodeMap?.invalidateSize?.();
 }
 
 export function updateGaodeMarkers(){
