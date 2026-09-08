@@ -59,6 +59,15 @@ function p(name: string) {
   return { id: person.id, name, orgId: org?.id ?? 0, orgName: org?.name ?? '' }
 }
 
+/** n 天前某时刻（本地时区），保证 mock 工单始终落在「最近 30 天」筛选窗口内 */
+function daysAgoAt(days: number, hh: number, mm: number): string {
+  const d = new Date(Date.now() - days * 86400000)
+  const y = d.getFullYear()
+  const mo = String(d.getMonth() + 1).padStart(2, '0')
+  const da = String(d.getDate()).padStart(2, '0')
+  return `${y}-${mo}-${da} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:00`
+}
+
 const orders: OrderDef[] = [
   // ─── 1. 草稿：消火栓泵异响 ───
   {
@@ -66,7 +75,7 @@ const orders: OrderDef[] = [
     priority: 'urgent', status: 'draft', activeNodeType: 'start',
     orderNo: 'WO20260605-001',
     creator: '张建国', assignee: '',
-    createdAt: '2026-06-05 09:30:00',
+    createdAt: daysAgoAt(3, 9, 30),
     ttrMinutes: 15, ttsMinutes: 120,
     formData: {
       Feqcmpz7ldykabc: 'A区地下车库消火栓泵异响，压力表显示0.3MPa，低于正常值0.6MPa，启动后噪音异常',
@@ -78,7 +87,7 @@ const orders: OrderDef[] = [
     priority: 'low', status: 'draft', activeNodeType: 'start',
     orderNo: 'WO20260605-002',
     creator: '李明辉', assignee: '',
-    createdAt: '2026-06-05 10:15:00',
+    createdAt: daysAgoAt(3, 10, 15),
     ttrMinutes: 240, ttsMinutes: 2880,
     formData: {
       Feqcmpz7ldykabc: 'B栋3层东侧安全出口指示灯闪烁，断电后无法正常发光，疑似电源模块故障',
@@ -90,7 +99,7 @@ const orders: OrderDef[] = [
     priority: 'urgent', status: 'active', activeNodeType: 'assign',
     orderNo: 'WO20260604-003',
     creator: '张建国', assignee: '',
-    createdAt: '2026-06-04 06:00:00',
+    createdAt: daysAgoAt(4, 6, 0),
     ttrMinutes: 15, ttsMinutes: 120,
     formData: {
       Feqcmpz7ldykabc: '消防控制室JB-QB-GST5000主机频繁报E-102故障代码，主板回路接口疑似松动',
@@ -103,7 +112,7 @@ const orders: OrderDef[] = [
     priority: 'normal', status: 'active', activeNodeType: 'assign',
     orderNo: 'WO20260604-004',
     creator: '周志远', assignee: '',
-    createdAt: '2026-06-04 08:00:00',
+    createdAt: daysAgoAt(4, 8, 0),
     ttrMinutes: 60, ttsMinutes: 720,
     formData: {
       Feqcmpz7ldykabc: 'C栋5层东楼梯间灭火器箱体严重锈蚀，箱门变形无法正常关闭，内部灭火器超期未检',
@@ -116,7 +125,7 @@ const orders: OrderDef[] = [
     priority: 'normal', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260603-005',
     creator: '张建国', assignee: '王志强',
-    createdAt: '2026-06-03 10:00:00',
+    createdAt: daysAgoAt(5, 10, 0),
     ttrMinutes: 60, ttsMinutes: 480,
     formData: {
       Feqcmpz7ldykabc: 'D栋2层西侧防火门闭门器漏油严重，闭门速度过快导致门扇撞击门框，存在安全隐患',
@@ -129,7 +138,7 @@ const orders: OrderDef[] = [
     priority: 'low', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260603-006',
     creator: '李明辉', assignee: '陈浩然',
-    createdAt: '2026-06-03 14:00:00',
+    createdAt: daysAgoAt(5, 14, 0),
     ttrMinutes: 120, ttsMinutes: 1440,
     formData: {
       Feqcmpz7ldykabc: 'A栋1层大厅疏散指示灯不亮，测试按钮无效，断电后仍不亮，疑似内部电路故障',
@@ -142,7 +151,7 @@ const orders: OrderDef[] = [
     priority: 'urgent', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260605-007',
     creator: '陈浩然', assignee: '刘建华',
-    createdAt: '2026-06-05 08:00:00',
+    createdAt: daysAgoAt(3, 8, 0),
     ttrMinutes: 15, ttsMinutes: 240,
     formData: {
       Feqcmpz7ldykabc: 'B栋12层卫生间喷淋头ZST-15误喷，水流沿管道井渗入电梯机房，需紧急关阀',
@@ -155,7 +164,7 @@ const orders: OrderDef[] = [
     priority: 'high', status: 'active', activeNodeType: 'execute',
     orderNo: 'WO20260605-008',
     creator: '张建国', assignee: '王志强',
-    createdAt: '2026-06-05 09:00:00',
+    createdAt: daysAgoAt(3, 9, 0),
     ttrMinutes: 30, ttsMinutes: 360,
     formData: {
       Feqcmpz7ldykabc: 'C栋负一层配电室电缆绝缘电阻仅0.3MΩ，低于国家规范1MΩ标准，存在短路起火风险',
@@ -168,7 +177,7 @@ const orders: OrderDef[] = [
     priority: 'normal', status: 'active', activeNodeType: 'confirm',
     orderNo: 'WO20260530-009',
     creator: '李明辉', assignee: '张建国',
-    createdAt: '2026-05-30 11:00:00',
+    createdAt: daysAgoAt(9, 11, 0),
     ttrMinutes: 60, ttsMinutes: 480,
     formData: {
       Feqcmpz7ldykabc: 'A栋2-15层应急照明灯断电后不亮，电池组老化失效无法蓄电，涉及15个灯位',
@@ -185,7 +194,7 @@ const orders: OrderDef[] = [
     priority: 'low', status: 'active', activeNodeType: 'confirm',
     orderNo: 'WO20260528-010',
     creator: '周志远', assignee: '陈浩然',
-    createdAt: '2026-05-28 15:00:00',
+    createdAt: daysAgoAt(11, 15, 0),
     ttrMinutes: 120, ttsMinutes: 1440,
     formData: {
       Feqcmpz7ldykabc: 'C栋6层消防栓箱内水带接口处破损，长度25m水带老化严重需更换，无法正常使用',
@@ -202,8 +211,8 @@ const orders: OrderDef[] = [
     priority: 'urgent', status: 'closed',
     orderNo: 'WO20260520-011',
     creator: '张建国', assignee: '王志强',
-    createdAt: '2026-05-20 06:45:00',
-    closedAt: '2026-05-20 08:15:00',
+    createdAt: daysAgoAt(19, 6, 45),
+    closedAt: daysAgoAt(19, 8, 15),
     ttrMinutes: 15, ttsMinutes: 120,
     formData: {
       Feqcmpz7ldykabc: '屋顶排烟风机B-202运行有金属摩擦声，轴承温度偏高至85°C，需紧急停机检修',
@@ -221,8 +230,8 @@ const orders: OrderDef[] = [
     priority: 'normal', status: 'closed',
     orderNo: 'WO20260510-012',
     creator: '陈浩然', assignee: '刘建华',
-    createdAt: '2026-05-10 08:30:00',
-    closedAt: '2026-05-11 16:00:00',
+    createdAt: daysAgoAt(29, 8, 30),
+    closedAt: daysAgoAt(28, 16, 0),
     ttrMinutes: 60, ttsMinutes: 720,
     formData: {
       Feqcmpz7ldykabc: 'D栋1层东侧消火栓箱栓口DN65漏水，关闭阀门后仍有渗漏，密封垫圈老化需更换',
@@ -419,6 +428,17 @@ function buildMockList(): WorkOrderItem[] {
 }
 
 const store = createPersistentStore<WorkOrderItem>('work-orders', buildMockList())
+
+// 种子保鲜：历史 localStorage 中可能存有超出「最近 30 天」窗口的旧种子，
+// 全部过期时用新种子覆盖（保留用户新建/修改过的近期工单）。
+function refreshStaleSeed(): void {
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+  const all = store.getAll()
+  if (all.length > 0 && all.every(w => w.createdAt < cutoff)) {
+    store.setData(buildMockList())
+  }
+}
+refreshStaleSeed()
 
 // ===== 详情持久化 Store =====
 
