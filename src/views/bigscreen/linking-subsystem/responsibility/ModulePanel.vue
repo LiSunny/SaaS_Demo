@@ -20,7 +20,7 @@ defineProps<{ title: string }>()
 
 .ov-module {
   min-height: 0;
-  flex: 1;
+  flex: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -39,7 +39,7 @@ defineProps<{ title: string }>()
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: vh(16) vw(16);
+  padding: vh(10) vw(16);
   display: flex;
   flex-direction: column;
   align-items: stretch;

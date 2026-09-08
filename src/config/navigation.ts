@@ -184,6 +184,15 @@ export const NAV_GROUPS: NavGroup[] = [
         children: [
           { key: 'unit-order-list', label: '工单列表', route: '/unit/orders' },
           { key: 'unit-order-stats', label: '工单统计', route: '/unit/orders/stats' },
+          { key: 'unit-order-monitor', label: '工单监控', route: '/system/monitor' },
+        ],
+      },
+      {
+        key: 'unit-workflow',
+        label: '流程编排',
+        icon: 'menuicon-42',
+        children: [
+          { key: 'unit-flow-template', label: '流程模板', route: '/system/template' },
         ],
       },
       {
@@ -505,9 +514,9 @@ export const NAV_GROUPS: NavGroup[] = [
 /** 路由路径 → 侧栏节点 key */
 export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/workbench': 'workbench',
-  '/system/template': 'flow-template',
-  '/system/monitor': 'unit-order-list',
-  '/system/order': 'unit-order-list',
+  '/system/template': 'unit-flow-template',
+  '/system/monitor': 'unit-order-monitor',
+  '/system/order': 'unit-order-monitor',
   '/system/dashboard': 'unit-order-stats',
   '/maintenance/plans': 'svc-maintain-record',
   '/maintenance/plans/detail': 'svc-maintain-record',
@@ -533,9 +542,10 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
 /** 侧栏节点 key → 路由路径（用于导航） */
 export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'workbench': '/workbench',
-  'flow-template': '/system/template',
-  'unit-order-list': '/system/monitor',
-  'unit-order-stats': '/system/dashboard',
+  'unit-flow-template': '/system/template',
+  'unit-order-monitor': '/system/monitor',
+  'unit-order-list': '/unit/orders',
+  'unit-order-stats': '/unit/orders/stats',
   'svc-maintain-record': '/maintenance/plans',
   'unit-device': '/device',
   'unit-device-ledger': '/device/list',

@@ -1,6 +1,6 @@
 <template>
   <!-- 模块2 · 重点监管：问题商铺点名（按未闭环隐患降序、履责率升序取前4）
-       面板 flex:none 按内容自适应高度，保证完整显示不截断 -->
+       面板 flex:auto 按内容自适应并均摊列内剩余高度，填满整列 -->
   <ModulePanel title="重点监管" class="ks-panel">
     <div class="ks-head">问题商铺点名 · 按未闭环隐患排序</div>
     <div class="ks-row" v-for="s in list" :key="s.id">
@@ -29,13 +29,13 @@ const list = [...SHOPS]
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
 
-.ks-panel { flex: none; }
+.ks-panel { flex: auto; }
 
 .ks-head {
-  font-size: vmin(11);
+  font-size: vmin(14);
   color: rgba(192, 215, 232, 0.65);
   letter-spacing: 0.5px;
-  padding-bottom: vh(8);
+  padding-bottom: vh(6);
   border-bottom: 1px dashed rgba(110, 227, 237, 0.16);
 }
 
@@ -43,7 +43,7 @@ const list = [...SHOPS]
   display: flex;
   align-items: center;
   gap: vw(10);
-  padding: vh(9) vw(2);
+  padding: vh(5) vw(2);
   border-bottom: 1px dashed rgba(110, 227, 237, 0.10);
 }
 .ks-row:last-child { border-bottom: 0; }
@@ -59,7 +59,7 @@ const list = [...SHOPS]
 
 .ks-info { flex: 1; min-width: 0; }
 .ks-name {
-  font-size: vmin(13);
+  font-size: vmin(16);
   font-weight: 500;
   color: #F2F8FC;
   white-space: nowrap;
@@ -68,7 +68,7 @@ const list = [...SHOPS]
 }
 .ks-sub {
   margin-top: vh(2);
-  font-size: vmin(11);
+  font-size: vmin(14);
   color: #C0D7E8;
   white-space: nowrap;
 }
@@ -77,7 +77,7 @@ const list = [...SHOPS]
 
 .ks-chips { display: flex; gap: vw(5); flex: none; }
 .ks-chip {
-  font-size: vmin(11);
+  font-size: vmin(14);
   font-weight: 700;
   line-height: 1;
   padding: vh(4) vw(7);

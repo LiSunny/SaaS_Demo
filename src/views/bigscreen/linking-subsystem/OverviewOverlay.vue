@@ -41,23 +41,22 @@
       </div>
     </div>
 
-    <!-- 全屏居中弹窗骨架（内容下一阶段接入） -->
-    <div class="ov-modal" v-if="modalOpen" @click.self="modalOpen = false">
+    <!-- 详情弹窗：地图点位点击 selectShop/selectStreet → 引擎回调打开（商铺/商业街详情，
+         内容复用引擎 sd-card HTML，内联 onclick 走 mountOverviewGlobals 挂载的 window 全局） -->
+    <div class="ov-modal" v-if="modalOpen" @click.self="closeModal">
       <div class="ov-modal-body">
         <div class="ov-modal-head">
-          <span class="ov-modal-title">商铺档案</span>
-          <div class="ov-modal-close" @click="modalOpen = false">✕</div>
+          <span class="ov-modal-title">{{ modalTitle }}</span>
+          <div class="ov-modal-close" @click="closeModal">✕</div>
         </div>
-        <div class="ov-modal-content">
-          <div class="ov-module-empty">弹窗内容占位 · 基本信息 / 责任状 / 履责日历</div>
-        </div>
+        <div class="ov-modal-content" v-html="modalHtml"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import RegionStats from './responsibility/modules/RegionStats.vue'
 import KeySupervision from './responsibility/modules/KeySupervision.vue'
 import RegionRisk from './responsibility/modules/RegionRisk.vue'
@@ -65,10 +64,13 @@ import DutyRateDist from './responsibility/modules/DutyRateDist.vue'
 import BizRiskDist from './responsibility/modules/BizRiskDist.vue'
 import AlarmHazardHandling from './responsibility/modules/AlarmHazardHandling.vue'
 import { SHOPS, STREETS } from './data/shops'
-import { ovToggleTypeShow } from './engine/overview-engine'
-
-/* 弹窗开合（后续由地图标记点击 selectShop 触发，本阶段骨架） */
-const modalOpen = ref(false)
+import {
+  bindDetailModal,
+  ovToggleTypeShow,
+  renderShopDeviceChart,
+  shopDetailHtml,
+  streetDetailHtml
+} from './engine/overview-engine'
 
 /* ===== 底部图例条数据（与 overview-engine 原图例口径一致） ===== */
 const streetsDuty = STREETS.filter(s => s.todayDuty).length
@@ -82,6 +84,32 @@ const notDutyTotal = streetsNotDuty + shopsNotDuty
 function toggleTypeShow(key: 'streets' | 'shops') {
   ovToggleTypeShow(key)
 }
+
+/* ===== 详情弹窗：地图点位点击 selectShop/selectStreet → 引擎回调打开 =====
+   商铺用完整版 shopDetailHtml(id, true)（含安全设备饼图 / 设备告警 / 近期隐患）；
+   弹窗内联 onclick（责任状照片 showResponsibility、街内商铺行 selectShop、返回 selectStreet、
+   更多 openShopMore）均依赖宿主 ResponsibilityBigscreen mountOverviewGlobals 挂载的 window 全局 */
+const modalKind = ref<'shop' | 'street'>('shop')
+const modalId = ref<number | null>(null)
+const modalOpen = computed(() => modalId.value !== null)
+const modalTitle = computed(() => (modalKind.value === 'shop' ? '商铺档案' : '商业街档案'))
+const modalHtml = computed(() => {
+  if (modalId.value === null) return ''
+  return modalKind.value === 'shop' ? shopDetailHtml(modalId.value, true) : streetDetailHtml(modalId.value)
+})
+function closeModal() { modalId.value = null }
+
+onMounted(() => {
+  bindDetailModal(({ kind, id }) => { modalKind.value = kind; modalId.value = id })
+})
+onBeforeUnmount(() => bindDetailModal(null))
+
+/* 商铺完整详情含设备 echarts 饼图：v-html 注入 DOM 后再渲染图表 */
+watch([modalKind, modalId], () => {
+  nextTick(() => {
+    if (modalKind.value === 'shop' && modalId.value !== null) renderShopDeviceChart(modalId.value)
+  })
+})
 </script>
 
 <style lang="scss" scoped>
@@ -101,7 +129,8 @@ function toggleTypeShow(key: 'streets' | 'shops') {
    容器 pointer-events:none 让中间地图区域可交互，仅两列自身接管事件 */
 .ov-side-panel {
   position: absolute;
-  top: vh(80);
+  /* 避开大标题条（BigTitle vh(86)）并保留 12 设计间距；改标题高度需同步此值 */
+  top: vh(98);
   bottom: vh(22);
   left: vw(24);
   right: vw(24);
@@ -110,16 +139,11 @@ function toggleTypeShow(key: 'streets' | 'shops') {
   pointer-events: none;
 }
 .ov-col {
-  width: vw(384);
+  width: vw(458);
   display: flex;
   flex-direction: column;
-  gap: vh(14);
+  gap: vh(10);
   pointer-events: auto;
-}
-.ov-module-empty {
-  font-size: 12px;
-  color: rgba(192, 215, 232, 0.55);
-  letter-spacing: 0.5px;
 }
 
 /* ===== 底部图例条（原 .ov-map 左上角图例迁移至此，替换原筛选条） =====
@@ -291,8 +315,5 @@ function toggleTypeShow(key: 'streets' | 'shops') {
   min-height: 0;
   overflow: auto;
   padding: 18px 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

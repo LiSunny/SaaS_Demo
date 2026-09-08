@@ -1,6 +1,6 @@
 <template>
   <!-- 模块3 · 区域风险画像：按商业街聚合（平均履责率条 + 隐患/告警计数）
-       面板 flex:none 按内容自适应高度，保证完整显示不截断 -->
+       面板 flex:auto 按内容自适应并均摊列内剩余高度，填满整列 -->
   <ModulePanel title="区域风险画像" class="rr-panel">
     <div class="rr-row" v-for="r in rows" :key="r.name">
       <div class="rr-top">
@@ -35,9 +35,9 @@ const rows = STREETS.map(st => {
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
 
-.rr-panel { flex: none; }
+.rr-panel { flex: auto; }
 
-.rr-row { padding: vh(8) vw(2) vh(10); }
+.rr-row { padding: vh(6) vw(2) vh(6); }
 .rr-row + .rr-row { border-top: 1px dashed rgba(110, 227, 237, 0.12); }
 
 .rr-top {
@@ -47,21 +47,21 @@ const rows = STREETS.map(st => {
   gap: vw(8);
 }
 .rr-name {
-  font-size: vmin(13);
+  font-size: vmin(16);
   font-weight: 500;
   color: #F2F8FC;
   white-space: nowrap;
 }
 .rr-meta {
-  font-size: vmin(11);
+  font-size: vmin(14);
   color: #C0D7E8;
   white-space: nowrap;
 }
 .rr-meta b { color: #7cf0b3; }
-.rr-meta b.low { color: #ff9d93; }
+.rr-meta b.low { color: #7FA8C9; } /* 低档位数值：去红，同色系弱化 */
 
 .rr-track {
-  margin-top: vh(7);
+  margin-top: vh(5);
   height: vh(6);
   background: rgba(110, 227, 237, 0.12);
   overflow: hidden;
@@ -70,13 +70,13 @@ const rows = STREETS.map(st => {
   height: 100%;
   background: linear-gradient(90deg, #2E78AD, #6FE3ED);
 }
-.rr-fill.low { background: linear-gradient(90deg, #8C3A38, #FF7064); }
+.rr-fill.low { background: linear-gradient(90deg, #16406B, #2E78AD); } /* 低档位：同色系暗蓝，不用红 */
 
 .rr-chips {
-  margin-top: vh(7);
+  margin-top: vh(5);
   display: flex;
   gap: vw(14);
-  font-size: vmin(11);
+  font-size: vmin(14);
   color: #C0D7E8;
   white-space: nowrap;
 }

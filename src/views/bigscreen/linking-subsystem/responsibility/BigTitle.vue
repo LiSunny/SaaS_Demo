@@ -25,14 +25,14 @@ defineProps<{ title: string; subtitle?: string }>()
   top: 0;
   left: 0;
   right: 0;
-  height: vh(68);
-  min-height: vh(68);
+  height: vh(86);
+  min-height: vh(86);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 vw(20) 0 vw(44);
   /* 大标题背景 = Figma 导出整条 SVG（130:20188 大标题_bg：渐变底+全部装饰，100% 所见即所得，禁止 CSS 重绘） */
-  background: url('/linking-subsystem/figma/topbar/overview-title-bg.svg') no-repeat 0 0 / 100% vh(68);
+  background: url('/linking-subsystem/figma/topbar/overview-title-bg.svg') no-repeat 0 0 / 100% vh(86);
   z-index: 20;
 }
 .rsb-header-inner {
@@ -43,7 +43,7 @@ defineProps<{ title: string; subtitle?: string }>()
 .rsb-title {
   margin: 0;
   font-family: 'Source-KeynoteartHans', sans-serif;
-  font-size: vmin(25);
+  font-size: vmin(30);
   font-weight: 400;
   line-height: 1;
   color: transparent;

@@ -36,21 +36,68 @@ let activeContainer: HTMLElement
 export function setSelectedShop(id: number) { selectedShopId = id }
 export function getSelectedShop() { return selectedShopId }
 
-/** 详情弹窗回调：地图点位点击（selectShop/selectStreet）→ OverviewOverlay 打开商铺/商业街详情弹窗
- *  （独立大屏无 #shopDetail 浮动卡，renderShopDetail/renderStreetDetail 无容器即静默返回） */
-export type DetailModalPayload = { kind: 'shop' | 'street'; id: number }
-let detailModalCallback: ((p: DetailModalPayload) => void) | null = null
-export function bindDetailModal(fn: ((p: DetailModalPayload) => void) | null) { detailModalCallback = fn }
-
 export function renderOverview(body: HTMLElement, container: HTMLElement){
   activeContainer = container
   body.style.overflowY = 'hidden';
 
+  const todayDutyShops = SHOPS.filter(s=>s.todayDuty).length;
+  const notDutyShops = SHOPS.length - todayDutyShops;
+  const streetsTotal = STREETS.length, streetsDuty = STREETS.filter(s=>s.todayDuty).length, streetsNotDuty = streetsTotal - streetsDuty;
+  const tasksTotal = SHOPS.length, tasksDone = todayDutyShops;
+  const tasksPct = Math.round(tasksDone/tasksTotal*100);
+
   body.innerHTML = `
     <div class="responsibility-system">
-    <div class="ov-map">
-      <!-- 图例已迁移至 OverviewOverlay 底部图例条（原 .map-label 随底部筛选条一并移除） -->
-      <div id="gaodeMap" class="gaode-map"><div class="map-load-state">高德地图加载中...</div></div>
+    <div class="ov-stats">
+      <div class="ov-stat ov-stat-progress">
+        <div class="ov-label">今日履职进度</div>
+        <div class="ov-value">${tasksPct}%</div>
+        <div class="ov-subs">
+          <div class="ov-sub"><span class="ov-dot green"></span><span class="ov-num">${tasksDone}</span><span class="ov-lbl">已完成</span></div>
+          <div class="ov-sub"><span class="ov-num">${tasksTotal}</span><span class="ov-lbl">总任务</span></div>
+        </div>
+      </div>
+      <div class="ov-stat">
+        <div class="ov-label">纳管商业街</div>
+        <div class="ov-value">${streetsTotal}</div>
+        <div class="ov-subs">
+          <div class="ov-sub ${ovShowStreetDuty?'':'off'}" data-duty="streetduty" onclick="ovToggleStreetShow('streetduty')"><span class="ov-dot green"></span><span class="ov-num">${streetsDuty}</span><span class="ov-lbl">今日履职</span></div>
+          <div class="ov-sub ${ovShowStreetNotDuty?'':'off'}" data-duty="streetnotduty" onclick="ovToggleStreetShow('streetnotduty')"><span class="ov-dot red"></span><span class="ov-num">${streetsNotDuty}</span><span class="ov-lbl">今日未履职</span></div>
+        </div>
+      </div>
+      <div class="ov-stat">
+        <div class="ov-label">纳管店铺</div>
+        <div class="ov-value">${SHOPS.length}</div>
+        <div class="ov-subs">
+          <div class="ov-sub ${ovShowDuty?'':'off'}" data-duty="duty" onclick="ovToggleDutyShow('duty')"><span class="ov-dot green"></span><span class="ov-num">${todayDutyShops}</span><span class="ov-lbl">今日履职</span></div>
+          <div class="ov-sub ${ovShowNotDuty?'':'off'}" data-duty="notduty" onclick="ovToggleDutyShow('notduty')"><span class="ov-dot red"></span><span class="ov-num">${notDutyShops}</span><span class="ov-lbl">今日未履职</span></div>
+        </div>
+      </div>
+      <div class="ov-stat">
+        <div class="ov-label">今日履职任务数</div>
+        <div class="ov-value">${tasksTotal}</div>
+        <div class="ov-subs">
+          <div class="ov-sub"><span class="ov-num">${tasksDone}</span><span class="ov-lbl">已完成</span></div>
+          <div class="ov-sub"><span class="ov-num">${tasksPct}%</span><span class="ov-lbl">完成比例</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ov-split">
+      <div class="ov-map">
+        <div class="map-label">
+          <span class="ml-title">商铺与商业街分布地图</span>
+          <div class="ml-items">
+            <div class="ml-item ${ovShowStreets?'active':'off'}" data-duty="streets" onclick="ovToggleTypeShow('streets')"><span class="ml-check"></span><span class="ml-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l8-4 8 4v13"/><path d="M9 21v-6h6v6"/><path d="M12 5v3"/></svg></span><span class="ml-label">商业街</span><span class="ml-count green">${streetsDuty}</span><span class="ml-count red">${streetsNotDuty}</span></div>
+            <div class="ml-item ${ovShowShops?'active':'off'}" data-duty="shops" onclick="ovToggleTypeShow('shops')"><span class="ml-check"></span><span class="ml-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/><path d="M5 12v8h14v-8"/><path d="M9 20v-5h6v5"/></svg></span><span class="ml-label">商铺</span><span class="ml-count green">${todayDutyShops}</span><span class="ml-count red">${notDutyShops}</span></div>
+          </div>
+          <div class="ml-color-note">
+            <span class="ml-note-item"><span class="ml-dot duty"></span>今日履职 <b>${todayDutyShops + streetsDuty}</b></span>
+            <span class="ml-note-item"><span class="ml-dot notduty"></span>今日未履职 <b>${notDutyShops + streetsNotDuty}</b></span>
+          </div>
+        </div>
+        <div id="gaodeMap" class="gaode-map"><div class="map-load-state">高德地图加载中...</div></div>
+        <div class="ov-detail" id="shopDetail"></div>
+      </div>
     </div>
     </div>`;
 
@@ -68,19 +115,19 @@ function shopLngLat(s){
 }
 
 function gaodeMarkerHtml(s){
-  /* 图钉+单字：铺=水滴钉内嵌「铺」字；颜色仍表达履职状态（duty 绿 / not-duty 红） */
+  const shopIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/><path d="M5 12v8h14v-8"/><path d="M9 20v-5h6v5"/></svg>`;
   return `
     <div class="amap-shop-marker ${s.todayDuty?'duty':'not-duty'} ${s.id===selectedShopId?'active':''}" data-shop-id="${s.id}" onclick="event.stopPropagation();selectShop(${s.id})">
-      <div class="pin-shape"><span class="pin-char">铺</span></div>
+      ${shopIcon}
       <div class="marker-tip">${s.name}</div>
     </div>`;
 }
 
 function gaodeStreetMarkerHtml(st){
-  /* 商业街=大号水滴钉+金圈，内嵌「街」字，与商铺钉明显区分 */
+  const streetIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l8-4 8 4v13"/><path d="M9 21v-6h6v6"/><path d="M12 5v3"/></svg>`;
   return `
     <div class="amap-street-marker ${st.todayDuty?'duty':'not-duty'} ${st.id===selectedStreetId?'active':''}" data-street-id="${st.id}" onclick="event.stopPropagation();selectStreet(${st.id})">
-      <div class="pin-shape"><span class="pin-char">街</span></div>
+      ${streetIcon}
       <div class="marker-tip">${st.name}</div>
     </div>`;
 }
@@ -99,7 +146,7 @@ export function renderGaodeMap(){
     center: [119.6004, 39.9354],
     viewMode: '2D',
     resizeEnable: true,
-    mapStyle: 'amap://styles/349dd62f0c95fd4de6fae2e8e043966b'
+    mapStyle: 'amap://styles/darkblue'
   });
 
   gaodeMarkers = SHOPS.map(s=>{
@@ -127,17 +174,11 @@ export function renderGaodeMap(){
   });
 
   gaodeMap.on('complete', ()=>{
-    /* 默认居中显示全部点位；complete 后再校正一次尺寸（容器布局可能晚于地图初始化稳定） */
-    gaodeMap.setFitView(null, false, [120,120,120,120]);
-    gaodeMap.invalidateSize?.();
+    /* 默认居中显示全部点位 */
+    gaodeMap.setFitView(null, false, [60,60,60,60]);
   });
 
   updateGaodeMarkers();
-}
-
-/* 容器尺寸变化后强制高德重算画布/瓦片（resizeEnable 对部分缩放场景不重绘，底部会露出底色） */
-export function resizeGaodeMap(){
-  gaodeMap?.invalidateSize?.();
 }
 
 export function updateGaodeMarkers(){
@@ -205,7 +246,6 @@ export function selectShop(id){
   });
   updateGaodeMarkers();
   renderShopDetail(id);
-  detailModalCallback?.({ kind: 'shop', id });
 }
 
 export function selectStreet(id){
@@ -214,14 +254,10 @@ export function selectStreet(id){
   detailBackStreetId = null;
   updateGaodeMarkers();
   renderStreetDetail(id);
-  detailModalCallback?.({ kind: 'street', id });
 }
 
 export function renderStreetDetail(id: number, container?: HTMLElement){
-  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement);
-  /* 框架阶段：#shopDetail 浮动卡已移除，详情改为弹窗（OverviewOverlay 下一阶段接入），
-     无容器时不覆盖整屏地图/内容 */
-  if(!el) return;
+  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement) || activeContainer;
   el.innerHTML = streetDetailHtml(id);
 }
 
@@ -254,7 +290,7 @@ export function shopDetailHtml(id: number, full?: boolean, container?: HTMLEleme
   const weekdays = ['日','一','二','三','四','五','六'];
   const today = 23;
   let calHtml = '';
-  weekdays.forEach(d=>{ calHtml += `<div class="sd-cal-cell" style="color:#C0D7E8">${d}</div>`; });
+  weekdays.forEach(d=>{ calHtml += `<div class="sd-cal-cell" style="color:#b9b9b9">${d}</div>`; });
   calHtml += '<div class="sd-cal-cell"></div>'; /* 6/1=周一, 前面1个空格 */
   for(let d=1; d<=30; d++){
     let cls = '';
@@ -286,10 +322,10 @@ export function shopDetailHtml(id: number, full?: boolean, container?: HTMLEleme
 
   const dev = s.devices;
   const devRows = [
-    {c:'#6CB8F0', t:'烟感', n:dev.smoke},
-    {c:'#3DDC97', t:'灭火器', n:dev.extinguisher},
-    {c:'#F5B027', t:'燃气报警', n:dev.gas},
-    {c:'#9BAEC4', t:'其他', n:dev.other}
+    {c:'#4a79ee', t:'烟感', n:dev.smoke},
+    {c:'#39b54a', t:'灭火器', n:dev.extinguisher},
+    {c:'#f0a040', t:'燃气报警', n:dev.gas},
+    {c:'#8d8d8d', t:'其他', n:dev.other}
   ].filter(d=>d.n>0).map(d=>`
     <div class="sd-device-row">
       <span class="sd-device-dot" style="background:${d.c}"></span>
@@ -419,10 +455,7 @@ export function streetDetailHtml(id: number){
 }
 
 export function renderShopDetail(id: number, container?: HTMLElement){
-  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement);
-  /* 框架阶段：#shopDetail 浮动卡已移除，详情改为弹窗（OverviewOverlay 下一阶段接入），
-     无容器时不覆盖整屏地图/内容 */
-  if(!el) return;
+  const el = container || (activeContainer.querySelector?.('#shopDetail') as HTMLElement) || activeContainer;
   el.innerHTML = shopDetailHtml(id);
 }
 
@@ -432,10 +465,10 @@ export function renderShopDeviceChart(shopId){
   if(!el) return;
   const chart = echarts.init(el);
   const data = [
-    {value:parseInt(el.dataset.smoke||0), name:'烟感', itemStyle:{color:'#6CB8F0'}},
-    {value:parseInt(el.dataset.extinguisher||0), name:'灭火器', itemStyle:{color:'#3DDC97'}},
-    {value:parseInt(el.dataset.gas||0), name:'燃气报警', itemStyle:{color:'#F5B027'}},
-    {value:parseInt(el.dataset.other||0), name:'其他', itemStyle:{color:'#9BAEC4'}}
+    {value:parseInt(el.dataset.smoke||0), name:'烟感', itemStyle:{color:'#4a79ee'}},
+    {value:parseInt(el.dataset.extinguisher||0), name:'灭火器', itemStyle:{color:'#39b54a'}},
+    {value:parseInt(el.dataset.gas||0), name:'燃气报警', itemStyle:{color:'#f0a040'}},
+    {value:parseInt(el.dataset.other||0), name:'其他', itemStyle:{color:'#8d8d8d'}}
   ];
   chart.setOption({
     tooltip:{trigger:'item', formatter:'{b}: {c} 台'},

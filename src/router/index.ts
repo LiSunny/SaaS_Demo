@@ -239,7 +239,7 @@ router.beforeEach((to) => {
 
   // 系统角色路由保护
   const systemRole = localStorage.getItem('system-role')
-  const isAdminRoute = to.path.startsWith('/admin') || to.path.startsWith('/system/template')
+  const isAdminRoute = to.path.startsWith('/admin')
   const isBusinessRoute = to.path.startsWith('/system/monitor')
     || to.path.startsWith('/system/order')
     || to.path.startsWith('/system/dashboard')
