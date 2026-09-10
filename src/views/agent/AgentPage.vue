@@ -909,22 +909,23 @@ function downloadArtifact() {
 .col-expand-btn:hover { background: var(--bg-2); color: var(--text-1); }
 .col-expand-btn.active { color: var(--accent); background: var(--accent-soft); }
 
-/* 深色 / 浅色切换开关 */
+/* 深色 / 浅色切换开关——强调色常驻，让用户一眼看出可交互 */
 .theme-toggle {
   flex: none; width: 52px; height: 28px;
-  border: 1px solid var(--bg-3); border-radius: 999px;
-  background: var(--bg-2); cursor: pointer;
-  position: relative; padding: 0; transition: background .2s, border-color .2s;
+  border: 1px solid rgba(var(--accent-rgb), 0.35); border-radius: 999px;
+  background: var(--accent-soft); cursor: pointer;
+  position: relative; padding: 0; transition: background .2s, border-color .2s, box-shadow .2s;
 }
-.theme-toggle:hover { border-color: var(--accent); }
+.theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .tt-thumb {
   position: absolute; top: 2px; left: 2px;
   width: 22px; height: 22px; border-radius: 50%;
-  background: var(--bg-3); color: var(--text-2);
+  background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(var(--accent-rgb), 0.45);
   transition: transform .2s, background .2s, color .2s;
 }
-.theme-toggle.light .tt-thumb { transform: translateX(24px); background: var(--accent-soft); color: var(--accent); }
+.theme-toggle.light .tt-thumb { transform: translateX(24px); }
 .tt-icon { width: 13px; height: 13px; }
 .right-tabs { flex: none; display: flex; gap: 6px; padding: 14px 14px 10px; }
 .brand-logo { width: 22px; height: 22px; object-fit: contain; flex: none; }
@@ -933,13 +934,16 @@ function downloadArtifact() {
 .new-chat-btn {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   margin: 4px 12px 10px; height: 38px;
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border: 1px solid transparent;
   border-radius: 10px;
-  background: transparent; color: var(--accent);
-  font-size: 13.5px; font-weight: 500; cursor: pointer;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 45%), var(--accent-strong);
+  color: #fff;
+  font-size: 13.5px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.35);
   transition: all .15s;
 }
-.new-chat-btn:hover { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.18); }
+.new-chat-btn:hover { filter: brightness(1.08); box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.5); transform: translateY(-1px); }
+.new-chat-btn:active { transform: translateY(0); filter: brightness(0.98); }
 
 .search-box { position: relative; padding: 0 14px 8px; }
 .search-input {
@@ -995,16 +999,22 @@ function downloadArtifact() {
 .user-name { font-size: 13px; font-weight: 500; }
 .user-role { font-size: 11px; color: var(--text-3); margin-top: 1px; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* 切换体验身份（仅体验模式显示） */
+/* 切换体验身份（仅体验模式显示）——强调色常驻，让用户一眼知道可以切换 */
 .switch-role-btn {
   flex: none; width: 26px; height: 26px; margin-left: auto;
-  border: 1px solid var(--bg-3); border-radius: 50%;
-  background: transparent; color: var(--text-2);
+  border: 1px solid rgba(var(--accent-rgb), 0.45); border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; padding: 0;
-  transition: border-color .15s, color .15s, background .15s;
+  transition: border-color .15s, color .15s, background .15s, box-shadow .15s, transform .15s;
 }
-.switch-role-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.switch-role-btn:hover {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.22);
+  color: var(--accent);
+  box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.3);
+  transform: translateY(-1px);
+}
 
 /* ===== 中栏 ===== */
 .main-header {

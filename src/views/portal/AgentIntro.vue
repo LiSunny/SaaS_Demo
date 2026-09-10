@@ -1,10 +1,13 @@
 <template>
   <div class="agent-intro">
-    <!-- 固定返回导航 -->
-    <a class="back-nav" href="/portal">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
-      返回平台门户
-    </a>
+    <!-- 固定返回导航（左：返回门户 / 右：体验入口） -->
+    <nav class="back-nav">
+      <a class="back-link" href="/portal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
+        返回平台门户
+      </a>
+      <a class="back-exp" href="/agent?exp=1" target="_blank">去体验</a>
+    </nav>
 
     <!-- ═══ Hero ═══ -->
     <header class="hero">
@@ -304,16 +307,50 @@ onUnmounted(() => {
   padding: 116px 24px 56px;
   text-align: center;
 }
-/* 固定返回导航 */
+/* 固定返回导航（左：返回门户 / 右：体验入口） */
 .back-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; align-items: center; gap: 8px;
-  padding: 14px 28px; font-size: 15px; font-weight: 600; color: var(--ink);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 28px;
   background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(54,120,227,0.10); text-decoration: none;
+  border-bottom: 1px solid rgba(54,120,227,0.10);
 }
-.back-nav svg { width: 17px; height: 17px; color: var(--brand); }
-.back-nav:hover { color: var(--brand); }
+.back-link {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none;
+}
+.back-link svg { width: 17px; height: 17px; color: var(--brand); }
+.back-link:hover { color: var(--brand); }
+.back-exp {
+  position: relative; overflow: hidden;
+  font-size: 14px; font-weight: 700; color: #fff; text-decoration: none;
+  background: var(--brand); padding: 8px 22px; border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(54,120,227,0.3);
+  transition: transform .15s ease;
+  animation: exp-pulse 2.6s ease-in-out infinite;
+}
+/* 周期扫光：细白光带斜向掠过 */
+.back-exp::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0;
+  width: 45%; transform: translateX(-140%) skewX(-20deg);
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+  animation: exp-shine 2.6s ease-in-out infinite;
+  transition: opacity .15s ease;
+  pointer-events: none;
+}
+@keyframes exp-pulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(54,120,227,0.3); }
+  50% { box-shadow: 0 4px 24px rgba(54,120,227,0.6); }
+}
+@keyframes exp-shine {
+  0% { transform: translateX(-140%) skewX(-20deg); }
+  42%, 100% { transform: translateX(360%) skewX(-20deg); }
+}
+.back-exp:hover { transform: translateY(-1px); animation-play-state: paused; }
+.back-exp:hover::after { animation-play-state: paused; opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .back-exp, .back-exp::after { animation: none; }
+}
 .hero .tag {
   display: inline-block; font-size: 14px; font-weight: 600; color: var(--brand);
   background: rgba(54,120,227,0.10); border: 1px solid rgba(54,120,227,0.18);
