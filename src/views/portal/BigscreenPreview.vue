@@ -66,7 +66,13 @@ const PREVIEWS: Record<string, PreviewInfo> = {
     src: '/screenshots/ebike-safety.png',
     title: '电动自行车安防监管大屏',
     backLink: '/portal/case/ebike-safety',
-    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%2523',
+    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23',
+  },
+  gangnan: {
+    src: '/screenshots/gangnan-cockpit.png',
+    title: '港南区“人工智能+安全自律”监管平台',
+    backLink: '/portal/case/gangnan-cockpit',
+    expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23',
   },
 }
 

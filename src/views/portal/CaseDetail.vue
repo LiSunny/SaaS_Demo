@@ -275,7 +275,7 @@ const CASES: CaseData[] = [
     nums: ['4 阶段', '11 步骤', '全链追踪'],
     image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg',
     previewType: 'resumption',
-    expLink: '/login?redirect=/resumption-bigscreen&phone=13000000009&password=admin123!@%2523',
+    expLink: '/login?redirect=/resumption-bigscreen&phone=13000000009&password=admin123!@%23',
     demoPhone: '13000000009',
     demoPassword: 'admin123!@#',
     overview: [
@@ -358,7 +358,7 @@ const CASES: CaseData[] = [
     nums: ['14 模块', 'AI 研判', '多端协同'],
     image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
     previewType: 'quanzhou',
-    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23',
     overview: [
       '泉州"人工智能+应消联勤"一体化管控平台是面向城市级应急消防治理的数字化中枢。平台以泉州全域为基底，串联监测预警、应消联动、台账管理、大数据研判考核各大模块。',
       '覆盖工贸企业自律驾驶舱、危化企业监控、沿街门店应消预警、消防控制室监管、风险源作业管控等 14 个核心业务场景，构建从企业自查到政府监管的全链条数字化闭环。',
@@ -441,7 +441,7 @@ const CASES: CaseData[] = [
     nums: ['4 大模块', '3 级联动', '全域覆盖'],
     image: '/images/unsplash/photo-1441986300917-64674bd600d8.jpg',
     previewType: 'ebike',
-    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%2523',
+    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23',
     demoPhone: '13200002345',
     demoPassword: 'admin123!@#',
     overview: [
@@ -459,6 +459,38 @@ const CASES: CaseData[] = [
       { person: '张晓明', name: '物业经理/安全负责人', duty: '充电桩达标率、告警处置率、巡检覆盖率三个数字就能判断小区安防是否到位，不用再翻纸质台账了。' },
       { person: '李建', name: '消控值班员', duty: '不再守着密密麻麻的告警指示灯。大屏弹窗帮筛一遍，精力留给真正需要警觉的时刻，工作从被动变主动。' },
       { person: '周监管', name: '街道/监管部门', duty: '远程掌握全域充电桩安全态势，隐患整改进度一眼看清。从"跑现场抽查"到"在线精准监管"，效率翻倍。' },
+    ],
+  },
+  {
+    slug: 'gangnan-cockpit',
+    name: '港南区“人工智能+安全自律”监管平台',
+    tag: '城市治理',
+    desc: '以"安全自律"为核心构建区域安全监管平台，覆盖履责概览、每日清单、重点单位风险管控、充电桩应急安全、隐患报备与风险源作业审批等模块，实现一屏观全域、一网管自律。',
+    nums: ['8 大模块', 'GIS 一张图', '履职闭环'],
+    image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
+    previewType: 'gangnan',
+    expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23',
+    demoPhone: '13000000001',
+    demoPassword: 'admin123!@#',
+    overview: [
+      '区域安全监管长期面临一个现实难题：企业数量多、业态杂，监管部门人少事多，"人盯人"盯不过来，企业自律又缺乏抓手。企业履没履职、重点单位风险点有没有人管、充电桩有没有带病运行、隐患报备是真是假——这些信息散落在各个企业手里，监管部门看不到全貌，只能靠抽查和事后追责。',
+      '平台以"安全自律"为主线，把企业的履责动作全部线上化、数据化。左侧以环形概览呈现接入企业与分行业构成；自律履职每日清单自动生成当日打卡任务，已履职、未履职实时统计；重点单位风险管控汇聚人员离岗告警与风险点位，联动消防控制室实时视频；充电桩应急安全按行业统计已履职、未履职单位，形成四象限进度；中下区域自查隐患报备监管与全区应急预案管理，让隐患整改与预案备案全程留痕；右侧风险源作业报审批覆盖动火、高空、受限空间等特殊作业的审批流转。',
+      '配合港南区 GIS 一张图，全域企业分布、风险态势一屏掌控。监管部门从"人盯人、跑断腿"转向"数据管自律"——企业每天做了什么、做得怎么样，平台上自动留痕、自动统计，自律有记录、监管有依据。',
+    ],
+    features: [
+      { title: '安全自律履责概览', desc: '以环形概览呈现全区接入企业总数与工贸、教育、物业等行业构成，全域自律基本面一屏掌握。' },
+      { title: '自律履职每日清单', desc: '企业每日履职打卡自动生成清单，已履职、未履职实时统计排名，未履职单位与责任人一目了然，压实企业安全主体责任。' },
+      { title: '重点单位风险管控', desc: '人员离岗告警与风险点位统一归集，联动消防控制室实时视频远程核实，重点单位风险动态可控。' },
+      { title: '充电桩应急安全', desc: '充电桩、充电端口统一建档，按行业统计已履职、未履职单位并生成进度条，充电安全隐患早发现、早处置。' },
+      { title: '自查隐患报备监管', desc: '企业自查隐患线上报备，整改状态全程跟踪，报备记录可追溯，杜绝"纸面整改"。' },
+      { title: '风险源作业报审批', desc: '动火、高空、受限空间等特殊作业线上审批，待审批、已审批状态实时可见，审批链完整可查。' },
+      { title: '全区应急预案管理', desc: '应急预案分行业备案管理，接入企业、预案类型统计清晰，突发情况下预案调得出来、用得上。' },
+      { title: 'GIS 风险一张图', desc: '以港南区三维地图为底，企业分布与风险态势分层呈现，全域态势一图掌控。' },
+    ],
+    values: [
+      { person: '梁主任', name: '区应急管理部门', duty: '一屏看全区企业自律态势，未履职单位自动亮出来，督导从"凭经验抽查"变成"照清单督办"，心里有底了。' },
+      { person: '傅站长', name: '镇街应急办', duty: '辖区企业每天履没履职、隐患报备了没有，打开大屏一目了然，不用再挨家挨户跑现场核台账。' },
+      { person: '胜邦负责人', name: '企业安全负责人', duty: '履职打卡、隐患报备、作业审批全在线上走，安全台账自动生成，迎检时拿出记录就行，不用临时补材料。' },
     ],
   },
 ]
@@ -491,6 +523,7 @@ const PREVIEW_SCREENSHOTS: Record<string, string> = {
   quanzhou: '/screenshots/quanzhou-cockpit.png',
   campus: '/screenshots/campus-safety.png',
   ebike: '/screenshots/ebike-safety.png',
+  gangnan: '/screenshots/gangnan-cockpit.png',
 }
 const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value?.previewType || ''] || '')
 
