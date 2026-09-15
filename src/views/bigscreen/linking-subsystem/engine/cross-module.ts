@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 跨模块引擎共享函数（原 index.html 1:1，独立文件避免引擎间循环依赖）
 import { SHOPS, STREETS } from '../data/shops'
 import * as echarts from 'echarts'

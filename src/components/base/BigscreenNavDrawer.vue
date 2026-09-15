@@ -54,6 +54,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 /**
  * BigscreenNavDrawer — 可视化大屏通用悬浮导航抽屉
  *

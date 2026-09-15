@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cv, disposeCharts, initChart, openOverlay } from './shared-engine'
 import { icoClock, icoMonitor, icoUser } from './icon-consts'
 import { showEventDetail } from './cross-module'

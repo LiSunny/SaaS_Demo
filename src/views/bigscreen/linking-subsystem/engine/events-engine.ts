@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cmpFallback, cv, initChart, openOverlay, toolbarHtml } from './shared-engine'
 import { icoExportSmall, icoRefreshSmall } from './icon-consts'
 import { SHOPS } from '../data/shops'

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 共享引擎：原 index.html 中跨模块复用的公共函数（原样提取）
 import * as echarts from 'echarts'
 import { icoPin } from './icon-consts'

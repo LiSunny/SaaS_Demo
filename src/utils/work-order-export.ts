@@ -264,7 +264,7 @@ export async function exportWorkOrderToPDF(detail: ExportWorkOrder): Promise<voi
     didParseCell: (data) => {
       // 第二行第二列：故障照片 → 行高撑大以容纳图片
       if (data.section === 'body' && data.row.index === 1 && data.column.index === 1) {
-        data.cell.minHeight = beforePhotoDataUrl ? 50 : 10
+        data.cell.height = beforePhotoDataUrl ? 50 : 10
       }
     },
     didDrawCell: (data) => {
@@ -314,7 +314,7 @@ export async function exportWorkOrderToPDF(detail: ExportWorkOrder): Promise<voi
     columnStyles: { 0: { cellWidth: 40 } },
     didParseCell: (data) => {
       if (data.section === 'body' && data.row.index === 1 && data.column.index === 1) {
-        data.cell.minHeight = afterPhotoDataUrl ? 50 : 10
+        data.cell.height = afterPhotoDataUrl ? 50 : 10
       }
     },
     didDrawCell: (data) => {

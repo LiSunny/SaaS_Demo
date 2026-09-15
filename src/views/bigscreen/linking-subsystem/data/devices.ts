@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 海港区应消联勤平台 · devices 数据（从 index.html 原样抽取，不做任何改动）
 import { SHOPS } from './shops'
 

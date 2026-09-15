@@ -739,47 +739,6 @@ const editablePermissions = computed<FieldPermission[]>(() =>
   editableFormFields.value.map(f => ({ fieldId: f.id, mode: 'editable' as const }))
 )
 
-// ===== 节点表单字段（已关闭时用） =====
-function getNodeFormFields(node: WorkOrderNode): FormField[] {
-  const td = store.templateDetail
-  if (!td) return []
-  const nodeId = String(node.id)
-
-  // 优先取当前节点专属字段；无则汇总全部节点字段
-  // （模板配置时表单设计器只生成 start 节点字段，execute/confirm 节点通过 formFields 引用）
-  let schemaFields = td.formSchema[nodeId]?.fields || []
-  if (schemaFields.length === 0 && td.formSchema) {
-    schemaFields = Object.values(td.formSchema).flatMap(s => s.fields || [])
-  }
-
-  // 找到对应流程节点，获取字段权限配置
-  const flowNode = td.flowDefinition.nodes.find(n => n.id === nodeId)
-  if (!flowNode?.formFields?.length) return schemaFields
-
-  // 只展示 editable 的字段
-  if (node.type === 'start') {
-    // start 节点：非 hidden 即 editable（用户填写初始表单）
-    const hiddenIds = new Set(
-      flowNode.formFields.filter(p => p.mode === 'hidden').map(p => p.fieldId)
-    )
-    return schemaFields.filter(f => !hiddenIds.has(f.id))
-  }
-
-  // 其他节点：只展示显式 mode === 'editable' 的字段
-  const editableIds = new Set(
-    flowNode.formFields.filter(p => p.mode === 'editable').map(p => p.fieldId)
-  )
-  return schemaFields.filter(f => editableIds.has(f.id))
-}
-
-function getNodePermissions(node: WorkOrderNode): FieldPermission[] {
-  const td = store.templateDetail
-  if (!td) return []
-  const nodeId = String(node.id)
-  const flowNode = td.flowDefinition.nodes.find(n => n.id === nodeId)
-  return flowNode?.formFields || []
-}
-
 function getNodeInitialData(node: WorkOrderNode): Record<string, any> {
   if (store.detail?.nodeRecords) {
     const record = store.detail.nodeRecords.find(r => String(r.nodeId) === String(node.id))

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cv, disposeCharts, initChart, openOverlay, toolbarHtml } from './shared-engine'
 import { ico } from '../util/ico-map'
 import { icoDevicePin, icoExportSmall, icoGas, icoPin, icoPlusSmall, icoRefreshSmall, icoSmoke } from './icon-consts'

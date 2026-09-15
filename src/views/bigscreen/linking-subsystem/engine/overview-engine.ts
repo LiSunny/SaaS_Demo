@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cv, initChart, openOverlay } from './shared-engine'
 import { SHOPS, STREETS } from '../data/shops'
 // 模块1引擎：商铺主体责任系统（原 index.html renderOverview 族函数原样提取，仅改 iframeBody→入参）

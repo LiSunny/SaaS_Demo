@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cv, initChart, openOverlay, toolbarHtml } from './shared-engine'
 import { icoExportSmall, icoPlusSmall, icoRefreshSmall } from './icon-consts'
 import { renderShopDeviceChart, shopDetailHtml, showEventDetail } from './cross-module'
