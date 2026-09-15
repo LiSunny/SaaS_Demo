@@ -627,10 +627,69 @@ function buildDetail(id: number): WorkOrderDetail {
   const statusPriText = (p: string) =>
     p === 'urgent' ? '紧急' : p === 'high' ? '高' : p === 'normal' ? '普通' : '低'
 
+  // 特殊 case：紧急已关闭工单 → 用 6 种典型状态展示流转记录设计稿
+  // (隐患整改验收流程的 6 个变体：发起/通过/驳回/超时跟进/转派/超时未完成)
+  if (item.status === 'closed' && item.orderNo === 'WO20260520-011') {
+    const fmt = (offsetHours: number) =>
+      new Date(base + offsetHours * 3600000).toISOString().replace('T', ' ').slice(0, 19)
+    const richRecords: WorkOrderDetail['records'] = [
+      { id: 301, action: '隐患整改验收', operatorName: '王志强', operatorOrgName: '维修部',
+        content: '整改完成，隐患已消除，符合安全规范', createdAt: fmt(8),
+        startedAt: fmt(7.5) },
+      { id: 302, action: '隐患整改验收', operatorName: '王志强', operatorOrgName: '维修部',
+        content: '驳回原因：整改不彻底，部分隐患仍未消除，需重新整改', createdAt: fmt(7),
+        startedAt: fmt(6.5) },
+      { id: 303, action: '隐患整改超时跟进', operatorName: '王志强', operatorOrgName: '维修部',
+        content: '表单内容', createdAt: fmt(6), startedAt: fmt(-18), durationText: '3天24小时',
+        isEmptyForm: true },
+      { id: 304, action: '隐患整改超时跟进', operatorName: '王志强', operatorOrgName: '维修部',
+        content: '转派原因：当前处理人无相关配件，需转派给有经验的维修人员', createdAt: fmt(2),
+        startedAt: fmt(1.5) },
+      { id: 305, action: '隐患整改', operatorName: '王志强', operatorOrgName: '维修部',
+        content: '表单内容', createdAt: fmt(1), startedAt: fmt(0.5),
+        overtimeAlertAt: fmt(1), judgedAt: fmt(1.5), isEmptyForm: true },
+      { id: 306, action: '发起隐患整改', operatorName: '张建国', operatorOrgName: '物业管理处',
+        content: '表单内容', createdAt: fmt(0), startedAt: null, isEmptyForm: true },
+    ]
+    return {
+      ...item,
+      nodes,
+      records: richRecords,
+      nodeRecords,
+      activePathNodeCount,
+      activePathIndex,
+    }
+  }
+
   const records: WorkOrderDetail['records'] = []
   let rid = 301
-  const r = (op: string, operator: string, org: string | null, content: string, time: string) => {
-    records.push({ id: rid++, action: op, operatorName: operator, operatorOrgName: org, content, createdAt: time })
+  const r = (
+    op: string,
+    operator: string,
+    org: string | null,
+    content: string,
+    time: string,
+    extra?: {
+      startedAt?: string | null
+      durationText?: string | null
+      overtimeAlertAt?: string | null
+      judgedAt?: string | null
+      isEmptyForm?: boolean
+    },
+  ) => {
+    records.push({
+      id: rid++,
+      action: op,
+      operatorName: operator,
+      operatorOrgName: org,
+      content,
+      createdAt: time,
+      startedAt: extra?.startedAt,
+      durationText: extra?.durationText,
+      overtimeAlertAt: extra?.overtimeAlertAt,
+      judgedAt: extra?.judgedAt,
+      isEmptyForm: extra?.isEmptyForm,
+    })
   }
 
   // 1. 所有非草稿订单都有「创建工单」记录

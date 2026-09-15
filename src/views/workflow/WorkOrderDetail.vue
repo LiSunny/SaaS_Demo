@@ -1,17 +1,26 @@
 <template>
   <div class="detail-page" v-loading="store.detailLoading">
-    <!-- ===== 面包屑 ===== -->
+    <!-- ===== 面包屑 + 上一条/下一条（仅已关闭状态显示按钮） ===== -->
     <div class="top-bar">
       <nav class="breadcrumb">
         <button class="breadcrumb-link" @click="goBack">工单监控</button>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">{{ store.detail?.orderNo || '工单详情' }}</span>
       </nav>
+      <!-- 上一条/下一条：仅已关闭工单在顶部显示（对齐设计稿） -->
+      <div v-if="store.detail?.status === 'closed'" class="top-bar-actions">
+        <button class="btn-nav" :disabled="!prevId" @click="goPrev">
+          <span class="nav-arrow">‹</span> 上一条
+        </button>
+        <button class="btn-nav" :disabled="!nextId" @click="goNext">
+          下一条 <span class="nav-arrow">›</span>
+        </button>
+      </div>
     </div>
 
     <template v-if="store.detail">
-      <!-- ===== 页面头部 ===== -->
-      <div class="page-header">
+      <!-- ===== 页面头部：仅未关闭状态显示（已关闭对齐设计稿：精简布局，无页面头） ===== -->
+      <div v-if="store.detail.status !== 'closed'" class="page-header">
         <div class="header-left">
           <div class="header-icon">
             <span class="header-icon-text">📋</span>
@@ -44,93 +53,267 @@
           >
             发起
           </button>
-          <button class="btn-nav" disabled>
-            <span class="nav-arrow">‹</span> 上一条
-          </button>
-          <button class="btn-nav" disabled>
-            下一条 <span class="nav-arrow">›</span>
-          </button>
+          <!-- 注：上一条/下一条按钮已搬到顶部 .top-bar，仅已关闭状态显示 -->
         </div>
       </div>
 
-      <!-- ===== 已关闭状态：简化布局 ===== -->
+      <!-- ===== 已关闭状态：双栏布局（对齐设计稿：左主内容 + 右流转记录） ===== -->
       <template v-if="store.detail.status === 'closed'">
-        <div class="closed-body">
+        <div class="closed-layout">
 
-        <!-- SLA 指标 -->
-        <div class="sla-card">
-          <h4 class="section-title">工单指标分析</h4>
-          <div class="sla-metrics">
-            <div class="sla-metric-card">
-              <span class="sla-metric-label">TTR 响应</span>
-              <span class="sla-metric-value">{{ slaMetrics.ttrText }}</span>
-              <span :class="['sla-metric-badge', slaMetrics.ttrOk ? 'sla-badge-ok' : 'sla-badge-over']">{{ slaMetrics.ttrOk ? '✓ 达标' : '✗ 超时' }}</span>
-            </div>
-            <div class="sla-metric-card">
-              <span class="sla-metric-label">TTS 解决</span>
-              <span class="sla-metric-value">{{ slaMetrics.ttsText }}</span>
-              <span :class="['sla-metric-badge', slaMetrics.ttsOk ? 'sla-badge-ok' : 'sla-badge-over']">{{ slaMetrics.ttsOk ? '✓ 达标' : '✗ 超时' }}</span>
-            </div>
-            <div class="sla-metric-card">
-              <span class="sla-metric-label">总耗时</span>
-              <span class="sla-metric-value">{{ slaMetrics.totalText }}</span>
-              <span class="sla-metric-badge sla-badge-info">实际</span>
-            </div>
-          </div>
-        </div>
+          <!-- 左主内容：3 张主卡 + 节点区块（节点区块下轮决定是否合并到表单详情卡） -->
+          <div class="closed-main">
 
-        <div class="info-card">
-          <h4 class="section-title">基本信息</h4>
-          <div class="info-grid">
-            <div class="info-row">
-              <span class="info-label">工单状态</span>
-              <span class="info-value"><StatusTag :status="store.detail.status" :label="statusLabel(store.detail.status)" /></span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">优先级</span>
-              <span class="info-value"><StatusTag :status="store.detail.priority" :label="priorityLabel(store.detail.priority)" /></span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">发起人</span>
-              <span class="info-value">{{ store.detail.creatorName }} / {{ store.detail.creatorOrgName }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">创建时间</span>
-              <span class="info-value">{{ store.detail.createdAt }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">关闭时间</span>
-              <span class="info-value">{{ store.detail.closedAt || '—' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">关闭人</span>
-              <span class="info-value">{{ store.detail.closedBy || '—' }}</span>
-            </div>
-          </div>
-        </div>
+            <!-- ===== 指标分析（对齐设计稿：4px 圆角竖线小标题 + 横向 3 卡 = icon + 标题/ⓘ弹窗 + 数字 + 单位 + 右侧 tip） ===== -->
+            <div class="sla-card">
+              <h4 class="section-title">指标分析</h4>
+              <div class="sla-metrics">
+                <!-- TTR响应 -->
+                <div class="sla-metric-card">
+                  <span class="sla-metric-icon">
+                    <svg class="sla-metric-svg" aria-hidden="true"><use href="/sprite.svg#icon-right-user" /></svg>
+                  </span>
+                  <div class="sla-metric-body">
+                    <div class="sla-metric-label-row">
+                      <span class="sla-metric-label">TTR响应</span>
+                      <el-popover
+                        placement="top"
+                        :width="220"
+                        trigger="hover"
+                        :show-after="100"
+                        popper-class="sla-tip-popover"
+                      >
+                        <template #reference>
+                          <AppIcon name="info-circle" class="sla-metric-info" />
+                        </template>
+                        <div class="sla-popover-content">
+                          <p class="sla-popover-title">TTR 响应时效</p>
+                          <p class="sla-popover-desc">从发起，到流转至首个执行节点的间隔时间</p>
+                          <p class="sla-popover-row">
+                            <span>SLA 阈值：</span>
+                            <strong>{{ formatMinutes(slaMetrics.ttrLimit) }}</strong>
+                          </p>
+                          <p class="sla-popover-row">
+                            <span>实际耗时：</span>
+                            <strong>{{ formatMinutes(Math.round((store.detail?.sla?.ttrMinutes || 0) * (store.detail?.sla?.ttrProgress || 0))) }}</strong>
+                          </p>
+                          <p v-if="!slaMetrics.ttrOk" class="sla-popover-status sla-popover-status-timeout">状态：超时</p>
+                          <p v-else class="sla-popover-status sla-popover-status-ok">状态：正常</p>
+                        </div>
+                      </el-popover>
+                    </div>
+                    <div class="sla-metric-value-row">
+                      <span v-if="!slaMetrics.ttrOk" class="sla-metric-value sla-metric-value-timeout">超时</span>
+                      <template v-else>
+                        <span class="sla-metric-value">{{ slaMetrics.ttrText }}</span>
+                        <span class="sla-metric-unit">{{ slaMetrics.ttrUnit }}</span>
+                      </template>
+                    </div>
+                  </div>
+                </div>
 
-        <!-- 已关闭：全部节点区块只读 -->
-        <div
-          v-for="node in store.detail.nodes.filter(n => n.type !== 'external')"
-          :key="node.id"
-          class="node-section"
-        >
-          <div class="node-header">
-            <span :class="['node-dot', `dot-${node.status}`]" />
-            <span class="node-name">{{ node.name }}</span>
-            <span class="node-time" >{{ node.completedAt || '—' }}</span>
-            <!-- <StatusTag :status="node.status" /> -->
-            <span v-if="node.assigneeName && node.type !== 'start'" class="node-assignee-tag">{{ node.assigneeName }}</span>
+                <!-- TTS解决 -->
+                <div class="sla-metric-card">
+                  <span class="sla-metric-icon">
+                    <svg class="sla-metric-svg" aria-hidden="true"><use href="/sprite.svg#icon-inbox-success" /></svg>
+                  </span>
+                  <div class="sla-metric-body">
+                    <div class="sla-metric-label-row">
+                      <span class="sla-metric-label">TTS解决</span>
+                      <el-popover
+                        placement="top"
+                        :width="220"
+                        trigger="hover"
+                        :show-after="100"
+                        popper-class="sla-tip-popover"
+                      >
+                        <template #reference>
+                          <AppIcon name="info-circle" class="sla-metric-info" />
+                        </template>
+                        <div class="sla-popover-content">
+                          <p class="sla-popover-title">TTS 解决时效</p>
+                          <p class="sla-popover-desc">从流转到首个执行节点到最后一个执行人提交结果的间隔时间</p>
+                          <p class="sla-popover-row">
+                            <span>SLA 阈值：</span>
+                            <strong>{{ formatMinutes(slaMetrics.ttsLimit) }}</strong>
+                          </p>
+                          <p class="sla-popover-row">
+                            <span>实际耗时：</span>
+                            <strong>{{ formatMinutes(Math.round((store.detail?.sla?.ttsMinutes || 0) * (store.detail?.sla?.ttsProgress || 1))) }}</strong>
+                          </p>
+                          <p v-if="!slaMetrics.ttsOk" class="sla-popover-status sla-popover-status-timeout">状态：超时</p>
+                          <p v-else class="sla-popover-status sla-popover-status-ok">状态：正常</p>
+                        </div>
+                      </el-popover>
+                    </div>
+                    <div class="sla-metric-value-row">
+                      <span v-if="!slaMetrics.ttsOk" class="sla-metric-value sla-metric-value-timeout">超时</span>
+                      <template v-else>
+                        <span class="sla-metric-value">{{ slaMetrics.ttsText }}</span>
+                        <span class="sla-metric-unit">{{ slaMetrics.ttsUnit }}</span>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 总耗时（始终显示数字 + 单位） -->
+                <div class="sla-metric-card">
+                  <span class="sla-metric-icon">
+                    <svg class="sla-metric-svg" aria-hidden="true"><use href="/sprite.svg#icon-timer" /></svg>
+                  </span>
+                  <div class="sla-metric-body">
+                    <div class="sla-metric-label-row">
+                      <span class="sla-metric-label">总耗时</span>
+                      <el-popover
+                        placement="top"
+                        :width="220"
+                        trigger="hover"
+                        :show-after="100"
+                        popper-class="sla-tip-popover"
+                      >
+                        <template #reference>
+                          <AppIcon name="info-circle" class="sla-metric-info" />
+                        </template>
+                        <div class="sla-popover-content">
+                          <p class="sla-popover-title">总耗时</p>
+                          <p class="sla-popover-desc">从流程发起到流程关闭的时间间隔</p>
+                          <p class="sla-popover-row">
+                            <span>实际耗时：</span>
+                            <strong>{{ slaMetrics.totalText }}{{ slaMetrics.totalUnit }}</strong>
+                          </p>
+                        </div>
+                      </el-popover>
+                    </div>
+                    <div class="sla-metric-value-row">
+                      <span class="sla-metric-value">{{ slaMetrics.totalText }}</span>
+                      <span class="sla-metric-unit">{{ slaMetrics.totalUnit }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== 基本信息（对齐设计稿：标题/优先级/发起人/工单状态/发起时间/关闭时间 + 关闭人） ===== -->
+            <div class="info-card">
+              <h4 class="section-title">基本信息</h4>
+              <div class="info-grid">
+                <div class="info-row">
+                  <span class="info-label">标题</span>
+                  <span class="info-value">{{ store.detail.title || '—' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">优先级</span>
+                  <span class="info-value"><StatusTag :status="store.detail.priority" :label="priorityLabel(store.detail.priority)" /></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">发起人</span>
+                  <span class="info-value">{{ store.detail.creatorName }} / {{ store.detail.creatorOrgName }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">工单状态</span>
+                  <span class="info-value"><StatusTag :status="store.detail.status" :label="statusLabel(store.detail.status)" /></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">发起时间</span>
+                  <span class="info-value">{{ store.detail.createdAt }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">关闭时间</span>
+                  <span class="info-value">{{ store.detail.closedAt || '—' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== 处理记录（对齐设计稿 5685-11944：完整工单表单展示 + 父容器固定高度 + 内部滚动） ===== -->
+            <div class="process-records-card">
+              <div class="process-records-header">
+                <h4 class="section-title">表单信息</h4>
+                <button class="btn-link-export" :title="'导出表单'" :disabled="exporting" @click="exportProcessRecords">
+                  {{ exporting ? '导出中...' : '导出' }}
+                </button>
+              </div>
+
+              <!-- 空态 -->
+              <div v-if="mergedFormData.fieldCount === 0" class="process-records-empty">
+                暂无表单数据
+              </div>
+
+              <!-- 完整表单（按 Figma 设计稿：5 字段顺序渲染） -->
+              <div v-else class="process-records-list">
+                <div class="form-card">
+                  <!-- 字段 1：故障描述（input：label + value 横排 45px） -->
+                  <div class="form-row form-row-inline">
+                    <span class="form-label">{{ formFieldMeta.Feqcmpz7ldykabc.label }}</span>
+                    <div class="form-value-box">
+                      <span class="form-value-text">{{ mergedFormData.desc || '—' }}</span>
+                    </div>
+                  </div>
+
+                  <!-- 字段 2：故障照片（upload：label + 128×134 图片 垂直布局） -->
+                  <div class="form-row form-row-block">
+                    <span class="form-label">{{ formFieldMeta.F4pumpz7ll1uaec.label }}</span>
+                    <div class="form-image-box">
+                      <img v-if="mergedFormData.beforePhoto" :src="mergedFormData.beforePhoto" class="form-image" alt="故障照片" />
+                      <span v-else class="form-image-placeholder">暂无照片</span>
+                    </div>
+                  </div>
+
+                  <!-- 字段 3：维修结果（radio：label + 2 个 checkbox 横排 45px） -->
+                  <div class="form-row form-row-inline">
+                    <span class="form-label">{{ formFieldMeta.Fskkmpz7m3jjanc.label }}</span>
+                    <div class="form-radio-group">
+                      <label
+                        v-for="opt in formFieldMeta.Fskkmpz7m3jjanc.options"
+                        :key="opt.value"
+                        class="form-radio-item"
+                      >
+                        <span :class="['form-checkbox', mergedFormData.repairResult === opt.value ? 'form-checkbox-checked' : '']">
+                          <svg v-if="mergedFormData.repairResult === opt.value" class="form-checkbox-svg" aria-hidden="true">
+                            <use href="/sprite.svg#icon-check" />
+                          </svg>
+                        </span>
+                        <span class="form-radio-label">{{ opt.label }}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- 字段 4：维修后照片（upload：label + 128×134 图片 垂直布局） -->
+                  <div class="form-row form-row-block">
+                    <span class="form-label">{{ formFieldMeta.F9ltmpz7mn57aqc.label }}</span>
+                    <div class="form-image-box">
+                      <img v-if="mergedFormData.afterPhoto" :src="mergedFormData.afterPhoto" class="form-image" alt="维修后照片" />
+                      <span v-else class="form-image-placeholder">暂无照片</span>
+                    </div>
+                  </div>
+
+                  <!-- 字段 5：验收审核（radio：label + 2 个 checkbox 横排 45px） -->
+                  <div class="form-row form-row-inline">
+                    <span class="form-label">{{ formFieldMeta.Foewmpz7mv4catc.label }}</span>
+                    <div class="form-radio-group">
+                      <label
+                        v-for="opt in formFieldMeta.Foewmpz7mv4catc.options"
+                        :key="opt.value"
+                        class="form-radio-item"
+                      >
+                        <span :class="['form-checkbox', mergedFormData.approval === opt.value ? 'form-checkbox-checked' : '']">
+                          <svg v-if="mergedFormData.approval === opt.value" class="form-checkbox-svg" aria-hidden="true">
+                            <use href="/sprite.svg#icon-check" />
+                          </svg>
+                        </span>
+                        <span class="form-radio-label">{{ opt.label }}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
-          <div v-if="node.type === 'start' || node.type === 'assign' || node.type === 'execute' || node.type === 'confirm'" class="node-body">
-            <DynamicForm
-              :fields="getNodeFormFields(node)"
-              :permissions="getNodePermissions(node)"
-              :initial-data="getNodeInitialData(node)"
-              :readonly="true"
-            />
+
+          <!-- 右流转记录：固定 447px（设计稿值） -->
+          <div class="closed-sidebar">
+            <FlowRecords :records="store.detail.records || []" />
           </div>
-        </div>
 
         </div>
       </template>
@@ -333,7 +516,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { InstanceStatus, Priority, WorkOrderNode } from '@/types/work-order'
@@ -344,6 +527,7 @@ import PersonSelector from '@/components/business/PersonSelector.vue'
 import DynamicForm from '@/components/business/DynamicForm.vue'
 import OrderProgress from '@/components/business/OrderProgress.vue'
 import FlowRecords from '@/components/business/FlowRecords.vue'
+import { exportWorkOrderToPDF } from '@/utils/work-order-export'
 
 const route = useRoute()
 const router = useRouter()
@@ -381,12 +565,92 @@ async function handleSubmitDraft() {
 }
 
 // ===== 数据加载 =====
+// 监听路由 id 变化：上一条/下一条跳转时不刷新会导致详情数据残留
 onMounted(() => {
   const id = Number(route.params.id)
   if (id) store.openDetail(id)
 })
+watch(
+  () => route.params.id,
+  (newId) => {
+    const id = Number(newId)
+    if (id && id !== store.detail?.id) {
+      store.openDetail(id)
+    }
+  },
+)
 
-// ===== 当前节点 =====
+// ===== 处理记录（已关闭工单：合并各节点表单，渲染完整工单表单） =====
+// 字段元数据（设计稿 5685-11944）：字段 ID → 中文 label / 选项
+interface FormFieldMeta {
+  label: string
+  options?: { value: string; label: string }[]
+}
+const formFieldMeta: Record<string, FormFieldMeta> = {
+  Feqcmpz7ldykabc: { label: '故障描述' },
+  F4pumpz7ll1uaec: { label: '故障照片' },
+  Fskkmpz7m3jjanc: {
+    label: '维修结果',
+    options: [
+      { value: 'repaired',   label: '已完成' },
+      { value: 'unrepaired', label: '未完成' },
+    ],
+  },
+  F9ltmpz7mn57aqc: { label: '维修后照片' },
+  Foewmpz7mv4catc: {
+    label: '验收审核',
+    options: [
+      { value: 'approved', label: '通过' },
+      { value: 'rejected', label: '驳回' },
+    ],
+  },
+}
+
+// 合并后的完整表单数据：把 start/execute/confirm 各节点的 data 合并成一张完整表单
+const mergedFormData = computed(() => {
+  // 优先用 formData（start 节点的 data），再叠加 nodeRecords 后出现的字段（覆盖前面的值）
+  const merged: Record<string, any> = { ...(store.detail?.formData || {}) }
+  for (const nr of store.detail?.nodeRecords || []) {
+    Object.assign(merged, nr.data || {})
+  }
+  const beforePhoto = merged.F4pumpz7ll1uaec
+  const afterPhoto = merged.F9ltmpz7mn57aqc
+  const repairResult = merged.Fskkmpz7m3jjanc
+  const approval = merged.Foewmpz7mv4catc
+  const desc = merged.Feqcmpz7ldykabc
+  const fieldCount = [desc, beforePhoto, repairResult, afterPhoto, approval]
+    .filter(v => v !== undefined && v !== null && v !== '').length
+  return { desc, beforePhoto, afterPhoto, repairResult, approval, fieldCount }
+})
+
+// 导出（设计稿右上角「导出」按钮：调用 work-order-export 生成制式 PDF）
+const exporting = ref(false)
+async function exportProcessRecords() {
+  if (!store.detail || exporting.value) return
+  exporting.value = true
+  try {
+    await exportWorkOrderToPDF({
+      orderNo: store.detail.orderNo,
+      title: store.detail.title || null,
+      templateName: store.detail.templateName,
+      priority: store.detail.priority,
+      status: store.detail.status,
+      creatorName: store.detail.creatorName,
+      creatorOrgName: store.detail.creatorOrgName,
+      createdAt: store.detail.createdAt,
+      closedAt: store.detail.closedAt,
+      formData: store.detail.formData,
+      nodeRecords: store.detail.nodeRecords,
+      records: store.detail.records,
+    })
+    ElMessage.success('导出成功')
+  } catch (e: any) {
+    console.error('[PDF Export]', e)
+    ElMessage.error(`导出失败：${e?.message || '未知错误'}`)
+  } finally {
+    exporting.value = false
+  }
+}
 const currentNode = computed(() =>
   store.detail?.nodes.find(n => n.status === 'in_progress')
 )
@@ -586,6 +850,13 @@ function scrollToNode(node: WorkOrderNode) {
 }
 
 // ===== SLA 指标 =====
+// 文本拆成"值"+"单位"两部分（设计稿横向布局：大数字 + 右侧小字单位）
+function splitValueAndUnit(m: number): { value: string; unit: string } {
+  if (m >= 1440) return { value: `${Math.round(m / 1440)}`, unit: '天' }
+  if (m >= 60) return { value: `${Math.round(m / 60)}h${m % 60}m`, unit: '' }
+  return { value: `${m}`, unit: '分钟' }
+}
+
 function formatMinutes(m: number): string {
   if (m >= 1440) return `${Math.round(m / 1440)}天`
   if (m >= 60) return `${Math.round(m / 60)}h${m % 60}m`
@@ -594,18 +865,45 @@ function formatMinutes(m: number): string {
 
 const slaMetrics = computed(() => {
   const sla = store.detail?.sla
-  if (!sla) return { ttrText: '—', ttsText: '—', totalText: '—', ttrOk: true, ttsOk: true, ttrLimit: 0, ttsLimit: 0, yellowPercent: 0 }
+  if (!sla) {
+    return {
+      ttrText: '—', ttsText: '—', totalText: '—',
+      ttrUnit: '', ttsUnit: '', totalUnit: '',
+      ttrOk: true, ttsOk: true,
+      ttrTip: '', ttsTip: '',
+      ttrLimit: 0, ttsLimit: 0, yellowPercent: 0,
+    }
+  }
   const ttrMinutes = sla.ttrMinutes || 0
   const ttsMinutes = sla.ttsMinutes || 0
-  const ttrUsed = Math.round(ttrMinutes * sla.ttsProgress)
+  const ttrUsed = Math.round(ttrMinutes * (sla.ttrProgress || 0))
   const ttsUsed = Math.round(ttsMinutes * (sla.ttsProgress || 1))
   const total = ttrUsed + ttsUsed
+  const ttrSplit = splitValueAndUnit(Math.max(ttrUsed, 0))
+  const ttsSplit = splitValueAndUnit(Math.max(ttsUsed, 0))
+  const totalSplit = splitValueAndUnit(Math.max(total, 0))
+
+  // 超时规则说明（设计稿示例：「紧急响应时效为 45 分钟，实际响应时效为 55 分钟，故判定超时」）
+  const ttrOk = sla.slaStatus !== 'timeout' || (ttrUsed <= ttrMinutes)
+  const ttsOk = sla.slaStatus !== 'timeout' || (ttsUsed <= ttsMinutes)
+  const ttrTip = !ttrOk && ttrMinutes > 0
+    ? `紧急响应时效为 ${formatMinutes(ttrMinutes)}，实际响应时效为 ${formatMinutes(ttrUsed)}，故判定超时`
+    : ''
+  const ttsTip = !ttsOk && ttsMinutes > 0
+    ? `解决时效要求为 ${formatMinutes(ttsMinutes)}，实际耗时 ${formatMinutes(ttsUsed)}，故判定超时`
+    : ''
+
   return {
-    ttrText: formatMinutes(Math.max(ttrUsed, 0)),
-    ttsText: formatMinutes(Math.max(ttsUsed, 0)),
-    totalText: formatMinutes(Math.max(total, 0)),
-    ttrOk: sla.slaStatus !== 'timeout',
-    ttsOk: sla.slaStatus !== 'timeout',
+    ttrText: ttrSplit.value,
+    ttsText: ttsSplit.value,
+    totalText: totalSplit.value,
+    ttrUnit: ttrSplit.unit,
+    ttsUnit: ttsSplit.unit,
+    totalUnit: totalSplit.unit,
+    ttrOk,
+    ttsOk,
+    ttrTip,
+    ttsTip,
     ttrLimit: ttrMinutes,
     ttsLimit: ttsMinutes,
     yellowPercent: Math.round((sla.yellowThreshold || 0) * 100),
@@ -726,6 +1024,26 @@ async function doReassign() {
   reassignTargetId.value = 0
   reassignDialogVisible.value = false
 }
+
+// ===== 上一条/下一条（仅已关闭状态在用） =====
+// 数据源：store.list（已包含当前岗位过滤后的所有工单）
+// 若 list 未加载（直接访问详情 URL）→ 按钮自然 disabled
+const prevId = computed(() => {
+  const id = Number(route.params.id)
+  const idx = store.list.findIndex(w => w.id === id)
+  return idx > 0 ? store.list[idx - 1].id : null
+})
+const nextId = computed(() => {
+  const id = Number(route.params.id)
+  const idx = store.list.findIndex(w => w.id === id)
+  return idx >= 0 && idx < store.list.length - 1 ? store.list[idx + 1].id : null
+})
+function goPrev() {
+  if (prevId.value) router.push(`/system/order/${prevId.value}`)
+}
+function goNext() {
+  if (nextId.value) router.push(`/system/order/${nextId.value}`)
+}
 </script>
 
 <style scoped>
@@ -744,6 +1062,17 @@ async function doReassign() {
 .top-bar {
   flex-shrink: 0;
   padding-bottom: var(--spacing-sm, 8px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md, 12px);
+}
+
+/* ===== 顶部右侧按钮组（已关闭专用，对齐 Figma） ===== */
+.top-bar-actions {
+  display: flex;
+  gap: var(--spacing-md, 12px);
+  flex-shrink: 0;
 }
 
 .breadcrumb {
@@ -957,9 +1286,9 @@ async function doReassign() {
   overflow-y: auto;
 }
 
-/* 右栏 */
+/* 右栏（流转记录：紧凑型） */
 .detail-sidebar {
-  width: 361px;
+  width: 320px;
   flex-shrink: 0;
   border: 1px solid var(--border-default, #e9e9e9);
   border-radius: var(--radius-sm, 6px);
@@ -1129,16 +1458,30 @@ async function doReassign() {
   border-radius: var(--radius-md, 8px);
   border: 1px solid var(--border-low, #f0f0f0);
   padding: var(--spacing-lg, 16px);
-  margin-bottom: var(--spacing-lg, 16px);
+  flex-shrink: 0;  /* 自然高度，不被压缩；间距由 .closed-main 的 gap 控制 */
 }
 
 .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
   font-size: var(--font-h4, 16px);
   font-weight: 500;
   color: var(--text-primary, #101010);
   margin: 0 0 var(--spacing-md, 12px);
-  padding-left: 10px;
-  border-left: 3px solid var(--accent-primary, #3678e3);
+  line-height: 1;
+}
+
+/* 4px 圆角竖线（设计稿 5685:12002） */
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--accent-primary, #3678e3);
+  flex-shrink: 0;
 }
 
 .info-grid {
@@ -1154,6 +1497,7 @@ async function doReassign() {
   min-height: 36px;
   padding: var(--spacing-xs, 4px) 0;
 }
+/* 最后一行（发起时间/关闭时间）去底部分割线 */
 .info-row:nth-last-child(-n+2) { border-bottom: none; }
 
 .info-label {
@@ -1172,79 +1516,122 @@ async function doReassign() {
   gap: var(--spacing-xs, 4px);
 }
 
-/* ===== 已关闭：节点区块 ===== */
-.node-section {
-  background: var(--bg-card, #fff);
-  border-radius: var(--radius-md, 8px);
-  border: 1px solid var(--border-low, #f0f0f0);
-  margin-bottom: var(--spacing-md, 12px);
-}
+/* ===== 已关闭：节点区块（已移除：表单数据已聚合到「处理记录」卡） ===== */
 
-.node-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm, 8px);
-  padding: var(--spacing-md, 12px) var(--spacing-lg, 16px);
-}
-
-.node-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.dot-completed { background: var(--success, #22c55e); }
-.dot-in_progress { background: var(--accent-primary, #3678e3); }
-.dot-pending { background: var(--border-high, #d9d9d9); }
-.dot-skipped { background: var(--text-muted, #5e5e5e); }
-
-.node-name {
-  font-size: var(--font-small, 14px);
-  font-weight: 500;
-  color: var(--text-primary, #101010);
-  
-}
-
-.node-assignee-tag {
-  font-size: var(--font-xs, 12px);
-  color: var(--text-muted, #5e5e5e);
-  background: var(--bg-sub-card, #fbfbfb);
-  padding: 0 8px;
-  border-radius: var(--radius-sm, 4px);
-}
-
-.node-body {
-  padding: 0 var(--spacing-lg, 16px) var(--spacing-lg, 16px);
-  border-top: 1px solid var(--border-low, #f0f0f0);
-}
-
-/* ===== SLA 指标 ===== */
+/* ===== SLA 指标（对齐设计稿：横向 3 卡 + 4px 竖线小标题） ===== */
 .sla-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
 .sla-normal { background: var(--success, #22c55e); }
 .sla-warning { background: var(--warning, #f59e0b); }
 .sla-timeout { background: var(--danger, #dc2626); }
 
+/* 3 列横向卡片：设计稿 gap-[8px] */
 .sla-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-md, 8px);
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
 }
 
+/* 单卡：左 icon(36) + 中 body(flex) + 右 tip(可选) */
 .sla-metric-card {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-md, 12px);
+  padding: var(--spacing-md, 12px);
+  background: var(--bg-sub-card, #fbfbfb);
+  border-radius: 10px;
+  min-height: 64px;
+}
+
+.sla-metric-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(54, 120, 227, 0.05);
+  color: var(--accent-primary, #3678e3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sla-metric-svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  display: block;
+}
+
+/* 占位 emoji（在设计稿图标替换前临时显示） */
+.sla-icon-placeholder {
+  font-size: 18px;
+  line-height: 1;
+  user-select: none;
+}
+
+.sla-metric-body {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs, 4px);
-  padding: var(--spacing-md, 8px);
-  background: var(--bg-sub-card, #fbfbfb);
-  border-radius: var(--radius-sm, 6px);
+  gap: 6px;
+  flex: 1;
+  min-width: 0;  /* 防止 text 撑爆 flex */
 }
-.sla-metric-label { font-size: var(--font-small, 14px); color: var(--text-muted, #5e5e5e); }
-.sla-metric-value { font-size: var(--font-h3, 18px); font-weight: 600; color: var(--text-primary, #101010); }
-.sla-metric-badge { font-size: var(--font-xs, 12px); padding: 2px 8px; border-radius: 10px; }
-.sla-badge-ok { background: var(--success-bg, rgba(34,197,94,0.1)); color: var(--success, #22c55e); }
-.sla-badge-over { background: var(--danger-bg, rgba(220,38,38,0.1)); color: var(--danger, #dc2626); }
-.sla-badge-info { background: var(--info-bg, rgba(54,120,227,0.1)); color: var(--info, #3678e3); }
+
+.sla-metric-label-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sla-metric-label {
+  font-size: var(--font-small, 14px);
+  color: var(--text-muted, #5e5e5e);
+  line-height: 1;
+}
+
+/* 数据指标标题右侧说明悬浮窗触发器（设计稿 Attention 图标位） */
+.sla-metric-info {
+  width: 12px;
+  height: 12px;
+  color: var(--text-muted, #5e5e5e);
+  cursor: help;
+  transition: color .15s;
+}
+.sla-metric-info:hover {
+  color: var(--accent-primary, #3678e3);
+}
+
+.sla-metric-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sla-metric-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #101010);
+  line-height: 1.2;
+  letter-spacing: 0.07px;
+}
+
+/* 设计稿超时态：只显示"超时"二字（数字 hidden），颜色用 danger 醒目 */
+.sla-metric-value-timeout {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--danger, #dc2626);
+  line-height: 1.2;
+}
+
+.sla-metric-unit {
+  font-size: 10px;
+  color: var(--text-muted, #5e5e5e);
+  line-height: 1.2;
+}
+
+/* 右侧 tip 已移除：详细信息见悬浮窗（el-popover） */
 
 /* ===== 底部操作栏 ===== */
 .page-actions {
@@ -1347,4 +1734,300 @@ async function doReassign() {
     max-height: 300px;
   }
 }
+
+/* ===== 已关闭：双栏布局（对齐 Figma 设计稿：左 flex:1 + 右 447px） ===== */
+.closed-layout {
+  flex: 1;
+  display: flex;
+  gap: var(--spacing-md, 12px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.closed-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 12px);
+  min-width: 0;
+  min-height: 0;  /* flex 子项撑满剩余高度必备 */
+  overflow: hidden;  /* 父容器不滚；子卡内各自管滚动 */
+}
+
+.closed-sidebar {
+  width: 447px; /* 对齐 Figma 设计稿：右栏固定 447px */
+  flex-shrink: 0;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-low, #f3f3f3);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-md, 12px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 让 FlowRecords 在 closed-sidebar 内铺满 */
+.closed-sidebar :deep(.flow-records) {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ===== 第 3 张卡：处理记录（对齐 Figma 5685-11944：完整工单表单 + 父容器固定高度 + 内部滚动） ===== */
+.process-records-card {
+  background: var(--bg-card, #fff);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-low, #f3f3f3);
+  padding: var(--spacing-md, 12px);
+  flex: 1 1 0;       /* 撑满 .closed-main 剩余高度（父容器高度固定） */
+  min-height: 0;     /* flex 子项可压缩至 0，内部才能滚动 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.process-records-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  margin-bottom: var(--spacing-md, 12px);
+  flex-shrink: 0;
+}
+
+.process-records-header .section-title { margin-bottom: 0; }
+
+/* 「导出」蓝字按钮（设计稿：标题右侧 蓝字 14px Medium） */
+.btn-link-export {
+  background: none;
+  border: none;
+  padding: 4px 12px 4px 8px;
+  font-size: var(--font-small, 14px);
+  font-weight: 500;
+  color: var(--accent-primary, #3678e3);
+  cursor: pointer;
+  line-height: 1;
+  border-radius: var(--radius-sm, 6px);
+  transition: background .15s, opacity .15s;
+}
+.btn-link-export:hover:not(:disabled) {
+  background: var(--accent-primary10, rgba(54, 120, 227, 0.08));
+}
+.btn-link-export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.process-records-empty {
+  background: var(--bg-sub-card, #fbfbfb);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--spacing-xl, 32px) var(--spacing-lg, 16px);
+  text-align: center;
+  color: var(--text-muted, #5e5e5e);
+  font-size: var(--font-small, 14px);
+}
+
+/* 滚动容器：flex: 1 占据卡片剩余高度；溢出滚动 */
+.process-records-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 内层表单卡片（设计稿：bg-card #fbfbfb + 圆角 6px + padding 24px + gap 16） */
+.form-card {
+  background: var(--bg-sub-card, #fbfbfb);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--spacing-xl, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg, 16px);
+}
+
+/* ===== 表单行：内联（label + value 横排 45px）===== */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md, 12px);
+  width: 100%;
+}
+.form-row-inline { min-height: 45px; }
+
+/* ===== 表单行：块级（label + 图片 垂直布局）===== */
+.form-row-block {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--spacing-md, 12px);
+}
+
+.form-label {
+  font-size: var(--font-body, 16px);
+  color: var(--text-primary, #101010);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+/* 值展示胶囊：bg-sub-card #fff + 圆角 8px + padding 10/18 */
+.form-value-box {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-card, #fff);
+  border-radius: 8px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  height: 45px;
+}
+.form-value-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-body, 16px);
+  font-weight: 500;
+  color: var(--text-muted, #5e5e5e);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* 图片展示框：128×134 + 圆角 8px + border #dedede */
+.form-image-box {
+  width: 128px;
+  height: 134px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default, #dedede);
+  background: var(--bg-card, #fff);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.form-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.form-image-placeholder {
+  font-size: var(--font-xs, 12px);
+  color: var(--text-placeholder, #a9b8cc);
+}
+
+/* radio 行右侧：flex: 1 + 内部 gap 24 横向居右 */
+.form-radio-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-xl, 24px);
+  min-width: 0;
+}
+
+.form-radio-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  cursor: default;
+  user-select: none;
+}
+
+/* 复选框：18×18 + 圆角 4px */
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-default, #dedede);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.form-checkbox-checked {
+  background: var(--accent-primary, #3678e3);
+  border-color: rgba(54, 120, 227, 0.2);
+}
+.form-checkbox-svg {
+  width: 15px;
+  height: 15px;
+  color: #fff;
+  fill: none;
+  stroke: currentColor;
+  display: block;
+}
+
+.form-radio-label {
+  font-size: var(--font-body, 16px);
+  font-weight: 500;
+  color: var(--text-secondary, #2e2e2e);
+  white-space: nowrap;
+}
+
+/* ===== 已关闭布局响应式（窄屏折叠为单栏） ===== */
+
+/* ===== 已关闭布局响应式（窄屏折叠为单栏） ===== */
+@media (max-width: 1280px) {
+  .closed-layout {
+    flex-direction: column;
+  }
+  .closed-sidebar {
+    width: 100%;
+    max-height: 400px;
+  }
+}
+</style>
+
+<!-- ===== 指标分析悬浮窗（el-popover 渲染到 body，scoped 失效，必须非 scoped） ===== -->
+<style>
+.sla-tip-popover.el-popper {
+  padding: 0 !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.sla-tip-popover .el-popper__arrow::before {
+  border: 1px solid #e9e9e9;
+}
+.sla-popover-content {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+.sla-popover-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #101010;
+  line-height: 1.4;
+}
+.sla-popover-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #5e5e5e;
+  line-height: 1.5;
+}
+.sla-popover-row {
+  margin: 0;
+  font-size: 12px;
+  color: #5e5e5e;
+  line-height: 1.5;
+  display: flex;
+  gap: 4px;
+}
+.sla-popover-row strong {
+  color: #101010;
+  font-weight: 600;
+}
+.sla-popover-status {
+  margin: 4px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.sla-popover-status-ok { color: #16a34a; }
+.sla-popover-status-timeout { color: #dc2626; }
 </style>

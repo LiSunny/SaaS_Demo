@@ -93,6 +93,12 @@ export interface WorkOrderRecord {
   operatorOrgName: string | null
   content: string
   createdAt: string
+  // ===== 流转记录时间线扩展（用于富化节点卡片显示） =====
+  startedAt?: string | null         // 节点开始时间（默认 = createdAt - 1h）
+  durationText?: string | null      // 持续时长文字，如"3天24小时"
+  overtimeAlertAt?: string | null   // 超时提醒时间（替换"完成时间"列）
+  judgedAt?: string | null          // 判定超时时间（额外一行）
+  isEmptyForm?: boolean             // 内容区显示"表单内容"占位灰字
 }
 
 export interface WorkOrderDetail extends WorkOrderItem {
