@@ -89,7 +89,24 @@
             <span class="debug-title">🔍 调用时间线</span>
             <span class="debug-count">{{ store.debugEvents.length }} 个节点</span>
           </div>
-          <div class="debug-body" ref="debugBodyRef">
+          <!-- Tab 切换：时间线 / 思考 -->
+          <div class="debug-tabs">
+            <button :class="['debug-tab', { active: debugTab === 'timeline' }]" @click="debugTab = 'timeline'">时间线</button>
+            <button :class="['debug-tab', { active: debugTab === 'thinking' }]" @click="debugTab = 'thinking'">思考 ({{ store.thinkingTexts.length }})</button>
+          </div>
+          <!-- 思考 Tab 内容 -->
+          <div v-if="debugTab === 'thinking'" class="debug-thinking-body" ref="debugBodyRef">
+            <div v-if="store.thinkingTexts.length === 0" class="debug-empty">
+              <span class="debug-empty-icon">💭</span>
+              <span>AI 思考过程将在这里实时显示（仅汉字）</span>
+            </div>
+            <div v-for="(t, i) in store.thinkingTexts" :key="i" class="debug-thinking-item">
+              <span class="debug-thinking-index">#{{ i + 1 }}</span>
+              <pre class="debug-thinking-text">{{ t }}</pre>
+            </div>
+          </div>
+          <!-- 时间线 Tab 内容（原 debug-body） -->
+          <div v-else class="debug-body" ref="debugBodyRef">
             <div v-if="store.debugEvents.length === 0" class="debug-empty">
               <span class="debug-empty-icon">📡</span>
               <span>发送消息后，此处将显示完整的调用流程</span>
@@ -244,6 +261,7 @@ function handleRobotClick() {
 const inputText = ref('')
 const bodyRef = ref<HTMLElement | null>(null)
 const debugBodyRef = ref<HTMLElement | null>(null)
+const debugTab = ref<'timeline' | 'thinking'>('timeline')  // 调试面板 Tab 切换
 const inputRef = ref<HTMLInputElement | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const pendingFile = ref<File | null>(null)
@@ -788,6 +806,61 @@ onUnmounted(() => {
   padding: 10px 12px;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
+}
+
+/* Tab 切换 */
+.debug-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+.debug-tab {
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all .15s;
+}
+.debug-tab:hover { color: #0063a0; }
+.debug-tab.active {
+  color: #0063a0;
+  border-bottom-color: #0063a0;
+  font-weight: 600;
+}
+
+/* 思考 Tab 内容 */
+.debug-thinking-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.debug-thinking-item {
+  background: rgba(0, 99, 160, .05);
+  border-left: 3px solid #0063a0;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.debug-thinking-index {
+  font-size: 11px;
+  color: #0063a0;
+  font-weight: 600;
+}
+.debug-thinking-text {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #1f2937;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  line-height: 1.6;
 }
 
 .debug-title {

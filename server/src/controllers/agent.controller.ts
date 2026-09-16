@@ -36,7 +36,7 @@ async function resolveScope(user: Request['user']): Promise<AgentScope> {
 }
 
 export async function chat(req: Request, res: Response, _next: NextFunction) {
-  const { message, history, fileContext } = req.body
+  const { message, history, fileContext, contextHint, scopeParams } = req.body
 
   // 允许纯文件上传不含文字消息，但至少要有 message 或 fileContext
   const hasText = message && typeof message === 'string' && message.trim().length > 0
@@ -69,6 +69,8 @@ export async function chat(req: Request, res: Response, _next: NextFunction) {
       history,
       hasFile ? fileContext : undefined,
       scope,
+      contextHint,
+      scopeParams,
     )) {
       if (event.type === 'token') {
         res.write(`event: token\ndata: ${JSON.stringify({ type: 'text', content: event.content })}\n\n`)
@@ -81,6 +83,12 @@ export async function chat(req: Request, res: Response, _next: NextFunction) {
         res.write(`event: debug\ndata: ${JSON.stringify(event)}\n\n`)
       } else if (event.type === 'artifact') {
         res.write(`event: artifact\ndata: ${JSON.stringify(event.artifact)}\n\n`)
+      } else if (event.type === 'followup') {
+        res.write(`event: followup\ndata: ${JSON.stringify({ followups: event.followups })}\n\n`)
+      } else if (event.type === 'thinking') {
+        res.write(`event: thinking\ndata: ${JSON.stringify({ text: event.text })}\n\n`)
+      } else if (event.type === 'rearranged') {
+        res.write(`event: rearranged\ndata: ${JSON.stringify({ text: event.text })}\n\n`)
       }
     }
     res.end()

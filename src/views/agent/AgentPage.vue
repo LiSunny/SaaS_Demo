@@ -114,6 +114,25 @@
                 <div v-if="msg.role === 'assistant'" class="msg-bubble msg-bubble--md">
                   <span v-if="msg.content" v-html="renderMarkdown(msg.content)"></span>
                   <span v-else class="loading-dots"><span class="ld-dot" v-for="i in 3" :key="i" :style="{ animationDelay: `${(i - 1) * 0.15}s` }"></span></span>
+                  <!-- 思考过程：默认折叠，纯汉字，点击展开 -->
+                  <div v-if="msg.thinking && msg.thinking.trim() && !msg.isStreaming" class="thinking-block">
+                    <button class="thinking-toggle" @click="toggleThinking(msg.id)">
+                      💭 思考过程（点击{{ expandedThinking[msg.id] ? '收起' : '展开' }}）
+                    </button>
+                    <pre v-if="expandedThinking[msg.id]" class="thinking-content">{{ msg.thinking }}</pre>
+                  </div>
+                  <!-- 后续快捷提问：AI 答完后渲染 3 个按钮，点击直接发送 -->
+                  <div v-if="msg.followups && msg.followups.length && !msg.isStreaming" class="followup-chips">
+                    <button
+                      v-for="(q, qi) in msg.followups"
+                      :key="qi"
+                      class="followup-chip"
+                      :disabled="store.isLoading"
+                      @click="sendQuick(q)"
+                    >
+                      {{ q }}
+                    </button>
+                  </div>
                 </div>
                 <div v-else class="msg-bubble msg-bubble--user">
                   <div v-for="att in msg.attachments" :key="att.url" class="chat-file-card" @click="openFile(att.url)">
@@ -157,7 +176,7 @@
             class="input-area"
             rows="1"
             placeholder="输入问题，Enter 发送，Shift+Enter 换行"
-            @keydown.enter.exact.prevent="handleSend"
+            @keydown.enter.exact.prevent="onEnterSend"
           ></textarea>
 
           <div class="input-tools">
@@ -166,7 +185,7 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               </button>
             </div>
-            <button class="send-btn" :disabled="store.isLoading || (!inputText.trim() && !pendingUploads.length)" @click="handleSend">
+            <button class="send-btn" :disabled="store.isLoading || (!inputText.trim() && !pendingUploads.length)" @click="onClickSend">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
             </button>
           </div>
@@ -613,9 +632,36 @@ function onFileTagLeave() {
   showImagePreview.value = false
 }
 
+// 思考过程折叠状态：msg.id → 是否展开
+const expandedThinking = ref<Record<string, boolean>>({})
+function toggleThinking(id: string) {
+  expandedThinking.value[id] = !expandedThinking.value[id]
+}
+
 function sendQuick(text: string) {
+  // 追问时双轨注入：
+  // 1) 结构化 scopeParams（主路径，从上一轮 scopeEnts 取，保证 DB 层强约束）
+  // 2) 文本 contextHint（兜底，提示 LLM 遵守）
+  const lastAssistant = [...store.messages].reverse().find(m => m.role === 'assistant' && !m.isStreaming)
+  const contextHint = lastAssistant ? extractScopeHint(lastAssistant.content) : undefined
+  // 结构化 scope：取上一轮实际企业 ID 数组；null=全量（系统角色）；undefined=不传
+  const scopeParams: { enterpriseIds?: number[] } | undefined = lastAssistant?.scopeEnts !== undefined
+    ? { enterpriseIds: Array.isArray(lastAssistant.scopeEnts) ? lastAssistant.scopeEnts : undefined }
+    : undefined
   inputText.value = text
-  handleSend()
+  handleSend(contextHint, scopeParams)
+}
+
+/** 从 AI 回答的脚注中提取 scope 描述（无则返回 undefined） */
+function extractScopeHint(reply: string): string | undefined {
+  if (!reply) return undefined
+  // 适配新版 buildScopeText 输出：<div class="scope-note">...<span>数据范围：XXX</span></div>
+  // 用 </span> 作锚点（避开 svg/path 等含 '<' 的属性）
+  const m = reply.match(/数据范围[：:]\s*(.+?)\s*<\/span>/)
+  if (!m) return undefined
+  const scope = m[1].trim()
+  if (!scope || scope === '全部企业') return undefined   // "全部企业" 无需延续
+  return `继续在【${scope}】范围内追问，不要扩大或缩小数据范围。`
 }
 
 /** 发送前确保存在当前会话（首次消息自动创建，否则 persist 找不到会话写不进 localStorage） */
@@ -627,14 +673,24 @@ function ensureCurrentSession(): void {
   currentSessionId.value = id
 }
 
-async function handleSend() {
+// 模板事件 wrapper（避免 handleSend 的可选参数与 KeyboardEvent/PointerEvent 类型冲突）
+function onEnterSend(_e?: KeyboardEvent) { return handleSend() }
+function onClickSend(_e?: PointerEvent) { return handleSend() }
+
+async function handleSend(contextHint?: string, scopeParams?: { enterpriseIds?: number[] }) {
   const text = inputText.value
   if ((!text.trim() && !pendingUploads.value.length) || store.isLoading) return
   ensureCurrentSession()
   inputText.value = ''
   const uploads = [...pendingUploads.value]
   pendingUploads.value = []
-  await store.sendMessage(text, uploads.map(u => ({ url: u.url, fileName: u.fileName, fileType: u.fileType, fileSize: u.fileSize })), uploads)
+  await store.sendMessage(
+    text,
+    uploads.map(u => ({ url: u.url, fileName: u.fileName, fileType: u.fileType, fileSize: u.fileSize })),
+    uploads,
+    contextHint,
+    scopeParams,
+  )
   persistCurrentSession()
   saveSessions()
 }
@@ -939,8 +995,8 @@ function downloadArtifact() {
   background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 45%), var(--accent-strong);
   color: #fff;
   font-size: 13.5px; font-weight: 600; cursor: pointer;
-  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.35);
-  transition: all .15s;
+  /* box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.35); */
+  /* transition: all .15s; */
 }
 .new-chat-btn:hover { filter: brightness(1.08); box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.5); transform: translateY(-1px); }
 .new-chat-btn:active { transform: translateY(0); filter: brightness(0.98); }
@@ -965,7 +1021,7 @@ function downloadArtifact() {
 .session-list::-webkit-scrollbar-track { background: transparent; }
 .session-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
 .session-list::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
-.session-group-label { font-size: 12px; color: var(--text-3); padding: 10px 8px 6px; }
+.session-group-label { font-weight: 600; font-size: 12px; color: var(--text-3); padding: 10px 8px 6px; }
 .session-item {
   position: relative; display: flex; align-items: center;
   height: 38px; padding: 0 10px 0 12px; margin-bottom: 2px;
@@ -1117,6 +1173,65 @@ function downloadArtifact() {
 .loading-dots { display: inline-flex; gap: 4px; padding: 4px 0; }
 .ld-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); animation: ld-bounce 1s infinite; }
 @keyframes ld-bounce { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+
+/* ===== 后续快捷追问 ===== */
+.followup-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+.agent-workbench.light .followup-chips {
+  border-top-color: rgba(15, 23, 42, 0.08);
+}
+.followup-chip {
+  font-size: 12px; padding: 5px 11px;
+  border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  background: transparent;
+  color: var(--accent);
+  transition: all .15s;
+  font-family: inherit;
+  text-align: left;
+  line-height: 1.4;
+}
+.followup-chip:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.followup-chip:disabled { opacity: .4; cursor: not-allowed; }
+
+/* 思考过程折叠区 */
+.thinking-block {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0, 0, 0, .08);
+}
+.thinking-toggle {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color .15s;
+}
+.thinking-toggle:hover { color: #0063a0; }
+.thinking-content {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, .04);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #555;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.agent-workbench.light .thinking-content { background: rgba(0, 0, 0, .03); color: #444; }
 
 /* ===== 输入区 ===== */
 .input-wrap { flex: none; max-width: 1100px; width: 100%; margin: 0 auto; padding: 10px 28px 14px; }

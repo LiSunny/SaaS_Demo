@@ -192,10 +192,6 @@ Object.assign(DIM_B_LABELS, {
   '政府监管': '政府监管',
 })
 
-// ===== 四方数据问答 Mock 数据 =====
-// 告警/隐患/设备后端无数据表、工单 WorkOrder 表当前为空，Demo 阶段统一用 mock 数据驱动。
-// 每条带 enterprise 字段，scope 过滤按用户关联企业名匹配（权限在服务层，LLM 不参与过滤）。
-
 export interface AgentScope {
   systemRole: string | null   // platform-admin / platform-ops / 其他
   groups: string[]            // 用户关联企业 groups 的并集：regulator|unit|operator|service
@@ -203,37 +199,6 @@ export interface AgentScope {
   enterpriseIds: number[]     // 用户关联的企业 ID（真实表过滤用）
   realName?: string           // 当前用户姓名（服务商工单按处理人过滤用）
 }
-
-const MOCK_ALARMS = [
-  { id: 1, point: '1号消控室·烟感A-101', type: '火警', level: '紧急', status: '未处理', time: '08:32', enterprise: '港南二中' },
-  { id: 2, point: '食堂后厨·电气B-03', type: '电气故障', level: '重要', status: '未处理', time: '09:15', enterprise: '港南二中' },
-  { id: 3, point: '宿舍楼·烟感C-207', type: '烟感预警', level: '一般', status: '已处理', time: '07:48', enterprise: '港南二中' },
-  { id: 4, point: '商业街1号铺·烟感', type: '火警', level: '紧急', status: '已处理', time: '08:05', enterprise: '商业街1' },
-  { id: 5, point: '商铺1·电气', type: '电气故障', level: '重要', status: '未处理', time: '10:20', enterprise: '商铺1' },
-  { id: 6, point: '韧性木业·车间烟感', type: '火警', level: '紧急', status: '未处理', time: '09:40', enterprise: '韧性木业' },
-]
-
-const MOCK_HAZARDS = [
-  { id: 1, location: '教学楼1F 灭火器箱', category: '消防设施', level: '一般', status: '未整改', foundAt: '2026-08-12', enterprise: '港南二中' },
-  { id: 2, location: '宿舍楼 消防通道', category: '消防通道', level: '重大', status: '未整改', foundAt: '2026-08-10', enterprise: '港南二中' },
-  { id: 3, location: '商业街1号铺 燃气阀', category: '燃气安全', level: '重大', status: '整改中', foundAt: '2026-08-13', enterprise: '商业街1' },
-  { id: 4, location: '韧性木业 车间电气箱', category: '电气安全', level: '重要', status: '未整改', foundAt: '2026-08-11', enterprise: '韧性木业' },
-]
-
-const MOCK_ORDERS = [
-  { id: 1, orderNo: 'GD20260814001', title: '港南二中 烟感故障维修', type: '设备维修', status: 'active', priority: 'urgent', assignee: '郑晓峰', createdAt: '2026-08-14 08:30', enterprise: '港南二中' },
-  { id: 2, orderNo: 'GD20260814002', title: '商业街 消防通道整改', type: '隐患整改', status: 'active', priority: 'high', assignee: '郑晓峰', createdAt: '2026-08-14 09:00', enterprise: '商业街1' },
-  { id: 3, orderNo: 'GD20260813005', title: '商铺1 电气检测', type: '检测服务', status: 'closed', priority: 'normal', assignee: '郑晓峰', createdAt: '2026-08-13 14:00', enterprise: '商铺1' },
-]
-
-const MOCK_DEVICES = [
-  { id: 1, name: '烟感探测器 A-101', type: '烟感', status: '在线', location: '1号消控室', enterprise: '港南二中' },
-  { id: 2, name: '电气火灾监控 B-03', type: '电气', status: '在线', location: '食堂后厨', enterprise: '港南二中' },
-  { id: 3, name: '烟感探测器 C-207', type: '烟感', status: '离线', location: '宿舍楼', enterprise: '港南二中' },
-  { id: 4, name: '智能摄像头 01', type: '摄像头', status: '在线', location: '商业街1号铺', enterprise: '商业街1' },
-  { id: 5, name: '燃气探测器 01', type: '燃气', status: '离线', location: '商铺1', enterprise: '商铺1' },
-  { id: 6, name: '烟感探测器 车间-1', type: '烟感', status: '在线', location: '车间', enterprise: '韧性木业' },
-]
 
 /** 全量可见：仅系统角色（platform-admin / platform-ops）。regulator 走辖区关系树，见 visibleEnterpriseIds */
 function canSeeAll(scope?: AgentScope): boolean {
@@ -268,22 +233,34 @@ async function visibleEnterpriseIds(scope?: AgentScope): Promise<number[] | null
   return [...visible]
 }
 
-/** 关系树扩展时的范围自证文案（透明性规则：回答必须说明查询范围，默认一阶） */
-function scopeNote(scope: AgentScope | undefined, entIds: number[] | null): string {
+/**
+ * 工具返回文案末尾的「数据范围」脚注（透明性规则）
+ *
+ * 输出 HTML 块（class="scope-note"），前端用 v-html 渲染，配套样式见 src/style.css。
+ * 抽出来后所有工具统一调用——避免每个 case 自行拼写导致格式漂移。
+ * 入参：
+ *   - scope：当前用户的 scope（agent.controller.ts:resolveScope 构造）
+ *   - entIds：工具实际查询时使用的企业 ID 集合（来自 visibleEnterpriseIds(scope)）
+ *   - options.totalCount：返回的总条数（用于「共 N 条 + 数据范围」复合文案）
+ * 返回：HTML 字符串（带前后换行），空场景返回 ''
+ */
+// 内联说明图标（与 public/icons/列表/类型=说明.svg 一致），用 currentColor 跟随父元素色
+const SCOPE_ICON_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3C6.48 3 2 7.48 2 13s4.48 10 10 10 10-4.48 10-10S17.52 3 12 3zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>'
+
+export function buildScopeText(
+  scope: AgentScope | undefined,
+  entIds: number[] | null,
+  options?: { totalCount?: number },
+): string {
   if (entIds === null || !scope?.enterpriseIds?.length) return ''
   const mine = new Set(scope.enterpriseIds)
   const extra = entIds.filter(id => !mine.has(id)).length
   if (extra <= 0) return ''
-  return `\n\n> 📌 数据范围：本企业及 ${extra} 家直接下级/辖区企业（未包含下级的下级；如需包含全部层级，请说「全部下级」）`
+  return `\n\n<div class="scope-note">${SCOPE_ICON_SVG}<span>数据范围：本企业及 ${extra} 家直接下级/辖区企业（未包含下级的下级；如需包含全部层级，请说「全部下级」）</span></div>`
 }
 
-/** 按 scope 过滤带 enterprise 字段的 mock 数据（产物降级路径保留） */
-function filterByScope<T extends { enterprise: string }>(items: T[], scope?: AgentScope): T[] {
-  if (canSeeAll(scope)) return items
-  const names = scope?.enterpriseNames || []
-  if (names.length === 0) return items
-  return items.filter(i => names.includes(i.enterprise))
-}
+/** 别名（内部 query_* 工具复用） */
+export const scopeNote = buildScopeText
 
 /** 日期范围参数 → Prisma where 片段（本地时区解析；date 优先于 startDate/endDate） */
 function buildDateRange(args: Record<string, any>): { gte?: Date; lte?: Date } {
@@ -314,17 +291,6 @@ function buildDateRange(args: Record<string, any>): { gte?: Date; lte?: Date } {
     }
   }
   return range
-}
-
-/** 工单过滤：服务商按处理人（我接的单），其余角色按企业归属 */
-function filterOrders(scope?: AgentScope): typeof MOCK_ORDERS {
-  if (canSeeAll(scope)) return MOCK_ORDERS
-  if (scope?.groups.includes('service') && scope.realName) {
-    return MOCK_ORDERS.filter(o => o.assignee === scope.realName)
-  }
-  const names = scope?.enterpriseNames || []
-  if (names.length === 0) return MOCK_ORDERS
-  return MOCK_ORDERS.filter(o => names.includes(o.enterprise))
 }
 
 /** 产物副标题里的数据范围文案（entIds 传入时标注关系树扩展） */
@@ -360,7 +326,6 @@ const LLM_DEFAULTS = { model: env.DEEPSEEK_MODEL, temperature: 0.7, max_tokens: 
 
 // ===== 类型 =====
 export interface AgentMessage { role: 'user' | 'assistant'; content: string }
-export interface AgentResponse { type: 'navigate' | 'chat'; pageKey?: string; route?: string; reply: string }
 
 export interface StreamEvent { type: 'token'; content: string }
 export interface StreamDoneEvent { type: 'done'; action?: { type: 'navigate'; route: string; pageKey: string } }
@@ -389,6 +354,35 @@ export interface StreamArtifactEvent {
   }
 }
 
+/** 后续快捷提问事件：基于当前问答上下文，推荐用户下一步可问的 2-4 个问题 */
+export interface StreamFollowupEvent {
+  type: 'followup'
+  followups: string[]
+}
+
+/**
+ * 思考过程事件：DeepSeek 等模型在「思考模式」下会把内部推理放在 content 字段里
+ * （包括 DSML 工具调用声明 + 中文叙述）。我们在流式消费时切分出来，去掉非汉字字符
+ * 后推送给前端，作为气泡下方的可折叠「思考过程」区。
+ */
+export interface StreamThinkingEvent {
+  type: 'thinking'
+  text: string
+}
+
+/**
+ * 后处理事件：LLM #2 流式消费完成后，后端对 fullText 做一次"scope-note div 后置"
+ * 重排（把数据范围脚注从中间位置挪到全文末尾），通过此事件下发重组后的完整文本，
+ * 前端 store 用它覆盖 rawText，让气泡显示的就是最终正确顺序。
+ *
+ * 流过程中 token 仍按 LLM 原序推送（用户看到中间过程的"脚注夹中间"状态），流结束后
+ * 被此事件覆盖。LLM #2 流速通常 2-5 秒，闪烁感知不强；好处是 100% 不依赖 LLM 配合。
+ */
+export interface StreamRearrangedEvent {
+  type: 'rearranged'
+  text: string
+}
+
 /** 文件上下文（前端上传解析后传入） */
 export interface FileContext {
   url: string
@@ -402,8 +396,10 @@ export interface FileContext {
 async function executeTool(name: string, args: Record<string, any>, scope?: AgentScope): Promise<string> {
   switch (name) {
     case 'query_enterprise_list': {
-      const { data, total } = await enterpriseService.getList({
+      const entIds = await visibleEnterpriseIds(scope)
+      const { data, total } = await enterpriseService.getListByIds({
         page: 1, size: 9999,
+        entIds,
         dimB: args.dimB || undefined,
         keyword: args.keyword || undefined,
       })
@@ -413,12 +409,14 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
         const region = item.region || '未填写'
         return `| ${item.name} | ${industry} | ${region} |`
       })
-      const text = `**共 ${total} 个租户**\n\n| 名称 | 行业 | 地区 |\n|------|------|------|\n${rows.join('\n')}`
-      return JSON.stringify({ text })
+      const text = `**共 ${total} 个租户**\n\n| 名称 | 行业 | 地区 |\n|------|------|------|\n${rows.join('\n')}${buildScopeText(scope, entIds)}`
+      return JSON.stringify({ text, total })
     }
     case 'query_enterprise_stats': {
-      const { data, total } = await enterpriseService.getList({
+      const entIds = await visibleEnterpriseIds(scope)
+      const { data, total } = await enterpriseService.getListByIds({
         page: 1, size: 1000,
+        entIds,
         dimB: args.dimB || undefined,
       })
       const byIndustry: Record<string, number> = {}
@@ -429,13 +427,16 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
       const rows = Object.entries(byIndustry)
         .map(([k, v]) => `| ${k} | ${v} |`)
         .sort((a, b) => b.localeCompare(a))
-      const text = `**共 ${total} 个租户**\n\n| 行业 | 数量 |\n|------|------|\n${rows.join('\n')}`
-      return JSON.stringify({ text })
+      const text = `**共 ${total} 个租户**\n\n| 行业 | 数量 |\n|------|------|\n${rows.join('\n')}${buildScopeText(scope, entIds)}`
+      return JSON.stringify({ text, total })
     }
     case 'query_user_stats': {
-      // 传入 keyword：查询指定用户的关联岗位与企业信息
+      const entIds = await visibleEnterpriseIds(scope)
+      // 传入 keyword：查询指定用户的关联岗位与企业信息（按 entIds 过滤）
       if (args.keyword) {
-        const { data } = await userService.getList({ page: 1, size: 100, keyword: args.keyword })
+        const { data } = await userService.getListByIdsAndKeyword({
+          page: 1, size: 100, entIds, keyword: args.keyword,
+        })
         if (data.length === 0) return JSON.stringify({ text: '没有找到匹配的用户。' })
 
         // 从数据库加载岗位 key → 名称 映射（含 platform:/ent: 前缀）
@@ -461,24 +462,19 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
             `${entLines}`,
           )
         }
-        const text = blocks.join('\n\n')
+        const text = blocks.join('\n\n') + buildScopeText(scope, entIds)
         return JSON.stringify({ text })
       }
 
-      // 默认：平台用户统计
-      const { total } = await userService.getList({ page: 1, size: 1 })
+      // 默认：按 entIds 统计用户数
+      const total = await userService.getCountByEnterprises(entIds)
       return JSON.stringify({ total })
     }
     case 'query_position_list': {
-      // 直接读企业端的岗位列表（简单的静态数据）
-      const positions = [
-        { key: 'safety-officer', label: '安全员' },
-        { key: 'fire-officer', label: '消防专员' },
-        { key: 'org-admin', label: '企业管理员' },
-        { key: 'supervisor', label: '监管人员' },
-        { key: 'inspector', label: '巡检员' },
-      ]
-      return JSON.stringify({ total: positions.length, list: positions })
+      // 直接读企业端的岗位列表（动态 DB，岗位是全员一致的元数据，无需 scope 过滤）
+      const { data } = await positionService.getList({ page: 1, size: 9999 })
+      const list = data.map(p => ({ key: p.key, label: p.name }))
+      return JSON.stringify({ total: list.length, list })
     }
     case 'query_alarms': {
       const entIds = await visibleEnterpriseIds(scope)
@@ -521,14 +517,28 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
       return JSON.stringify({ text, total: hazards.length })
     }
     case 'query_orders': {
-      let items = filterOrders(scope)
-      if (args.status) items = items.filter(o => o.status === args.status)
-      if (items.length === 0) return JSON.stringify({ text: '没有找到匹配的工单。' })
+      const entIds = await visibleEnterpriseIds(scope)
+      const where: any = {}
+      // scope 过滤：creatorOrgId ∈ entIds；service 角色按处理人姓名
+      if (scope?.groups.includes('service') && scope.realName) {
+        where.currentAssigneeName = scope.realName
+      } else if (entIds !== null) {
+        where.creatorOrgId = { in: entIds }
+      }
+      if (args.status) where.status = args.status
+
+      const orders = await db.workOrder.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      })
+      if (orders.length === 0) return JSON.stringify({ text: '没有找到匹配的工单。' })
       const statusLabel = (s: string) => s === 'active' ? '进行中' : s === 'closed' ? '已关闭' : s
       const priLabel = (p: string) => ({ urgent: '紧急', high: '高', normal: '普通', low: '低' } as Record<string, string>)[p] || p
-      const rows = items.map(o => `| ${o.orderNo} | ${o.title} | ${o.type} | ${statusLabel(o.status)} | ${priLabel(o.priority)} | ${o.assignee} | ${o.createdAt} |`)
-      const text = `**共 ${items.length} 条工单**\n\n| 工单号 | 标题 | 类型 | 状态 | 优先级 | 处理人 | 创建时间 |\n|------|------|------|------|------|------|------|\n${rows.join('\n')}`
-      return JSON.stringify({ text, total: items.length })
+      const fmtT = (t: Date) => t.toISOString().slice(0, 16).replace('T', ' ')
+      const rows = orders.map((o: any) => `| ${o.orderNo} | ${o.title} | ${o.templateName} | ${statusLabel(o.status)} | ${priLabel(o.priority)} | ${o.currentAssigneeName || '未分配'} | ${fmtT(o.createdAt)} | ${o.creatorOrgName} |`)
+      const text = `**共 ${orders.length} 条工单**\n\n| 工单号 | 标题 | 类型 | 状态 | 优先级 | 处理人 | 创建时间 | 所属企业 |\n|------|------|------|------|------|------|------|------|\n${rows.join('\n')}${buildScopeText(scope, entIds)}`
+      return JSON.stringify({ text, total: orders.length })
     }
     case 'query_devices': {
       const entIds = await visibleEnterpriseIds(scope)
@@ -548,6 +558,105 @@ async function executeTool(name: string, args: Record<string, any>, scope?: Agen
     }
     default:
       return JSON.stringify({ error: `未知工具: ${name}` })
+  }
+}
+
+// ===== 后续快捷提问生成 =====
+// 基于当前问答上下文（用户原问题 + 调用的工具 + 最终回答）让 LLM 生成 0-3 个追问。
+// 仅在调过工具时生成（导航/纯聊天不生成），失败/超时静默不返回（不阻断主流程）。
+// 后过滤：数据为空 / 回复过短等"无追问价值"场景直接返回 []，不调 LLM。
+async function generateFollowups(
+  message: string,
+  toolResults: Array<{ toolName: string; resultText: string }>,
+  finalReply: string,
+): Promise<string[]> {
+  if (toolResults.length === 0) return []
+
+  // ===== 后过滤：以下场景直接判定"无追问价值"，不调 LLM =====
+  const EMPTY_SIGNALS = ['没有找到', '暂无', '没有匹配', '为空', '**共 0 ', '共 0 条']
+  const allResultsEmpty = toolResults.every(r => EMPTY_SIGNALS.some(sig => r.resultText.includes(sig)))
+  const replyMentionsEmpty = EMPTY_SIGNALS.some(sig => finalReply.includes(sig))
+  if (allResultsEmpty || replyMentionsEmpty) return []
+  // 回复极短（< 30 字符，典型"没有找到"或纯一句话），追问无价值
+  if (finalReply.trim().length < 30) return []
+
+  const toolsList = toolResults.map(t => t.toolName).join(', ')
+  const resultSnippet = toolResults
+    .map(t => t.resultText.slice(0, 300))
+    .join('\n---\n')
+
+  const prompt = `你是「追问建议生成器」。基于以下对话上下文，**判断是否值得生成追问**，0-3 个。
+
+## 用户原问题
+${message}
+
+## 调用的工具
+${toolsList}
+
+## 工具返回摘要
+${resultSnippet}
+
+## AI 回答摘要
+${finalReply.slice(0, 300)}
+
+## 输出要求（务必遵守）
+- **默认返回空数组 []** ——宁缺毋滥。追问是引导，不是义务
+- **必须**返回追问的典型条件（同时满足才有价值）：
+  - 工具返回了多条数据（>1 条），且能从多个维度切片（按等级/时间/状态/类型/企业等）
+  - 用户问题主题本身就是数据查询（"X 的告警"、"X 的隐患"、"工单情况"）
+- **应该**返回 [] 的典型条件（任一命中即可）：
+  - 工具返回 0 条数据（"没有找到…"）
+  - 工具返回 1 条数据，无法深挖
+  - 用户问题是简单计数（"有几个…"、"多少…"）→ 已得到答案
+  - 用户问题主题是导航/确认/动作（"打开X"、"好的"、"谢谢"）
+  - AI 回答已超过 200 字，结论明确
+- 每个追问不超过 15 字（**严格控制，越短越好**）
+- 与原问题**不同维度**（深入 / 换个角度 / 关联分析）
+- 必须能用上述工具回答，不要编造工具
+- 贴近用户原问题语言风格
+- 只输出 JSON 数组，**不要任何解释、前缀、Markdown 代码块**
+
+## 示例输出
+值得追问：["按等级统计", "最近7天趋势", "未处理的有哪些"]
+不值得追问：[]`
+
+  try {
+    const resp = await getClient().chat.completions.create({
+      ...LLM_DEFAULTS,
+      messages: [
+        { role: 'system', content: '严格只输出 JSON 数组，禁止任何其他内容。' },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: 200,
+      temperature: 0.5,
+    })
+
+    const raw = resp.choices[0]?.message?.content?.trim() || ''
+    console.log('[agent][followup] LLM 原始返回:', raw)
+
+    // 第一道：尝试完整 JSON 解析
+    try {
+      const parsed = JSON.parse(raw)
+      const arr = Array.isArray(parsed) ? parsed : parsed.followups
+      if (Array.isArray(arr)) {
+        return arr.filter((s: any) => typeof s === 'string' && s.trim()).slice(0, 3)
+      }
+      console.warn('[agent][followup] 解析结果无 followups 数组:', parsed)
+      return []
+    } catch (parseErr: any) {
+      // 第二道：JSON 被截断时，从字符串里尽量提取已生成的问题
+      console.warn('[agent][followup] JSON.parse 失败，尝试正则兜底:', parseErr?.message, '原始:', raw)
+      const matches = raw.match(/"([^"]+?)"/g)
+      if (matches && matches.length > 0) {
+        const recovered = matches.map(m => m.slice(1, -1).trim()).filter(Boolean).slice(0, 3)
+        console.log('[agent][followup] 正则兜底提取到:', recovered)
+        return recovered
+      }
+      return []
+    }
+  } catch (err: any) {
+    console.warn('[agent] 生成追问失败:', err?.message)
+    return []
   }
 }
 
@@ -662,7 +771,7 @@ async function* generateArtifact(
   message: string,
   scope: AgentScope | undefined,
   t0: number,
-): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent> {
+): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent | StreamFollowupEvent> {
   const skill = SKILLS[type]
 
   yield debugEvent('artifact_intent', '识别产物意图', 'info',
@@ -723,11 +832,22 @@ async function* generateArtifact(
     const fmtD = (t: Date) => t.toISOString().slice(0, 10)
     rows = hazards.map((h: any) => [h.location, h.category, h.level, h.status, fmtD(h.foundAt), h.enterprise.name])
   } else if (type === 'order-weekly') {
-    const items = filterOrders(scope)
+    const entIds = await visibleEnterpriseIds(scope)
+    const where: any = {}
+    if (scope?.groups.includes('service') && scope.realName) {
+      where.currentAssigneeName = scope.realName
+    } else if (entIds !== null) {
+      where.creatorOrgId = { in: entIds }
+    }
+    const items = await db.workOrder.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    })
     const active = items.filter(o => o.status === 'active').length
     subtitle = scope?.groups.includes('service') && scope.realName
       ? `截至 ${new Date().toLocaleDateString('zh-CN')} · 处理人 ${scope.realName}`
-      : `截至 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope)}`
+      : `截至 ${new Date().toLocaleDateString('zh-CN')} · 覆盖 ${scopeLabel(scope, entIds)}`
     stats = [
       { label: '工单总数', value: String(items.length) },
       { label: '进行中', value: String(active), tone: 'blue' },
@@ -736,7 +856,8 @@ async function* generateArtifact(
     columns = ['工单号', '标题', '类型', '状态', '优先级', '处理人', '创建时间']
     const statusLabel = (s: string) => s === 'active' ? '进行中' : s === 'closed' ? '已关闭' : s
     const priLabel = (p: string) => ({ urgent: '紧急', high: '高', normal: '普通', low: '低' } as Record<string, string>)[p] || p
-    rows = items.map(o => [o.orderNo, o.title, o.type, statusLabel(o.status), priLabel(o.priority), o.assignee, o.createdAt])
+    const fmtT = (t: Date) => t.toISOString().slice(0, 16).replace('T', ' ')
+    rows = items.map(o => [o.orderNo, o.title, o.templateName, statusLabel(o.status), priLabel(o.priority), o.currentAssigneeName || '未分配', fmtT(o.createdAt)])
   }
 
   const html = buildArtifactHtml({ title, subtitle, stats, columns, rows })
@@ -770,13 +891,24 @@ export async function* streamChat(
   history: AgentMessage[] = [],
   fileContext?: FileContext,
   scope?: AgentScope,
-): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent> {
+  contextHint?: string,   // 追问时前端注入的上下文延续提示（文本兜底，如"继续在【辖区】范围"）
+  scopeParams?: { enterpriseIds?: number[] },  // 追问时前端传入的结构化 scope（主路径）
+): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamArtifactEvent | StreamFollowupEvent | StreamThinkingEvent | StreamRearrangedEvent> {
   const t0 = Date.now()
+
+  // scopeParams.enterpriseIds 覆盖 scope.enterpriseIds：
+  // - 数字数组 → 追问时前端从上一轮 tool_exec 的「实际企业 ID」传回，比 resolveScope
+  //   构造的初始 scope 更精确（处理"按辖区追问后又缩到具体 N 家"这类场景）
+  // - undefined（前端显式传 undefined 或根本没传 scopeParams） → 沿用原 scope
+  const effectiveScope: AgentScope | undefined =
+    scopeParams?.enterpriseIds !== undefined
+      ? { ...(scope as AgentScope), enterpriseIds: scopeParams.enterpriseIds }
+      : scope
 
   // ===== 节点 0：产物意图识别（先于 LLM，命中则走产物生成流程） =====
   const artifactIntent = detectArtifactIntent(message)
   if (artifactIntent) {
-    yield* generateArtifact(artifactIntent, message, scope, t0)
+    yield* generateArtifact(artifactIntent, message, effectiveScope, t0)
     return
   }
 
@@ -813,6 +945,9 @@ export async function* streamChat(
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt },
+    // 上下文延续提示：追问时由前端从上一轮"📌 数据范围"脚注里抽取并传入，
+    // 让 LLM 知道"上一轮的查询范围（如辖区）需要延续"
+    ...(contextHint ? [{ role: 'system' as const, content: `[上下文延续] ${contextHint}` }] : []),
     ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     { role: 'user', content: userContent },
   ]
@@ -842,7 +977,25 @@ export async function* streamChat(
       // ===== 节点 4：LLM 响应 #1 =====
       const finishReason1 = resp1.choices[0]?.finish_reason
       const usage1 = (resp1 as any).usage
-      const toolCalls = resp1.choices[0]?.message?.tool_calls
+      let toolCalls = resp1.choices[0]?.message?.tool_calls
+
+      // 兜底：DeepSeek 等模型可能不返回结构化 tool_calls，而是把工具调用用 DSML 文本
+      // 塞进 content（用户看到的"乱码"就是这个 DSML 原文）。这里把 DSML 解析成伪 tool_calls，
+      // 后面走正常的「执行工具 → LLM #2 汇总」流程，用户能看到真实数据而不是降级回复。
+      if (!toolCalls || toolCalls.length === 0) {
+        const content1 = resp1.choices[0]?.message?.content || ''
+        const dsmlCalls = parseDSMLToolCalls(content1)
+        if (dsmlCalls.length > 0) {
+          toolCalls = dsmlCalls.map((tc, i) => ({
+            id: `dsml-${Date.now()}-${i}`,
+            type: 'function' as const,
+            function: { name: tc.name, arguments: JSON.stringify(tc.args) },
+          }))
+          yield debugEvent('dsml_fallback', 'DSML 工具调用兜底解析', 'info',
+            `从 content 解析出 ${dsmlCalls.length} 个工具调用（模型未返回标准 tool_calls）`,
+            { 解析结果: dsmlCalls, 原始content长度: content1.length }, t0)
+        }
+      }
 
       yield debugEvent('llm_call_1_response', 'LLM 响应 #1', 'output',
         toolCalls?.length
@@ -861,24 +1014,33 @@ export async function* streamChat(
 
       if (toolCalls && toolCalls.length > 0) {
         messages.push(resp1.choices[0].message)
+        // 收集工具执行结果，用于后续追问生成的上下文
+        const toolResults: Array<{ toolName: string; resultText: string }> = []
         for (const tc of toolCalls) {
           const fn = (tc as any).function
           const fnName = fn?.name || ''
-          const args = JSON.parse(fn?.arguments || '{}')
+          const rawArgs = JSON.parse(fn?.arguments || '{}')
+          // 参数白名单：丢弃 LLM 自由发挥的字段，只保留工具 schema 声明的参数
+          const args = toolArgsWhitelist(fnName, rawArgs)
 
           // ===== 节点 5：工具执行 =====
           const tTool = Date.now()
-          const result = await executeTool(fnName, args, scope)
+          const result = await executeTool(fnName, args, effectiveScope)
+          // 计算实际使用的 entIds，注入到 tool_exec 详情里供前端提取
+          const toolEntIds = await visibleEnterpriseIds(effectiveScope)
           yield debugEvent('tool_exec', '工具调用', 'output',
-            `${fnName}(${JSON.stringify(args)})，耗时 ${Date.now() - tTool}ms`,
+            `${fnName}(${JSON.stringify(args)})${args.__dropped?.length ? ` ⚠️丢弃非声明参数：${args.__dropped.join(',')}` : ''}，耗时 ${Date.now() - tTool}ms`,
             {
               工具名: fnName,
               参数: args,
+              丢弃参数: args.__dropped || [],
               结果预览: result.slice(0, 500) + (result.length > 500 ? '…' : ''),
               结果长度: result.length,
               耗时ms: Date.now() - tTool,
+              实际企业ID: toolEntIds,
             }, t0)
 
+          toolResults.push({ toolName: fnName, resultText: result })
           messages.push({ role: 'tool', tool_call_id: tc.id, content: result })
         }
 
@@ -893,15 +1055,37 @@ export async function* streamChat(
 
         const t2 = Date.now()
         let fullText2 = ''
+        let fullThinking2 = ''
         const stream2 = await getClient().chat.completions.create({
           ...LLM_DEFAULTS, messages, stream: true,
         })
-        for await (const chunk of stream2) {
-          const delta = chunk.choices[0]?.delta?.content
-          if (delta) {
-            fullText2 += delta
-            yield { type: 'token', content: delta }
+        for await (const ev of streamWithDSMLFilter(stream2)) {
+          if (ev.type === 'token') {
+            fullText2 += ev.text
+            yield { type: 'token', content: ev.text }
+          } else {
+            fullThinking2 += ev.text + '\n'
+            yield { type: 'thinking', text: ev.text }
           }
+        }
+
+        // ===== scope-note 后置：把脚注 div 从数据表和「建议」之间挪到全文末尾 =====
+        // LLM #2 会原样 echo 工具返回里的脚注 div（在数据表之后），它自由发挥的
+        // 「建议」自然落在脚注后面，读起来被切到注释区。我们把 div 整体后置，
+        // 让顺序变成「数据表 → 建议 → 脚注」，符合"结论在前、说明在后"的阅读节奏。
+        const SCOPE_NOTE_RE = /<div class="scope-note">[\s\S]*?<\/div>/
+        const noteMatch = fullText2.match(SCOPE_NOTE_RE)
+        if (noteMatch) {
+          const noteBlock = noteMatch[0]
+          const withoutNote = fullText2
+            .replace(/[\s\n]*<div class="scope-note">[\s\S]*?<\/div>[\s\n]*/, '\n\n')
+            .trimEnd()
+          const rearranged = withoutNote + '\n\n' + noteBlock
+          yield debugEvent('scope_note_rearrange', 'scope-note 后置', 'info',
+            `脚注 div 移到回复末尾（${fullText2.length} → ${rearranged.length} 字符）`,
+            { 原文本: fullText2, 重组后: rearranged }, t0)
+          fullText2 = rearranged
+          yield { type: 'rearranged', text: rearranged }
         }
 
         // ===== 节点 7：LLM 响应 #2 完成 =====
@@ -912,6 +1096,39 @@ export async function* streamChat(
             回复长度: fullText2.length,
             耗时ms: Date.now() - t2,
           }, t0)
+
+        // ===== 节点 7.1：兜底 — 汇总阶段如果模型只吐 DSML（被剥离后）而没有可见中文 =====
+        // 极端情况下 deepseek 在汇总阶段会重新发起 DSML 工具调用（说明它没把工具结果读懂），
+        // DSML 被干净剥离后用户会看到空气泡。这里兜底：如果有工具结果，直接把第一条的 text 推给用户。
+        if (fullText2.length === 0 && toolResults.length > 0) {
+          try {
+            const firstParsed = JSON.parse(toolResults[0].resultText)
+            if (typeof firstParsed?.text === 'string' && firstParsed.text.trim()) {
+              const fallback = firstParsed.text
+              yield debugEvent('empty_reply_fallback', '汇总阶段空回复兜底', 'info',
+                `LLM #2 产出空文本，沿用工具直接返回的 text（${fallback.length} 字符）`,
+                { 工具名: toolResults[0].toolName }, t0)
+              for (let i = 0; i < fallback.length; i += 2) {
+                const piece = fallback.slice(i, i + 2)
+                fullText2 += piece
+                yield { type: 'token', content: piece }
+              }
+            }
+          } catch { /* 工具结果不是 JSON，正常情况不会有 */ }
+        }
+
+        // ===== 节点 7.5：生成后续快捷提问 =====
+        const tFollow = Date.now()
+        const followups = await generateFollowups(message, toolResults, fullText2)
+        yield debugEvent('followup_suggest', '生成后续提问', 'output',
+          followups.length
+            ? `生成 ${followups.length} 个追问，耗时 ${Date.now() - tFollow}ms`
+            : '未生成追问（无工具调用或生成失败）',
+          { 追问: followups, 耗时ms: Date.now() - tFollow }, t0)
+
+        if (followups.length > 0) {
+          yield { type: 'followup', followups }
+        }
 
         yield debugEvent('done', '完成', 'info',
           `总耗时 ${since(t0)}`,
@@ -938,11 +1155,14 @@ export async function* streamChat(
       stream: true,
     })
     let fullText = ''
-    for await (const chunk of stream1) {
-      const delta = chunk.choices[0]?.delta?.content
-      if (delta) {
-        fullText += delta
-        yield { type: 'token', content: delta }
+    // 同样走 DSML 过滤：DeepSeek 在「思考模式」下可能直接吐 DSML 标签，
+    // 必须剥离，否则原始 <｜｜DSML｜｜ calls> 会当 token 推到前端（用户看到"乱码"）
+    for await (const ev of streamWithDSMLFilter(stream1)) {
+      if (ev.type === 'token') {
+        fullText += ev.text
+        yield { type: 'token', content: ev.text }
+      } else {
+        yield { type: 'thinking', text: ev.text }
       }
     }
 
@@ -977,7 +1197,7 @@ export async function* streamChat(
 }
 
 // ===== 本地规则降级流式版本 =====
-async function* localFallbackStream(message: string, t0?: number): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent> {
+async function* localFallbackStream(message: string, t0?: number): AsyncGenerator<StreamEvent | StreamDoneEvent | StreamDebugEvent | StreamFollowupEvent> {
   const text = message.toLowerCase()
   const start = t0 ?? Date.now()
 
@@ -1099,50 +1319,160 @@ function parseAction(raw: string): StreamDoneEvent['action'] {
 
 function sleep(ms: number): Promise<void> { return new Promise(r => setTimeout(r, ms)) }
 
-// ===== 兼容旧代码 =====
-export async function analyzeIntent(message: string, history: AgentMessage[] = []): Promise<AgentResponse> {
-  if (!env.DEEPSEEK_API_KEY) return localFallbackSync(message)
+// ===== 思考过程解析 =====
 
-  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: 'system', content: getSystemPrompt() },
-    ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-    { role: 'user', content: message },
-  ]
+/** 保留汉字 + 中文/全角标点 + 空白，其他字符全 strip（多个空白压成一个） */
+function stripNonChinese(s: string): string {
+  return s
+    .replace(/[^一-鿿㐀-䶿　-〿＀-￯\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
-  try {
-    const completion = await getClient().chat.completions.create({
-      ...LLM_DEFAULTS, messages,
-    })
-    const raw = completion.choices[0]?.message?.content?.trim() || ''
-    return parseResponse(raw)
-  } catch (err: any) {
-    console.error('[agent] DeepSeek 调用失败:', err.message)
-    return localFallbackSync(message)
+/**
+ * 把流式 chunk 喂进来，吐出去 token / thinking 事件。
+ * - DSML 标签外的内容 → token（推给前端作为气泡正文）
+ * - DSML 标签内的内容 → thinking（去非汉字后推给前端作为「思考过程」可折叠区）
+ * - 流结束时若还停在思考段 → 兜底 flush
+ *
+ * 这是 LLM #2（汇总回复）和 llm_direct（无工具调用）**共用**的过滤器，
+ * 保证任何路径都不会把 `<｜｜DSML｜｜ ... <｜｜DSML｜｜` 原始标签泄漏给用户。
+ *
+ * 关键：跨 chunk 缓冲 pending 字符串，**只处理完整 TAG**。OpenAI 流式 chunk 可能
+ * 把标签字符拆得很碎（实测每个 token 是单字符或两字符），老版不做缓冲时单 chunk
+ * 找不到完整 TAG，把 `<` 当 normal 文本吐出去 → 用户看到乱码。
+ */
+type FilteredChunk = { type: 'token' | 'thinking'; text: string }
+async function* streamWithDSMLFilter(
+  stream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>,
+): AsyncGenerator<FilteredChunk> {
+  const TAG = '<｜｜DSML｜｜'
+  let pending = ''      // 跨 chunk 累积的待切分文本
+  let inThink = false   // 当前是否在 DSML 标签内
+  let thinkBuf = ''     // think 段累积的原文
+
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content
+    if (!delta) continue
+    pending += delta
+
+    // 把 pending 里所有完整 TAG 都切掉
+    while (true) {
+      const idx = pending.indexOf(TAG)
+      if (idx === -1) break
+
+      // TAG 之前的内容
+      const prefix = pending.slice(0, idx)
+      if (prefix) {
+        if (inThink) thinkBuf += prefix
+        else yield { type: 'token', text: prefix }
+      }
+
+      // 跳过 TAG、切换模式
+      pending = pending.slice(idx + TAG.length)
+      inThink = !inThink
+      if (!inThink) {
+        // 退出 think：flush
+        const cleaned = stripNonChinese(thinkBuf)
+        if (cleaned) yield { type: 'thinking', text: cleaned }
+        thinkBuf = ''
+      }
+    }
+
+    // 剩余的 pending：
+    // - inThink 段：可以放心加到 thinkBuf（不会有 TAG 跨段）
+    // - normal 段：可能是半个 TAG 前缀，保留最后 TAG.length-1 字符等待下一 chunk
+    if (pending.length > 0) {
+      if (inThink) {
+        thinkBuf += pending
+        pending = ''
+      } else {
+        const keepLen = TAG.length - 1
+        if (pending.length > keepLen) {
+          const out = pending.slice(0, pending.length - keepLen)
+          yield { type: 'token', text: out }
+          pending = pending.slice(-keepLen)
+        }
+      }
+    }
+  }
+
+  // 流结束：把剩余 pending 处理掉
+  if (pending.length > 0) {
+    if (inThink) {
+      thinkBuf += pending
+      const cleaned = stripNonChinese(thinkBuf)
+      if (cleaned) yield { type: 'thinking', text: cleaned }
+    } else {
+      // normal 段残留：直接当 token 推（不可能含半个 TAG，TAG 已被切走）
+      yield { type: 'token', text: pending }
+    }
   }
 }
 
-function parseResponse(raw: string): AgentResponse {
-  let jsonStr = raw
-  const match = raw.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/)
-  if (match) jsonStr = match[1].trim()
-  try {
-    const parsed = JSON.parse(jsonStr)
-    if (parsed.type === 'navigate' && parsed.pageKey) {
-      const page = PAGE_ALIASES[parsed.pageKey]
-      if (page) return { type: 'navigate', pageKey: parsed.pageKey, route: page.route, reply: parsed.reply || '' }
+/**
+ * 从文本里提取 DSML 工具调用。
+ * DeepSeek 等模型在「思考模式」下，有时不返回结构化 tool_calls，而是把工具调用
+ * 用 DSML 文本塞进 content。本函数把这种文本解析成 `[{name, args}]`，
+ * 让上层能构造伪 tool_calls 走正常的「执行 → 汇总」流程。
+ *
+ * 期望格式（不严格，容忍换行/空格）：
+ *   <｜｜DSML｜｜ invoke name="query_alarms">
+ *     <｜｜DSML｜｜ parameter name="status" string="true">未处理</｜｜DSML｜｜ parameter>
+ *   </｜｜DSML｜｜ invoke>
+ *   ...
+ *   <｜｜DSML｜｜ /calls>
+ *
+ * 返回 [] 表示没匹配到（调用方应当 fall through 到 llm_direct 路径）。
+ */
+function parseDSMLToolCalls(content: string): Array<{ name: string; args: Record<string, any> }> {
+  const results: Array<{ name: string; args: Record<string, any> }> = []
+  if (!content || !content.includes('<｜｜DSML｜｜')) return results
+
+  const invokeRe = /<｜｜DSML｜｜\s*invoke\s+name="([^"]+)"\s*>([\s\S]*?)<｜｜DSML｜｜\s*\/invoke\s*>/g
+  const paramRe = /<｜｜DSML｜｜\s*parameter\s+name="([^"]+)"(?:\s+string="(true|false)")?\s*>([\s\S]*?)<｜｜DSML｜｜\s*\/parameter\s*>/g
+
+  let m: RegExpExecArray | null
+  while ((m = invokeRe.exec(content)) !== null) {
+    const name = m[1]
+    const inner = m[2]
+    const args: Record<string, any> = {}
+    let pm: RegExpExecArray | null
+    // 必须在每次 invoke 匹配后重置 lastIndex（paramRe 是全局正则）
+    paramRe.lastIndex = 0
+    while ((pm = paramRe.exec(inner)) !== null) {
+      const key = pm[1]
+      const isString = pm[2] !== 'false'
+      const v = pm[3].trim()
+      if (isString) {
+        args[key] = v
+      } else {
+        // 非 string：尝试 boolean/number
+        if (v === 'true') args[key] = true
+        else if (v === 'false') args[key] = false
+        else if (v !== '' && !isNaN(Number(v))) args[key] = Number(v)
+        else args[key] = v
+      }
     }
-    if (parsed.reply) return { type: 'chat', reply: parsed.reply }
-  } catch {}
-  const cleanText = raw.replace(/```[\s\S]*?```/g, '').trim()
-  return { type: 'chat', reply: cleanText || raw.slice(0, 500) }
+    results.push({ name, args })
+  }
+  return results
 }
 
-function localFallbackSync(message: string): AgentResponse {
-  const text = message.toLowerCase()
-  for (const [pageKey, page] of Object.entries(PAGE_ALIASES)) {
-    for (const alias of page.aliases) {
-      if (text.includes(alias)) return { type: 'navigate', pageKey, route: page.route, reply: `好的，正在为你打开${alias}页面` }
-    }
+/**
+ * Schema 参数白名单：只保留工具 OpenAI 定义里声明的字段
+ * - LLM 自由发挥的参数（如 query_hazards 收到 companyName）会被丢弃
+ * - 丢弃的字段记入 __dropped，便于调试面板对照
+ */
+function toolArgsWhitelist(toolName: string, rawArgs: any): any {
+  const toolDef = TOOLS.find(t => (t as any).function?.name === toolName) as any
+  if (!toolDef || !rawArgs || typeof rawArgs !== 'object') return rawArgs || {}
+  const props = (toolDef.function?.parameters?.properties || {}) as Record<string, any>
+  const allowed = Object.keys(props)
+  const filtered: any = {}
+  for (const k of allowed) {
+    if (rawArgs[k] !== undefined) filtered[k] = rawArgs[k]
   }
-  return { type: 'chat', reply: '我是大屏AI助手。当前为本地模式（未配置LLM），仅支持导航。' }
+  filtered.__dropped = Object.keys(rawArgs).filter(k => !allowed.includes(k))
+  return filtered
 }

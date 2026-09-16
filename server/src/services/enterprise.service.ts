@@ -139,6 +139,47 @@ export async function getList(params: ListParams) {
   return { data: data.map(toItem), total }
 }
 
+/**
+ * 按可见企业 ID 集合查询（AGENT 工具用）
+ *
+ * 与 getList 区别：
+ * - 必须传入 entIds（系统角色传 null 表示全量；普通角色传可见企业 ID 数组）
+ * - 若 entIds 是 []，直接返回空
+ *
+ * 不动 getList 签名（已被前端多个页面调用）。
+ */
+export async function getListByIds(params: {
+  page: number
+  size: number
+  entIds: number[] | null   // null = 全量（系统角色）；[] = 无可见
+  dimB?: string
+  keyword?: string
+}) {
+  if (params.entIds !== null && params.entIds.length === 0) {
+    return { data: [], total: 0 }
+  }
+  const where: any = { deletedAt: null }
+  if (params.entIds !== null) where.id = { in: params.entIds }
+  if (params.keyword) {
+    where.OR = [
+      { name: { contains: params.keyword } },
+      { code: { contains: params.keyword } },
+    ]
+  }
+  if (params.dimB) where.dimB = params.dimB
+
+  const [data, total] = await Promise.all([
+    db.enterprise.findMany({
+      where,
+      skip: (params.page - 1) * params.size,
+      take: params.size,
+      orderBy: { createdAt: 'desc' },
+    }),
+    db.enterprise.count({ where }),
+  ])
+  return { data: data.map(toItem), total }
+}
+
 // ============================================
 // 详情
 // ============================================

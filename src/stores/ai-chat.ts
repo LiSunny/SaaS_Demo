@@ -27,6 +27,11 @@ export interface ChatMessage {
   content: string
   isStreaming?: boolean
   attachments?: FileAttachment[]
+  followups?: string[]       // AI 生成的后续快捷提问（仅 assistant 有）
+  scopeEnts?: number[] | null  // 实际查询使用的企业 ID 集合（仅 assistant 有，用于追问时延续 scope）
+  thinking?: string          // AI 思考过程（仅 assistant 有，已 stripNonChinese）
+  toolExecArgs?: Record<string, any>        // 工具调用参数（仅 assistant 有，仅白名单字段）
+  toolExecDropped?: string[]                // 被白名单丢弃的参数名（仅 assistant 有）
 }
 
 /** 调试日志单条事件 */
@@ -75,6 +80,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
   const hasNewMessage = ref(false)
   const debugEvents = ref<DebugEvent[]>([])
   const debugOpen = ref(false)  // 调试面板是否展开
+  const thinkingTexts = ref<string[]>([])  // 调试面板「思考」Tab 内容（实时累加纯汉字）
   const artifacts = ref<Artifact[]>([])  // 产物列表（本次会话产出的可交付物）
   let abortController: AbortController | null = null
 
@@ -125,6 +131,8 @@ export const useAiChatStore = defineStore('aiChat', () => {
     text: string,
     attachments?: FileAttachment[],
     fileUploadResults?: FileUploadResult[],
+    contextHint?: string,   // 上下文延续提示（文本兜底，如"继续在辖区范围内"），由追问按钮自动注入
+    scopeParams?: { enterpriseIds?: number[] },  // 上下文延续参数（结构化主路径）
   ) {
     if ((!text.trim() && !attachments?.length) || isLoading.value) return
 
@@ -133,6 +141,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
     messages.value.push(aiMsg)
     isLoading.value = true
     debugEvents.value = []  // 新消息 → 清空调试日志
+    thinkingTexts.value = [] // 新消息 → 清空思考内容
     artifacts.value = []    // 新消息 → 清空产物
 
     const history = messages.value
@@ -161,7 +170,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ message: text, history, fileContext }),
+        body: JSON.stringify({ message: text, history, fileContext, contextHint, scopeParams }),
         signal: abortController.signal,
       })
 
@@ -212,6 +221,18 @@ export const useAiChatStore = defineStore('aiChat', () => {
                 detail: data.detail,
                 receivedAt: Date.now(),
               })
+              // 从 tool_exec 节点提取实际企业 ID + 工具调用参数（结构化 scope + 参数白名单前端对照）
+              if (data.node === 'tool_exec') {
+                if (data.detail?.实际企业ID !== undefined) {
+                  messages.value[idx].scopeEnts = data.detail.实际企业ID
+                }
+                // 工具调用参数：后端已用 toolArgsWhitelist 过滤；前端再校验一次
+                if (data.detail?.参数 !== undefined) {
+                  const { __dropped, ...whitelisted } = data.detail.参数
+                  messages.value[idx].toolExecArgs = whitelisted
+                  messages.value[idx].toolExecDropped = __dropped || []
+                }
+              }
             } else if (eventType === 'artifact') {
               artifacts.value.push({
                 id: data.id,
@@ -219,6 +240,18 @@ export const useAiChatStore = defineStore('aiChat', () => {
                 title: data.title,
                 html: data.html,
               })
+            } else if (eventType === 'followup' && Array.isArray(data.followups)) {
+              messages.value[idx].followups = data.followups
+            } else if (eventType === 'thinking' && data.text) {
+              // 累加思考过程（已 stripNonChinese 的纯汉字）
+              messages.value[idx].thinking = (messages.value[idx].thinking || '') + data.text + '\n'
+              // 同时推到调试面板「思考」Tab
+              thinkingTexts.value.push(data.text)
+            } else if (eventType === 'rearranged' && typeof data.text === 'string') {
+              // 后端 scope-note 后置完成：用重组后的完整文本覆盖（不 append），气泡内容同步更新。
+              // 之前 token 累加产生的"脚注夹中间"状态在此被修正为最终正确顺序。
+              rawText = data.text
+              messages.value[idx].content = cleanNavJson(rawText)
             } else if (eventType === 'error') {
               messages.value[idx].content = data.message || '处理请求时出错'
             }
@@ -237,7 +270,7 @@ export const useAiChatStore = defineStore('aiChat', () => {
     isLoading.value = false
   }
 
-  function reset() { messages.value = []; artifacts.value = []; debugEvents.value = []; isLoading.value = false }
+  function reset() { messages.value = []; artifacts.value = []; debugEvents.value = []; thinkingTexts.value = []; isLoading.value = false }
 
-  return { messages, isLoading, isOpen, hasNewMessage, debugEvents, debugOpen, artifacts, toggle, open, close, stop, sendMessage, uploadFile, reset }
+  return { messages, isLoading, isOpen, hasNewMessage, debugEvents, debugOpen, thinkingTexts, artifacts, toggle, open, close, stop, sendMessage, uploadFile, reset }
 })

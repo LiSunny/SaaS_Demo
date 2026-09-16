@@ -50,6 +50,76 @@ export async function getList(params: { page: number; size: number; keyword?: st
   return { data: data.map(toItem), total }
 }
 
+/**
+ * 按可见企业 ID 集合统计用户数（AGENT 工具用）
+ *
+ * - entIds === null：全平台用户数（系统角色专用）
+ * - entIds === []：返回 0
+ * - entIds === [1,2,3]：去重后这些企业关联的用户数
+ */
+export async function getCountByEnterprises(entIds: number[] | null): Promise<number> {
+  if (entIds === null) {
+    return db.user.count({ where: { deletedAt: null } })
+  }
+  if (entIds.length === 0) return 0
+  const relations = await db.userEnterprise.findMany({
+    where: { enterpriseId: { in: entIds }, status: 1 },
+    select: { userId: true },
+    distinct: ['userId'],
+  })
+  const userIds = [...new Set(relations.map(r => r.userId))]
+  if (userIds.length === 0) return 0
+  return db.user.count({ where: { id: { in: userIds }, deletedAt: null } })
+}
+
+/**
+ * 按 keyword + 可见企业 ID 集合搜索用户（AGENT 工具用）
+ * 返回的用户必须满足「至少一个关联企业 ⊆ entIds」
+ */
+export async function getListByIdsAndKeyword(params: {
+  page: number
+  size: number
+  entIds: number[] | null
+  keyword?: string
+}) {
+  if (params.entIds !== null && params.entIds.length === 0) {
+    return { data: [], total: 0 }
+  }
+  const and: any[] = [{ deletedAt: null }]
+  if (params.keyword) {
+    and.push({
+      OR: [
+        { phone: { contains: params.keyword } },
+        { realName: { contains: params.keyword } },
+      ],
+    })
+  }
+  // entIds 非空时：用户必须关联 entIds 内的企业（取所有符合条件的 userId 后二次过滤）
+  if (params.entIds !== null) {
+    const relations = await db.userEnterprise.findMany({
+      where: { enterpriseId: { in: params.entIds }, status: 1 },
+      select: { userId: true },
+      distinct: ['userId'],
+    })
+    const allowedUserIds = [...new Set(relations.map(r => r.userId))]
+    if (allowedUserIds.length === 0) return { data: [], total: 0 }
+    and.push({ id: { in: allowedUserIds } })
+  }
+  const where: any = { AND: and }
+
+  const [data, total] = await Promise.all([
+    db.user.findMany({
+      where,
+      skip: (params.page - 1) * params.size,
+      take: params.size,
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { enterprises: true } } },
+    }),
+    db.user.count({ where }),
+  ])
+  return { data: data.map(toItem), total }
+}
+
 // ===== 详情 =====
 export async function getDetail(id: number) {
   const u = await db.user.findUnique({
