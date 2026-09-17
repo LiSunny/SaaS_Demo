@@ -32,6 +32,7 @@ export interface ChatMessage {
   thinking?: string          // AI 思考过程（仅 assistant 有，已 stripNonChinese）
   toolExecArgs?: Record<string, any>        // 工具调用参数（仅 assistant 有，仅白名单字段）
   toolExecDropped?: string[]                // 被白名单丢弃的参数名（仅 assistant 有）
+  debugEvents?: DebugEvent[]  // 本条消息的调用时间线事件（仅 assistant 有，与全局 debugEvents 一并 push）
 }
 
 /** 调试日志单条事件 */
@@ -213,14 +214,18 @@ export const useAiChatStore = defineStore('aiChat', () => {
             } else if (eventType === 'action' && data.type === 'navigate' && data.route) {
               window.dispatchEvent(new CustomEvent('agent:navigate', { detail: { route: data.route } }))
             } else if (eventType === 'debug') {
-              debugEvents.value.push({
+              const ev: DebugEvent = {
                 node: data.node,
                 label: data.label,
                 io: data.io,
                 summary: data.summary,
                 detail: data.detail,
                 receivedAt: Date.now(),
-              })
+              }
+              debugEvents.value.push(ev)
+              // 同时挂到本条 AI 消息上（用于按消息独立查看调用时间线）
+              if (!messages.value[idx].debugEvents) messages.value[idx].debugEvents = []
+              messages.value[idx].debugEvents!.push(ev)
               // 从 tool_exec 节点提取实际企业 ID + 工具调用参数（结构化 scope + 参数白名单前端对照）
               if (data.node === 'tool_exec') {
                 if (data.detail?.实际企业ID !== undefined) {

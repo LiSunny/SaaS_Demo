@@ -121,6 +121,18 @@
                     </button>
                     <pre v-if="expandedThinking[msg.id]" class="thinking-content">{{ msg.thinking }}</pre>
                   </div>
+                  <!-- 气泡底部快捷操作：复制 + 调用时间线（仅非流式） -->
+                  <div v-if="msg.content && !msg.isStreaming" class="msg-actions msg-actions--assistant">
+                    <button class="msg-action" title="复制回答" @click="copyAssistantReply(msg)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      <span>复制</span>
+                    </button>
+                    <button class="msg-action" :disabled="!(msg.debugEvents && msg.debugEvents.length)" :title="msg.debugEvents && msg.debugEvents.length ? '查看本条回答的调用时间线' : '本次回答暂无调用记录'" @click="jumpToTimeline(msg.id)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span>调用时间线</span>
+                      <span v-if="msg.debugEvents && msg.debugEvents.length" class="msg-action-count">{{ msg.debugEvents.length }}</span>
+                    </button>
+                  </div>
                   <!-- 后续快捷提问：AI 答完后渲染 3 个按钮，点击直接发送 -->
                   <div v-if="msg.followups && msg.followups.length && !msg.isStreaming" class="followup-chips">
                     <button
@@ -134,8 +146,8 @@
                     </button>
                   </div>
                 </div>
-                <div v-else class="msg-bubble msg-bubble--user">
-                  <div v-for="att in msg.attachments" :key="att.url" class="chat-file-card" @click="openFile(att.url)">
+                <div v-else class="msg-bubble msg-bubble--user" :class="{ 'msg-bubble--clickable': msg.content && !store.isLoading }" :title="msg.content && !store.isLoading ? '点击将该问题追加到底部输入框' : ''" @click="onUserBubbleClick(msg, $event)">
+                  <div v-for="att in msg.attachments" :key="att.url" class="chat-file-card" @click.stop="openFile(att.url)">
                     <span class="file-card-icon" :style="{ background: fileTypeColor(att.fileName) }">{{ fileTypeLabel(att.fileName) }}</span>
                     <div class="file-card-info">
                       <span class="file-card-name">{{ att.fileName }}</span>
@@ -209,7 +221,7 @@
     <aside class="col col-right" :class="{ collapsed: rightCollapsed }" :style="{ width: rightCollapsed ? 0 : rightWidth + 'px' }">
       <div class="right-tabs">
         <button class="right-tab" :class="{ active: activeTab === 'timeline' }" @click="activeTab = 'timeline'">
-          调用时间线<span v-if="store.debugEvents.length" class="tab-count">{{ store.debugEvents.length }}</span>
+          调用时间线<span v-if="activeTimelineEvents.length" class="tab-count">{{ activeTimelineEvents.length }}</span>
         </button>
         <button class="right-tab" :class="{ active: activeTab === 'artifacts' }" @click="activeTab = 'artifacts'">
           产物<span v-if="store.artifacts.length" class="tab-count">{{ store.artifacts.length }}</span>
@@ -218,12 +230,12 @@
 
       <!-- 时间线 -->
       <div v-if="activeTab === 'timeline'" class="timeline">
-        <div v-if="store.debugEvents.length === 0" class="right-empty">
+        <div v-if="activeTimelineEvents.length === 0" class="right-empty">
           <p>暂无调用记录</p>
-          <p class="right-empty-sub">发送消息后，这里会展示 AI 的每一步调用过程</p>
+          <p class="right-empty-sub">{{ activeTimelineMsgId ? '该条回答没有调用过程' : '发送消息后，这里会展示 AI 的每一步调用过程' }}</p>
         </div>
-        <div v-for="(ev, i) in store.debugEvents" :key="i" class="tl-node" :class="[`io-${ev.io}`, nodeClass(ev.node)]">
-          <div class="tl-line" :class="{ last: i === store.debugEvents.length - 1 }"></div>
+        <div v-for="(ev, i) in activeTimelineEvents" :key="i" class="tl-node" :class="[`io-${ev.io}`, nodeClass(ev.node)]">
+          <div class="tl-line" :class="{ last: i === activeTimelineEvents.length - 1 }"></div>
           <div class="tl-dot">
             <svg v-if="nodeIcon(ev.node)" class="tl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="nodeIcon(ev.node)"></svg>
             <span v-else class="tl-dot-blank"></span>
@@ -378,6 +390,7 @@ function afterIdentityChange() {
   store.isLoading = false
   inputText.value = ''
   pendingUploads.value = []
+  activeTimelineMsgId.value = ''
 }
 
 async function pickRole(acc: DemoAccount) {
@@ -500,6 +513,7 @@ function newSession() {
   store.reset()
   inputText.value = ''
   pendingUploads.value = []
+  activeTimelineMsgId.value = ''
   saveSessions()
 }
 
@@ -514,6 +528,7 @@ function switchSession(id: string) {
   store.isLoading = false
   inputText.value = ''
   pendingUploads.value = []
+  activeTimelineMsgId.value = ''
   saveSessions()
 }
 
@@ -766,8 +781,32 @@ function startResize(side: 'left' | 'right', e: MouseEvent) {
 }
 
 // ===== 右栏：时间线 / 产物 =====
+// 方案 B：右栏时间线展示"当前选中"那条 AI 消息的调用事件，未显式选择时默认展示最近一条 AI 消息的事件
 const activeTab = ref<'timeline' | 'artifacts'>('timeline')
 const activeArtifactId = ref('')
+// 当前时间线展示归属的 AI 消息 id。空字符串 = 未显式选择（fallback 到最近一条有事件的 AI 消息）
+const activeTimelineMsgId = ref('')
+
+/** 找最近一条有 debugEvents 的 AI 消息（用于默认展示） */
+const lastAssistantWithEvents = computed(() => {
+  for (let i = store.messages.length - 1; i >= 0; i--) {
+    const m = store.messages[i]
+    if (m.role === 'assistant' && m.debugEvents && m.debugEvents.length) return m
+  }
+  return null
+})
+
+/** 右栏时间线实际展示的事件列表：
+ *  - 若 activeTimelineMsgId 指向的消息存在且有事件 → 用该消息的事件
+ *  - 否则 fallback 到最近一条 AI 消息的事件
+ *  - 都没有则空数组（空态） */
+const activeTimelineEvents = computed(() => {
+  const pinned = activeTimelineMsgId.value
+    ? store.messages.find(m => m.id === activeTimelineMsgId.value)
+    : null
+  if (pinned?.debugEvents?.length) return pinned.debugEvents
+  return lastAssistantWithEvents.value?.debugEvents || []
+})
 
 const activeArtifact = computed(() => {
   return store.artifacts.find(a => a.id === activeArtifactId.value) || store.artifacts[0] || null
@@ -828,6 +867,69 @@ function nodeClass(node: string): string {
 function copyArtifact() {
   if (!activeArtifact.value) return
   navigator.clipboard.writeText(activeArtifact.value.html).catch(() => {})
+}
+
+/** 复制 AI 回答的纯文本（剥离 markdown 标记，方便粘贴到 IM/工单） */
+async function copyAssistantReply(msg: ChatMessage) {
+  // markdown 转纯文本：去掉代码块围栏、链接 [text](url) → text、标题/粗体标记
+  const plain = msg.content
+    .replace(/```[\s\S]*?```/g, m => m.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '')) // 保留代码块内容，去围栏
+    .replace(/`([^`]+)`/g, '$1')                                                          // 行内代码
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')                                              // 链接
+    .replace(/^#{1,6}\s+/gm, '')                                                          // 标题
+    .replace(/\*\*([^*]+)\*\*/g, '$1')                                                    // 粗体
+    .replace(/\*([^*]+)\*/g, '$1')                                                        // 斜体
+    .replace(/^\s*[-*]\s+/gm, '· ')                                                       // 无序列表前缀
+    .replace(/\n{3,}/g, '\n\n')                                                           // 多余空行
+    .trim()
+  try {
+    await navigator.clipboard.writeText(plain)
+    ElMessage.success('已复制回答内容')
+  } catch {
+    ElMessage.error('复制失败，请手动选择文本')
+  }
+}
+
+/** 跳转到右栏调用时间线，展示指定 AI 消息的调用事件
+ *  - msgId 可选：不传 = 保持当前选中（首次进入或用户从 Tab 手动进入）
+ *  - 展开右栏 → 切到 timeline Tab → 滚到底 */
+function jumpToTimeline(msgId?: string) {
+  if (msgId) activeTimelineMsgId.value = msgId
+  rightCollapsed.value = false
+  activeTab.value = 'timeline'
+  // 滚到底部，等下一个 tick 让 timeline 渲染完再 scrollIntoView
+  nextTick(() => {
+    const scroller = document.querySelector('.timeline')
+    if (scroller) scroller.scrollTop = scroller.scrollHeight
+  })
+}
+
+/** 把历史用户问题插入到输入框（保留已有内容，新内容追加在末尾） */
+function insertToInput(text: string) {
+  if (!text) return
+  const cur = inputText.value
+  // 已有内容则换行追加，避免粘连；空内容直接赋值
+  inputText.value = cur.trim() ? `${cur.trim()}\n${text}` : text
+  // 聚焦输入框 + 光标移到末尾，方便继续编辑
+  nextTick(() => {
+    const ta = document.querySelector<HTMLTextAreaElement>('.input-area')
+    ta?.focus()
+    if (ta) {
+      const len = ta.value.length
+      ta.setSelectionRange(len, len)
+    }
+  })
+}
+
+/** 点击用户气泡：把问题追加到输入框。
+ *  文件卡片上的 click 已用 .stop 拦截，这里只处理纯文本气泡。 */
+function onUserBubbleClick(msg: ChatMessage, e: MouseEvent) {
+  // 防御：AI 还在生成 / 文本为空时不响应
+  if (store.isLoading || !msg.content) return
+  // 防御：如果点的是文件卡片（虽然在子元素已 stop，但兜底一下）也跳过
+  const target = e.target as HTMLElement
+  if (target.closest('.chat-file-card')) return
+  insertToInput(msg.content)
 }
 
 function openArtifactNew() {
@@ -1123,7 +1225,12 @@ function downloadArtifact() {
   padding: 11px 14px; font-size: 13.5px; line-height: 1.7;
   border-radius: 12px; word-break: break-word;
 }
-.msg.user .msg-bubble--user { background: var(--user-bubble-bg); color: var(--user-bubble-color); border-radius: 12px 12px 4px 12px; }
+.msg.user .msg-bubble--user { background: var(--user-bubble-bg); color: var(--user-bubble-color); border-radius: 12px 12px 4px 12px; transition: background .12s, box-shadow .12s; }
+.msg.user .msg-bubble--user.msg-bubble--clickable { cursor: pointer; }
+.msg.user .msg-bubble--user.msg-bubble--clickable:hover {
+  background: var(--file-card-bg-hover);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.25);
+}
 .msg.assistant .msg-bubble--md {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 40px),
@@ -1173,6 +1280,34 @@ function downloadArtifact() {
 .loading-dots { display: inline-flex; gap: 4px; padding: 4px 0; }
 .ld-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); animation: ld-bounce 1s infinite; }
 @keyframes ld-bounce { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+
+/* ===== 气泡底部快捷操作（复制 / 时间线 / 插入输入框） ===== */
+.msg-actions {
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 8px;
+}
+.msg-actions--user { justify-content: flex-end; }
+.msg-action {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 24px; padding: 0 9px;
+  border: none; border-radius: 6px;
+  background: transparent; color: var(--text-3);
+  font-size: 11.5px; cursor: pointer;
+  font-family: inherit;
+  transition: background .12s, color .12s;
+}
+.msg-action:hover:not(:disabled) {
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+.msg-action:disabled { opacity: .4; cursor: not-allowed; }
+.msg-action-count {
+  min-width: 16px; height: 16px; padding: 0 5px;
+  border-radius: 8px;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 10.5px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+}
 
 /* ===== 后续快捷追问 ===== */
 .followup-chips {
