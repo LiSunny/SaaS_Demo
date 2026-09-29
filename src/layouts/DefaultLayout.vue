@@ -13,7 +13,27 @@
         <ThemeToggle />
 
         <EnterpriseSwitcher v-if="userStore.isLoggedIn && !userStore.systemRole" />
-        
+
+        <!-- 多屏选择浮层（trigger=click，按钮作为 reference slot 锚定位置） -->
+        <BigscreenPickerPopover
+          v-model="pickerOpen"
+          :list="bigscreenList"
+          :loading="bigscreenLoading"
+          @show="handlePopoverShow"
+          @select="handlePickBigscreen"
+        >
+          <template #reference>
+            <button
+              v-if="userStore.isLoggedIn"
+              class="bigscreen-entry-btn"
+              :disabled="bigscreenLoading"
+              title="打开大屏（多个时弹出选择）"
+            >
+              <AppIcon name="bigscreen" class="bigscreen-entry-icon" />
+            </button>
+          </template>
+        </BigscreenPickerPopover>
+
         <span v-if="userStore.isLoggedIn" class="user-name">{{ userStore.user?.realName }}</span>
         <img v-if="userStore.isLoggedIn" class="user-avatar" :src="adminAvatarUrl" alt="头像" />
         <button v-if="userStore.isLoggedIn" class="logout-btn" title="退出登录" @click="handleLogout">
@@ -213,6 +233,10 @@ import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import EnterpriseSwitcher from '@/components/base/EnterpriseSwitcher.vue'
+import { getUserBigscreens } from '@/api/bigscreen'
+import { getBigscreenRoute } from '@/config/bigscreen-templates'
+import BigscreenPickerPopover from '@/components/base/BigscreenPickerPopover.vue'
+import type { UserBigscreenItem } from '@/types/bigscreen'
 import { useUserStore } from '@/stores/user'
 import { useConfirm } from '@/composables/useConfirm'
 import {
@@ -242,6 +266,51 @@ async function handleLogout() {
   } catch { return }
   userStore.logout()
   router.replace('/login')
+}
+
+// ===== 大屏入口（popover show 时触发，0/1/≥2 三态分流） =====
+const bigscreenLoading = ref(false)
+const pickerOpen = ref(false)
+const bigscreenList = ref<UserBigscreenItem[]>([])
+
+/** popover 显示 → 拉取大屏列表 → 按数量分流
+ *  - 0/1 个：关闭 popover，按原行为兜底/直跳
+ *  - ≥2 个：保持 popover 显示，渲染列表让用户选
+ */
+async function handlePopoverShow() {
+  if (bigscreenLoading.value) return // 防重复
+  // 缓存命中：list 已加载过且 ≥2 个，直接展示
+  if (bigscreenList.value.length >= 2) return
+
+  bigscreenLoading.value = true
+  try {
+    if (bigscreenList.value.length === 0) {
+      bigscreenList.value = await getUserBigscreens()
+    }
+    const list = bigscreenList.value
+
+    if (list.length === 0) {
+      // 0 个：维持旧行为，兜底跳 /landing
+      pickerOpen.value = false
+      window.open('/landing', '_blank', 'noopener,noreferrer')
+    } else if (list.length === 1) {
+      // 1 个：直接打开（跳过弹窗，少一次交互）
+      pickerOpen.value = false
+      const only = list[0]
+      window.open(getBigscreenRoute(only.type, only.id), '_blank', 'noopener,noreferrer')
+    }
+    // ≥2 个：保持 popover 打开，子组件已渲染列表
+  } catch {
+    pickerOpen.value = false
+    window.open('/landing', '_blank', 'noopener,noreferrer')
+  } finally {
+    bigscreenLoading.value = false
+  }
+}
+
+function handlePickBigscreen(item: UserBigscreenItem) {
+  // 子组件已通过 v-model 关闭 popover，这里只负责跳转
+  window.open(getBigscreenRoute(item.type, item.id), '_blank', 'noopener,noreferrer')
 }
 
 // ===== 状态 =====
@@ -562,6 +631,22 @@ if (typeof window !== 'undefined') {
 .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .logout-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all .2s; }
 .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
+
+/* 大屏入口按钮 */
+.bigscreen-entry-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; transition: all .2s; flex-shrink: 0;
+}
+.bigscreen-entry-btn:hover:not(:disabled) {
+  background: var(--accent-primary10);
+  color: var(--accent-primary);
+}
+.bigscreen-entry-btn:disabled {
+  opacity: .5; cursor: wait;
+}
+.bigscreen-entry-icon { width: 20px; height: 20px; }
 
 /* 侧栏切换按钮 */
 .sidebar-toggle {
