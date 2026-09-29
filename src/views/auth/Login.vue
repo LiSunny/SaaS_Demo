@@ -196,7 +196,7 @@
     <footer class="login-footer">
       <a href="/portal" target="_blank" class="footer-portal">关于公共安全管理平台</a>
       <div class="footer-copyright">
-        <span>版权所有©️北京韧性科技2026</span>
+        <span>版权所有©️李阳的空间2026</span>
         <span class="footer-divider">|</span>
         <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
       </div>
@@ -211,8 +211,6 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { loginApi } from '@/api/auth'
-import { getUserDefaultBigscreen } from '@/api/bigscreen'
-import { getBigscreenRoute } from '@/config/bigscreen-templates'
 import { ACTIVE_DEMO_ACCOUNTS } from '@/config/demo-accounts'
 import featureMonitor from '@/assets/demo-roles/feature-monitor.svg'
 import featureHelmet from '@/assets/demo-roles/feature-helmet.svg'
@@ -378,29 +376,13 @@ async function handleLogin() {
     ElMessage.success('登录成功')
 
     // 1. 明确指定跳转目标（体验入口：小安助手/案例详情/大屏预览等）→ 优先
-    //    ⚠️ 必须在默认大屏之前判断：企业用户有默认大屏时会吞掉 redirect
     const redirect = route.query.redirect as string
     if (redirect && redirect !== '/login' && redirect !== '/') {
       router.replace(redirect)
       return
     }
 
-    // 2. 系统角色 → 兜底工作台
-    if (res.user.systemRole) {
-      router.replace('/workbench')
-      return
-    }
-
-    // 3. 企业用户 → 查默认大屏（优先级高于工作台）
-    try {
-      const defaultScreen = await getUserDefaultBigscreen()
-      if (defaultScreen) {
-        router.replace(getBigscreenRoute(defaultScreen.type, defaultScreen.id))
-        return
-      }
-    } catch { /* 静默降级 */ }
-
-    // 4. 兜底 → 工作台
+    // 2. 兜底 → 工作台（所有登录用户统一入口）
     router.replace('/workbench')
   } catch (err: any) {
     errorMsg.value = err?.response?.data?.message || err?.message || '登录失败，请重试'
