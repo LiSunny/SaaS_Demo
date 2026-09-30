@@ -1,0 +1,39 @@
+/**
+ * 港南校园大屏字体声明（独立，不复用 campus/）
+ *
+ * Figma 设计稿使用了 Source-KeynoteartHans、YouSheBiaoTiHei、Douyin_Sans
+ * 等字体；其中 Source-KeynoteartHans 项目内无文件，用 YouSheBiaoTiHei 替代。
+ */
+
+@font-face {
+  font-family: 'YouSheBiaoTiHei';
+  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Douyin Sans';
+  src: url('/fonts/DouyinSansBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DingTalk JinBuTi';
+  src: url('/fonts/DingTalkJinBuTi.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Figma 的 Source-KeynoteartHans（用户提供字体文件 2026-09-20） */
+@font-face {
+  font-family: 'Source-KeynoteartHans';
+  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

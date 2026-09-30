@@ -1,0 +1,81 @@
+/**
+ * 港南校园大屏公共样式
+ *
+ * 不复用 campus/，按 Figma 设计稿（node-id=666:3550）独立编写。
+ * 设计 Token 来源：get_design_context 提取。
+ */
+
+@use "@/styles/function.scss" as *;
+
+/* ===== 颜色 Token ===== */
+$cm-bg-primary: #003864;          // 卡片主背景
+$cm-border-primary: #015c8a;      // 卡片边框
+$cm-bg-deep: #003F76;             // 页面背景深色端
+$cm-bg-shallow: #004683;          // 页面背景浅色端
+
+$cm-text-primary: #dbf3ff;        // 主文字（数字）
+$cm-text-secondary: #cfefff;      // 标题文字
+$cm-text-tertiary: #b4e4ff;       // 标签文字
+$cm-text-quaternary: #96bee9;     // 清单文字
+$cm-text-meta: #b9d6e4;           // 提示文字
+$cm-text-faded: #8ea7c2;          // 副标题
+$cm-text-b0: #b0b0b0;             // 二级灰色
+
+$cm-accent-cyan: #00d7ef;         // 青色强调（"详情/更多/审阅"）
+$cm-accent-blue: #3678e3;         // 蓝色百分比
+$cm-accent-green: #4caf50;        // 趋势上升绿
+$cm-accent-red: #f44336;          // 警示红
+$cm-accent-red-strong: #e5523f;   // 警示深红（故障）
+$cm-accent-orange: #ffa600;       // 警示橙
+$cm-accent-cyan-glow: #3cd3d7;    // 高亮青色（地图点）
+
+$cm-bg-tile: rgba(0, 105, 156, 0.14);        // 次级容器
+$cm-bg-tile-deep: rgba(0, 62, 106, 0.8);     // 深底次级容器
+$cm-bg-pill: rgba(0, 136, 209, 0.4);         // 详情按钮背景
+$cm-bg-icon-frame: rgba(167, 221, 255, 0.15);// 图标方框背景
+
+$cm-text-gradient: linear-gradient(to bottom, #ffffff 0%, #89d2ff 100%);     // 模块小标题
+$cm-text-gradient-big: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);  // 大标题
+
+/* 健康度色 */
+$cm-health-excellent: #3fbf77;
+$cm-health-good: #fe9100;
+$cm-health-medium: #4dabff;
+$cm-health-poor: #f44336;
+
+/* ===== 滚动条隐藏 ===== */
+@mixin cm-hide-scrollbar {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== 数字字体（大数字统一用抖音体） ===== */
+@mixin cm-num {
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-weight: 700;
+}
+
+/* ===== 卡片标题文字 ===== */
+@mixin cm-section-title {
+  font-family: 'YouSheBiaoTiHei', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: normal;
+  background: $cm-text-gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== 模块容器 ===== */
+@mixin cm-module-card {
+  background: $cm-bg-primary;
+  border: 2px solid $cm-border-primary;
+  border-top: none;  // 上边框由小标题底边接管
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
+}

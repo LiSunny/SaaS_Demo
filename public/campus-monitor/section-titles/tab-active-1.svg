@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="142" height="41" viewBox="0 0 142 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="Rectangle 34" d="M141.146 0.5L118.729 40.5H0.853516L23.2715 0.5H141.146Z" fill="url(#paint0_radial_0_5)" stroke="url(#paint1_radial_0_5)"/>
+<defs>
+<radialGradient id="paint0_radial_0_5" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(63.0456 41) scale(57.1535 13.8907)">
+<stop stop-color="#C4DFFF" stop-opacity="0.86"/>
+<stop offset="0.28373" stop-color="#79A4D7" stop-opacity="0.68"/>
+<stop offset="1" stop-color="#0C4F9D" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="paint1_radial_0_5" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(65.4025 41) scale(87.2033 30.4443)">
+<stop stop-color="#B4CDFF"/>
+<stop offset="1" stop-color="#4B87CF" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>

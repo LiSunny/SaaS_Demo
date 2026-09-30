@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920" />
+<title>教育局 · 平安校园数据看板</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; font-family: sans-serif; background: #000; color: #fff; }
+  .stage { padding: 24px; }
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">教</div>
+    <div class="header-title">
+      <h1>XX市教育局 · 平安校园集中管理数据看板</h1>
+      <p>District Education Safety Management Dashboard</p>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="tab active">数据总览</div>
+    <div class="tab">主体责任</div>
+    <div class="tab">风险监管</div>
+    <div class="tab">督导检查</div>
+    <div class="tab">应急指挥</div>
+    <div class="tab">决策分析</div>
+  </div>
+  <div class="header-right">
+    <div class="time" id="now">2026-09-18 周五 14:32:08</div>
+    <div class="user">
+      <div class="user-avatar">张</div>
+      <span>张局长</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 主体 ===== -->
+<div class="main">
+  <div class="card col-12">
+    <div class="card-title"><span>调试模式</span></div>
+    <div class="card-body">如果页面不崩溃则说明 main 之外的 CSS/字体/Header 没问题。</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  // 时钟
+  setInterval(() => {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const wk = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+    document.getElementById('now').textContent =
+      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${wk} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, 1000);
+
+  // 实时事件流 · 顶部插入
+  (function () {
+    const feed = document.getElementById('live-feed');
+    if (!feed) return;
+
+
+    // 页面不可见时暂停定时器，避免后台累积
+    let timer = null;
+    let i = 0;
+    const MAX = 5;
+    const INTERVAL_MS = 6000;
+
+    // 模拟事件池（真实接入时由后端推送）
+    const pool = [
+      { sch: '城北实验', ev: '欺凌', cls: 'red', lvl: '严重', grade: '9年级' },
+      { sch: '阳光小学', ev: '烟感', cls: 'yellow', lvl: '一般', grade: '3年级' },
+      { sch: '城南中学', ev: '校门', cls: 'yellow', lvl: '一般', grade: '初三' },
+      { sch: '新城小学', ev: '消防', cls: 'yellow', lvl: '一般', grade: '5年级' },
+      { sch: '外国语',   ev: '门禁', cls: 'gray', lvl: '提示', grade: '初二' },
+      { sch: '职业高中', ev: '食安', cls: 'green', lvl: '闭环', grade: '高二' },
+      { sch: '实验中学', ev: '欺凌', cls: 'red', lvl: '严重', grade: '高一' },
+      { sch: '城南二小', ev: '晨检', cls: 'gray', lvl: '提示', grade: '2年级' },
+      { sch: '实验三小', ev: '烟感', cls: 'yellow', lvl: '一般', grade: '5年级' }
+    ];
+
+    function fmtTime(d) {
+      const p = n => String(n).padStart(2, '0');
+      return `${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    let prepending = false;
+    function prepend(item) {
+      // 防御：如果 feed 已不存在（页面卸载中途），跳过
+      if (!feed || !feed.isConnected) return;
+      // 防止重叠调用
+      if (prepending) return;
+      prepending = true;
+      requestAnimationFrame(() => {
+        prepending = false;
+        if (!feed || !feed.isConnected) return;
+        const div = document.createElement('div');
+        div.className = 'event-stream-item feed-new';
+        div.innerHTML = `<span class="time">${fmtTime(new Date())}</span><span class="desc">${item.ev}</span><span class="school">${item.sch}<small> ${item.grade}</small></span><span class="tag ${item.cls}">${item.lvl}</span>`;
+        feed.insertBefore(div, feed.firstChild);
+        // 清理过期
+        prune();
+      });
+    }
+
+    function prune() {
+      if (!feed || !feed.isConnected) return;
+      while (feed.children.length > MAX) {
+        const last = feed.lastElementChild;
+        if (!last) break;
+        const prev = last.previousElementSibling;
+        if (prev) prev.style.borderBottom = 'none';
+        last.classList.add('feed-out');
+        const removeNode = last;
+        setTimeout(() => {
+          if (removeNode && removeNode.parentNode) removeNode.remove();
+        }, 300);
+      }
+    }
+
+    // 启动时移除初始的 feed-new 类（避免初始 5 条全部播放）
+    feed.querySelectorAll('.feed-new').forEach(el => el.classList.remove('feed-new'));
+
+    function start() {
+      if (timer) return;
+      timer = setInterval(() => {
+        prepend(pool[i % pool.length]);
+        i++;
+      }, INTERVAL_MS);
+    }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop(); else start();
+    });
+
+    start();
+  })();
+
+  // Tab 切换
+  document.querySelectorAll('.sub-tabs').forEach(g => {
+    g.querySelectorAll('span').forEach(s => {
+      s.addEventListener('click', e => {
+        e.stopPropagation();
+        g.querySelectorAll('span').forEach(x => x.classList.remove('active'));
+        s.classList.add('active');
+      });
+    });
+  });
+  document.querySelectorAll('.header-center .tab').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.header-center .tab').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

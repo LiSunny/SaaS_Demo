@@ -2,15 +2,16 @@
  * bigscreen.ts — 可视化大屏类型定义
  */
 
-export type BigscreenType = 'landing' | 'gongmao' | 'enterprise-cockpit' | 'campus' | 'ebike' | 'linking'
+export type BigscreenType = 'landing' | 'gongmao' | 'enterprise-cockpit' | 'campus' | 'campus-monitor' | 'ebike' | 'linking'
 
 /** 大屏类型显示名称 */
 export const BIGSCREEN_TYPE_LABELS: Record<BigscreenType, string> = {
-  landing: '港南\u201C人工智能+工贸企业\u201D自律远程监管平台',
+  landing: '港南“人工智能+工贸企业”自律远程监管平台',
   gongmao: '工贸企业驾驶舱',
-  'enterprise-cockpit': '泉州\u201C人工智能+应消联勤\u201D一体化管控平台',
-  campus: '\u201C人工智能+平安校园\u201D应用管理平台',
-  ebike: '\u201C人工智能+电动自行车\u201D充电桩安防监管平台',
+  'enterprise-cockpit': '泉州“人工智能+应消联勤”一体化管控平台',
+  campus: '“人工智能+平安校园”应用管理平台',
+  ebike: '“人工智能+电动自行车”充电桩安防监管平台',
+  'campus-monitor': '港南教育局“人工智能+平安校园”监管平台',
   linking: '海港区“人工智能+沿街商铺”应消联勤平台',
 }
 

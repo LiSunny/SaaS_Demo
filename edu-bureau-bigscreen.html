@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>教育局 · 平安校园集中管理大屏</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #000; color: #e6e6e6; }
+  :root {
+    --bg-1: #003F76;
+    --bg-2: #004683;
+    --header-1: #004D8E;
+    --header-2: #005DAC;
+    --accent: #00c0c0;
+    --accent-strong: #21dcdb;
+    --text: #e6e6e6;
+    --text-dim: #8ea7c2;
+    --warn: #f0a020;
+    --danger: #f44336;
+    --success: #21dcdb;
+    --border: rgba(0, 192, 192, 0.25);
+  }
+
+  /* 视口：按 1920×1080 设计，等比缩放 */
+  .stage {
+    position: relative;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    background: radial-gradient(50% 50% at 50% 50%, var(--bg-1) 0%, var(--bg-2) 100%);
+  }
+
+  /* ===== 顶部 Header ===== */
+  .header {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 64px;
+    background: linear-gradient(180deg, var(--header-1) 0%, var(--header-2) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .header::before {
+    content: '';
+    position: absolute; left: 0; top: 0; height: 100%; width: 320px;
+    background: url('./public/campus-header-left.svg') no-repeat left center;
+    background-size: contain;
+    opacity: 0.85;
+  }
+  .header-title {
+    font-family: 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
+    font-size: 30px; font-weight: 400;
+    background: linear-gradient(to bottom, #ffffff 0%, #84d6ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-meta {
+    position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; gap: 18px;
+    font-size: 14px; color: #fff;
+  }
+  .header-meta .pill {
+    background: rgba(0, 192, 192, 0.18);
+    border: 1px solid var(--border);
+    padding: 4px 12px; border-radius: 4px;
+    font-family: 'DingTalk JinBuTi', sans-serif;
+  }
+
+  /* ===== 三栏布局 ===== */
+  .content {
+    position: absolute; top: 80px; left: 16px; right: 16px; bottom: 16px;
+    display: grid;
+    grid-template-columns: 480px 1fr 480px;
+    gap: 16px;
+  }
+
+  /* ===== Section 通用 ===== */
+  .section {
+    position: relative;
+    background: url('./public/campus-section-bg.svg') no-repeat center / 100% 100%;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .section-title {
+    height: 36px;
+    flex-shrink: 0;
+    background: url('./public/campus-section-title.svg') no-repeat left center / auto 100%;
+    padding-left: 16px;
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'DingTalk JinBuTi', sans-serif;
+    font-size: 18px; color: #fff;
+    position: relative;
+  }
+  .section-title .en {
+    font-family: 'PingFang SC'; font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .section-body {
+    flex: 1; min-height: 0; padding: 10px 14px 14px;
+    display: flex; flex-direction: column;
+  }
+
+  /* ===== 顶栏 4 个 KPI 大数字（横贯三栏上方） ===== */
+  .top-kpis {
+    grid-column: 1 / -1;
+    height: 110px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+  }
+  .kpi {
+    position: relative;
+    background: linear-gradient(135deg, rgba(0, 100, 160, 0.55) 0%, rgba(0, 60, 110, 0.35) 100%);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute; right: -20px; top: -20px;
+    width: 80px; height: 80px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 192, 192, 0.25) 0%, transparent 70%);
+  }
+  .kpi .label {
+    font-size: 14px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .kpi .num {
+    font-family: 'DingTalk JinBuTi', sans-serif;
+    font-size: 38px; font-weight: 600;
+    background: linear-gradient(to bottom, #fff 0%, #84d6ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1;
+    display: flex; align-items: baseline; gap: 4px;
+  }
+  .kpi .unit { font-size: 14px; color: var(--text-dim); font-family: 'PingFang SC'; }
+  .kpi .delta { font-size: 12px; color: var(--text-dim); }
+  .kpi.danger .num { background: linear-gradient(to bottom, #ff8888 0%, #f44336 100%); -webkit-background-clip: text; }
+  .kpi.warn .num { background: linear-gradient(to bottom, #ffd089 0%, #f0a020 100%); -webkit-background-clip: text; }
+  .kpi.ok .num { background: linear-gradient(to bottom, #b3f5f5 0%, #21dcdb 100%); -webkit-background-clip: text; }
+
+  /* ===== 左栏 ===== */
+  .col-left, .col-right { display: flex; flex-direction: column; gap: 16px; }
+  .col-left > *, .col-right > * { flex: 1; min-height: 0; }
+  .col-left > *:last-child, .col-right > *:last-child { flex: 1.2; }
+
+  /* ===== 中栏 ===== */
+  .col-center { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .col-center > :first-child { flex: 1.6; min-height: 0; }
+  .col-center > :last-child { flex: 1; min-height: 0; }
+
+  /* ===== 风险地图 ===== */
+  .map-wrap {
+    flex: 1; min-height: 0;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+  }
+  .map-stage {
+    position: relative;
+    background: linear-gradient(180deg, rgba(0, 80, 140, 0.4) 0%, rgba(0, 40, 80, 0.6) 100%);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .map-svg { width: 100%; height: 100%; display: block; }
+  .map-legend {
+    position: absolute; bottom: 10px; left: 10px;
+    display: flex; gap: 10px; font-size: 11px; color: var(--text-dim);
+  }
+  .map-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+  .school-rank {
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .rank-title {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--text-dim); margin-bottom: 8px;
+  }
+  .rank-title .filters { display: flex; gap: 6px; }
+  .rank-title .filters span {
+    padding: 2px 8px; border-radius: 3px; cursor: pointer;
+    border: 1px solid transparent; font-size: 12px;
+  }
+  .rank-title .filters span.active {
+    background: rgba(0, 192, 192, 0.2); border-color: var(--border); color: var(--accent-strong);
+  }
+  .rank-list { flex: 1; overflow-y: auto; }
+  .rank-list::-webkit-scrollbar { display: none; }
+  .rank-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 70px 70px;
+    gap: 8px; align-items: center;
+    padding: 7px 4px;
+    font-size: 13px;
+    border-bottom: 1px dashed rgba(0, 192, 192, 0.12);
+  }
+  .rank-row .idx { font-family: 'DingTalk JinBuTi', sans-serif; color: var(--accent); font-weight: 600; }
+  .rank-row .name { color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-row .name small { color: var(--text-dim); font-size: 11px; margin-left: 6px; }
+  .rank-row .score, .rank-row .bar { font-size: 12px; color: var(--text-dim); }
+  .rank-row .bar { background: rgba(0, 192, 192, 0.1); height: 6px; border-radius: 3px; position: relative; overflow: hidden; }
+  .rank-row .bar i { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #00c0c0, #f44336); border-radius: 3px; }
+
+  /* ===== 主体责任 ===== */
+  .duty-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px;
+    font-size: 13px;
+  }
+  .duty-row { display: flex; align-items: center; gap: 8px; }
+  .duty-row .lbl { color: var(--text-dim); flex: 1; }
+  .duty-row .val { font-family: 'DingTalk JinBuTi', sans-serif; color: #fff; }
+  .duty-row .ring {
+    width: 44px; height: 22px; border-radius: 11px;
+    background: rgba(0, 192, 192, 0.15);
+    position: relative; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .duty-row .ring i {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  }
+  .duty-row .ring span {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; color: #fff; font-family: 'DingTalk JinBuTi';
+    text-shadow: 0 0 2px #000;
+  }
+
+  /* ===== 表格通用 ===== */
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.tbl thead th {
+    background: #0F437A; color: var(--accent);
+    font-weight: 500; padding: 6px 8px; text-align: left;
+    font-family: 'DingTalk JinBuTi', sans-serif;
+  }
+  table.tbl tbody td {
+    padding: 7px 8px; border-bottom: 1px dashed rgba(0, 192, 192, 0.12);
+    color: var(--text);
+  }
+  table.tbl tbody tr:hover { background: rgba(0, 192, 192, 0.06); cursor: pointer; }
+
+  .tag {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    font-family: 'DingTalk JinBuTi', sans-serif; font-size: 12px;
+  }
+  .tag.red { color: #ffb1ad; background: rgba(244, 67, 54, 0.25); }
+  .tag.yellow { color: #ffd58a; background: rgba(240, 160, 32, 0.2); }
+  .tag.cyan { color: var(--accent-strong); background: rgba(0, 164, 164, 0.25); }
+  .tag.gray { color: var(--text-dim); background: rgba(120, 140, 160, 0.18); }
+
+  .table-wrap { flex: 1; min-height: 0; overflow-y: auto; }
+  .table-wrap::-webkit-scrollbar { display: none; }
+
+  /* ===== 中下两栏：督办 + 数据质量 ===== */
+  .center-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ===== 数据上报：3 个小环图 ===== */
+  .report-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px;
+  }
+  .report-cell {
+    background: rgba(0, 80, 140, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+  }
+  .report-cell .lbl { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+  .ring-chart {
+    width: 64px; height: 64px; margin: 0 auto 6px;
+    position: relative;
+  }
+  .ring-chart svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-chart circle.bg { fill: none; stroke: rgba(0, 192, 192, 0.15); stroke-width: 6; }
+  .ring-chart circle.fg { fill: none; stroke: var(--accent-strong); stroke-width: 6; stroke-linecap: round; }
+  .ring-chart.warn circle.fg { stroke: var(--warn); }
+  .ring-chart.danger circle.fg { stroke: var(--danger); }
+  .ring-chart .pct {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DingTalk JinBuTi', sans-serif; font-size: 18px; color: #fff;
+  }
+
+  /* ===== 右栏：事件流 / 检查任务 ===== */
+  .event-row {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 8px; align-items: center;
+    padding: 7px 4px;
+    font-size: 13px;
+    border-bottom: 1px dashed rgba(0, 192, 192, 0.12);
+  }
+  .event-row .time { font-family: 'DingTalk JinBuTi', sans-serif; color: var(--text-dim); font-size: 12px; }
+  .event-row .desc { color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .event-row .desc small { color: var(--text-dim); font-size: 11px; margin-left: 6px; }
+
+  .check-task {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    padding: 8px 6px;
+    border-bottom: 1px dashed rgba(0, 192, 192, 0.12);
+    font-size: 13px;
+  }
+  .check-task .name { color: #fff; }
+  .check-task .meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .check-task .progress { width: 100%; height: 5px; background: rgba(0, 192, 192, 0.12); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .check-task .progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ============ Header ============ -->
+  <div class="header">
+    <div class="header-title">XX市教育局 · 平安校园集中管理平台</div>
+    <div class="header-meta">
+      <span class="pill">▣ 实时</span>
+      <span class="pill" id="now">2026-09-18 周五 14:32:08</span>
+      <span>张局长</span>
+    </div>
+  </div>
+
+  <!-- ============ 内容区 ============ -->
+  <div class="content">
+
+    <!-- ===== 顶部 6 大 KPI ===== -->
+    <div class="top-kpis">
+      <div class="kpi">
+        <div class="label">🏫 接入学校</div>
+        <div class="num">186<span class="unit">/ 192 所</span></div>
+        <div class="delta">接入率 96.9% · 本月新增 6 所</div>
+      </div>
+      <div class="kpi ok">
+        <div class="label">✓ 今日已闭环警情</div>
+        <div class="num">23<span class="unit">起</span></div>
+        <div class="delta">较昨日 ↓ 4 起</div>
+      </div>
+      <div class="kpi danger">
+        <div class="label">⚠ 未清零警情</div>
+        <div class="num">7<span class="unit">起</span></div>
+        <div class="delta">涉及 5 所学校</div>
+      </div>
+      <div class="kpi warn">
+        <div class="label">⏳ 待整改隐患</div>
+        <div class="num">42<span class="unit">项</span></div>
+        <div class="delta">临期 11 项 · 已逾期 14 项</div>
+      </div>
+      <div class="kpi warn">
+        <div class="label">🚨 欺凌 / 食品安全事件</div>
+        <div class="num">5<span class="unit">起</span></div>
+        <div class="delta">本月累计 · 同比 ↓ 28%</div>
+      </div>
+      <div class="kpi ok">
+        <div class="label">📋 主体责任落实率</div>
+        <div class="num">82.4<span class="unit">%</span></div>
+        <div class="delta">较上周 ↑ 3.1 pp</div>
+      </div>
+    </div>
+
+    <!-- ===== 左栏 ===== -->
+    <div class="col-left">
+
+      <!-- 主体责任监管 -->
+      <div class="section">
+        <div class="section-title">
+          主体责任落实度 <span class="en">Duty Compliance</span>
+        </div>
+        <div class="section-body">
+          <div class="duty-grid">
+            <div class="duty-row">
+              <span class="lbl">校长履责</span>
+              <div class="ring"><i style="width:92%"></i><span>92%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">安全主任</span>
+              <div class="ring"><i style="width:88%"></i><span>88%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">班主任</span>
+              <div class="ring"><i style="width:76%"></i><span>76%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">保安员</span>
+              <div class="ring"><i style="width:95%"></i><span>95%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">食堂负责人</span>
+              <div class="ring"><i style="width:71%"></i><span>71%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">值班值守</span>
+              <div class="ring"><i style="width:84%"></i><span>84%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">巡检打卡</span>
+              <div class="ring"><i style="width:68%"></i><span>68%</span></div>
+            </div>
+            <div class="duty-row">
+              <span class="lbl">应急演练</span>
+              <div class="ring"><i style="width:58%"></i><span>58%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 设备接入 -->
+      <div class="section">
+        <div class="section-title">
+          物联设备接入 <span class="en">IoT Status</span>
+        </div>
+        <div class="section-body">
+          <div class="report-grid">
+            <div class="report-cell">
+              <div class="lbl">烟感在线</div>
+              <div class="ring-chart">
+                <svg viewBox="0 0 64 64">
+                  <circle class="bg" cx="32" cy="32" r="26" />
+                  <circle class="fg" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="9.8" />
+                </svg>
+                <div class="pct">94%</div>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim)">2,138 / 2,275</div>
+            </div>
+            <div class="report-cell">
+              <div class="lbl">摄像头在线</div>
+              <div class="ring-chart warn">
+                <svg viewBox="0 0 64 64">
+                  <circle class="bg" cx="32" cy="32" r="26" />
+                  <circle class="fg" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="32.7" />
+                </svg>
+                <div class="pct">80%</div>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim)">5,632 / 7,040</div>
+            </div>
+            <div class="report-cell">
+              <div class="lbl">一键报警</div>
+              <div class="ring-chart danger">
+                <svg viewBox="0 0 64 64">
+                  <circle class="bg" cx="32" cy="32" r="26" />
+                  <circle class="fg" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="57.2" />
+                </svg>
+                <div class="pct">65%</div>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim)">364 / 558</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>设备类型</th><th>总数</th><th>在线</th><th>离线</th><th>离线最久</th></tr></thead>
+              <tbody>
+                <tr><td>烟感</td><td>2,275</td><td><span class="tag cyan">2,138</span></td><td><span class="tag yellow">137</span></td><td>阳光小学 · 14 天</td></tr>
+                <tr><td>摄像头</td><td>7,040</td><td><span class="tag cyan">5,632</span></td><td><span class="tag red">1,408</span></td><td>城南中学 · 32 天</td></tr>
+                <tr><td>一键报警</td><td>558</td><td><span class="tag cyan">364</span></td><td><span class="tag red">194</span></td><td>阳光小学 · 21 天</td></tr>
+                <tr><td>门禁</td><td>812</td><td><span class="tag cyan">781</span></td><td><span class="tag yellow">31</span></td><td>城北中学 · 6 天</td></tr>
+                <tr><td>食堂AI</td><td>192</td><td><span class="tag cyan">176</span></td><td><span class="tag yellow">16</span></td><td>实验小学 · 3 天</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== 中栏 ===== -->
+    <div class="col-center">
+
+      <!-- 风险地图 + 风险学校排行 -->
+      <div class="section">
+        <div class="section-title">
+          全域风险地图 · 风险学校排行 <span class="en">Risk Map & Ranking</span>
+        </div>
+        <div class="section-body">
+          <div class="map-wrap">
+            <!-- 地图：抽象示意 -->
+            <div class="map-stage">
+              <svg class="map-svg" viewBox="0 0 700 480" preserveAspectRatio="xMidYMid meet">
+                <!-- 行政边界示意 -->
+                <defs>
+                  <radialGradient id="cityGlow">
+                    <stop offset="0%" stop-color="#00c0c0" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#00c0c0" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <ellipse cx="350" cy="240" rx="280" ry="180" fill="url(#cityGlow)"/>
+                <!-- 区划分块 -->
+                <path d="M120 200 Q180 120 280 140 L320 220 L240 280 L140 260 Z" fill="rgba(0,192,192,0.08)" stroke="rgba(0,192,192,0.3)" stroke-dasharray="4 3"/>
+                <path d="M320 220 L450 130 L520 200 L480 290 L380 300 Z" fill="rgba(0,192,192,0.08)" stroke="rgba(0,192,192,0.3)" stroke-dasharray="4 3"/>
+                <path d="M240 280 L380 300 L420 380 L260 400 L160 320 Z" fill="rgba(0,192,192,0.08)" stroke="rgba(0,192,192,0.3)" stroke-dasharray="4 3"/>
+                <path d="M480 290 L520 200 L600 230 L590 340 L480 380 L420 380 Z" fill="rgba(0,192,192,0.08)" stroke="rgba(0,192,192,0.3)" stroke-dasharray="4 3"/>
+                <text x="200" y="220" fill="#8ea7c2" font-size="13">A区 · 城东</text>
+                <text x="380" y="200" fill="#8ea7c2" font-size="13">B区 · 城北</text>
+                <text x="280" y="350" fill="#8ea7c2" font-size="13">C区 · 城南</text>
+                <text x="500" y="310" fill="#8ea7c2" font-size="13">D区 · 城西</text>
+
+                <!-- 学校点位：按风险色 -->
+                <!-- 低风险 cyan -->
+                <g class="school">
+                  <circle cx="200" cy="190" r="5" fill="#21dcdb"/><circle cx="200" cy="190" r="9" fill="none" stroke="#21dcdb" stroke-opacity="0.4"/>
+                  <text x="208" y="194" fill="#fff" font-size="10">阳光小学</text>
+                </g>
+                <g class="school">
+                  <circle cx="260" cy="230" r="5" fill="#21dcdb"/>
+                  <text x="268" y="234" fill="#fff" font-size="10">实验二小</text>
+                </g>
+                <g class="school">
+                  <circle cx="420" cy="180" r="5" fill="#21dcdb"/>
+                  <text x="428" y="184" fill="#fff" font-size="10">城北中学</text>
+                </g>
+                <g class="school">
+                  <circle cx="510" cy="260" r="5" fill="#21dcdb"/>
+                  <text x="518" y="264" fill="#fff" font-size="10">实验小学</text>
+                </g>
+                <g class="school">
+                  <circle cx="340" cy="340" r="5" fill="#21dcdb"/>
+                  <text x="348" y="344" fill="#fff" font-size="10">城南二小</text>
+                </g>
+                <!-- 中风险 yellow -->
+                <g class="school">
+                  <circle cx="360" cy="220" r="6" fill="#f0a020"/><circle cx="360" cy="220" r="11" fill="none" stroke="#f0a020" stroke-opacity="0.4"/>
+                  <text x="370" y="224" fill="#fff" font-size="10">实验中学</text>
+                </g>
+                <g class="school">
+                  <circle cx="450" cy="230" r="6" fill="#f0a020"/><circle cx="450" cy="230" r="11" fill="none" stroke="#f0a020" stroke-opacity="0.4"/>
+                  <text x="460" y="234" fill="#fff" font-size="10">外国语学校</text>
+                </g>
+                <g class="school">
+                  <circle cx="300" cy="310" r="6" fill="#f0a020"/>
+                  <text x="308" y="314" fill="#fff" font-size="10">城南中学</text>
+                </g>
+                <g class="school">
+                  <circle cx="180" cy="260" r="6" fill="#f0a020"/>
+                  <text x="118" y="264" fill="#fff" font-size="10">新城小学</text>
+                </g>
+                <!-- 高风险 red -->
+                <g class="school">
+                  <circle cx="380" cy="260" r="8" fill="#f44336"/><circle cx="380" cy="260" r="14" fill="none" stroke="#f44336" stroke-opacity="0.4"><animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/></circle>
+                  <text x="392" y="264" fill="#ffd1ce" font-size="11" font-weight="600">城北实验</text>
+                </g>
+                <g class="school">
+                  <circle cx="240" cy="350" r="8" fill="#f44336"/><circle cx="240" cy="350" r="14" fill="none" stroke="#f44336" stroke-opacity="0.4"><animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/></circle>
+                  <text x="180" y="354" fill="#ffd1ce" font-size="11" font-weight="600">阳光分校</text>
+                </g>
+              </svg>
+              <div class="map-legend">
+                <span><span class="dot" style="background:#21dcdb"></span>低风险</span>
+                <span><span class="dot" style="background:#f0a020"></span>中风险</span>
+                <span><span class="dot" style="background:#f44336"></span>高风险</span>
+                <span>· 共 192 所，告警 12 所</span>
+              </div>
+            </div>
+
+            <!-- 风险排行 -->
+            <div class="school-rank">
+              <div class="rank-title">
+                <span>本周风险 TOP 10</span>
+                <div class="filters">
+                  <span class="active">综合</span>
+                  <span>隐患</span>
+                  <span>警情</span>
+                  <span>欺凌</span>
+                </div>
+              </div>
+              <div class="rank-list">
+                <div class="rank-row"><span class="idx">01</span><span class="name">城北实验中学 <small>9 年级</small></span><span class="score">94 分</span><span class="bar"><i style="width:94%"></i></span></div>
+                <div class="rank-row"><span class="idx">02</span><span class="name">阳光小学分校 <small>6 年级</small></span><span class="score">88 分</span><span class="bar"><i style="width:88%"></i></span></div>
+                <div class="rank-row"><span class="idx">03</span><span class="name">城南中学 <small>初三</small></span><span class="score">81 分</span><span class="bar"><i style="width:81%"></i></span></div>
+                <div class="rank-row"><span class="idx">04</span><span class="name">新城小学 <small>5 年级</small></span><span class="score">76 分</span><span class="bar"><i style="width:76%"></i></span></div>
+                <div class="rank-row"><span class="idx">05</span><span class="name">外国语学校 <small>初二</small></span><span class="score">72 分</span><span class="bar"><i style="width:72%"></i></span></div>
+                <div class="rank-row"><span class="idx">06</span><span class="name">实验中学 <small>高一</small></span><span class="score">68 分</span><span class="bar"><i style="width:68%"></i></span></div>
+                <div class="rank-row"><span class="idx">07</span><span class="name">城东小学 <small>4 年级</small></span><span class="score">61 分</span><span class="bar"><i style="width:61%"></i></span></div>
+                <div class="rank-row"><span class="idx">08</span><span class="name">师范附小 <small>3 年级</small></span><span class="score">57 分</span><span class="bar"><i style="width:57%"></i></span></div>
+                <div class="rank-row"><span class="idx">09</span><span class="name">职业高中 <small>高二</small></span><span class="score">52 分</span><span class="bar"><i style="width:52%"></i></span></div>
+                <div class="rank-row"><span class="idx">10</span><span class="name">实验三小 <small>2 年级</small></span><span class="score">48 分</span><span class="bar"><i style="width:48%"></i></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中下：督办 + 数据质量 -->
+      <div class="center-bottom">
+        <div class="section">
+          <div class="section-title">督办任务 <span class="en">Supervision</span></div>
+          <div class="section-body">
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead><tr><th>学校</th><th>事项</th><th>下发</th><th>时限</th><th>状态</th></tr></thead>
+                <tbody>
+                  <tr><td>城北实验中学</td><td>欺凌事件复盘整改</td><td>09-15</td><td>09-22</td><td><span class="tag yellow">处理中</span></td></tr>
+                  <tr><td>阳光小学分校</td><td>食堂食材溯源核查</td><td>09-14</td><td>09-18</td><td><span class="tag red">已逾期</span></td></tr>
+                  <tr><td>城南中学</td><td>消防通道堵塞整改</td><td>09-12</td><td>09-19</td><td><span class="tag yellow">处理中</span></td></tr>
+                  <tr><td>新城小学</td><td>一键报警离线修复</td><td>09-10</td><td>09-17</td><td><span class="tag red">已逾期</span></td></tr>
+                  <tr><td>外国语学校</td><td>保安员资质补办</td><td>09-08</td><td>09-22</td><td><span class="tag cyan">已反馈</span></td></tr>
+                  <tr><td>实验中学</td><td>应急演练补演</td><td>09-05</td><td>09-20</td><td><span class="tag yellow">处理中</span></td></tr>
+                  <tr><td>职业高中</td><td>宿舍夜巡制度落实</td><td>09-03</td><td>09-15</td><td><span class="tag cyan">已完成</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">数据上报质量 <span class="en">Data Quality</span></div>
+          <div class="section-body">
+            <div class="report-grid">
+              <div class="report-cell">
+                <div class="lbl">今日巡检上报</div>
+                <div class="ring-chart warn">
+                  <svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="26"/><circle class="fg" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="40.9"/></svg>
+                  <div class="pct">75%</div>
+                </div>
+                <div style="font-size:11px;color:var(--text-dim)">140 / 186 校</div>
+              </div>
+              <div class="report-cell">
+                <div class="lbl">本周隐患上报</div>
+                <div class="ring-chart danger">
+                  <svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="26"/><circle class="fg" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="73.5"/></svg>
+                  <div class="pct">55%</div>
+                </div>
+                <div style="font-size:11px;color:var(--text-dim)">103 / 186 校</div>
+              </div>
+              <div class="report-cell">
+                <div class="lbl">本周演练上报</div>
+                <div class="ring-chart danger">
+                  <svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="26"/><circle class="fg" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="98.0"/></svg>
+                  <div class="pct">40%</div>
+                </div>
+                <div style="font-size:11px;color:var(--text-dim)">74 / 186 校</div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead><tr><th>学校</th><th>巡检</th><th>隐患</th><th>演练</th><th>缺报</th></tr></thead>
+                <tbody>
+                  <tr><td>城北实验中学</td><td><span class="tag cyan">已报</span></td><td><span class="tag cyan">已报</span></td><td><span class="tag gray">未报</span></td><td>演练</td></tr>
+                  <tr><td>阳光小学分校</td><td><span class="tag cyan">已报</span></td><td><span class="tag gray">未报</span></td><td><span class="tag gray">未报</span></td><td>2 项</td></tr>
+                  <tr><td>城南中学</td><td><span class="tag cyan">已报</span></td><td><span class="tag cyan">已报</span></td><td><span class="tag gray">未报</span></td><td>演练</td></tr>
+                  <tr><td>新城小学</td><td><span class="tag gray">未报</span></td><td><span class="tag gray">未报</span></td><td><span class="tag gray">未报</span></td><td>3 项</td></tr>
+                  <tr><td>实验中学</td><td><span class="tag cyan">已报</span></td><td><span class="tag cyan">已报</span></td><td><span class="tag cyan">已报</span></td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== 右栏 ===== -->
+    <div class="col-right">
+
+      <!-- 实时事件流 -->
+      <div class="section">
+        <div class="section-title">实时事件流 <span class="en">Live Events</span></div>
+        <div class="section-body">
+          <div class="table-wrap">
+            <div class="event-row"><span class="time">14:30</span><span class="desc">城北实验中学 <small>· 欺凌告警 · 摄像头</small></span><span class="tag red">严重</span></div>
+            <div class="event-row"><span class="time">14:18</span><span class="desc">阳光小学分校 <small>· 一键报警</small></span><span class="tag red">严重</span></div>
+            <div class="event-row"><span class="time">13:55</span><span class="desc">城南中学 <small>· 烟感报警 · 已误报恢复</small></span><span class="tag yellow">一般</span></div>
+            <div class="event-row"><span class="time">13:42</span><span class="desc">外国语学校 <small>· 隐患上报 · 消防通道</small></span><span class="tag yellow">一般</span></div>
+            <div class="event-row"><span class="time">13:30</span><span class="desc">实验中学 <small>· 食堂 AI 异物识别</small></span><span class="tag yellow">一般</span></div>
+            <div class="event-row"><span class="time">12:18</span><span class="desc">城北实验中学 <small>· 欺凌处置反馈</small></span><span class="tag cyan">已闭环</span></div>
+            <div class="event-row"><span class="time">11:45</span><span class="desc">阳光小学 <small>· 烟感离线恢复</small></span><span class="tag cyan">已闭环</span></div>
+            <div class="event-row"><span class="time">11:12</span><span class="desc">城南二小 <small>· 校门异常闯入</small></span><span class="tag yellow">一般</span></div>
+            <div class="event-row"><span class="time">10:30</span><span class="desc">实验三小 <small>· 晨检缺勤异常</small></span><span class="tag gray">提示</span></div>
+            <div class="event-row"><span class="time">09:48</span><span class="desc">职业高中 <small>· 食品安全自查</small></span><span class="tag cyan">已闭环</span></div>
+            <div class="event-row"><span class="time">09:22</span><span class="desc">外国语学校 <small>· 演练已开展</small></span><span class="tag cyan">已闭环</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 检查任务 -->
+      <div class="section">
+        <div class="section-title">检查任务进度 <span class="en">Inspection Tasks</span></div>
+        <div class="section-body">
+          <div class="table-wrap">
+            <div class="check-task">
+              <div>
+                <div class="name">2025 秋季开学安全大检查</div>
+                <div class="meta">下发 09-01 · 应检 186 · 已检 164</div>
+                <div class="progress"><i style="width:88%"></i></div>
+              </div>
+              <span class="tag cyan">88%</span>
+            </div>
+            <div class="check-task">
+              <div>
+                <div class="name">校园食品安全专项检查</div>
+                <div class="meta">下发 09-10 · 应检 186 · 已检 122</div>
+                <div class="progress"><i style="width:66%;background:linear-gradient(90deg,#f0a020,#f0a020)"></i></div>
+              </div>
+              <span class="tag yellow">66%</span>
+            </div>
+            <div class="check-task">
+              <div>
+                <div class="name">消防设施季度抽检</div>
+                <div class="meta">下发 09-05 · 应检 80 · 已检 38</div>
+                <div class="progress"><i style="width:48%;background:linear-gradient(90deg,#f44336,#f44336)"></i></div>
+              </div>
+              <span class="tag red">48%</span>
+            </div>
+            <div class="check-task">
+              <div>
+                <div class="name">国庆前安保专项督查</div>
+                <div class="meta">下发 09-15 · 应检 60 · 已检 12</div>
+                <div class="progress"><i style="width:20%;background:linear-gradient(90deg,#f44336,#f44336)"></i></div>
+              </div>
+              <span class="tag red">20%</span>
+            </div>
+            <div class="check-task">
+              <div>
+                <div class="name">保安员资质年度复核</div>
+                <div class="meta">下发 08-20 · 应检 186 · 已检 186</div>
+                <div class="progress"><i style="width:100%"></i></div>
+              </div>
+              <span class="tag cyan">100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // 时钟
+  setInterval(() => {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const wk = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+    document.getElementById('now').textContent =
+      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${wk} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, 1000);
+</script>
+</body>
+</html>
