@@ -1,5 +1,18 @@
 import type { WidgetType } from './widget-registry'
 
+/**
+ * 业务域隐式约定（按 role key 命名分桶，不新增独立 dashboard 路由）：
+ * - fire-safety-*         物业方（消防安全）
+ * - duty-officer          消控值班
+ * - project-lead          服务方项目负责人
+ * - tech-lead             服务方技术负责人
+ * - maintenance-engineer  服务方工程师
+ * - safety-supervisor     监管方
+ * - platform-ops/admin    平台方
+ *
+ * 后续接业务域时按此命名约定扩展 roleDefaults 即可，registry 与 dashboard 框架不动。
+ */
+
 /** 单个组件槽位 */
 export interface WidgetSlot {
   id: string
@@ -28,7 +41,9 @@ export const dashboardPresets: Record<string, DashboardPreset> = {
     maxColumns: 3,
     availableWidgets: [
       'app-shortcuts', 'quick-actions', 'my-tasks', 'notifications',
-      'order-overview', 'sla-overview', 'plan-status', 'placeholder',
+      'order-overview', 'sla-overview', 'plan-status',
+      'stat-cards', 'ranking', 'trend-line', 'shortcuts-grid', 'realtime-alerts',
+      'placeholder',
     ],
     roleDefaults: {
       // ===== 物业方 =====
@@ -38,10 +53,15 @@ export const dashboardPresets: Record<string, DashboardPreset> = {
         { id: 'wb-fsr-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '安全态势', icon: 'shield' } },
       ],
       'fire-safety-manager': [
-        { id: 'wb-fsm-1', type: 'quick-actions',  size: 1, order: 0 },
-        { id: 'wb-fsm-2', type: 'my-tasks',       size: 1, order: 1 },
-        { id: 'wb-fsm-3', type: 'order-overview', size: 1, order: 2 },
-        { id: 'wb-fsm-4', type: 'plan-status',    size: 1, order: 3 },
+        // 演示新版数据看板 widget（阶段3）：
+        // 行 1：stat-cards（4 卡双指标，整行 size:3）
+        // 行 2：shortcuts-grid + realtime-alerts
+        // 行 3：trend-line + ranking
+        { id: 'wb-fsm-stats',  type: 'stat-cards',      size: 3, order: 0 },
+        { id: 'wb-fsm-sg',     type: 'shortcuts-grid',  size: 2, order: 1 },
+        { id: 'wb-fsm-alerts', type: 'realtime-alerts', size: 1, order: 2 },
+        { id: 'wb-fsm-trend',  type: 'trend-line',      size: 2, order: 3 },
+        { id: 'wb-fsm-rank',   type: 'ranking',         size: 1, order: 4 },
       ],
       'duty-officer': [
         { id: 'wb-do-1', type: 'quick-actions',   size: 1, order: 0 },
@@ -77,9 +97,11 @@ export const dashboardPresets: Record<string, DashboardPreset> = {
         { id: 'wb-po-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '系统概览', icon: 'dashboard' } },
       ],
       'platform-admin': [
-        { id: 'wb-pa-1', type: 'app-shortcuts',  size: 1, order: 0 },
-        { id: 'wb-pa-2', type: 'placeholder',    size: 1, order: 1, config: { moduleName: '系统健康', icon: 'monitor' } },
-        { id: 'wb-pa-3', type: 'placeholder',    size: 1, order: 2, config: { moduleName: '升级管理', icon: 'upload' } },
+        // 顶部加 1 张 stat-cards（size:3 占整行），其余保持原状
+        { id: 'wb-pa-stats', type: 'stat-cards',    size: 3, order: 0 },
+        { id: 'wb-pa-1',     type: 'app-shortcuts', size: 1, order: 1 },
+        { id: 'wb-pa-2',     type: 'placeholder',   size: 1, order: 2, config: { moduleName: '系统健康', icon: 'monitor' } },
+        { id: 'wb-pa-3',     type: 'placeholder',   size: 1, order: 3, config: { moduleName: '升级管理', icon: 'upload' } },
       ],
     },
   },

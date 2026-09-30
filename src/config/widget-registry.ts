@@ -28,6 +28,23 @@ export const widgetRegistry = {
     () => import('@/views/maintenance/widgets/PlanStatusWidget.vue')
   ),
 
+  // ===== 通用数据看板（阶段3）=====
+  'stat-cards': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/stat-cards/StatCardsWidget.vue')
+  ),
+  ranking: defineAsyncComponent(
+    () => import('@/views/workbench/widgets/ranking/RankingWidget.vue')
+  ),
+  'trend-line': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/trend-line/TrendLineWidget.vue')
+  ),
+  'shortcuts-grid': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/shortcuts-grid/ShortcutsGridWidget.vue')
+  ),
+  'realtime-alerts': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/realtime-alerts/RealtimeAlertsWidget.vue')
+  ),
+
   // ===== 通用 =====
   placeholder: defineAsyncComponent(
     () => import('@/components/business/PlaceholderWidget.vue')
@@ -44,6 +61,11 @@ export const widgetLabels: Record<WidgetType, string> = {
   'order-overview': '工单概览',
   'sla-overview': 'SLA 概览',
   'plan-status': '维保计划',
+  'stat-cards': '双指标统计卡',
+  ranking: '排行榜',
+  'trend-line': '趋势折线',
+  'shortcuts-grid': '应用入口',
+  'realtime-alerts': '实时告警',
   placeholder: '占位卡片',
 }
 
@@ -55,5 +77,10 @@ export const widgetIcons: Partial<Record<WidgetType, string>> = {
   'order-overview': 'Document',
   'sla-overview': 'Timer',
   'plan-status': 'Calendar',
+  'stat-cards': 'BarChart',
+  ranking: 'Trophy',
+  'trend-line': 'TrendingUp',
+  'shortcuts-grid': 'Grid3',
+  'realtime-alerts': 'BellRing',
   placeholder: 'More',
 }
