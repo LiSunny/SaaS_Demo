@@ -74,7 +74,7 @@
         <template v-if="pinnedItems.length > 0">
           <hr class="sidebar-divider" />
           <div class="pinned-section">
-            <button class="section-header" @click="pinnedExpanded = !pinnedExpanded">
+            <button class="section-header section-header-pinned" @click="pinnedExpanded = !pinnedExpanded">
               <span class="section-label">📌 常用</span>
               <svg class="section-chevron" :class="{ rotated: pinnedExpanded }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
             </button>
@@ -745,12 +745,19 @@ if (typeof window !== 'undefined') {
   display: flex; align-items: center; gap: 8px;
   width: 100%; padding: 8px 10px;
   border: none; background: none; cursor: pointer;
-  font-size: var(--font-small, 14px); font-weight: 500; color: var(--text-muted);
+  font-size: 15px; font-weight: 700; color: #1f2329;
+  letter-spacing: 0.5px;
   text-align: left; border-radius: var(--radius-sm, 6px);
   transition: background .15s; flex-shrink: 0;
 }
 .section-header:hover { background: var(--accent-primary10); }
 .section-label { flex: 1; }
+
+/* 常用 pinned 区除外(轻量样式) */
+.section-header.section-header-pinned {
+  font-size: var(--font-small, 14px); font-weight: 500; color: var(--text-muted);
+  letter-spacing: normal;
+}
 .section-chevron {
   flex-shrink: 0; transition: transform .2s; color: var(--text-muted);
 }

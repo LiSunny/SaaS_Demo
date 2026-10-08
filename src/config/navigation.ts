@@ -102,7 +102,57 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2. 安全管理 — 日常使用（社会单位：学校/企业/商户/物业） =====
+
+  // ===== 2. 隐患排查治理（社会单位：消防安全管理人） =====
+  {
+    key: 'unit-hazard',
+    label: '隐患排查治理',
+    icon: 'menuicon-29',
+    defaultOpen: false,
+    visibleTo: ['unit'],
+    children: [
+      {
+        key: 'unit-hazard-check',
+        label: '隐患排查',
+        icon: 'menuicon-30',
+        children: [
+          { key: 'unit-hazard-ledger', label: '隐患台账', route: '/unit/hazards' },
+          { key: 'unit-hazard-report', label: '隐患上报', route: '/unit/hazards/report' },
+          { key: 'unit-hazard-task', label: '排查任务', route: '/unit/hazards/tasks' },
+        ],
+      },
+      {
+        key: 'unit-hazard-rectify',
+        label: '隐患整改',
+        icon: 'menuicon-34',
+        children: [
+          { key: 'unit-hazard-board', label: '整改看板', route: '/unit/hazards/board' },
+        ],
+      },
+      {
+        key: 'unit-hazard-rule',
+        label: '制度与计划',
+        icon: 'menuicon-37',
+        children: [
+          { key: 'unit-hazard-system', label: '制度建设', route: '/unit/hazards/system' },
+          { key: 'unit-hazard-plan', label: '排查计划', route: '/unit/hazards/plan' },
+          { key: 'unit-hazard-checklist', label: '排查清单', route: '/unit/hazards/checklist' },
+        ],
+      },
+      {
+        key: 'unit-hazard-stat',
+        label: '报表与统计',
+        icon: 'menuicon-47',
+        children: [
+          { key: 'unit-hazard-dashboard', label: '数字看板', route: '/unit/hazards/dashboard' },
+          { key: 'unit-hazard-monthly', label: '月报', route: '/unit/hazards/monthly' },
+          { key: 'unit-hazard-quarterly', label: '季报', route: '/unit/hazards/quarterly' },
+          { key: 'unit-hazard-yearly', label: '年报', route: '/unit/hazards/yearly' },
+        ],
+      },
+    ],
+  },
+  // ===== 2b. 安全管理（社会单位：学校/企业/商户/物业） =====
   {
     key: 'unit-daily',
     label: '安全管理',
@@ -202,56 +252,6 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'menuicon-34',
         children: [
           { key: 'unit-notify-list', label: '推送记录', route: '/unit/notifications' },
-        ],
-      },
-    ],
-  },
-
-  // ===== 2b. 隐患排查治理 — 独立顶级分组（社会单位：消防安全管理人） =====
-  {
-    key: 'unit-hazard',
-    label: '隐患排查治理',
-    icon: 'menuicon-29',
-    defaultOpen: false,
-    visibleTo: ['unit'],
-    children: [
-      {
-        key: 'unit-hazard-check',
-        label: '隐患排查',
-        icon: 'menuicon-30',
-        children: [
-          { key: 'unit-hazard-ledger', label: '隐患台账', route: '/unit/hazards' },
-          { key: 'unit-hazard-report', label: '隐患上报', route: '/unit/hazards/report' },
-          { key: 'unit-hazard-task', label: '排查任务', route: '/unit/hazards/tasks' },
-        ],
-      },
-      {
-        key: 'unit-hazard-rectify',
-        label: '隐患整改',
-        icon: 'menuicon-34',
-        children: [
-          { key: 'unit-hazard-board', label: '整改看板', route: '/unit/hazards/board' },
-        ],
-      },
-      {
-        key: 'unit-hazard-rule',
-        label: '制度与计划',
-        icon: 'menuicon-37',
-        children: [
-          { key: 'unit-hazard-system', label: '制度建设', route: '/unit/hazards/system' },
-          { key: 'unit-hazard-plan', label: '排查计划', route: '/unit/hazards/plan' },
-          { key: 'unit-hazard-checklist', label: '排查清单', route: '/unit/hazards/checklist' },
-        ],
-      },
-      {
-        key: 'unit-hazard-stat',
-        label: '报表与统计',
-        icon: 'menuicon-47',
-        children: [
-          { key: 'unit-hazard-dashboard', label: '数字看板', route: '/unit/hazards/dashboard' },
-          { key: 'unit-hazard-monthly', label: '月报', route: '/unit/hazards/monthly' },
-          { key: 'unit-hazard-quarterly', label: '季报', route: '/unit/hazards/quarterly' },
-          { key: 'unit-hazard-yearly', label: '年报', route: '/unit/hazards/yearly' },
         ],
       },
     ],
