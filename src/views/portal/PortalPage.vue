@@ -104,7 +104,7 @@
         <div ref="scHead" class="reveal" :class="{ visible: scHeadV }" style="text-align:center; margin-bottom:36px;">
           <div class="sec-label"><span class="sec-label-line"></span>应用场景<span class="sec-label-line"></span></div>
           <h2 class="sec-title">核心应用场景</h2>
-          <p class="sec-desc">覆盖校园安全、工贸企业、小商户经营等典型场景，提供从日常巡检、隐患管理到应急响应的闭环解决方案</p>
+          <p class="sec-desc">覆盖校园安全、工贸企业、小商户经营等典型场景，提供从日常巡检、隐患排查治理到应急响应的闭环解决方案</p>
         </div>
         <!-- Content panel with horizontal slide -->
         <div class="sc-stage">
@@ -619,7 +619,7 @@ watch(activeCaseTab, () => {
 // ===== Footer =====
 const FOOTER_COLS = [
   { title: '应用场景', links: ['校园安全', '工贸企业', '小商户安全监管'] },
-  { title: '功能模块', links: ['远程值守', '巡查检查', '隐患管理', 'AI 告警分析', '可视化大屏'] },
+  { title: '功能模块', links: ['远程值守', '巡查检查', '隐患排查治理', 'AI 告警分析', '可视化大屏'] },
   { title: '技术', links: ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', '多端协同', 'API 文档'] },
   { title: '联系我们', links: ['预约演示', '商务合作', '技术支持', '关于平台'] },
 ]

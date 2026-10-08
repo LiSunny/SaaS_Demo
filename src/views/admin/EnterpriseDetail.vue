@@ -490,7 +490,7 @@ const FALLBACK_MODULE_TREE: ModuleTreeNode[] = [
   { key: '维保应用', label: '维保应用', children: [] },
   { key: '数据可视化', label: '数据可视化', children: [] },
   { key: '平台管理', label: '平台管理', children: [] },
-  { key: '隐患管理', label: '隐患管理', children: [
+  { key: '隐患管理', label: '隐患排查治理', children: [
     { key: 'hazard-ledger', label: '隐患台账' },
   ]},
   { key: '项目管理', label: '项目管理', children: [] },

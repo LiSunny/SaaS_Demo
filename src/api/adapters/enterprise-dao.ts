@@ -216,8 +216,8 @@ const MOCK_LOGS: OperationLogItem[] = [
   { id: 'l4', action: '添加下级', timestamp: '2025-10-09 13:54', operatorName: '宋敏', description: '新增下级关联，将【尼特智能科技有限公司】关联为下级企业', details: [{ label: '下级企业', value: '尼特智能科技有限公司' }] },
   { id: 'l5', action: '锁定企业', timestamp: '2025-10-09 13:54', operatorName: '李子新', description: '锁定企业【港南一中】', details: [{ label: '企业名称', value: '港南一中' }] },
   { id: 'l6', action: '解除相关方', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '取消相关方关联，将【港南消防队】取消关联关系', details: [{ label: '相关方', value: '港南消防队' }] },
-  { id: 'l7', action: '配置相关方授权', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '修改相关方【港南消防队】的数据权限，开启【消防巡查、隐患管理】权限', details: [{ label: '相关方', value: '港南消防队' }, { label: '授权单元', value: '消防巡查、隐患管理' }, { label: '允许操作', value: '是' }] },
-  { id: 'l8', action: '配置相关方授权', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '修改相关方【海港区政府】的数据权限，关闭【消防巡查、隐患管理】权限', details: [{ label: '相关方', value: '海港区政府' }, { label: '授权单元', value: '消防巡查、隐患管理' }, { label: '允许操作', value: '否' }] },
+  { id: 'l7', action: '配置相关方授权', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '修改相关方【港南消防队】的数据权限，开启【消防巡查、隐患排查治理】权限', details: [{ label: '相关方', value: '港南消防队' }, { label: '授权单元', value: '消防巡查、隐患排查治理' }, { label: '允许操作', value: '是' }] },
+  { id: 'l8', action: '配置相关方授权', timestamp: '2025-10-09 13:54', operatorName: '孙文博', description: '修改相关方【海港区政府】的数据权限，关闭【消防巡查、隐患排查治理】权限', details: [{ label: '相关方', value: '海港区政府' }, { label: '授权单元', value: '消防巡查、隐患排查治理' }, { label: '允许操作', value: '否' }] },
 ]
 
 const logStore = createPersistentStore<OperationLogItem>('enterprise_operation_logs', MOCK_LOGS)
@@ -723,7 +723,7 @@ const MODULE_TREE = [
   { key: '维保应用', label: '维保应用', children: [] },
   { key: '数据可视化', label: '数据可视化', children: [] },
   {
-    key: '隐患管理', label: '隐患管理',
+    key: '隐患管理', label: '隐患排查治理',
     children: [
       { key: 'hazard-ledger', label: '隐患台账' },
     ],

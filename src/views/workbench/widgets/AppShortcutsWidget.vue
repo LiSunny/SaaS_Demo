@@ -38,7 +38,7 @@ const apps = computed<AppShortcut[]>(() => [
   { key: 'inspect',   label: '巡查检查', icon: '🔍', route: '',                    ready: false },
   { key: 'remote',    label: '远程值守', icon: '📡', route: '',                    ready: false },
   { key: 'maintain',  label: '维保应用', icon: '🔧', route: '/maintenance/plans', ready: true },
-  { key: 'risk',      label: '隐患管理', icon: '⚠',  route: '',                    ready: false },
+  { key: 'risk',      label: '隐患排查治理', icon: '⚠',  route: '',                    ready: false },
   { key: 'system',    label: '系统管理', icon: '⚙',  route: '/system/dashboard',  ready: true },
 ])
 

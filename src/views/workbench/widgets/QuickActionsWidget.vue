@@ -36,7 +36,7 @@ interface QuickAction {
 
 const allActions: QuickAction[] = [
   { key: 'create-order',  label: '发起工单', icon: '📋', module: '工单管理', ready: true },
-  { key: 'report-hazard', label: '上报隐患', icon: '⚠',  module: '隐患管理', ready: false },
+  { key: 'report-hazard', label: '上报隐患', icon: '⚠',  module: '隐患排查治理', ready: false },
   { key: 'create-plan',   label: '创建维保计划', icon: '📅', module: '维保管理', ready: false },
 ]
 

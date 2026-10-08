@@ -30,7 +30,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     label: '巡查与隐患',
     modules: [
       { key: 'patrol-inspect', name: '巡查检查' },
-      { key: 'hazard-mgmt', name: '隐患管理' },
+      { key: 'hazard-mgmt', name: '隐患排查治理' },
       { key: 'danger-work', name: '危险作业' },
     ],
   },
