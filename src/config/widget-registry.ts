@@ -44,6 +44,18 @@ export const widgetRegistry = {
   'realtime-alerts': defineAsyncComponent(
     () => import('@/views/workbench/widgets/realtime-alerts/RealtimeAlertsWidget.vue')
   ),
+  'radar-chart': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/radar-chart/RadarChartWidget.vue')
+  ),
+  'pie-chart': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/pie-chart/PieChartWidget.vue')
+  ),
+  heatmap: defineAsyncComponent(
+    () => import('@/views/workbench/widgets/heatmap/HeatmapWidget.vue')
+  ),
+  'bar-chart': defineAsyncComponent(
+    () => import('@/views/workbench/widgets/bar-chart/BarChartWidget.vue')
+  ),
 
   // ===== 通用 =====
   placeholder: defineAsyncComponent(
@@ -66,6 +78,10 @@ export const widgetLabels: Record<WidgetType, string> = {
   'trend-line': '趋势折线',
   'shortcuts-grid': '应用入口',
   'realtime-alerts': '实时告警',
+  'radar-chart': '雷达图',
+  'pie-chart': '饼图',
+  heatmap: '工单热力图',
+  'bar-chart': '工单完成率',
   placeholder: '占位卡片',
 }
 
@@ -82,5 +98,9 @@ export const widgetIcons: Partial<Record<WidgetType, string>> = {
   'trend-line': 'TrendingUp',
   'shortcuts-grid': 'Grid3',
   'realtime-alerts': 'BellRing',
+  'radar-chart': 'DataAnalysis',
+  'pie-chart': 'PieChart',
+  heatmap: 'Grid',
+  'bar-chart': 'DataLine',
   placeholder: 'More',
 }

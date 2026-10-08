@@ -27,6 +27,30 @@
                 </button>
               </div>
               <p v-if="availableTypes.length === 0" class="widget-pool-empty">所有可用组件已添加</p>
+
+              <!-- 插入宽度选择（v3 新增） -->
+              <div class="widget-pool-size">
+                <span class="pool-size-label">插入宽度</span>
+                <div class="pool-size-options">
+                  <button
+                    v-for="opt in SIZE_OPTIONS"
+                    :key="opt.value"
+                    :class="['pool-size-btn', { active: selectedSize === opt.value }]"
+                    :title="opt.title"
+                    @click="selectedSize = opt.value"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <rect
+                        v-for="r in opt.rects"
+                        :key="r.key"
+                        :x="r.x" :y="r.y" :width="r.w" :height="r.h" rx="1"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    <span class="pool-size-text">{{ opt.label }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -44,6 +68,7 @@
 import { ref } from 'vue'
 import type { WidgetType } from '@/config/widget-registry'
 import { widgetLabels } from '@/config/widget-registry'
+import type { WidgetSlot } from '@/config/dashboard-presets'
 
 defineProps<{
   title: string
@@ -56,16 +81,58 @@ const emit = defineEmits<{
   edit: []
   save: []
   reset: []
-  add: [type: WidgetType]
+  /** v3：添加组件时携带 size（弹窗 Radio 选定） */
+  add: [type: WidgetType, size: WidgetSlot['size']]
 }>()
 
 const addPopoverVisible = ref(false)
+
+/** 插入宽度选择（默认 大=size:1 满行） */
+const selectedSize = ref<WidgetSlot['size']>(1)
+
+const SIZE_OPTIONS: Array<{
+  value: WidgetSlot['size']
+  label: string
+  title: string
+  rects: Array<{ key: string; x: number; y: number; w: number; h: number }>
+}> = [
+  // size:3 — 1/3 行（小）
+  {
+    value: 3,
+    label: '小',
+    title: '1/3 行宽（同行可放 3 个）',
+    rects: [
+      { key: 'a', x: 1, y: 3, w: 4, h: 10 },
+      { key: 'b', x: 6, y: 3, w: 4, h: 10 },
+      { key: 'c', x: 11, y: 3, w: 4, h: 10 },
+    ],
+  },
+  // size:2 — 半行（中）
+  {
+    value: 2,
+    label: '中',
+    title: '半行宽（同行可放 2 个）',
+    rects: [
+      { key: 'a', x: 1, y: 3, w: 6, h: 10 },
+      { key: 'b', x: 9, y: 3, w: 6, h: 10 },
+    ],
+  },
+  // size:1 — 满行（大，默认）
+  {
+    value: 1,
+    label: '大',
+    title: '满行宽（同行仅放 1 个）',
+    rects: [
+      { key: 'a', x: 1, y: 3, w: 14, h: 10 },
+    ],
+  },
+]
 
 function onEdit() { emit('edit') }
 
 function selectWidget(type: WidgetType) {
   addPopoverVisible.value = false
-  emit('add', type)
+  emit('add', type, selectedSize.value)
 }
 
 function getLabel(type: WidgetType): string {
@@ -208,6 +275,51 @@ function getIcon(type: WidgetType): string {
   color: var(--text-placeholder);
   font-size: 13px;
   margin: 12px 0 0;
+}
+
+/* 插入宽度选择（v3 新增） */
+.widget-pool-size {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-default);
+}
+.pool-size-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.pool-size-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.pool-size-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm, 6px);
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: all .15s;
+}
+.pool-size-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.pool-size-btn.active {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary10, rgba(24, 144, 255, 0.1));
+  font-weight: 500;
+}
+.pool-size-text {
+  font-size: 12px;
 }
 
 /* 点击外部关闭 */

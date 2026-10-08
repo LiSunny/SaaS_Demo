@@ -1,84 +1,75 @@
 <template>
-  <VueDraggable
-    v-model="localList"
-    :animation="200"
-    :delay="50"
-    :delay-on-touch-only="true"
-    :disabled="!editable"
-    ghost-class="widget-ghost"
-    drag-class="widget-drag"
-    handle=".drag-handle"
-    class="widget-grid"
-    @update:model-value="onDragEnd"
-  >
-    <WidgetCard
-      v-for="element in localList"
-      :key="element.id"
-      :widget="element"
+  <div class="widget-grid" :data-row-count="rows.length">
+    <WidgetRow
+      v-for="row in rows"
+      :key="row.id"
+      :row="row"
       :editable="editable"
-      @remove="emit('remove', element.id)"
-    >
-      <WidgetRenderer
-        :type="element.type"
-        :widget-id="element.id"
-        :config="element.config"
-      />
-    </WidgetCard>
-  </VueDraggable>
-  <div v-if="widgets.length === 0" class="grid-empty">
-    <span class="grid-empty-text">暂无组件，点击"添加组件"开始配置</span>
+      @reorder="onReorder"
+      @move="onSlotMove"
+      @slot-remove="onSlotRemove"
+      @slot-size-change="onSlotSizeChange"
+    />
+    <div v-if="rows.length === 0" class="grid-empty">
+      <span class="grid-empty-text">暂无组件，点击"添加组件"开始配置</span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { VueDraggable } from 'vue-draggable-plus'
-import type { WidgetSlot } from '@/config/dashboard-presets'
-import WidgetCard from './WidgetCard.vue'
-import WidgetRenderer from './WidgetRenderer.vue'
+import type { WidgetRow as RowData, WidgetSlot } from '@/config/dashboard-presets'
+import WidgetRow from './WidgetRow.vue'
 
-const props = defineProps<{
-  widgets: WidgetSlot[]
+defineProps<{
+  rows: RowData[]
   editable: boolean
 }>()
 
 const emit = defineEmits<{
-  'update:order': [widgets: WidgetSlot[]]
-  'remove': [widgetId: string]
+  /** 同 row 内换位 */
+  'reorder': [rowId: string, slots: WidgetSlot[]]
+  /** 跨 row 移动 */
+  'slot-move': [slotId: string, toRowId: string, toIndex: number]
+  /** 移除 slot */
+  'slot-remove': [slotId: string]
+  /** 切换 slot size */
+  'slot-size-change': [slotId: string, size: WidgetSlot['size']]
 }>()
 
-const localList = ref<WidgetSlot[]>([...props.widgets])
-
-// Only sync when widget IDs differ (add/remove), NOT on reorder
-watch(() => props.widgets.map(w => w.id).join(','), () => {
-  localList.value = [...props.widgets]
-})
-
-function onDragEnd() {
-  emit('update:order', [...localList.value])
+function onReorder(rowId: string, slots: WidgetSlot[]) {
+  emit('reorder', rowId, slots)
+}
+function onSlotMove(slotId: string, toRowId: string, toIndex: number) {
+  emit('slot-move', slotId, toRowId, toIndex)
+}
+function onSlotRemove(slotId: string) {
+  emit('slot-remove', slotId)
+}
+function onSlotSizeChange(slotId: string, size: WidgetSlot['size']) {
+  emit('slot-size-change', slotId, size)
 }
 </script>
 
 <style scoped>
+/*
+ * v3 垂直行式布局：每个 WidgetRow 是独立的水平 flex 容器，
+ * 多 row 垂直堆叠成网格。
+ *
+ * gap: 16px — row 间垂直间距
+ * width: 100% — 占满容器宽度，让子 row 内部 flex 自然填充
+ */
 .widget-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-items: stretch;
+  width: 100%;
+  min-width: 0;
 }
 
-:deep(.widget-ghost) {
-  opacity: 0.3;
-  border: 2px dashed var(--accent-primary) !important;
-}
-:deep(.widget-drag) {
-  opacity: 0.85;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  transform: scale(1.02);
-}
-
+/*
+ * 空状态（首次进入 + 已删除全部 widget）
+ */
 .grid-empty {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,12 +78,5 @@ function onDragEnd() {
 .grid-empty-text {
   color: var(--text-placeholder);
   font-size: 14px;
-}
-
-@media (max-width: 1439px) {
-  .widget-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 1023px) {
-  .widget-grid { grid-template-columns: repeat(1, 1fr); }
 }
 </style>

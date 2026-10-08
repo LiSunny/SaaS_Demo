@@ -86,6 +86,7 @@ declare module 'vue' {
     WidgetCard: typeof import('./src/components/dashboard/WidgetCard.vue')['default']
     WidgetGrid: typeof import('./src/components/dashboard/WidgetGrid.vue')['default']
     WidgetRenderer: typeof import('./src/components/dashboard/WidgetRenderer.vue')['default']
+    WidgetRow: typeof import('./src/components/dashboard/WidgetRow.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

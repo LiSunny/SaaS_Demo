@@ -63,7 +63,6 @@ const router = useRouter()
 
 const items = computed<Shortcut[]>(() => shortcutsGridMock.items)
 const columns = computed<number>(() => shortcutsGridMock.columns ?? 2)
-const rows = computed<number | undefined>(() => shortcutsGridMock.rows)
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: `repeat(${columns.value}, 1fr)`,
