@@ -36,6 +36,8 @@ export interface NavGroup {
   icon?: string
   defaultOpen: boolean
   children: NavNode[]
+  /** 分组默认路由：点击分组标题/默认跳转入口；缺省 = 仅展开不跳转 */
+  defaultRoute?: string
   /** 使用群体标签白名单：regulator|unit|operator|service，缺省 = 全员可见 */
   visibleTo?: string[]
 }
@@ -108,9 +110,16 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-hazard',
     label: '隐患排查治理',
     icon: 'menuicon-29',
-    defaultOpen: false,
+    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
+      // 模块介绍（分组首项，进入该分组的明确入口）
+      {
+        key: 'unit-hazard-intro',
+        label: '模块介绍',
+        icon: 'menuicon-50',
+        route: '/workbench/hazard-intro',
+      },
       {
         key: 'unit-hazard-check',
         label: '隐患排查',
@@ -145,9 +154,23 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'menuicon-47',
         children: [
           { key: 'unit-hazard-dashboard', label: '数字看板', route: '/unit/hazards/dashboard' },
-          { key: 'unit-hazard-monthly', label: '月报', route: '/unit/hazards/monthly' },
-          { key: 'unit-hazard-quarterly', label: '季报', route: '/unit/hazards/quarterly' },
-          { key: 'unit-hazard-yearly', label: '年报', route: '/unit/hazards/yearly' },
+          {
+            key: 'unit-hazard-periodic',
+            label: '周期报表',
+            route: '/unit/hazards/reports',
+            children: [
+              {
+                key: 'unit-hazard-report-internal',
+                label: '对内报告',
+                route: '/unit/hazards/reports/internal',
+              },
+              {
+                key: 'unit-hazard-report-regulator',
+                label: '监管报告',
+                route: '/unit/hazards/reports/regulator',
+              },
+            ],
+          },
         ],
       },
     ],
@@ -578,6 +601,7 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/resumption': 'unit-hazard-report',
   '/resumption-bigscreen': 'unit-bigscreen',
   '/enterprise-cockpit': 'unit-bigscreen',
+  '/workbench/hazard-intro': 'unit-hazard-intro',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -600,6 +624,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'unit-set-org-positions': '/enterprise/positions',
   'reg-bigscreen': '/landing',
   'unit-bigscreen': '/enterprise-cockpit',
+  'unit-hazard-intro': '/workbench/hazard-intro',
 }
 
 // ===== 工具函数 =====

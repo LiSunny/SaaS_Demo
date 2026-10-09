@@ -130,6 +130,8 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         { path: '', name: 'Workbench', component: () => import('@/views/workbench/Workbench.vue') },
+        // 隐患排查治理介绍页（主菜单"隐患排查治理"分组首项）
+        { path: 'hazard-intro', name: 'HazardIntro', component: () => import('@/views/hazard/HazardIntro.vue') },
       ],
     },
 
