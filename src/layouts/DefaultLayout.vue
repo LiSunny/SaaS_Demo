@@ -8,12 +8,6 @@
       </div>
 
       <div class="user-area">
-        <AppIcon name="message" class="ua-icon" />
-        
-        <ThemeToggle />
-
-        <EnterpriseSwitcher v-if="userStore.isLoggedIn && !userStore.systemRole" />
-
         <!-- 多屏选择浮层（trigger=click，按钮作为 reference slot 锚定位置） -->
         <BigscreenPickerPopover
           v-model="pickerOpen"
@@ -25,14 +19,42 @@
           <template #reference>
             <button
               v-if="userStore.isLoggedIn"
-              class="bigscreen-entry-btn"
+              class="icon-btn"
               :disabled="bigscreenLoading"
               title="打开大屏（多个时弹出选择）"
             >
-              <AppIcon name="bigscreen" class="bigscreen-entry-icon" />
+              <AppIcon name="bigscreen" class="icon-btn-svg" />
             </button>
           </template>
         </BigscreenPickerPopover>
+
+        <!-- 使用说明入口（跳语雀文档） -->
+        <a
+          v-if="userStore.isLoggedIn"
+          class="icon-btn"
+          href="https://www.yuque.com/meiyouhoutaideyaoguai/nuwueb?#"
+          target="_blank"
+          rel="noopener,noreferrer"
+          title="使用说明"
+        >
+          <AppIcon name="help-circle" class="icon-btn-svg" />
+        </a>
+
+        <!-- 消息入口（占位） -->
+        <button
+          v-if="userStore.isLoggedIn"
+          class="icon-btn"
+          type="button"
+          title="消息"
+        >
+          <AppIcon name="message" class="icon-btn-svg" />
+        </button>
+
+        <ThemeToggle />
+
+        <EnterpriseSwitcher v-if="userStore.isLoggedIn && !userStore.systemRole" />
+
+        
 
         <span v-if="userStore.isLoggedIn" class="user-name">{{ userStore.user?.realName }}</span>
         <img v-if="userStore.isLoggedIn" class="user-avatar" :src="adminAvatarUrl" alt="头像" />
@@ -108,6 +130,8 @@
         >
           <div
             class="section-header"
+            :class="{ 'section-header-clickable': !!group.defaultRoute }"
+            @click="onGroupClick(group)"
             @mouseenter="openFlyout(group.label, group.children, $event)"
             @mouseleave="scheduleHide"
           >
@@ -472,6 +496,17 @@ function onMixedNodeClick(node: NavNode): void {
   toggleExpand(node.key)
 }
 
+/** 分组标题点击：跳到 defaultRoute（如果存在），同时展开分组 */
+function onGroupClick(group: NavGroup): void {
+  if (group.defaultRoute) {
+    if (!expandedKeys.value.includes(group.key)) {
+      expandedKeys.value.push(group.key)
+    }
+    activeNavKey.value = group.key
+    router.push(group.defaultRoute)
+  }
+}
+
 // ===== 折叠态悬浮菜单（flyout） =====
 interface FlyoutRow {
   node: NavNode
@@ -622,7 +657,20 @@ if (typeof window !== 'undefined') {
   display: flex; align-items: center; gap: 16px;
   padding: 0 16px; flex-shrink: 0;
 }
-.ua-icon { width: 26px; height: 26px; opacity: .7; cursor: pointer; color: var(--text-secondary); }
+/* 顶部图标统一按钮（消息 / 大屏 / 使用说明） */
+.icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; transition: all .2s; flex-shrink: 0;
+  text-decoration: none; padding: 0;
+}
+.icon-btn:hover:not(:disabled) {
+  background: var(--accent-primary10);
+  color: var(--accent-primary);
+}
+.icon-btn:disabled { opacity: .5; cursor: wait; }
+.icon-btn-svg { width: 20px; height: 20px; }
 .avatar {
   width: 38px; height: 38px; border-radius: 50%;
   background: var(--border-high); flex-shrink: 0;
@@ -631,22 +679,6 @@ if (typeof window !== 'undefined') {
 .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .logout-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all .2s; }
 .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
-
-/* 大屏入口按钮 */
-.bigscreen-entry-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border: none; border-radius: var(--radius-sm);
-  background: transparent; color: var(--text-secondary);
-  cursor: pointer; transition: all .2s; flex-shrink: 0;
-}
-.bigscreen-entry-btn:hover:not(:disabled) {
-  background: var(--accent-primary10);
-  color: var(--accent-primary);
-}
-.bigscreen-entry-btn:disabled {
-  opacity: .5; cursor: wait;
-}
-.bigscreen-entry-icon { width: 20px; height: 20px; }
 
 /* 侧栏切换按钮 */
 .sidebar-toggle {
@@ -758,6 +790,8 @@ if (typeof window !== 'undefined') {
   font-size: var(--font-small, 14px); font-weight: 500; color: var(--text-muted);
   letter-spacing: normal;
 }
+/* 分组默认路由入口：鼠标可点击 + 提示 */
+.section-header.section-header-clickable { cursor: pointer; }
 .section-chevron {
   flex-shrink: 0; transition: transform .2s; color: var(--text-muted);
 }
