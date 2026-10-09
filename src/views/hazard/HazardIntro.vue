@@ -132,24 +132,9 @@
         </div>
         <div class="hi-reg-grid">
           <div v-for="r in regulations" :key="r.name" class="hi-reg-card">
-            <div class="hi-reg-icon" v-html="r.icon"></div>
             <h3 class="hi-reg-name">{{ r.name }}</h3>
             <p class="hi-reg-meta">{{ r.meta }}</p>
             <div class="hi-reg-link">{{ r.link }}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== CTA ===== -->
-    <section class="hi-cta">
-      <div class="hi-wrap">
-        <div class="hi-cta-inner">
-          <h2>{{ cta.title }}</h2>
-          <p>{{ cta.sub }}</p>
-          <div class="hi-cta-row">
-            <a href="/workbench" class="hi-btn hi-btn-primary">{{ cta.primary }}</a>
-            <a href="/portal" class="hi-btn hi-btn-ghost">{{ cta.ghost }}</a>
           </div>
         </div>
       </div>
@@ -213,7 +198,7 @@ const sections = {
   flow: { label: '业务流', title: '一条主流程,覆盖发现到销号', desc: '从巡检员发现隐患,到消防安全管理人销号核验,系统自动调度每一个节点。' },
   mod: { label: '子功能', title: '四个模块,覆盖全流程', desc: '按业务链路组织 —— 排查 → 整改 → 制度计划 → 报表统计,日常用得到的功能都集中在这。' },
   val: { label: '价值', title: '四方协同,各自省心', desc: '企业自查整改、监管机构能看数据、服务机构承接任务 —— 同一套台账,四方各取所需。' },
-  reg: { label: '合规依据', title: '国家法规,逐条落地', desc: '从国家法律到行业标准,每一条法规都有对应实现,合规不留死角。' },
+  reg: { label: '合规依据', title: '国家法规与地方办法,逐条落地', desc: '覆盖 2 部国家法律 + 3 部部门规章 + 2 部地方办法 + 1 部推荐国标,共 8 部。每一条都有对应产品实现,合规不留死角。' },
 }
 
 // ===== Hero 数据 =====
@@ -336,53 +321,49 @@ const fourParties = [
   },
 ]
 
-// ===== 法规（docs §1.3，6 条核心法规，去除 L1/L2/L3 角标） =====
+// ===== 法规（8 部核心法规与规范，覆盖 L1/L2 通用 + L3 地方/国标，去除 L1/L2/L3 角标） =====
 const regulations = [
   {
     name: '中华人民共和国安全生产法',
     meta: '2021 修正版 · 全国人大常委会',
-    link: '主体责任 · 双报告 · 信息系统强制',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>',
+    link: '§41 主体责任 · 双报告 · 隐患治理制度 · 信息系统强制',
   },
   {
     name: '中华人民共和国消防法',
     meta: '2021 修正版 · 全国人大常委会',
-    link: '火灾隐患监督 · 临时查封',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+    link: '§54 火灾隐患监督 · §58 临时查封',
   },
   {
     name: '安全生产事故隐患排查治理暂行规定',
-    meta: '安监总局令第 16 号 · 2008 施行',
-    link: '隐患定义 · 分级 · 督办 · 台账',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+    meta: '国家安监总局令第 16 号 · 2008 施行',
+    link: '§3 定义分级 · §10 台账档案 · §14 统计签字 · §15 五定方案 · §23 销号',
   },
   {
     name: '消防安全责任制实施办法',
     meta: '国办发〔2017〕87 号',
-    link: '政府 · 部门 · 单位 · 公民 四方责任',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>',
+    link: '§4 四方责任 · §15 单位职责 · §25 信用记录',
   },
   {
     name: '机关团体企业事业单位消防安全管理规定',
     meta: '公安部令第 61 号',
-    link: '单位职责 · 巡查频次',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    link: '§15 归口管理 · §25 每日防火巡查 · §32 隐患整改',
   },
   {
-    name: '企业安全生产标准化基本规范',
-    meta: 'GB/T 33000 · 2025 版',
-    link: 'PDCA · 排查治理 8 要素 · 内部报告奖励',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>',
+    name: '大中型企业安全生产标准化管理体系要求',
+    meta: 'GB/T 33000-2025 · 2025-10-31 实施',
+    link: '三道防线 · 十大要素 · LS-PDCA',
+  },
+  {
+    name: '河南省安全生产风险管控与隐患治理办法',
+    meta: '河南省政府令第 191 号 · 2020-01-31 施行',
+    link: '§17 月度报送 · §18 台账 7 字段保存 2 年 · §25 挂牌督办',
+  },
+  {
+    name: '福建省安全生产条例',
+    meta: '福建省人大常委会 · 2024-09-01 施行(2024 修订)',
+    link: '§21 整改五要素 · 措施责任资金时限预案',
   },
 ]
-
-// ===== CTA =====
-const cta = {
-  title: '开始使用隐患排查治理',
-  sub: '登录后默认进入,按法规自动调度。让每一处隐患被发现、被跟踪、被闭环。',
-  primary: '进入工作台',
-  ghost: '返回门户首页',
-}
 </script>
 
 <style scoped>
@@ -426,12 +407,13 @@ const cta = {
   line-height: 1.65; margin: 0 0 16px; max-width: 520px;
 }
 .hi-hero-stats {
-  display: flex; gap: 24px; margin-bottom: 16px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 24px; margin-bottom: 16px;
   padding: 16px 20px;
   background: var(--c-bg-soft);
   border-radius: var(--radius);
 }
-.hi-hero-stat { display: flex; flex-direction: column; gap: 4px; }
+.hi-hero-stat { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
 .hi-hero-stat-num {
   font-size: 22px; font-weight: 700; color: var(--c-primary); line-height: 1;
 }
@@ -622,9 +604,9 @@ const cta = {
   font-size: 12px; color: var(--c-muted); line-height: 1.55; margin: 0;
 }
 
-/* ===== 法规 3x2 ===== */
+/* ===== 法规 4x2 ===== */
 .hi-reg-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 .hi-reg-card {
@@ -634,13 +616,6 @@ const cta = {
   transition: border-color 0.2s;
 }
 .hi-reg-card:hover { border-color: rgba(54, 120, 227, 0.3); }
-.hi-reg-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: rgba(54, 120, 227, 0.08); color: var(--c-primary);
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 12px;
-}
-.hi-reg-icon :deep(svg) { width: 18px; height: 18px; }
 .hi-reg-name {
   font-size: 14px; font-weight: 600; color: var(--c-text);
   margin: 0 0 6px; line-height: 1.4;
@@ -653,41 +628,6 @@ const cta = {
   font-size: 12px; color: var(--c-primary);
   font-weight: 500;
 }
-
-/* ===== CTA ===== */
-.hi-cta {
-  margin-top: 32px;
-  padding: 24px;
-  background: var(--c-bg-soft);
-  border-radius: var(--radius);
-  border: 1px solid var(--c-line);
-  text-align: center;
-}
-.hi-cta-inner { max-width: 480px; margin: 0 auto; }
-.hi-cta h2 {
-  font-size: 18px; font-weight: 600;
-  margin: 0 0 8px; color: var(--c-text);
-}
-.hi-cta p {
-  font-size: 13px; color: var(--c-muted);
-  margin: 0 0 16px; line-height: 1.6;
-}
-.hi-cta-row { display: flex; gap: 10px; justify-content: center; }
-.hi-btn {
-  display: inline-flex; align-items: center;
-  padding: 8px 20px; border-radius: 6px;
-  font-size: 13px; font-weight: 600; text-decoration: none;
-  transition: all 0.15s; cursor: pointer; border: none;
-}
-.hi-btn-primary {
-  background: var(--c-primary); color: #fff;
-}
-.hi-btn-primary:hover { background: #2a6ad4; }
-.hi-btn-ghost {
-  background: #fff; color: var(--c-primary);
-  border: 1px solid var(--c-primary);
-}
-.hi-btn-ghost:hover { background: rgba(54, 120, 227, 0.04); }
 
 /* ===== 响应式 ===== */
 @media (max-width: 960px) {
