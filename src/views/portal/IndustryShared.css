@@ -39,7 +39,7 @@ html, body { margin: 0; padding: 0; overflow-x: hidden; }
 .ind-hero-content { position:relative; z-index:2; max-width:800px; margin:0 auto; padding:64px 32px 56px; text-align:center; }
 .ind-back { display:inline-flex; align-items:center; gap:6px; font-size:14px; color:rgba(255,255,255,.65); text-decoration:none; margin-bottom:20px; transition:color .2s; }
 .ind-back:hover { color:#fff; }
-.ind-hero-title { font-size:clamp(1.875rem,5vw,2.75rem); font-weight:900; color:#fff; font-family:'Outfit','Noto Sans SC',sans-serif; margin:0 0 14px; }
+.ind-hero-title { font-size:clamp(1.875rem,5vw,2.75rem); font-weight:900; color:#fff; font-family:'Source-KeynoteartHans'; margin:0 0 14px; }
 .ind-hero-sub { font-size:17px; color:rgba(255,255,255,.75); line-height:1.7; max-width:520px; margin:0 auto; }
 
 /* ===== Sticky Nav ===== */

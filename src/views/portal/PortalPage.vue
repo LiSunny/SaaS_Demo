@@ -646,6 +646,15 @@ html, body { margin: 0; padding: 0; }
 <style scoped>
 /* ===== Font Tokens ===== */
 .portal { --f-display: 'Outfit', 'Noto Sans SC', sans-serif; --f-body: 'Noto Sans SC', 'Outfit', sans-serif; }
+
+/* 首屏主标题艺术字体（Source-KeynoteartHans，项目字体文件 public/fonts/） */
+@font-face {
+  font-family: 'Source-KeynoteartHans';
+  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 /* ===== Shared ===== */
 .sec-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 @media (min-width: 640px) { .sec-wrap { padding: 0 32px; } }
@@ -717,8 +726,8 @@ html, body { margin: 0; padding: 0; }
   .hero-btns { flex-direction: column; width: 100%; }
   .hero-btn-fill, .hero-btn-ghost { width: 100%; justify-content: center; padding: 14px 20px; }
 }
-.hero-char { display: inline-block; font-size: clamp(1.5rem, 5vw, 4rem); font-weight: 900; font-family: var(--f-display); line-height: 1.35; opacity: 0; animation: charIn 0.5s ease forwards; color: #101010; }
-.hero-char.plus { font-size: clamp(2.5rem, 7vw, 4.5rem); font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace; }
+.hero-char { display: inline-block; font-size: clamp(1.5rem, 5vw, 4rem); font-weight: 900; font-family: 'Source-KeynoteartHans', var(--f-display); line-height: 1.35; opacity: 0; animation: charIn 0.5s ease forwards; color: #101010; }
+.hero-char.plus { font-size: clamp(2.5rem, 7vw, 4.5rem); font-family: 'Source-KeynoteartHans', var(--f-display); }
 @keyframes charIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .hero-sub { font-size: 16px; color: #5E5E5E; line-height: 1.7; max-width: 480px; margin: 24px 0 48px; opacity: 0; animation: fadeIn 0.6s ease 0.8s forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
