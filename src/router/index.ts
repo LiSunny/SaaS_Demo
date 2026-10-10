@@ -158,6 +158,27 @@ const router = createRouter({
       ],
     },
 
+    // ===== 隐患排查治理（M1 隐患排查 / M2 整改闭环 / M3 制度与计划 / M4 报表与统计） =====
+    {
+      path: '/unit/hazards',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'HazardList', component: () => import('@/views/hazard/HazardList.vue') },
+        // 占位页：兄弟菜单按子功能编号 M1-1 / M1-7 / M2-6 / M3-x / M4-x 等编号，
+        // 由 HazardPlaceholder.vue 按 route.name 读取 src/views/hazard/hazard-pages.ts 配置渲染
+        { path: 'report',             name: 'HazardReport',           component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'tasks',              name: 'HazardTasks',            component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'board',              name: 'HazardRectifyBoard',     component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'system',             name: 'HazardRuleSystem',       component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'plan',               name: 'HazardInspectionPlan',   component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'checklist',          name: 'HazardChecklist',        component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'dashboard',          name: 'HazardDashboard',        component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'reports',            name: 'HazardPeriodicReport',   component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'reports/internal',   name: 'HazardReportInternal',   component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+        { path: 'reports/regulator',  name: 'HazardReportRegulator',  component: () => import('@/views/hazard/HazardPlaceholder.vue') },
+      ],
+    },
+
     // ===== 跳转式域首页（>10 模块的大域，占位页，后续填充） =====
     {
       path: '/device',

@@ -602,6 +602,17 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/resumption-bigscreen': 'unit-bigscreen',
   '/enterprise-cockpit': 'unit-bigscreen',
   '/workbench/hazard-intro': 'unit-hazard-intro',
+  '/unit/hazards': 'unit-hazard-ledger',
+  '/unit/hazards/report': 'unit-hazard-report',
+  '/unit/hazards/tasks': 'unit-hazard-task',
+  '/unit/hazards/board': 'unit-hazard-board',
+  '/unit/hazards/system': 'unit-hazard-system',
+  '/unit/hazards/plan': 'unit-hazard-plan',
+  '/unit/hazards/checklist': 'unit-hazard-checklist',
+  '/unit/hazards/dashboard': 'unit-hazard-dashboard',
+  '/unit/hazards/reports': 'unit-hazard-periodic',
+  '/unit/hazards/reports/internal': 'unit-hazard-report-internal',
+  '/unit/hazards/reports/regulator': 'unit-hazard-report-regulator',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -625,6 +636,17 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'reg-bigscreen': '/landing',
   'unit-bigscreen': '/enterprise-cockpit',
   'unit-hazard-intro': '/workbench/hazard-intro',
+  'unit-hazard-ledger': '/unit/hazards',
+  'unit-hazard-report': '/unit/hazards/report',
+  'unit-hazard-task': '/unit/hazards/tasks',
+  'unit-hazard-board': '/unit/hazards/board',
+  'unit-hazard-system': '/unit/hazards/system',
+  'unit-hazard-plan': '/unit/hazards/plan',
+  'unit-hazard-checklist': '/unit/hazards/checklist',
+  'unit-hazard-dashboard': '/unit/hazards/dashboard',
+  'unit-hazard-periodic': '/unit/hazards/reports',
+  'unit-hazard-report-internal': '/unit/hazards/reports/internal',
+  'unit-hazard-report-regulator': '/unit/hazards/reports/regulator',
 }
 
 // ===== 工具函数 =====
