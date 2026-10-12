@@ -22,6 +22,8 @@ const MAP: Record<string, { label: string; cls: string }> = {
   draft: { label: '草稿', cls: 'info' },
   active: { label: '进行中', cls: 'warning' },
   closed: { label: '已关闭', cls: 'normal' },
+  // 流程模板启停（与 stopped 等价，inactive 为国际化命名）
+  inactive: { label: '已停用', cls: 'danger' },
   // 优先级
   urgent: { label: '紧急', cls: 'danger' },
   high: { label: '高', cls: 'warning' },
