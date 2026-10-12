@@ -235,7 +235,18 @@ const router = createRouter({
       ],
     },
 
-    // ===== 兼容重定向（/workflow/* → /system/*） =====
+    // ===== 协同工作（社会单位 — 待办/已办/发起；流程编排/协同监控复用 /system/*） =====
+    {
+      path: '/collab/task',
+      component: DefaultLayout,
+      children: [
+        { path: 'pending', name: 'CollabTaskPending', component: () => import('@/views/collab/CollabTaskPending.vue') },
+        { path: 'completed', name: 'CollabTaskCompleted', component: () => import('@/views/collab/CollabTaskCompleted.vue') },
+        { path: 'started', name: 'CollabTaskStarted', component: () => import('@/views/collab/CollabTaskStarted.vue') },
+      ],
+    },
+
+    // ===== 兼容重定向（/workflow/* → /system/*；/collab/flow/* → /system/*） =====
     {
       path: '/workflow',
       redirect: '/system/template',
@@ -244,6 +255,8 @@ const router = createRouter({
     { path: '/workflow/template/config/:id?', redirect: to => ({ path: to.params.id ? `/system/template/config/${to.params.id}` : '/system/template/config', query: to.query }) },
     { path: '/workflow/monitor', redirect: '/system/monitor' },
     { path: '/workflow/order/:id', redirect: to => `/system/order/${to.params.id}` },
+    { path: '/collab/flow/template', redirect: '/system/template' },
+    { path: '/collab/flow/monitor', redirect: '/system/monitor' },
   ],
 })
 

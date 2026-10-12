@@ -175,7 +175,31 @@ export const NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
-  // ===== 2b. 安全管理（社会单位：学校/企业/商户/物业） =====
+
+  // ===== 2b. 协同工作（社会单位：协同管理 + 我的待办/已办/发起） =====
+  {
+    key: 'unit-collab-work',
+    label: '协同工作',
+    icon: 'menuicon-2',
+    defaultOpen: false,
+    visibleTo: ['unit'],
+    children: [
+      {
+        key: 'collab-mgmt',
+        label: '协同管理',
+        icon: 'menuicon-42',
+        children: [
+          { key: 'collab-flow-template', label: '流程编排', route: '/system/template' },
+          { key: 'collab-monitor', label: '协同监控', route: '/system/monitor' },
+        ],
+      },
+      { key: 'collab-pending', label: '待办事项', route: '/collab/task/pending' },
+      { key: 'collab-completed', label: '已办事项', route: '/collab/task/completed' },
+      { key: 'collab-started', label: '发起事项', route: '/collab/task/started' },
+    ],
+  },
+
+  // ===== 2c. 安全管理（社会单位：学校/企业/商户/物业） =====
   {
     key: 'unit-daily',
     label: '安全管理',
@@ -242,24 +266,6 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
-        key: 'unit-order',
-        label: '我的工单',
-        icon: 'menuicon-2',
-        children: [
-          { key: 'unit-order-list', label: '工单列表', route: '/unit/orders' },
-          { key: 'unit-order-stats', label: '工单统计', route: '/unit/orders/stats' },
-          { key: 'unit-order-monitor', label: '工单监控', route: '/system/monitor' },
-        ],
-      },
-      {
-        key: 'unit-workflow',
-        label: '流程编排',
-        icon: 'menuicon-42',
-        children: [
-          { key: 'unit-flow-template', label: '流程模板', route: '/system/template' },
-        ],
-      },
-      {
         key: 'unit-training',
         label: '培训演练',
         icon: 'menuicon-6',
@@ -280,7 +286,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2c. 安全管理 — 单位设置（社会单位管理员） =====
+  // ===== 2d. 安全管理 — 单位设置（社会单位管理员） =====
   {
     key: 'unit-settings',
     label: '单位设置',
@@ -578,10 +584,10 @@ export const NAV_GROUPS: NavGroup[] = [
 /** 路由路径 → 侧栏节点 key */
 export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/workbench': 'workbench',
-  '/system/template': 'unit-flow-template',
-  '/system/monitor': 'unit-order-monitor',
-  '/system/order': 'unit-order-monitor',
-  '/system/dashboard': 'unit-order-stats',
+  '/system/template': 'collab-flow-template',
+  '/system/monitor': 'collab-monitor',
+  '/system/order': 'collab-monitor',
+  '/system/dashboard': 'svc-order-dashboard',
   '/maintenance/plans': 'svc-maintain-record',
   '/maintenance/plans/detail': 'svc-maintain-record',
   '/device': 'unit-device',
@@ -613,15 +619,17 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/unit/hazards/reports': 'unit-hazard-periodic',
   '/unit/hazards/reports/internal': 'unit-hazard-report-internal',
   '/unit/hazards/reports/regulator': 'unit-hazard-report-regulator',
+  '/collab/flow/template': 'collab-flow-template',  // 兼容旧路径：/collab/flow/* 已合并到 /system/*
+  '/collab/flow/monitor': 'collab-monitor',
+  '/collab/task/pending': 'collab-pending',
+  '/collab/task/completed': 'collab-completed',
+  '/collab/task/started': 'collab-started',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
 export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'workbench': '/workbench',
-  'unit-flow-template': '/system/template',
-  'unit-order-monitor': '/system/monitor',
-  'unit-order-list': '/unit/orders',
-  'unit-order-stats': '/unit/orders/stats',
+  'svc-order-dashboard': '/system/dashboard',
   'svc-maintain-record': '/maintenance/plans',
   'unit-device': '/device',
   'unit-device-ledger': '/device/list',
@@ -647,6 +655,11 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'unit-hazard-periodic': '/unit/hazards/reports',
   'unit-hazard-report-internal': '/unit/hazards/reports/internal',
   'unit-hazard-report-regulator': '/unit/hazards/reports/regulator',
+  'collab-flow-template': '/system/template',
+  'collab-monitor': '/system/monitor',
+  'collab-pending': '/collab/task/pending',
+  'collab-completed': '/collab/task/completed',
+  'collab-started': '/collab/task/started',
 }
 
 // ===== 工具函数 =====
