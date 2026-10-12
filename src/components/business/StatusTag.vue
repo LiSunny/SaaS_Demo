@@ -24,6 +24,9 @@ const MAP: Record<string, { label: string; cls: string }> = {
   closed: { label: '已关闭', cls: 'normal' },
   // 流程模板启停（与 stopped 等价，inactive 为国际化命名）
   inactive: { label: '已停用', cls: 'danger' },
+  // 流程编排列表的启用/未启用（与枚举无关，仅按布尔）
+  on: { label: '已启用', cls: 'success' },
+  off: { label: '未启用', cls: 'normal' },
   // 优先级
   urgent: { label: '紧急', cls: 'danger' },
   high: { label: '高', cls: 'warning' },
