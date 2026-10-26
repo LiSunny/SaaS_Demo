@@ -70,156 +70,167 @@
     <div class="main-body">
       <aside :class="['left-sidebar', { collapsed: sidebarCollapsed }]">
 
-        <!-- 1. 搜索栏 + 侧栏展开/折叠按钮（同一行） -->
-        <div class="sidebar-topbar">
-          <div class="sidebar-search">
-            <input v-model="searchQuery" class="search-input" placeholder="搜索菜单或功能..." />
-            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M15.5 15.5L19 19M5 11a6 6 0 1 0 12 0 6 6 0 0 0-12 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+        <!-- 常驻区：搜索栏 + 工作台（不随菜单滚动） -->
+        <div class="sidebar-fixed">
+          <!-- 1. 搜索栏 + 侧栏展开/折叠按钮（同一行） -->
+          <div class="sidebar-topbar">
+            <div class="sidebar-search">
+              <input v-model="searchQuery" class="search-input" placeholder="搜索菜单或功能..." />
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M15.5 15.5L19 19M5 11a6 6 0 1 0 12 0 6 6 0 0 0-12 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <button class="sidebar-toggle" @click="toggleSidebar" :title="sidebarCollapsed ? '展开侧栏' : '收起侧栏'">
+              <AppIcon :name="sidebarCollapsed ? 'menu-unfold' : 'menu-fold'" :size="20" />
+            </button>
           </div>
-          <button class="sidebar-toggle" @click="toggleSidebar" :title="sidebarCollapsed ? '展开侧栏' : '收起侧栏'">
-            <AppIcon :name="sidebarCollapsed ? 'menu-unfold' : 'menu-fold'" :size="20" />
+
+          <!-- 2. 工作台（固定项） -->
+          <button
+            :class="['workbench-item', { active: activeNavKey === WORKBENCH_ITEM.key }]"
+            @click="onNodeClick(WORKBENCH_ITEM)"
+          >
+            <AppIcon :name="WORKBENCH_ITEM.icon || 'menuicon'" class="side-icon" />
+            <span class="side-label">工作台</span>
           </button>
         </div>
 
-        <!-- 2. 工作台（固定项） -->
-        <button
-          :class="['workbench-item', { active: activeNavKey === WORKBENCH_ITEM.key }]"
-          @click="onNodeClick(WORKBENCH_ITEM)"
-        >
-          <AppIcon :name="WORKBENCH_ITEM.icon || 'menuicon'" class="side-icon" />
-          <span class="side-label">工作台</span>
-        </button>
-
-        <!-- 3. 常用区（有钉选才显示） -->
-        <template v-if="pinnedItems.length > 0">
-          <hr class="sidebar-divider" />
-          <div class="pinned-section">
-            <button class="section-header section-header-pinned" @click="pinnedExpanded = !pinnedExpanded">
-              <span class="section-label">📌 常用</span>
-              <svg class="section-chevron" :class="{ rotated: pinnedExpanded }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-            </button>
-            <div v-show="pinnedExpanded" class="section-body">
-              <button
-                v-for="item in pinnedItems"
-                :key="item.key"
-                :class="['side-item', { active: activeNavKey === item.key }]"
-                @click="onNodeClick(item)"
-              >
-                <AppIcon :name="item.icon || 'menuicon'" class="side-icon" />
-                <span class="side-label">{{ item.label }}</span>
-                <span class="pin-active" @click.stop="togglePin(item.key)">⭐</span>
+        <!-- 滚动区：菜单（常用区 + 导航分组） -->
+        <div class="sidebar-scroll">
+          <!-- 3. 常用区（有钉选才显示） -->
+          <template v-if="pinnedItems.length > 0">
+            <hr class="sidebar-divider" />
+            <div class="pinned-section">
+              <button class="section-header section-header-pinned" @click="pinnedExpanded = !pinnedExpanded">
+                <span class="section-label">📌 常用</span>
+                <svg class="section-chevron" :class="{ rotated: pinnedExpanded }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
               </button>
+              <div v-show="pinnedExpanded" class="section-body">
+                <button
+                  v-for="item in pinnedItems"
+                  :key="item.key"
+                  :class="['side-item', { active: activeNavKey === item.key }]"
+                  @click="onNodeClick(item)"
+                >
+                  <AppIcon :name="item.icon || 'menuicon'" class="side-icon" />
+                  <span class="side-label">{{ item.label }}</span>
+                  <span class="pin-active" @click.stop="togglePin(item.key)">⭐</span>
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <hr class="sidebar-divider" />
+
+          <!-- 4. 空搜索提示 -->
+          <div v-if="searchQuery.trim() && filteredGroups.length === 0" class="no-results">
+            无匹配结果
+          </div>
+
+          <!-- 5. 导航分组（一级菜单，可展开/折叠） -->
+          <div
+            v-for="group in filteredGroups"
+            :key="group.key"
+            class="nav-group"
+          >
+            <button
+              type="button"
+              class="section-header section-header-clickable"
+              :aria-expanded="isGroupExpanded(group)"
+              @click="onGroupClick(group)"
+              @mouseenter="openFlyout(group.label, group.children, $event)"
+              @mouseleave="scheduleHide"
+            >
+              <AppIcon v-if="sidebarCollapsed" :name="group.icon || 'menuicon'" class="side-icon" />
+              <span class="section-label">{{ group.label }}</span>
+              <svg class="section-chevron" :class="{ rotated: isGroupExpanded(group) }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            </button>
+            <div v-show="isGroupExpanded(group)" class="section-body">
+              <template v-for="node in group.children" :key="node.key">
+                <!-- 展开节点（有 children，无 route） -->
+                <div v-if="node.children && !node.route" class="side-group">
+                  <button
+                    :class="['side-item', { open: expandedKeys.includes(node.key) }]"
+                    @click="toggleExpand(node.key)"
+                    @mouseenter="openFlyout(node.label, node.children || [], $event)"
+                    @mouseleave="scheduleHide"
+                  >
+                    <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
+                    <span class="side-label">{{ node.label }}</span>
+                    <span
+                      class="pin-icon"
+                      :class="{ pinned: pinnedKeys.has(node.key) }"
+                      @click.stop="togglePin(node.key)"
+                    >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
+                    <svg class="side-arrow" :class="{ rotated: expandedKeys.includes(node.key) }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                  </button>
+                  <div v-show="expandedKeys.includes(node.key)" class="side-sub">
+                    <button
+                      v-for="child in node.children"
+                      :key="child.key"
+                      :class="['side-sub-item', { active: activeNavKey === child.key }]"
+                      @click="onNodeClick(child)"
+                    >{{ child.label }}</button>
+                  </div>
+                </div>
+
+                <!-- 混合节点（同时有 route + children）— 点击导航 + 展开子项 -->
+                <div v-else-if="node.route && node.children" class="side-group">
+                  <button
+                    :class="['side-item', { active: activeNavKey === node.key, open: expandedKeys.includes(node.key) }]"
+                    @click="onMixedNodeClick(node)"
+                    @mouseenter="openFlyout(node.label, node.children || [], $event)"
+                    @mouseleave="scheduleHide"
+                  >
+                    <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
+                    <span class="side-label">{{ node.label }}</span>
+                    <span
+                      class="pin-icon"
+                      :class="{ pinned: pinnedKeys.has(node.key) }"
+                      @click.stop="togglePin(node.key)"
+                    >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
+                    <svg class="side-arrow" :class="{ rotated: expandedKeys.includes(node.key) }" width="14" height="14" viewBox="0 0 24 24" @click.stop="toggleExpand(node.key)"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                  </button>
+                  <div v-show="expandedKeys.includes(node.key)" class="side-sub">
+                    <button
+                      v-for="child in node.children"
+                      :key="child.key"
+                      :class="['side-sub-item', { active: activeNavKey === child.key }]"
+                      @click="onNodeClick(child)"
+                    >{{ child.label }}</button>
+                  </div>
+                </div>
+
+                <!-- 跳转节点（有 route，无 children）— 包括跳转域首页入口 -->
+                <button
+                  v-else-if="node.route && !node.children"
+                  :key="node.key"
+                  :class="['side-item', { active: activeNavKey === node.key }]"
+                  @click="onNodeClick(node)"
+                >
+                  <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
+                  <span class="side-label">{{ node.label }}</span>
+                  <span
+                    class="pin-icon"
+                    :class="{ pinned: pinnedKeys.has(node.key) }"
+                    @click.stop="togglePin(node.key)"
+                  >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
+                  <svg v-if="node.route && !node.children" class="nav-entry-arrow" width="14" height="14" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                </button>
+
+                <!-- 纯占位（两者都无）— 不可点击 -->
+                <div v-else class="side-item side-item-placeholder">
+                  <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
+                  <span class="side-label">{{ node.label }}</span>
+                </div>
+              </template>
             </div>
           </div>
-        </template>
-
-        <hr class="sidebar-divider" />
-
-        <!-- 4. 空搜索提示 -->
-        <div v-if="searchQuery.trim() && filteredGroups.length === 0" class="no-results">
-          无匹配结果
         </div>
 
-        <!-- 5. 导航分组（一级菜单，可展开/折叠） -->
-        <div
-          v-for="group in filteredGroups"
-          :key="group.key"
-          class="nav-group"
-        >
-          <button
-            type="button"
-            class="section-header section-header-clickable"
-            :aria-expanded="isGroupExpanded(group)"
-            @click="onGroupClick(group)"
-            @mouseenter="openFlyout(group.label, group.children, $event)"
-            @mouseleave="scheduleHide"
-          >
-            <AppIcon v-if="sidebarCollapsed" :name="group.icon || 'menuicon'" class="side-icon" />
-            <span class="section-label">{{ group.label }}</span>
-            <svg class="section-chevron" :class="{ rotated: isGroupExpanded(group) }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-          </button>
-          <div v-show="isGroupExpanded(group)" class="section-body">
-            <template v-for="node in group.children" :key="node.key">
-              <!-- 展开节点（有 children，无 route） -->
-              <div v-if="node.children && !node.route" class="side-group">
-                <button
-                  :class="['side-item', { open: expandedKeys.includes(node.key) }]"
-                  @click="toggleExpand(node.key)"
-                  @mouseenter="openFlyout(node.label, node.children || [], $event)"
-                  @mouseleave="scheduleHide"
-                >
-                  <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
-                  <span class="side-label">{{ node.label }}</span>
-                  <span
-                    class="pin-icon"
-                    :class="{ pinned: pinnedKeys.has(node.key) }"
-                    @click.stop="togglePin(node.key)"
-                  >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
-                  <svg class="side-arrow" :class="{ rotated: expandedKeys.includes(node.key) }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-                </button>
-                <div v-show="expandedKeys.includes(node.key)" class="side-sub">
-                  <button
-                    v-for="child in node.children"
-                    :key="child.key"
-                    :class="['side-sub-item', { active: activeNavKey === child.key }]"
-                    @click="onNodeClick(child)"
-                  >{{ child.label }}</button>
-                </div>
-              </div>
-
-              <!-- 混合节点（同时有 route + children）— 点击导航 + 展开子项 -->
-              <div v-else-if="node.route && node.children" class="side-group">
-                <button
-                  :class="['side-item', { active: activeNavKey === node.key, open: expandedKeys.includes(node.key) }]"
-                  @click="onMixedNodeClick(node)"
-                  @mouseenter="openFlyout(node.label, node.children || [], $event)"
-                  @mouseleave="scheduleHide"
-                >
-                  <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
-                  <span class="side-label">{{ node.label }}</span>
-                  <span
-                    class="pin-icon"
-                    :class="{ pinned: pinnedKeys.has(node.key) }"
-                    @click.stop="togglePin(node.key)"
-                  >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
-                  <svg class="side-arrow" :class="{ rotated: expandedKeys.includes(node.key) }" width="14" height="14" viewBox="0 0 24 24" @click.stop="toggleExpand(node.key)"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-                </button>
-                <div v-show="expandedKeys.includes(node.key)" class="side-sub">
-                  <button
-                    v-for="child in node.children"
-                    :key="child.key"
-                    :class="['side-sub-item', { active: activeNavKey === child.key }]"
-                    @click="onNodeClick(child)"
-                  >{{ child.label }}</button>
-                </div>
-              </div>
-
-              <!-- 跳转节点（有 route，无 children）— 包括跳转域首页入口 -->
-              <button
-                v-else-if="node.route && !node.children"
-                :key="node.key"
-                :class="['side-item', { active: activeNavKey === node.key }]"
-                @click="onNodeClick(node)"
-              >
-                <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
-                <span class="side-label">{{ node.label }}</span>
-                <span
-                  class="pin-icon"
-                  :class="{ pinned: pinnedKeys.has(node.key) }"
-                  @click.stop="togglePin(node.key)"
-                >{{ pinnedKeys.has(node.key) ? '⭐' : '☆' }}</span>
-                <svg v-if="node.route && !node.children" class="nav-entry-arrow" width="14" height="14" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-              </button>
-
-              <!-- 纯占位（两者都无）— 不可点击 -->
-              <div v-else class="side-item side-item-placeholder">
-                <AppIcon :name="node.icon || 'menuicon'" class="side-icon" />
-                <span class="side-label">{{ node.label }}</span>
-              </div>
-            </template>
-          </div>
+        <!-- 版本号（常驻侧栏底部） -->
+        <div class="sidebar-version">
+          <span class="sidebar-version-text">{{ APP_VERSION_LABEL }}</span>
         </div>
       </aside>
 
@@ -261,6 +272,7 @@ import AppIcon from '@/components/base/AppIcon.vue'
 import EnterpriseSwitcher from '@/components/base/EnterpriseSwitcher.vue'
 import { getUserBigscreens } from '@/api/bigscreen'
 import { getBigscreenRoute } from '@/config/bigscreen-templates'
+import { APP_VERSION_LABEL } from '@/config/version'
 import BigscreenPickerPopover from '@/components/base/BigscreenPickerPopover.vue'
 import type { UserBigscreenItem } from '@/types/bigscreen'
 import { useUserStore } from '@/stores/user'
@@ -811,14 +823,31 @@ if (typeof window !== 'undefined') {
 .left-sidebar {
   width: 272px; flex-shrink: 0; background: var(--bg-card);
   border-right: 1px solid var(--border-high);
-  padding: var(--spacing-lg, 12px); overflow-y: auto;
+  overflow: hidden;
   display: flex; flex-direction: column; gap: var(--spacing-xs, 4px);
   transition: width .25s ease;
 }
 .left-sidebar.collapsed {
-  width: 72px; padding: 12px var(--spacing-md, 8px);
-  overflow-y: auto; overflow-x: hidden;
+  width: 72px;
 }
+
+/* ===== 常驻区（搜索栏 + 工作台） ===== */
+.sidebar-fixed {
+  flex-shrink: 0;
+  padding: var(--spacing-lg, 12px) var(--spacing-lg, 12px) 0;
+}
+
+/* ===== 滚动区（仅菜单可垂直滚动） ===== */
+.sidebar-scroll {
+  flex: 1; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 0 var(--spacing-lg, 12px) var(--spacing-sm, 6px);
+  display: flex; flex-direction: column; gap: var(--spacing-xs, 4px);
+}
+.sidebar-scroll > * { flex-shrink: 0; }
+
+.left-sidebar.collapsed .sidebar-fixed { padding: 12px var(--spacing-md, 8px) 0; }
+.left-sidebar.collapsed .sidebar-scroll { padding: 0 var(--spacing-md, 8px) 6px; }
 .left-sidebar.collapsed .side-label,
 .left-sidebar.collapsed .side-arrow,
 .left-sidebar.collapsed .nav-entry-arrow,
@@ -885,6 +914,23 @@ if (typeof window !== 'undefined') {
 .sidebar-divider {
   border: none; border-top: 1px solid var(--border-low);
   margin: var(--spacing-sm, 6px) 0; flex-shrink: 0;
+}
+
+/* ===== 版本号（侧栏底部常驻，贴底对齐） ===== */
+.sidebar-version {
+  flex-shrink: 0;
+  padding: var(--spacing-sm, 6px) var(--spacing-lg, 12px);
+  text-align: center;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-low);
+  font-variant-numeric: tabular-nums;
+}
+.left-sidebar.collapsed .sidebar-version {
+  padding: var(--spacing-sm, 6px) var(--spacing-md, 8px);
+  font-size: 11px;
 }
 
 /* ===== 分组标题 ===== */

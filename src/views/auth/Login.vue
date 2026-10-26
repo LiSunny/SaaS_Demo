@@ -199,6 +199,8 @@
         <span>版权所有©️李阳的空间2026</span>
         <span class="footer-divider">|</span>
         <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
+        <span class="footer-divider">|</span>
+        <span class="footer-version">{{ APP_VERSION_LABEL }}</span>
       </div>
     </footer>
   </div>
@@ -212,6 +214,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { loginApi } from '@/api/auth'
 import { ACTIVE_DEMO_ACCOUNTS } from '@/config/demo-accounts'
+import { APP_VERSION_LABEL } from '@/config/version'
 import featureMonitor from '@/assets/demo-roles/feature-monitor.svg'
 import featureHelmet from '@/assets/demo-roles/feature-helmet.svg'
 import featureCycle from '@/assets/demo-roles/feature-cycle.svg'
@@ -958,5 +961,10 @@ async function handleLogin() {
 
 .footer-icp:hover {
   color: var(--accent-primary, #3678E3);
+}
+
+.footer-version {
+  color: var(--text-tertiary, #454545);
+  font-variant-numeric: tabular-nums;
 }
 </style>
