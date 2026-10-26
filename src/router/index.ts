@@ -179,6 +179,23 @@ const router = createRouter({
       ],
     },
 
+    // ===== 巡查检查（菜单名称与层级对齐平台「巡查检查」模块） =====
+    {
+      path: '/unit/patrol',
+      component: DefaultLayout,
+      children: [
+        // 占位页：按 route.name 读取 src/views/patrol/patrol-pages.ts 配置渲染
+        { path: '', name: 'PatrolHome', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'tasks', name: 'PatrolTaskList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'forms', name: 'PatrolFormList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'locations', name: 'PatrolLocationList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'plans', name: 'PatrolPlanList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'abnormal', name: 'PatrolAbnormalList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'reports', name: 'PatrolReportList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+        { path: 'notices', name: 'PatrolNoticeList', component: () => import('@/views/patrol/PatrolPlaceholder.vue') },
+      ],
+    },
+
     // ===== 跳转式域首页（>10 模块的大域，占位页，后续填充） =====
     {
       path: '/device',

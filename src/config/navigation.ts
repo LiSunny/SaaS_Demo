@@ -176,6 +176,40 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
+  // ===== 2a. 巡查检查（社会单位：安全管理员 / 巡查员） =====
+  // 菜单名称与层级对齐平台「巡查检查」模块（智慧消防云平台，实测 2026-10-26）
+  {
+    key: 'unit-patrol',
+    label: '巡查检查',
+    icon: 'menuicon-25',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-patrol-home', label: '首页', icon: 'menuicon-48', route: '/unit/patrol' },
+      {
+        key: 'unit-patrol-monitor',
+        label: '任务监控',
+        icon: 'menuicon-30',
+        children: [
+          { key: 'unit-patrol-task', label: '巡查任务', route: '/unit/patrol/tasks' },
+        ],
+      },
+      { key: 'unit-patrol-forms', label: '项目配置', icon: 'menuicon-37', route: '/unit/patrol/forms' },
+      { key: 'unit-patrol-locations', label: '点位管理', icon: 'menuicon-29', route: '/unit/patrol/locations' },
+      {
+        key: 'unit-patrol-plan-mgmt',
+        label: '计划管理',
+        icon: 'menuicon-9',
+        children: [
+          { key: 'unit-patrol-plan', label: '消防巡查', route: '/unit/patrol/plans' },
+        ],
+      },
+      { key: 'unit-patrol-abnormal', label: '异常处置', icon: 'menuicon-24', route: '/unit/patrol/abnormal' },
+      { key: 'unit-patrol-reports', label: '巡查报表', icon: 'menuicon-47', route: '/unit/patrol/reports' },
+      { key: 'unit-patrol-notices', label: '通知提醒', icon: 'menuicon-34', route: '/unit/patrol/notices' },
+    ],
+  },
+
   // ===== 2b. 协同工作（社会单位：协同管理 + 我的待办/已办/发起） =====
   {
     key: 'unit-collab-work',
@@ -215,15 +249,6 @@ export const NAV_GROUPS: NavGroup[] = [
           { key: 'unit-dashboard', label: '安全态势', route: '/unit/dashboard' },
           { key: 'unit-data', label: '数据看板', route: '/unit/data' },
           { key: 'unit-bigscreen', label: '可视化大屏', route: '/enterprise-cockpit' },
-        ],
-      },
-      {
-        key: 'unit-patrol',
-        label: '巡查检查',
-        icon: 'menuicon-25',
-        children: [
-          { key: 'unit-patrol-task', label: '巡查任务', route: '/unit/patrol/tasks' },
-          { key: 'unit-patrol-location', label: '点位管理', route: '/unit/patrol/locations' },
         ],
       },
       {
@@ -305,16 +330,6 @@ export const NAV_GROUPS: NavGroup[] = [
     defaultOpen: false,
     visibleTo: ['unit'],
     children: [
-      {
-        key: 'unit-set-patrol',
-        label: '巡查设置',
-        icon: 'menuicon-25',
-        children: [
-          { key: 'unit-set-patrol-items', label: '巡查项目', route: '/unit/settings/patrol/items' },
-          { key: 'unit-set-patrol-plan', label: '巡查计划', route: '/unit/settings/patrol/plans' },
-          { key: 'unit-set-patrol-report', label: '巡查报表', route: '/unit/settings/patrol/reports' },
-        ],
-      },
       {
         key: 'unit-set-device',
         label: '设备设置',
@@ -630,6 +645,15 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/unit/hazards/reports': 'unit-hazard-periodic',
   '/unit/hazards/reports/internal': 'unit-hazard-report-internal',
   '/unit/hazards/reports/regulator': 'unit-hazard-report-regulator',
+  // 巡查检查：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/patrol/tasks': 'unit-patrol-task',
+  '/unit/patrol/forms': 'unit-patrol-forms',
+  '/unit/patrol/locations': 'unit-patrol-locations',
+  '/unit/patrol/plans': 'unit-patrol-plan',
+  '/unit/patrol/abnormal': 'unit-patrol-abnormal',
+  '/unit/patrol/reports': 'unit-patrol-reports',
+  '/unit/patrol/notices': 'unit-patrol-notices',
+  '/unit/patrol': 'unit-patrol-home',
   '/collab/flow/template': 'collab-flow-template',  // 兼容旧路径：/collab/flow/* 已合并到 /system/*
   '/collab/flow/monitor': 'collab-monitor',
   '/landing': 'reg-bigscreen',
@@ -671,6 +695,14 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'unit-hazard-periodic': '/unit/hazards/reports',
   'unit-hazard-report-internal': '/unit/hazards/reports/internal',
   'unit-hazard-report-regulator': '/unit/hazards/reports/regulator',
+  'unit-patrol-home': '/unit/patrol',
+  'unit-patrol-task': '/unit/patrol/tasks',
+  'unit-patrol-forms': '/unit/patrol/forms',
+  'unit-patrol-locations': '/unit/patrol/locations',
+  'unit-patrol-plan': '/unit/patrol/plans',
+  'unit-patrol-abnormal': '/unit/patrol/abnormal',
+  'unit-patrol-reports': '/unit/patrol/reports',
+  'unit-patrol-notices': '/unit/patrol/notices',
   'collab-flow-template': '/system/template',
   'collab-monitor': '/system/monitor',
   'collab-pending': '/collab/task/pending',
