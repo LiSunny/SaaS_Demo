@@ -195,6 +195,18 @@ const router = createRouter({
         { path: '', name: 'IotOverview', component: () => import('@/views/iot/Overview.vue') },
       ],
     },
+
+    // ===== 智慧消防 · 子系统实时状态监测（三系统各自独立页面） =====
+    {
+      path: '/fire',
+      component: DefaultLayout,
+      children: [
+        { path: 'pipeline', name: 'FirePipelineMonitor', component: () => import('@/views/subsystem/PipelineMonitor.vue') },
+        { path: 'pipeline/topology', name: 'FirePipelineTopology', component: () => import('@/views/subsystem/PipelineTopology.vue') },
+        { path: 'gas', name: 'FireGasMonitor', component: () => import('@/views/subsystem/GasExtinguishMonitor.vue') },
+        { path: 'smoke', name: 'FireSmokeMonitor', component: () => import('@/views/subsystem/SmokeExhaustMonitor.vue') },
+      ],
+    },
     {
       path: '/platform',
       component: DefaultLayout,
@@ -283,6 +295,7 @@ router.beforeEach((to) => {
     || to.path.startsWith('/maintenance')
     || to.path.startsWith('/device')
     || to.path.startsWith('/iot')
+    || to.path.startsWith('/fire')
 
   if (systemRole && isBusinessRoute) {
     // 系统角色用户不能访问业务域路由

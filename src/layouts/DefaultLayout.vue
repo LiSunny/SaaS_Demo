@@ -252,7 +252,7 @@
 
 <script setup lang="ts">
 import { avatarUrl } from '@/composables/useAvatar'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/base/ThemeToggle.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -620,6 +620,45 @@ function syncMenuFromRoute(): void {
 
 // 路由变化时自动同步菜单
 watch(() => router.currentRoute.value.path, syncMenuFromRoute, { immediate: true })
+
+/**
+ * 开发期自检：菜单节点的路由**已经实现**、但没登记到 ROUTE_TO_NAV_KEY / NAV_KEY_TO_ROUTE 时，
+ * 刷新后侧栏会退回到"工作台"（选中态丢失），且内容区会退化成占位页。
+ *
+ * 这两张映射表是手写的，新增菜单极易漏登记（消防三系统就漏过）。
+ * 这里在 dev 下显式报出来，避免同类问题再次靠用户反馈才发现。
+ */
+function checkNavMapConsistency(): void {
+  if (!import.meta.env.DEV) return
+  const missing: string[] = []
+  const walk = (nodes: NavNode[]): void => {
+    for (const n of nodes) {
+      if (n.route) {
+        let routeExists = false
+        try {
+          routeExists = router.resolve(n.route).matched.length > 0
+        } catch {
+          routeExists = false
+        }
+        // 只报"路由已实现"的：纯占位菜单（路由还没做）本来就该走占位页，不算问题
+        if (routeExists && (!ROUTE_TO_NAV_KEY[n.route] || !NAV_KEY_TO_ROUTE[n.key])) {
+          missing.push(`${n.label} (${n.key} → ${n.route})`)
+        }
+      }
+      if (n.children) walk(n.children)
+    }
+  }
+  for (const g of NAV_GROUPS) walk(g.children)
+  if (missing.length) {
+    console.warn(
+      '[nav] 以下菜单的路由已实现，但未登记到 ROUTE_TO_NAV_KEY / NAV_KEY_TO_ROUTE —— ' +
+      '刷新后侧栏选中态会丢失、内容区会退化成占位页。请到 src/config/navigation.ts 补登记：\n  ' +
+      missing.join('\n  '),
+    )
+  }
+}
+
+onMounted(checkNavMapConsistency)
 
 // 监听窗口宽度自动收起侧栏
 if (typeof window !== 'undefined') {

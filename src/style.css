@@ -50,6 +50,13 @@
   --normal-border: #ACBCD5;
   --purple: #8B5CF6;
   --purple-bg: rgba(139, 92, 246, 0.1);
+  /* 状态文字专用色：--success/--warning/--danger 配白底对比度仅 3.2~3.8:1，
+     低于 WCAG AA 正文 4.5:1。状态文字改用这组加深色，仅用于文字，不改色块语义。
+     取值已按"同色系浅底"（success-bg / warning-bg / danger-bg）复算，确保仍 ≥ 4.5:1。 */
+  --success-text: #065F46;   /* 白底 7.68:1，success-bg 底 5.29:1 */
+  --warning-text: #92400E;   /* 白底 7.09:1，warning-bg 底 5.98:1 */
+  --danger-text: #991B1B;    /* 白底 8.31:1，danger-bg 底 5.77:1 */
+  --purple-text: #6D28D9;    /* 白底 7.02:1 */
 
   /* 背景 */
   --bg-main: #F0F1F6;
@@ -168,6 +175,11 @@ html.dark {
   --normal-border: rgba(185, 185, 185, 0.25);
   --purple: #A78BFA;
   --purple-bg: rgba(167, 139, 250, 0.15);
+  /* 暗色：状态文字用高亮色保证深底可读 */
+  --success-text: #34D399;
+  --warning-text: #FBBF24;
+  --danger-text: #F87171;
+  --purple-text: #C4B5FD;
 
   --bg-main: #002B59;
   --bg-card: #00336A;

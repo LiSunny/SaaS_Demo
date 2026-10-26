@@ -248,6 +248,17 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
+        key: 'unit-fire-monitor',
+        label: '消防监控',
+        icon: 'menuicon-29',
+        children: [
+          { key: 'unit-fire-pipeline', label: '消防管网系统', route: '/fire/pipeline' },
+          { key: 'unit-fire-pipeline-topology', label: '消防管网 · 组态总览', route: '/fire/pipeline/topology' },
+          { key: 'unit-fire-gas', label: '气体灭火系统', route: '/fire/gas' },
+          { key: 'unit-fire-smoke', label: '消防防排烟系统', route: '/fire/smoke' },
+        ],
+      },
+      {
         key: 'unit-alarm',
         label: '告警处置',
         icon: 'menuicon-24',
@@ -621,6 +632,11 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/unit/hazards/reports/regulator': 'unit-hazard-report-regulator',
   '/collab/flow/template': 'collab-flow-template',  // 兼容旧路径：/collab/flow/* 已合并到 /system/*
   '/collab/flow/monitor': 'collab-monitor',
+  '/landing': 'reg-bigscreen',
+  '/fire/pipeline': 'unit-fire-pipeline',
+  '/fire/pipeline/topology': 'unit-fire-pipeline-topology',
+  '/fire/gas': 'unit-fire-gas',
+  '/fire/smoke': 'unit-fire-smoke',
   '/collab/task/pending': 'collab-pending',
   '/collab/task/completed': 'collab-completed',
   '/collab/task/started': 'collab-started',
@@ -660,6 +676,20 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'collab-pending': '/collab/task/pending',
   'collab-completed': '/collab/task/completed',
   'collab-started': '/collab/task/started',
+  // 同一路由被多个岗位的菜单共用，逐个登记，避免 activeNavKey 落在表外导致内容区退化成占位页
+  'reg-members': '/enterprise/members',
+  'reg-positions': '/enterprise/positions',
+  'op-order-monitor': '/system/monitor',
+  'op-members': '/enterprise/members',
+  'op-positions': '/enterprise/positions',
+  'svc-order-monitor': '/system/monitor',
+  'svc-members': '/enterprise/members',
+  'svc-positions': '/enterprise/positions',
+  'flow-template': '/system/template',
+  'unit-fire-pipeline': '/fire/pipeline',
+  'unit-fire-pipeline-topology': '/fire/pipeline/topology',
+  'unit-fire-gas': '/fire/gas',
+  'unit-fire-smoke': '/fire/smoke',
 }
 
 // ===== 工具函数 =====
