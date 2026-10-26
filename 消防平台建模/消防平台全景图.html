@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>消防安全管理工作 · 全景规划图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{
+  --bg:#0f1419; --panel:#161c24; --panel2:#1c242e; --line:#2a3441;
+  --txt:#e6edf3; --txt2:#9fb0c0; --txt3:#6b7c8c;
+  --l1:#e8590c; --l2:#1971c2; --l3:#2f9e44; --l0:#7048e8;
+  --warn:#f59f00; --danger:#e03131; --ok:#2f9e44;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  line-height:1.7; -webkit-font-smoothing:antialiased;
+}
+/* ── 头部 ── */
+header{
+  padding:48px 40px 32px; border-bottom:1px solid var(--line);
+  background:linear-gradient(135deg,#161c24 0%,#0f1419 100%);
+}
+header h1{font-size:30px;font-weight:650;letter-spacing:-.4px}
+header .sub{color:var(--txt2);font-size:14px;margin-top:8px}
+header .meta{display:flex;gap:24px;margin-top:20px;flex-wrap:wrap}
+header .meta div{font-size:13px;color:var(--txt3)}
+header .meta b{color:var(--txt2);font-weight:500;margin-right:6px}
+
+/* ── 导航 ── */
+nav{
+  position:sticky;top:0;z-index:100;display:flex;gap:4px;
+  padding:10px 40px;background:rgba(15,20,25,.94);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+nav a{
+  color:var(--txt2);text-decoration:none;font-size:13px;padding:7px 14px;
+  border-radius:6px;white-space:nowrap;transition:.15s;
+}
+nav a:hover{background:var(--panel2);color:var(--txt)}
+nav a.on{background:var(--l1);color:#fff;font-weight:600}
+
+/* ── 主体 ── */
+main{max-width:1560px;margin:0 auto;padding:0 40px 100px}
+section{padding:52px 0;border-bottom:1px solid var(--line);scroll-margin-top:64px}
+section:last-child{border-bottom:none}
+
+.sec-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:8px}
+.sec-num{
+  flex:0 0 auto;width:34px;height:34px;border-radius:8px;
+  display:grid;place-items:center;font-size:15px;font-weight:700;
+}
+.sec-num.n1{background:var(--l1);color:#fff}
+.sec-num.n2{background:var(--l1);color:#fff}
+.sec-num.n3{background:var(--l1);color:#fff}
+.sec-num.n4{background:var(--l1);color:#fff}
+.sec-head h2{font-size:22px;font-weight:620;letter-spacing:-.2px}
+.sec-head p{color:var(--txt2);font-size:13.5px;margin-top:2px}
+.sec-lead{
+  color:var(--txt2);font-size:14px;margin:16px 0 26px;
+  padding:14px 18px;background:var(--panel);border-left:3px solid var(--l1);border-radius:0 6px 6px 0;
+}
+
+/* ── 卡片/面板 ── */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px}
+.card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.card .cap{color:var(--txt3);font-size:12.5px;margin-bottom:18px}
+
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1100px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+.diagram{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;overflow-x:auto}
+.diagram .lbl{color:var(--txt3);font-size:12px;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:18px;font-weight:600}
+
+/* ── 表格 ── */
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border-radius:10px;overflow:hidden}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--panel2);font-weight:600;font-size:12.5px;color:var(--txt2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--panel2)}
+td.c,th.c{text-align:center}
+
+/* 热力单元格 */
+.h-4{background:#2f9e44;color:#fff;font-weight:700}
+.h-3{background:#66a80f;color:#fff;font-weight:600}
+.h-2{background:#f59f00;color:#1a1a1a;font-weight:600}
+.h-1{background:#5c7cfa;color:#fff}
+.h-0{background:#1c242e;color:#3d4d5c}
+
+/* 标签 */
+.tag{display:inline-block;padding:2px 9px;border-radius:5px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.t-main{background:rgba(47,158,68,.18);color:#69db7c;border:1px solid rgba(47,158,68,.3)}
+.t-part{background:rgba(245,159,0,.16);color:#ffd43b;border:1px solid rgba(245,159,0,.3)}
+.t-sup{background:rgba(92,124,250,.16);color:#91a7ff;border:1px solid rgba(92,124,250,.3)}
+.t-no{background:#1c242e;color:#4a5a6a;border:1px solid #2a3441}
+
+/* 结论块 */
+.concl{display:flex;gap:13px;padding:14px 18px;background:var(--panel);border-radius:9px;margin-top:10px}
+.concl .k{
+  flex:0 0 auto;font-size:11.5px;font-weight:700;color:var(--l1);
+  background:rgba(232,89,12,.13);padding:3px 10px;border-radius:5px;height:fit-content;white-space:nowrap;
+}
+.concl p{font-size:13.5px;color:var(--txt2)}
+.concl p b{color:var(--txt);font-weight:600}
+
+.note{color:var(--txt3);font-size:12.5px;margin-top:14px;font-style:italic}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--txt2)}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+
+/* ── 分层结构（图1） ── */
+.layers{display:flex;flex-direction:column;gap:0}
+.layer{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:#121820}
+.layer-head{display:flex;align-items:baseline;gap:12px;margin-bottom:13px;flex-wrap:wrap}
+.lname{font-size:14px;font-weight:650}
+.ldesc{font-size:12.5px;color:var(--txt3)}
+.ltag{margin-left:auto;font-size:11px;color:var(--txt3);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.nodes{display:grid;gap:10px}
+.nodes.cols6{grid-template-columns:repeat(6,1fr)}
+.nodes.cols5{grid-template-columns:repeat(5,1fr)}
+.nodes.cols4{grid-template-columns:repeat(4,1fr)}
+.node{
+  border-radius:8px;padding:11px 8px;text-align:center;font-size:13px;font-weight:600;
+  border:1.5px solid;line-height:1.45;
+}
+.node small{display:block;font-size:10.5px;font-weight:400;opacity:.72;margin-top:3px}
+.l3 .node{border-color:var(--l3);background:rgba(47,158,68,.12);color:#69db7c}
+.l2 .node{border-color:var(--l2);background:rgba(25,113,194,.12);color:#74c0fc}
+.l1 .node{border-color:var(--l1);background:rgba(232,89,12,.12);color:#ffa94d}
+.l0 .node{border-color:var(--l0);background:rgba(112,72,232,.12);color:#b197fc}
+.flow{display:flex;align-items:center;justify-content:center;gap:12px;padding:9px 0;color:var(--txt3)}
+.flow .ar{font-size:19px;color:var(--l1);line-height:1}
+.flow .ft{font-size:12px;letter-spacing:.6px}
+.flow .fd{font-size:11px;color:#4d5c6a}
+@media print{ .layer{background:#fafafa} .node{border-color:#ccc!important;background:#fff!important;color:#222!important} }
+
+@media print{
+  body{background:#fff;color:#111}
+  nav{display:none}
+  section{page-break-inside:avoid;border-color:#ddd;scroll-margin-top:0}
+  .card,.diagram,table,.concl{background:#fff;border-color:#ddd}
+  thead th{background:#f4f4f5;color:#333}
+  td,th{border-color:#e5e5e5;color:#222}
+  header{background:#fff;border-color:#ddd}
+  header h1,header .sub{color:#111}
+  .sec-lead{background:#fafafa;color:#444;border-left-color:#e8590c}
+  .concl{background:#fafafa}
+  .concl p{color:#333}.concl p b{color:#000}
+  .tag,.concl .k{color:#333;background:#f0f0f0;border-color:#ddd}
+  .note,.card .cap,.diagram .lbl{color:#666}
+  .h-4,.h-3,.h-2,.h-1{background:#eee!important;color:#222!important}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>消防安全管理工作 · 全景规划图</h1>
+  <div class="sub">面向对象抽象 · 场景 / 组织层级 / 角色需求全景</div>
+  <div class="meta">
+    <div><b>核心结论</b>同一套管理动作，六类场景通用</div>
+    <div><b>最小管理单元</b>企业 / 家庭同构</div>
+    <div><b>管理动作</b>巡查 · 排查 · 监控 · 处置</div>
+    <div><b>规划层次</b>法规 / 管理动作 / 组织层级 / 使用视角</div>
+  </div>
+</header>
+
+<nav>
+  <a href="#fig1" class="on">图1 全景鸟瞰</a>
+  <a href="#fig2">图2 管理单元与动作</a>
+  <a href="#fig3">图3 层级与关系</a>
+  <a href="#fig4">图4 角色需求矩阵</a>
+</nav>
+
+<main>
+
+<!-- ══════════ 图1 ══════════ -->
+<section id="fig1">
+  <div class="sec-head">
+    <div class="sec-num n1">1</div>
+    <div>
+      <h2>全景鸟瞰图 · 四个层次与六类场景</h2>
+      <p>回答「消防安全管理这件事整体怎么展开，以及六类场景为什么做的是同一套事」</p>
+    </div>
+  </div>
+
+  <div class="sec-lead">
+    <b>核心结论</b>：六类场景不是六套做法，而是同一套管理动作的不同侧重。
+    动作本身完全相同，差别只在组织层级的不同，以及各方关注的信息不同。
+  </div>
+
+  <div class="diagram">
+    <div class="lbl">整体结构 · 从使用视角到管理动作</div>
+    <div class="layers">
+
+      <div class="layer l3">
+        <div class="layer-head">
+          <span class="lname" style="color:#69db7c">③ 使用视角层</span>
+          <span class="ldesc">谁在看 · 看什么口径 · 什么强度</span>
+          <span class="ltag">六类视角，做的是同一套事</span>
+        </div>
+        <div class="nodes cols6">
+          <div class="node">消防监管<small>统计 · 抽查 · 执法</small></div>
+          <div class="node">社会单位·集团<small>考核 · 逐级分解</small></div>
+          <div class="node">社会单位·单体<small>执行 · 日常闭环</small></div>
+          <div class="node">技术服务机构<small>履约 · 设施完好</small></div>
+          <div class="node">消防运营·托管<small>代管 · 客户合规</small></div>
+          <div class="node">家庭 C端<small>提醒 · 消费结论</small></div>
+        </div>
+      </div>
+
+      <div class="flow"><span class="ar">▼</span><span class="ft">视角差异</span><span class="fd">同一个管理单元，不同角色关注的信息不同</span></div>
+
+      <div class="layer l2">
+        <div class="layer-head">
+          <span class="lname" style="color:#74c0fc">② 组织层级层</span>
+          <span class="ldesc">管理单元如何被组织与级联 · 四种归属方式</span>
+          <span class="ltag">上级做汇总与稽核，不替代下级日常</span>
+        </div>
+        <div class="nodes cols4">
+          <div class="node">按责任归属<small>集团 → 区域 → 子公司 → 场所</small></div>
+          <div class="node">按空间相邻<small>园区 · 物业 · 公共区域</small></div>
+          <div class="node">按服务关系<small>维保 · 托管 · 多客户</small></div>
+          <div class="node">按行政辖区<small>大队 → 街道 → 网格</small></div>
+        </div>
+      </div>
+
+      <div class="flow"><span class="ar">▼</span><span class="ft">承担与落实</span><span class="fd">上级管理下属单元，并逐级传递标准与指标</span></div>
+
+      <div class="layer l1">
+        <div class="layer-head">
+          <span class="lname" style="color:#ffa94d">① 管理动作层</span>
+          <span class="ldesc">四类基本管理动作 + 两项贯穿支撑</span>
+          <span class="ltag">六类场景动作相同，要求高低不同</span>
+        </div>
+        <div class="nodes cols4">
+          <div class="node">A 防火巡查<small>高频 · 动态问题</small></div>
+          <div class="node">B 隐患排查<small>低频 · 系统问题</small></div>
+          <div class="node">C 设施监控<small>实时 · 完好有效</small></div>
+          <div class="node">D 事件处置<small>事件驱动 · 责任最重</small></div>
+        </div>
+        <div class="flow" style="padding:12px 0 0">
+          <span class="ar">＋</span>
+          <span class="ft">E 培训演练</span><span class="fd">／</span>
+          <span class="ft">F 档案记录</span>
+          <span class="fd">横切支撑，贯穿 A/B/C/D 全流程</span>
+        </div>
+      </div>
+
+      <div class="flow"><span class="ar">▼</span><span class="ft">法规约束</span><span class="fd">法规与规范约束管理动作的要求高低</span></div>
+
+      <div class="layer l0">
+        <div class="layer-head">
+          <span class="lname" style="color:#b197fc">⓪ 法规规范层</span>
+          <span class="ldesc">规则的外部锚点 · 跨层生效</span>
+          <span class="ltag">合规性的最终依据</span>
+        </div>
+        <div class="nodes cols5">
+          <div class="node">消防法</div>
+          <div class="node">GB 50016<small>建筑设计防火</small></div>
+          <div class="node">GB 51309<small>火灾自动报警</small></div>
+          <div class="node">GB 35181<small>单位消防安全管理</small></div>
+          <div class="node">地方标准<small>行业规范</small></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">六类场景对照表 · 通用依据</div>
+    <table>
+      <thead>
+        <tr>
+          <th>场景</th><th>管理范围</th><th>组织层级</th><th>要求强度</th><th>核心诉求</th><th>动作侧重</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><b>消防监管</b></td><td>辖区全部管理单元</td><td>大队→街道→网格</td><td><span class="tag t-main">强制/执法</span></td><td>态势掌握、重大隐患管控、检查留痕</td><td>抽查 · 排查</td></tr>
+        <tr><td><b>集团</b></td><td>本集团全部管理单元</td><td>集团→区域→子公司</td><td><span class="tag t-part">内部制度</span></td><td>逐级落实、风险可控、出事免责</td><td>汇总 · 抽查</td></tr>
+        <tr><td><b>单体企业</b></td><td>本企业 1~N 个管理单元</td><td>企业自身</td><td><span class="tag t-part">制度+法规</span></td><td>日常闭环、法规符合、记录完整</td><td>全量闭环</td></tr>
+        <tr><td><b>技术服务机构</b></td><td>签约客户的管理单元</td><td>服务商</td><td><span class="tag t-main">合同+规范</span></td><td>完好率、合同履约、报告质量</td><td>设施监控</td></tr>
+        <tr><td><b>运营托管</b></td><td>合同覆盖的管理单元</td><td>项目部</td><td><span class="tag t-main">合同+法规</span></td><td>客户合规度、投诉率、续约率</td><td>巡查·排查·处置</td></tr>
+        <tr><td><b>家庭 C端</b></td><td>自家管理单元</td><td>小区/物业</td><td><span class="tag t-sup">提示/建议</span></td><td>我家安全吗、怎么改、少打扰</td><td>自查 · 处置</td></tr>
+      </tbody>
+    </table>
+    <div class="note">动作几乎完全相同，差别主要在「要求强弱」与「关注点」—— 这就是六类场景能够通用同一套做法的依据。</div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">六类场景 · 同一套管理动作的不同侧重</div>
+    <div class="mermaid">
+flowchart LR
+    K["<b>同一套管理动作</b><br/>巡查 · 排查 · 监控 · 处置"]
+    K --> P1["监管视角<br/><i>统计</i>"]
+    K --> P2["集团视角<br/><i>考核</i>"]
+    K --> P3["单体视角<br/><i>执行</i>"]
+    K --> P4["服务商视角<br/><i>履约</i>"]
+    K --> P5["家庭视角<br/><i>提醒</i>"]
+
+    P1 --- F1["风险态势<br>抽查执法"]
+    P2 --- F2["指标达成<br>下级质量"]
+    P3 --- F3["任务闭环<br>整改记录"]
+    P4 --- F4["完好率<br>合同履约"]
+    P5 --- F5["我家安全<br>如何整改"]
+
+    classDef core fill:#e8590c25,stroke:#e8590c,stroke-width:2.5px,color:#e6edf3
+    classDef proj fill:#2f9e4418,stroke:#2f9e44,stroke-width:1.5px,color:#e6edf3
+    classDef fac fill:#1c242e,stroke:#2a3441,stroke-width:1px,color:#9fb0c0
+    class K core
+    class P1,P2,P3,P4,P5 proj
+    class F1,F2,F3,F4,F5 fac
+    </div>
+  </div>
+
+  <div class="concl"><div class="k">贯穿要点</div><p><b>四类基本动作</b>是所有场景共同的工作内容；<b>六类场景</b>的差别，只在于由谁来做、做到什么程度、留什么记录。</p></div>
+</section>
+
+<!-- ══════════ 图2 ══════════ -->
+<section id="fig2">
+  <div class="sec-head">
+    <div class="sec-num n2">2</div>
+    <div>
+      <h2>最小管理单元 · 构成要素与四大动作闭环</h2>
+      <p>回答「一个企业或一户家庭，在消防管理上要摸清哪些情况、做哪几件事」</p>
+    </div>
+  </div>
+
+  <div class="sec-lead">
+    <b>最小管理单元</b>：一处<b>独立空间</b>，配一个<b>明确的责任主体</b>和<b>负责日常管理的人</b>。
+    三个要件缺一不可 —— 企业与家庭<b>结构相同</b>，差别在于管理要求的强弱，不在于有没有。
+  </div>
+
+  <div class="diagram">
+    <div class="lbl">最小管理单元 · 五类构成要素与两类实例</div>
+    <div class="mermaid">
+flowchart TB
+    U["<b>最小消防管理单元</b><br/>一处独立空间 ＋ 一份明确责任"]
+
+    U --> E1["<b>① 责任与联系方式</b><br/>单位名称 · 责任人 · 日常管理人 · 地址"]
+    U --> E2["<b>② 场所情况</b><br/>建筑面积 · 层高 · 使用性质<br/>防火等级 · 火灾危险性分类"]
+    U --> E3["<b>③ 风险情况</b><br/>风险等级 · 危险源<br/>特殊属性（养老·学校·医院·地下）"]
+    U --> E4["<b>④ 消防设施</b><br/>灭火 · 报警 · 防护 · 疏散 · 救援<br/>每项都有状态与维保到期时间"]
+    U --> E5["<b>⑤ 制度与人员</b><br/>责任制 · 应急预案 · 消防档案<br/>从业人员数量与持证情况"]
+
+    U --> R["<b>管理要求配置</b><br/>是否须设责任人 · 是否须建台账<br/>动作频次 · 依据的法规标准"]
+
+    ENT["<b>企业</b><br/>管理要求高<br/>责任人必备 · 强制台账<br/>每日巡查 · 每月排查"]
+    HOME["<b>家庭</b><br/>管理要求低<br/>责任人即户主 · 无台账<br/>低频，以提醒为主"]
+
+    ENT -->|同一套要素<br/>更高要求| U
+    HOME -->|同一套要素<br/>降低要求| U
+
+    classDef core fill:#e8590c25,stroke:#e8590c,stroke-width:3px,color:#e6edf3
+    classDef grp fill:#1c242e,stroke:#2a3441,stroke-width:1px,color:#e6edf3
+    classDef cfg fill:#2f9e4420,stroke:#2f9e44,stroke-width:2px,color:#e6edf3
+    classDef inst fill:#1971c220,stroke:#1971c2,stroke-width:2px,color:#e6edf3
+    class U core
+    class E1,E2,E3,E4,E5 grp
+    class R cfg
+    class ENT,HOME inst
+    </div>
+    <div class="note"><b>读法</b>：企业与家庭管理的是同一种对象、同样五类要素，只是管理要求的强弱不同。因此六类场景不需要各自另起一套做法。</div>
+  </div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">四大动作闭环 · 这就是「就那么几件事儿」</div>
+    <div class="mermaid">
+flowchart TB
+    subgraph LOOP["四大主动作闭环"]
+        direction TB
+        A["<b>A 防火巡查</b><br/>高频 · 动态问题<br/>通道堆物 / 出口锁闭 / 动火"]
+        B["<b>B 隐患排查</b><br/>低频 · 系统问题<br/>制度缺失 / 线路老化 / 喷淋失效"]
+        C["<b>C 设施监控</b><br/>实时 · 完好有效<br/>压力不足 / 主机离线 / 灭火器过期"]
+        D["<b>D 事件处置</b><br/>事件驱动 · 责任最重<br/>确认·扑救·疏散·记录"]
+        A -->|发现问题| B
+        B -->|认定为隐患，立案| C
+        C -->|整改验证| D
+        D -->|事后复盘| A
+    end
+
+    E["<b>E 培训演练</b>　　<b>F 档案记录</b><br/><i>贯穿支撑动作：贯穿 A / B / C / D 全流程</i>"]
+
+    E -.-> A
+    E -.-> D
+
+    classDef act fill:#e8590c20,stroke:#e8590c,stroke-width:2px,color:#e6edf3
+    classDef sup fill:#7048e820,stroke:#7048e8,stroke-width:1.5px,color:#e6edf3
+    class A,B,C,D act
+    class E sup
+    </div>
+    <div class="note"><b>读法</b>：E 与 F 不在闭环里，它们是覆盖在闭环之上的支撑层 —— 每个动作都要培训与留痕，只是流程图未逐条画出 8 条连线。</div>
+  </div>
+
+  <div class="grid g4" style="margin-top:18px">
+    <div class="card"><h3>A 防火巡查</h3><div class="cap">低门槛 · 可委派 · 重执行轻判断<br>最易下放给一线人员</div>
+      <div style="font-size:12.5px;color:var(--txt2)"><b>频次</b> 每日/每班<br><b>执行者</b> 巡查员·值班员<br><b>产物</b> 巡查记录</div></div>
+    <div class="card"><h3>B 隐患排查</h3><div class="cap">高门槛 · 需专业判断 · 有闭环周期<br>最需要统一判定标准</div>
+      <div style="font-size:12.5px;color:var(--txt2)"><b>频次</b> 月/季/专项<br><b>执行者</b> 管理人·机构·监管<br><b>产物</b> 隐患清单+整改单</div></div>
+    <div class="card"><h3>C 设施监控</h3><div class="cap">强外部依赖 · 强合同属性 · 量化明确<br>技术服务机构主战场</div>
+      <div style="font-size:12.5px;color:var(--txt2)"><b>频次</b> 实时+周期<br><b>执行者</b> 维保机构·控制室<br><b>产物</b> 维保报告·完好率</div></div>
+    <div class="card"><h3>D 事件处置</h3><div class="cap">强时间约束 · 需预案支撑 · 责任最重<br>最考验响应速度</div>
+      <div style="font-size:12.5px;color:var(--txt2)"><b>频次</b> 事件驱动<br><b>执行者</b> 全体+119+上级<br><b>产物</b> 处置时间轴·认定书</div></div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">六类场景对同一动作的不同要求</div>
+    <table>
+      <thead><tr><th>动作</th><th class="c">家庭 C端</th><th class="c">单体企业</th><th class="c">集团</th><th class="c">技术服务机构</th><th class="c">运营托管</th><th class="c">监管</th></tr></thead>
+      <tbody>
+        <tr><td><b>A 巡查</b></td><td class="c"><span class="tag t-sup">自查提醒</span></td><td class="c"><span class="tag t-main">每日/每班</span></td><td class="c"><span class="tag t-part">看下级完成率</span></td><td class="c"><span class="tag t-no">—</span></td><td class="c"><span class="tag t-main">每日代管</span></td><td class="c"><span class="tag t-part">抽查</span></td></tr>
+        <tr><td><b>B 排查</b></td><td class="c"><span class="tag t-sup">体检报告</span></td><td class="c"><span class="tag t-main">月/季</span></td><td class="c"><span class="tag t-part">抽查+专项</span></td><td class="c"><span class="tag t-part">承接</span></td><td class="c"><span class="tag t-main">月/季</span></td><td class="c"><span class="tag t-main">执法检查</span></td></tr>
+        <tr><td><b>C 监控</b></td><td class="c"><span class="tag t-no">极轻</span></td><td class="c"><span class="tag t-main">月度维保</span></td><td class="c"><span class="tag t-part">汇总完好率</span></td><td class="c"><span class="tag t-main">主责</span></td><td class="c"><span class="tag t-part">汇总</span></td><td class="c"><span class="tag t-part">抽查</span></td></tr>
+        <tr><td><b>D 处置</b></td><td class="c"><span class="tag t-sup">报警+逃生指引</span></td><td class="c"><span class="tag t-main">全流程预案</span></td><td class="c"><span class="tag t-part">预案/响应</span></td><td class="c"><span class="tag t-part">协助</span></td><td class="c"><span class="tag t-main">主责</span></td><td class="c"><span class="tag t-main">处置/认定</span></td></tr>
+      </tbody>
+    </table>
+    <div class="note">动作本身不变，只有「频次 · 执行者 · 深度 · 留痕要求」在变 —— 这就是六类场景能够通用同一套做法的根本原因。</div>
+  </div>
+</section>
+
+<!-- ══════════ 图3 ══════════ -->
+<section id="fig3">
+  <div class="sec-head">
+    <div class="sec-num n3">3</div>
+    <div>
+      <h2>组织层级与关系图 · 四种归属方式 + 四类关系</h2>
+      <p>回答「这些管理单元是怎么被组织在一起的，以及最容易踩的坑在哪」</p>
+    </div>
+  </div>
+
+  <div class="sec-lead">
+    管理单元是分散的。现实中它们被四种不同的关系组织起来，每种解决不同问题。
+    上级管理单位<b>不做下级的日常动作</b>，而是做<b>标准统一 · 汇总可见 · 资源保障 · 质量稽核</b>。
+  </div>
+
+  <div class="grid g2">
+    <div class="card"><h3>① 按责任归属</h3><div class="cap">一个法人主体管辖多个管理单元 · 标准自上而下，现场在各单元</div>
+      <div class="mermaid">
+flowchart TB
+    G["集团总部<br/>集团消防负责人"]
+    G --> S1["子公司A<br/>区域负责人"]
+    G --> S2["子公司B<br/>区域负责人"]
+    S1 --> U1["A-1 办公楼"]
+    S1 --> U2["A-2 生产基地"]
+    S2 --> U3["B-1 商场"]
+    S2 --> U4["B-2 仓储中心"]
+    classDef c1 fill:#1971c222,stroke:#1971c2,stroke-width:2px,color:#e6edf3
+    classDef u1 fill:#e8590c18,stroke:#e8590c,stroke-width:1.5px,color:#e6edf3
+    class G,S1,S2 c1
+    class U1,U2,U3,U4 u1
+      </div></div>
+
+    <div class="card"><h3>② 按空间相邻</h3><div class="cap">地理位置相邻、共享空间或设施 · <b>公共区域易成盲区</b></div>
+      <div class="mermaid">
+flowchart TB
+    P["园区 / 商业综合体<br/>物业公司"]
+    P --> U1["1号楼<br/>业主甲"]
+    P --> U2["2号楼<br/>业主乙"]
+    P --> SH["<b>公共区域</b><br/>地下车库 · 中控室 · 屋面水箱"]
+    SH -.不属于任何单元<br/>但必须有人管.-> WARN
+    WARN["⚠ 设计盲区<br/>最容易推诿"]
+    classDef c2 fill:#2f9e4422,stroke:#2f9e44,stroke-width:2px,color:#e6edf3
+    classDef u2 fill:#e8590c18,stroke:#e8590c,stroke-width:1.5px,color:#e6edf3
+    classDef warn fill:#e0313122,stroke:#e03131,stroke-width:2px,color:#ffc9c9
+    class P c2
+    class U1,U2 u2
+    class SH,WARN warn
+      </div></div>
+
+    <div class="card"><h3>③ 按服务关系</h3><div class="cap">服务商同时服务多个互不隶属的单元 · <b>身兼执行与被检查双重身份</b></div>
+      <div class="mermaid">
+flowchart TB
+    S["消防技术服务机构<br/>维保型"]
+    S --> C1["签约客户<br/>甲工厂"]
+    S --> C2["签约客户<br/>乙商场"]
+    S --> C3["签约客户<br/>丙医院"]
+    O["消防运营服务商<br/>托管型"]
+    O --> D1["托管项目<br/>集团D 整包"]
+    O --> D2["托管项目<br/>园区E 整包"]
+    DUAL["⚠ 执行方 兼 被检查方<br/>权限须分离"]
+    S -.-> DUAL
+    O -.-> DUAL
+    classDef sv fill:#7048e822,stroke:#7048e8,stroke-width:2px,color:#e6edf3
+    classDef cu fill:#e8590c18,stroke:#e8590c,stroke-width:1.5px,color:#e6edf3
+    classDef warn fill:#e0313122,stroke:#e03131,stroke-width:2px,color:#ffc9c9
+    class S,O sv
+    class C1,C2,C3,D1,D2 cu
+    class DUAL warn
+      </div></div>
+
+    <div class="card"><h3>④ 按行政辖区</h3><div class="cap">按行政区划管辖大量单元 · <b>关注整体态势与抽查，不看明细</b></div>
+      <div class="mermaid">
+flowchart TB
+    D["区消防救援大队<br/>行业主管部门"]
+    D --> T1["街道A<br/>网格员40名"]
+    D --> T2["街道B"]
+    T1 --> N1["管理单元 × 3000"]
+    T1 --> N2["单位底数不清<br/>重复检查"]
+    T2 --> N3["管理单元 × 2800"]
+    D --> ENF["执法权<br/>责令整改 · 处罚<br/>火灾认定"]
+    classDef c4 fill:#1971c222,stroke:#1971c2,stroke-width:2px,color:#e6edf3
+    classDef n4 fill:#1c242e,stroke:#2a3441,stroke-width:1px,color:#9fb0c0
+    class D,T1,T2 c4
+    class N1,N2,N3,ENF n4
+      </div></div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">一个管理单元，同时面对四类关系</div>
+    <div class="mermaid">
+flowchart LR
+    U["<b>管理单元</b><br/>一处独立物理场所<br/>楼栋 / 门店 / 一户"]
+
+    R1["<b>责任归属</b><br/>集团 / 法人<br/>自主管理"]
+    R2["<b>具体执行</b><br/>运营托管 / 物业<br/>受托管理"]
+    R3["<b>设施维护</b><br/>维保机构<br/>签约服务"]
+    R4["<b>监督检查</b><br/>属地监管<br/>依法监管"]
+
+    R1 --> U
+    R2 --> U
+    R3 --> U
+    R4 --> U
+
+    U --> OUT["<b>风险沿两个方向暴露</b>"]
+    OUT --> UP["→ 集团上级<br/>诉求：指标达成、责任落实"]
+    OUT --> DOWN["→ 属地监管<br/>诉求：合规、执法、留痕"]
+
+    classDef uu fill:#e8590c25,stroke:#e8590c,stroke-width:3px,color:#e6edf3
+    classDef rr fill:#1971c218,stroke:#1971c2,stroke-width:1.5px,color:#e6edf3
+    classDef oo fill:#1c242e,stroke:#2a3441,stroke-width:1px,color:#9fb0c0
+    class U uu
+    class R1,R2,R3,R4 rr
+    class OUT,UP,DOWN oo
+    </div>
+    <div class="note"><b>四类关系同时存在</b> —— 一个管理单元可以同时属于某集团（承担管理责任）、由某物业托管（负责具体执行）、委托某维保公司服务（负责设施维护）、受某街道监管（承担监督责任）。这四重关系并存，是整体规划中最容易遗漏、也最需要提前理清的部分。</div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">各级管理单位共同做的四件事 · 上级不重复下级的活</div>
+    <table>
+      <thead><tr><th>容器动作</th><th>集团</th><th>园区 / 物业</th><th>服务商</th><th>监管</th></tr></thead>
+      <tbody>
+        <tr><td><b>① 统一标准</b></td><td>集团消防制度与操作规范</td><td>公区管理制度</td><td>国标 + 合同服务标准</td><td>法规检查表</td></tr>
+        <tr><td><b>② 汇总视图</b></td><td>下属 Unit 风险态势看板</td><td>楼宇/公区风险态势</td><td>客户风险态势</td><td>辖区风险态势</td></tr>
+        <tr><td><b>③ 资源协调</b></td><td>统一培训、统一采购维保</td><td>统一中控室、维保外包</td><td>调度工程师与备件</td><td>调配监管力量</td></tr>
+        <tr><td><b>④ 抽查稽核</b></td><td>随机抽查下属自查质量</td><td>抽查业主整改情况</td><td>内部质量检查</td><td>现场检查 / 执法</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>层级的本质</b>：不是把下级的活干得更细，而是标准统一 → 汇总可见 → 资源保障 → 质量稽核。反过来说，上层不要重复做下层的日常动作，否则就是管理冗余。</div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">场景间数据流 · 管理闭环所在</div>
+    <div class="mermaid">
+flowchart LR
+    GOV["消防监管"]
+    ENT["社会单位"]
+    SVC["运营托管 / 技术服务机构"]
+
+    GOV -- "① 检查任务 · 整改通知 · 执法文书" --> ENT
+    ENT -- "② 委托合同 · 工单需求" --> SVC
+    SVC -- "③ 维保报告 · 整改建议 · 管理台账" --> ENT
+    ENT -- "④ 自查报告 · 整改结果 · 事件上报" --> GOV
+
+    classDef gg fill:#1971c222,stroke:#1971c2,stroke-width:2px,color:#e6edf3
+    classDef ee fill:#e8590c22,stroke:#e8590c,stroke-width:2px,color:#e6edf3
+    classDef ss fill:#2f9e4422,stroke:#2f9e44,stroke-width:2px,color:#e6edf3
+    class GOV gg
+    class ENT ee
+    class SVC ss
+    </div>
+    <div class="note">事故认定同样走 ④ 回流监管。这四步之间的闭环，是整个管理能否真正落地的关键 —— 不能只停留在检查与派发，检查之后必须回到结果。</div>
+  </div>
+</section>
+
+<!-- ══════════ 图4 ══════════ -->
+<section id="fig4">
+  <div class="sec-head">
+    <div class="sec-num n4">4</div>
+    <div>
+      <h2>角色需求矩阵 · 角色 × 场景 × 动作</h2>
+      <p>回答「谁在什么场景下，用什么动作，看什么指标，需要系统给他什么」</p>
+    </div>
+  </div>
+
+  <div class="sec-lead">
+    <b>角色划分方法</b>：不按场景罗列角色（会越列越多），而是按角色在整体中的位置归为 T1~T5 五类，同一类角色在不同场景下通用。
+    角色的实质不是名称，而是 <b>职责范围 + 可查看信息 + 关注指标</b> 三件事。
+  </div>
+
+  <div class="diagram">
+    <div class="lbl">五类角色定位</div>
+    <div class="grid g5" style="grid-template-columns:repeat(5,1fr);gap:12px">
+      <div class="card" style="padding:16px"><h3 style="color:#e8590c">T1 管理决策</h3><div class="cap">对结果负责<br>关注指标非明细</div></div>
+      <div class="card" style="padding:16px"><h3 style="color:#1971c2">T2 现场执行</h3><div class="cap">直接干活<br>关注今天干什么</div></div>
+      <div class="card" style="padding:16px"><h3 style="color:#2f9e44">T3 技术专业</h3><div class="cap">对设施负责<br>关注设备与指标</div></div>
+      <div class="card" style="padding:16px"><h3 style="color:#7048e8">T4 监督检查</h3><div class="cap">评价他人质量<br>关注做得对不对</div></div>
+      <div class="card" style="padding:16px"><h3 style="color:#f59f00">T5 外部受众</h3><div class="cap">被服务方/公众<br>关注与己相关</div></div>
+    </div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">热力图 A · 角色 × 六大场景 出场矩阵</div>
+    <table>
+      <thead><tr><th>角色</th><th>类别</th><th class="c">监管</th><th class="c">集团</th><th class="c">单体企业</th><th class="c">技术服务</th><th class="c">运营托管</th><th class="c">家庭</th><th>核心关注指标</th></tr></thead>
+      <tbody>
+        <tr><td><b>集团消防负责人</b></td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-0">·</td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td>闭环率·重大隐患·指标达成</td></tr>
+        <tr><td><b>子公司/区域负责人</b></td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-0">·</td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td>区域完好率·逾期隐患</td></tr>
+        <tr><td><b>法人 / 主要负责人</b></td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-1">◐</td><td>是否被通报·有无重大隐患</td></tr>
+        <tr><td><b>消防安全管理人</b></td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-1">◐</td><td>隐患闭环率·逾期率</td></tr>
+        <tr><td><b>项目经理（托管）</b></td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-0">·</td><td>合同KPI·投诉率·续约率</td></tr>
+        <tr><td><b>巡查员 / 值班员</b></td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-4">●</td><td class="c h-0">·</td><td>本班完成率·有效问题数</td></tr>
+        <tr><td><b>整改责任人</b></td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-4">●</td><td class="c h-0">·</td><td>我的逾期任务数</td></tr>
+        <tr><td><b>物业公区管理员</b></td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-1">◐</td><td>公区隐患数·报修响应</td></tr>
+        <tr><td><b>业主 / 户主 / 租户</b></td><td><span class="tag" style="background:rgba(245,159,0,.15);color:#ffd43b">T2</span></td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-4">●</td><td>我家有没有隐患·怎么改</td></tr>
+        <tr><td><b>网格员</b></td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td>网格隐患数·上报及时率</td></tr>
+        <tr><td><b>维保工程师</b></td><td><span class="tag" style="background:rgba(47,158,68,.15);color:#69db7c">T3</span></td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-1">◐</td><td class="c h-0">·</td><td>计划完成率·故障响应</td></tr>
+        <tr><td><b>维保班组长</b></td><td><span class="tag" style="background:rgba(47,158,68,.15);color:#69db7c">T3</span></td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-4">●</td><td class="c h-1">◐</td><td class="c h-0">·</td><td>班组完成率·报告一次通过</td></tr>
+        <tr><td><b>设施操作员（重点单位）</b></td><td><span class="tag" style="background:rgba(47,158,68,.15);color:#69db7c">T3</span></td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-1">◐</td><td class="c h-1">◐</td><td class="c h-0">·</td><td>值班合规率·故障处置</td></tr>
+        <tr><td><b>消防监督员</b></td><td><span class="tag" style="background:rgba(112,72,232,.15);color:#b197fc">T4</span></td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td>整改率·重大隐患数</td></tr>
+        <tr><td><b>行业主管部门</b></td><td><span class="tag" style="background:rgba(112,72,232,.15);color:#b197fc">T4</span></td><td class="c h-4">●</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td>行业隐患率·趋势</td></tr>
+        <tr><td><b>甲方 / 业主代表</b></td><td><span class="tag" style="background:rgba(112,72,232,.15);color:#b197fc">T4</span></td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-4">●</td><td class="c h-1">◐</td><td class="c h-4">●</td><td class="c h-0">·</td><td>合同履约明细·投诉处理</td></tr>
+        <tr><td><b>集团审计/安全监察</b></td><td><span class="tag" style="background:rgba(112,72,232,.15);color:#b197fc">T4</span></td><td class="c h-0">·</td><td class="c h-4">●</td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-0">·</td><td class="c h-0">·</td><td>抽查合格率·数据异常</td></tr>
+        <tr><td><b>社区居民（业主/租户）</b></td><td><span class="tag" style="background:rgba(245,159,0,.15);color:#ffd43b">T5</span></td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-0">·</td><td class="c h-1">◐</td><td class="c h-4">●</td><td>我家风险等级·公区安全</td></tr>
+      </tbody>
+    </table>
+    <div class="legend">
+      <span><i class="h-4" style="background:#2f9e44"></i>● 主责</span>
+      <span><i style="background:#f59f00"></i>◐ 参与/存在</span>
+      <span><i style="background:#5c7cfa"></i>少量涉及</span>
+      <span><i class="h-0" style="background:#1c242e;border:1px solid #2a3441"></i>· 不涉及</span>
+    </div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">热力图 B · 角色 × 四大动作 责任矩阵</div>
+    <table>
+      <thead><tr><th>角色</th><th>类别</th><th class="c">A 防火巡查</th><th class="c">B 隐患排查</th><th class="c">C 设施监控</th><th class="c">D 事件处置</th><th>典型痛点</th></tr></thead>
+      <tbody>
+        <tr><td>集团消防负责人</td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-2">抽查</td><td class="c h-2">抽查</td><td class="c h-1">汇总</td><td class="c h-1">预案</td><td>看不清下级真实状态，只看填报数据</td></tr>
+        <tr><td>法人 / 主要负责人</td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-1">知晓</td><td class="c h-1">知晓</td><td class="c h-1">知晓</td><td class="c h-4">责任</td><td>出事才知道本单位真实风险</td></tr>
+        <tr><td>消防安全管理人</td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-2">监督</td><td class="c h-4">主责</td><td class="c h-4">主责</td><td class="c h-4">主责</td><td>任务分配靠吼、闭环靠微信、复查无记录</td></tr>
+        <tr><td>项目经理（托管）</td><td><span class="tag" style="background:rgba(232,89,12,.15);color:#ffa94d">T1</span></td><td class="c h-4">主责</td><td class="c h-4">主责</td><td class="c h-2">监督</td><td class="c h-4">主责</td><td>过程不可量化，客户不认可工作价值</td></tr>
+        <tr><td>巡查员 / 值班员</td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-4">主责</td><td class="c h-1">参与</td><td class="c h-1">参与</td><td class="c h-2">初期响应</td><td>纸质记录、拍照走形式、漏点无法发现</td></tr>
+        <tr><td>整改责任人</td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-1">·</td><td class="c h-4">执行</td><td class="c h-0">·</td><td class="c h-0">·</td><td>不知道标准是什么、改到什么程度算过</td></tr>
+        <tr><td>业主 / 户主 / 租户</td><td><span class="tag" style="background:rgba(245,159,0,.15);color:#ffd43b">T2</span></td><td class="c h-2">自查</td><td class="c h-2">自查</td><td class="c h-1">知晓</td><td class="c h-2">自救</td><td>术语看不懂、不知道找谁、提醒太频繁</td></tr>
+        <tr><td>网格员</td><td><span class="tag" style="background:rgba(92,124,250,.15);color:#91a7ff">T2</span></td><td class="c h-4">主责</td><td class="c h-1">协助</td><td class="c h-1">协助</td><td class="c h-1">上报</td><td>移动端填报不便、重复录入</td></tr>
+        <tr><td>维保工程师</td><td><span class="tag" style="background:rgba(47,158,68,.15);color:#69db7c">T3</span></td><td class="c h-0">·</td><td class="c h-1">参与</td><td class="c h-4">主责</td><td class="c h-1">协助</td><td>台账不在手边、纸质报告难归档</td></tr>
+        <tr><td>设施操作员</td><td><span class="tag" style="background:rgba(47,158,68,.15);color:#69db7c">T3</span></td><td class="c h-1">值班巡查</td><td class="c h-0">·</td><td class="c h-4">主责</td><td class="c h-2">初期响应</td><td>监管细则要求高、记录项多</td></tr>
+        <tr><td>消防监督员</td><td><span class="tag" style="background:rgba(112,72,232,.15);color:#b197fc">T4</span></td><td class="c h-2">抽查</td><td class="c h-4">主责/执法</td><td class="c h-2">抽查</td><td class="c h-4">处置/认定</td><td>底数不清、重复检查、检查后无跟踪</td></tr>
+        <tr><td>甲方 / 业主代表</td><td><span class="tag" style="background:rgba(112,72,232,.15);color:#b197fc">T4</span></td><td class="c h-1">监督</td><td class="c h-2">监督</td><td class="c h-2">监督</td><td class="c h-1">监督</td><td>过程看不见，只在出问题时才知道</td></tr>
+      </tbody>
+    </table>
+    <div class="legend">
+      <span><i style="background:#2f9e44"></i>主责</span>
+      <span><i style="background:#f59f00"></i>监督/抽查/参与</span>
+      <span><i style="background:#5c7cfa"></i>知晓/辅助</span>
+      <span><i class="h-0" style="background:#1c242e;border:1px solid #2a3441"></i>不涉及</span>
+    </div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <div class="lbl">从矩阵提炼的六条设计结论</div>
+    <div class="concl"><div class="k">结论 1</div><p><b>「今天的任务」与「全盘态势」是两种截然不同的界面。</b>T2（巡查员/整改人）要极简的今日待办；T1（法人/集团负责人）要一屏概览+可下钻。同一份数据，必须按角色做差异化视图。</p></div>
+    <div class="concl"><div class="k">结论 2</div><p><b>每个人能看到的范围，由其所属单位和承担的关系共同决定。</b>集团负责人不能看到兄弟集团的情况；维保工程师只负责签约客户；监管只覆盖本辖区。范围之外的信息不应出现在其视野内。</p></div>
+    <div class="concl"><div class="k">结论 3</div><p><b>家庭场景是「减法 + 转向」的组合。</b>减法（无台账、低频次）容易想到；转向（家庭不负责填报，而是接收简明结论）常被忽略。面向家庭的重点不是让人填表，而是把专业结论说成人话。</p></div>
+    <div class="concl"><div class="k">结论 4</div><p><b>服务商的双重身份要分开呈现。</b>「服务过程记录」供监管与内部核查，「客户可见结论」供委托方查看，两类内容分开，否则难以取信于人。</p></div>
+    <div class="concl"><div class="k">结论 5</div><p><b>每个角色都应有可量化的关注指标，这才是需求落到实处的地方。</b>「我要看数据」不算需求；「我要看本区域隐患闭环率和逾期数」才算。梳理需求时要追问一句：他每天最关心的第一个数字是什么？</p></div>
+    <div class="concl"><div class="k">结论 6</div><p><b>「不涉及」同样是重要信息。</b>明确哪些角色不需要哪些动作和信息，可以显著减少工作量和培训成本。</p></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad:true,
+  theme:'dark',
+  themeVariables:{
+    darkMode:true,
+    background:'#161c24',
+    primaryColor:'#1c242e',
+    primaryTextColor:'#e6edf3',
+    primaryBorderColor:'#2a3441',
+    lineColor:'#4a5a6a',
+    secondaryColor:'#1c242e',
+    tertiaryColor:'#161c24',
+    fontSize:'14px',
+    fontFamily:'-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif'
+  },
+  flowchart:{curve:'basis',nodeSpacing:42,rankSpacing:52,padding:14}
+});
+// 导航高亮
+const secs=['fig1','fig2','fig3','fig4'];
+const links=[...document.querySelectorAll('nav a')];
+window.addEventListener('scroll',()=>{
+  let cur=secs[0];
+  for(const s of secs){ if(document.getElementById(s).getBoundingClientRect().top<=140) cur=s; }
+  links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur));
+},{passive:true});
+</script>
+</body>
+</html>
