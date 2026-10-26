@@ -18,10 +18,12 @@ const MAP: Record<string, { label: string; cls: string }> = {
   '1': { label: '执行中', cls: 'success' },
   '2': { label: '已停用', cls: 'danger' },
   '3': { label: '已过期', cls: 'normal' },
-  // 工单实例状态（3 状态标准化）
+  // 工单实例状态（3 状态标准化 + 协同监控扩展）
   draft: { label: '草稿', cls: 'info' },
   active: { label: '进行中', cls: 'warning' },
   closed: { label: '已关闭', cls: 'normal' },
+  cancelled: { label: '已取消', cls: 'danger' },
+  manual_closed: { label: '手动关闭', cls: 'danger' },
   // 流程模板启停（与 stopped 等价，inactive 为国际化命名）
   inactive: { label: '已停用', cls: 'danger' },
   // 流程编排列表的启用/未启用（与枚举无关，仅按布尔）
