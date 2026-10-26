@@ -3,6 +3,7 @@
 > 日期：2026-10-26
 > 范围：`src/config/navigation.ts` 中 `visibleTo: ['unit']` 的侧栏分组
 > 状态：已落地（菜单 + 路由 + 占位页 + 校验脚本）
+> 同日补充：一级菜单排序调整（见结论 8）；巡查检查首个子项改名「数据看板」
 
 ---
 
@@ -14,7 +15,9 @@
 4. 新增路由 60 条，全部挂占位页；消防监控 4 条与可视化大屏沿用真实页。
 5. 导航分组 11 → 17；菜单节点新增 68、删除 12；带路由的叶子 109 → 150。
 6. `ROUTE_TO_NAV_KEY` 70 → 130 条，`NAV_KEY_TO_ROUTE` 69 → 127 条。
-7. 6 个新菜单的首个子项统一为「数据看板」（原「首页」），模块首页路径不变。
+7. 7 个业务域菜单的首个子项统一为「数据看板」（原「首页」），模块首页路径不变。
+8. 社会单位侧一级菜单排序：设备设施管理 → 巡查检查 → 值守与应急 → 隐患排查治理 → 特种作业管理 → 消防维保 → 培训与演练 → 安全档案 → 协同工作 → 项目管理 → 安全概览 → 单位设置。「消防维保」排在「特种作业管理」之后。
+9. 「区域监管」仍居 `NAV_GROUPS` 首位，对社会单位用户不可见；「设备设施管理」在数组中紧随其后，故监管侧、运营商侧、技术服务侧的侧栏顺序不变。
 
 ---
 
@@ -41,9 +44,25 @@
 
 ## 三、菜单树
 
+社会单位侧一级菜单，自上而下：
+
 ```
-安全概览 unit-overview
-├── 安全态势 /unit/dashboard          数据看板 /unit/data          可视化大屏 /enterprise-cockpit（真实页）
+设备设施管理 device-facility
+├── 设备台账 /device-facility/ledger
+├── 保养管理：保养规范 / 保养计划 / 保养任务 / 保养记录
+├── 运行监控：状态监控 / 场景监控
+├── 报表与报告：告警分析报告 / 设备运行报表
+├── 系统日志：事件日志
+├── 规则配置：自定义事件 / 平面图描点 / 数据拉取 / 数据推送 / 策略执行器
+└── 消息推送：告警推送
+
+巡查检查 unit-patrol
+├── 数据看板 /unit/patrol
+├── 任务监控：巡查任务 /unit/patrol/tasks
+├── 项目配置 /unit/patrol/forms
+├── 点位管理 /unit/patrol/locations
+├── 计划管理：消防巡查 /unit/patrol/plans
+└── 异常处置 / 巡查报表 / 通知提醒
 
 值守与应急 unit-duty-emergency
 ├── 数据看板 /unit/duty
@@ -53,17 +72,12 @@
 ├── 应急管理：应急预案 / 应急物资 / 事件处置
 └── 通知提醒：推送记录 /unit/notifications
 
-培训与演练 unit-training-drill
-├── 数据看板 /unit/training
-├── 培训管理：培训计划 / 培训记录 / 培训考试
-├── 演练管理：演练计划 / 演练记录 / 演练评估
-└── 知识库 /unit/training/knowledge
-
-消防维保 unit-fire-maintenance
-├── 数据看板 /unit/maintenance
-├── 维保管理：维保合同 / 维保计划 / 维保任务 / 维保记录 / 维保报告
-├── 维保台账 /unit/maintenance/ledger
-├── 维保标准库 / 故障与隐患 / 待办工作台
+隐患排查治理 unit-hazard
+├── 模块介绍 /workbench/hazard-intro
+├── 隐患排查：隐患台账 / 隐患上报 / 排查任务
+├── 隐患整改：整改看板
+├── 制度与计划：制度建设 / 排查计划 / 排查清单
+└── 报表与统计：数字看板 / 周期报表（对内报告 / 监管报告）
 
 特种作业管理 unit-special-work
 ├── 数据看板 /unit/special-work
@@ -71,10 +85,26 @@
 ├── 作业流程：作业申请 / 作业审批 / 作业监护 / 作业记录
 └── 人员资质：特种作业人员 / 证件台账
 
+消防维保 unit-fire-maintenance
+├── 数据看板 /unit/maintenance
+├── 维保管理：维保合同 / 维保计划 / 维保任务 / 维保记录 / 维保报告
+├── 维保台账 /unit/maintenance/ledger
+├── 维保标准库 / 故障与隐患 / 待办工作台
+
+培训与演练 unit-training-drill
+├── 数据看板 /unit/training
+├── 培训管理：培训计划 / 培训记录 / 培训考试
+├── 演练管理：演练计划 / 演练记录 / 演练评估
+└── 知识库 /unit/training/knowledge
+
 安全档案 unit-safety-archive
 ├── 数据看板 /unit/safety-archive
 ├── 档案归集：单位档案 / 设施档案 / 制度档案 / 预案档案 / 证照档案
 └── 档案管理：归档台账 / 归档记录 / 借阅记录
+
+协同工作 unit-collab-work
+├── 协同管理：流程编排 / 协同监控
+└── 待办事项 / 已办事项 / 发起事项
 
 项目管理 unit-project（社会单位侧）
 ├── 数据看板 /unit/projects
@@ -82,6 +112,22 @@
 ├── 项目台账：全部项目 / 项目成员
 ├── 项目交付：交付节点 / 验收记录
 └── 服务评价 /unit/projects/evaluation
+
+安全概览 unit-overview
+├── 安全态势 /unit/dashboard
+├── 数据看板 /unit/data
+└── 可视化大屏 /enterprise-cockpit（真实页）
+
+单位设置 unit-settings
+├── 设备设置：保养规范 / 保养计划 / 运行监控 / 设备报表 / 设备配置 / 系统日志
+├── 告警设置：告警配置 / 值守报表
+├── 通知设置：通知配置 / 告警推送
+├── 组织管理：管理单元 / 建筑管理 / 重点部位 / 人员管理 / 权限管理 / 部门管理 / 岗位管理
+├── 制度管理 / 通知公告
+├── 企业配置：基础信息 / 个性化
+├── 日志管理
+├── 动态表单：表单管理 / 填写记录
+└── 使用手册
 ```
 
 ---
@@ -105,6 +151,8 @@
 | 文件 | 改动 |
 |------|------|
 | `src/config/navigation.ts` | 删除分组 `unit-daily`；新增 7 个分组；`ROUTE_TO_NAV_KEY` +60 条；`NAV_KEY_TO_ROUTE` +58 条；`/device`、`/device/list`、`/iot` 三个旧映射改指 `df-ledger` |
+| `src/config/navigation.ts`（同日补充） | `NAV_GROUPS` 分组顺序调整为第三节序列；`unit-patrol-home` 标签「首页」→「数据看板」，`ROUTE_TO_NAV_KEY` / `NAV_KEY_TO_ROUTE` 不变 |
+| `src/views/patrol/patrol-pages.ts`（同日补充） | `PatrolHome` 标题「首页」→「数据看板」，描述首句改为「巡查检查数据看板：…」 |
 | `src/router/index.ts` | 新增 7 个路由块、60 条路由，全部指向共享占位组件 |
 | `src/views/shared/ModulePlaceholder.vue` | 新增：通用占位页组件，按 `route.name` 读配置渲染 |
 | `src/views/shared/module-page-config.ts` | 新增：配置体例接口 |
@@ -129,10 +177,10 @@
 
 | 项 | 结果 |
 |------|------|
-| `vue-tsc --noEmit` | 通过，无输出 |
+| `vue-tsc -b` | 通过，无输出 |
 | `vite build` | 通过，5.49s |
-| `node scripts/check-nav-consistency.mjs` | 菜单 151 节点 / 路由 163 条 / 占位页配置 60 条，三方一致，无错误；死链 26 条（改动前既有）。脚本未入库 |
-| 浏览器实测（dev 3200，社会单位账号 13100001234） | 侧栏 17 个分组渲染正常，抽查 25 条新路由全部命中对应占位页标题；控制台无 warn / error |
+| `node scripts/check-nav-consistency.mjs` | 导航分组 17 个；菜单叶子 150 条、路由 163 条、占位页配置 60 条，三方一致，无错误；死链 26 条（改动前既有）。脚本未入库 |
+| 浏览器实测（dev 3200，社会单位账号 13100001234） | 侧栏 17 个分组渲染正常；社会单位侧可见 12 个一级菜单，顺序与第三节一致；「巡查检查」首个子项显示「数据看板」，`/unit/patrol` 页面标题为「数据看板」；控制台无 error，warn 27 条（26 条未实现路由 + 1 条 prop 类型）均为既有 |
 
 死链 26 条为改动前既有（`单位设置` 24 条、运营商侧「项目管理」2 条、`/admin/member-types` 1 条），本次未处理。
 

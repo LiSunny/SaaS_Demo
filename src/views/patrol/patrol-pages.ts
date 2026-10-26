@@ -21,9 +21,9 @@ export const PATROL_PAGE_CONFIG: Record<string, PatrolPageConfig> = {
   // --- 模块首页 ---
   PatrolHome: {
     code: 'P0',
-    title: '首页',
+    title: '数据看板',
     module: '巡查检查',
-    desc: '巡查检查模块总览：点位、计划、任务、异常四条线汇总当前状态，并提供各子功能入口。',
+    desc: '巡查检查数据看板：点位、计划、任务、异常四条线汇总当前状态，并提供各子功能入口。',
     caps: [
       '巡查覆盖：已巡点位 / 应巡点位，可按管理单元拆分',
       '任务分布：待执行 / 执行中 / 已完成 / 预期未完成 / 逾期完成 / 取消',

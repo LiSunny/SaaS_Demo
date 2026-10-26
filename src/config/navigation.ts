@@ -100,8 +100,170 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
+  // ===== 2. 设备设施管理（设备台账 / 保养 / 运行监控 / 报表 / 日志 / 规则 / 推送） =====
+  // 菜单名称与层级对齐平台「设备管理」模块（智慧消防云平台，实测 2026-10-26，港南二中租户）
+  // 平台「首页」「使用手册」不纳入
+  {
+    key: 'device-facility',
+    label: '设备设施管理',
+    icon: 'menuicon-46',
+    children: [
+      { key: 'df-ledger', label: '设备台账', icon: 'menuicon-31', route: '/device-facility/ledger' },
+      {
+        key: 'df-maintenance',
+        label: '保养管理',
+        icon: 'menuicon-32',
+        children: [
+          { key: 'df-maint-standard', label: '保养规范', route: '/device-facility/maintenance/standard' },
+          { key: 'df-maint-plans', label: '保养计划', route: '/device-facility/maintenance/plans' },
+          { key: 'df-maint-tasks', label: '保养任务', route: '/device-facility/maintenance/tasks' },
+          { key: 'df-maint-records', label: '保养记录', route: '/device-facility/maintenance/records' },
+        ],
+      },
+      {
+        key: 'df-monitor',
+        label: '运行监控',
+        icon: 'menuicon-33',
+        children: [
+          { key: 'df-monitor-status', label: '状态监控', route: '/device-facility/monitor/status' },
+          { key: 'df-monitor-scene', label: '场景监控', route: '/device-facility/monitor/scene' },
+        ],
+      },
+      {
+        key: 'df-report',
+        label: '报表与报告',
+        icon: 'menuicon-35',
+        children: [
+          { key: 'df-report-alarm', label: '告警分析报告', route: '/device-facility/report/alarm' },
+          { key: 'df-report-device', label: '设备运行报表', route: '/device-facility/report/device' },
+        ],
+      },
+      {
+        key: 'df-log',
+        label: '系统日志',
+        icon: 'menuicon-36',
+        children: [
+          { key: 'df-log-event', label: '事件日志', route: '/device-facility/log/event' },
+        ],
+      },
+      {
+        key: 'df-rule',
+        label: '规则配置',
+        icon: 'menuicon-38',
+        children: [
+          { key: 'df-rule-custom-event', label: '自定义事件', route: '/device-facility/rule/custom-event' },
+          { key: 'df-rule-plan-point', label: '平面图描点', route: '/device-facility/rule/plan-point' },
+          { key: 'df-rule-data-fetch', label: '数据拉取', route: '/device-facility/rule/data-fetch' },
+          { key: 'df-rule-data-push', label: '数据推送', route: '/device-facility/rule/data-push' },
+          { key: 'df-rule-strategy', label: '策略执行器', route: '/device-facility/rule/strategy' },
+        ],
+      },
+      {
+        key: 'df-notify',
+        label: '消息推送',
+        icon: 'menuicon-39',
+        children: [
+          { key: 'df-notify-alarm-push', label: '告警推送', route: '/device-facility/notify/alarm-push' },
+        ],
+      },
+    ],
+  },
 
-  // ===== 2. 隐患排查治理（社会单位：消防安全管理人） =====
+  // ===== 3. 巡查检查（社会单位：安全管理员 / 巡查员） =====
+  // 菜单名称与层级对齐平台「巡查检查」模块（智慧消防云平台，实测 2026-10-26）
+  {
+    key: 'unit-patrol',
+    label: '巡查检查',
+    icon: 'menuicon-25',
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-patrol-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/patrol' },
+      {
+        key: 'unit-patrol-monitor',
+        label: '任务监控',
+        icon: 'menuicon-30',
+        children: [
+          { key: 'unit-patrol-task', label: '巡查任务', route: '/unit/patrol/tasks' },
+        ],
+      },
+      { key: 'unit-patrol-forms', label: '项目配置', icon: 'menuicon-37', route: '/unit/patrol/forms' },
+      { key: 'unit-patrol-locations', label: '点位管理', icon: 'menuicon-29', route: '/unit/patrol/locations' },
+      {
+        key: 'unit-patrol-plan-mgmt',
+        label: '计划管理',
+        icon: 'menuicon-9',
+        children: [
+          { key: 'unit-patrol-plan', label: '消防巡查', route: '/unit/patrol/plans' },
+        ],
+      },
+      { key: 'unit-patrol-abnormal', label: '异常处置', icon: 'menuicon-24', route: '/unit/patrol/abnormal' },
+      { key: 'unit-patrol-reports', label: '巡查报表', icon: 'menuicon-47', route: '/unit/patrol/reports' },
+      { key: 'unit-patrol-notices', label: '通知提醒', icon: 'menuicon-34', route: '/unit/patrol/notices' },
+    ],
+  },
+
+  // ===== 4. 值守与应急（社会单位：值班员 / 安全管理员） =====
+  // 收拢原「安全管理›告警处置」「安全管理›消防监控」「安全管理›通知提醒」
+  {
+    key: 'unit-duty-emergency',
+    label: '值守与应急',
+    icon: 'alarm',
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-duty-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/duty' },
+      {
+        key: 'unit-duty-mgmt',
+        label: '值守管理',
+        icon: 'menuicon-10',
+        children: [
+          { key: 'unit-duty-schedule', label: '值班表', route: '/unit/duty/schedule' },
+          { key: 'unit-duty-records', label: '值班记录', route: '/unit/duty/records' },
+          { key: 'unit-duty-checkin', label: '到岗打卡', route: '/unit/duty/checkin' },
+          { key: 'unit-duty-handover', label: '交接班', route: '/unit/duty/handover' },
+        ],
+      },
+      {
+        key: 'unit-alarm',
+        label: '告警处置',
+        icon: 'menuicon-24',
+        children: [
+          { key: 'unit-alarm-list', label: '告警列表', route: '/unit/alarms' },
+          { key: 'unit-alarm-record', label: '处置记录', route: '/unit/alarms/records' },
+        ],
+      },
+      {
+        key: 'unit-fire-monitor',
+        label: '消防监控',
+        icon: 'menuicon-29',
+        children: [
+          { key: 'unit-fire-pipeline', label: '消防管网系统', route: '/fire/pipeline' },
+          { key: 'unit-fire-pipeline-topology', label: '消防管网 · 组态总览', route: '/fire/pipeline/topology' },
+          { key: 'unit-fire-gas', label: '气体灭火系统', route: '/fire/gas' },
+          { key: 'unit-fire-smoke', label: '消防防排烟系统', route: '/fire/smoke' },
+        ],
+      },
+      {
+        key: 'unit-emergency',
+        label: '应急管理',
+        icon: 'menuicon-13',
+        children: [
+          { key: 'unit-emergency-plan', label: '应急预案', route: '/unit/duty/emergency/plans' },
+          { key: 'unit-emergency-supplies', label: '应急物资', route: '/unit/duty/emergency/supplies' },
+          { key: 'unit-emergency-incident', label: '事件处置', route: '/unit/duty/emergency/incidents' },
+        ],
+      },
+      {
+        key: 'unit-notify',
+        label: '通知提醒',
+        icon: 'menuicon-34',
+        children: [
+          { key: 'unit-notify-list', label: '推送记录', route: '/unit/notifications' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 5. 隐患排查治理（社会单位：消防安全管理人） =====
   {
     key: 'unit-hazard',
     label: '隐患排查治理',
@@ -171,267 +333,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2a. 巡查检查（社会单位：安全管理员 / 巡查员） =====
-  // 菜单名称与层级对齐平台「巡查检查」模块（智慧消防云平台，实测 2026-10-26）
-  {
-    key: 'unit-patrol',
-    label: '巡查检查',
-    icon: 'menuicon-25',
-    visibleTo: ['unit'],
-    children: [
-      { key: 'unit-patrol-home', label: '首页', icon: 'menuicon-48', route: '/unit/patrol' },
-      {
-        key: 'unit-patrol-monitor',
-        label: '任务监控',
-        icon: 'menuicon-30',
-        children: [
-          { key: 'unit-patrol-task', label: '巡查任务', route: '/unit/patrol/tasks' },
-        ],
-      },
-      { key: 'unit-patrol-forms', label: '项目配置', icon: 'menuicon-37', route: '/unit/patrol/forms' },
-      { key: 'unit-patrol-locations', label: '点位管理', icon: 'menuicon-29', route: '/unit/patrol/locations' },
-      {
-        key: 'unit-patrol-plan-mgmt',
-        label: '计划管理',
-        icon: 'menuicon-9',
-        children: [
-          { key: 'unit-patrol-plan', label: '消防巡查', route: '/unit/patrol/plans' },
-        ],
-      },
-      { key: 'unit-patrol-abnormal', label: '异常处置', icon: 'menuicon-24', route: '/unit/patrol/abnormal' },
-      { key: 'unit-patrol-reports', label: '巡查报表', icon: 'menuicon-47', route: '/unit/patrol/reports' },
-      { key: 'unit-patrol-notices', label: '通知提醒', icon: 'menuicon-34', route: '/unit/patrol/notices' },
-    ],
-  },
-
-  // ===== 2b. 协同工作（社会单位：协同管理 + 我的待办/已办/发起） =====
-  {
-    key: 'unit-collab-work',
-    label: '协同工作',
-    icon: 'menuicon-2',
-    visibleTo: ['unit'],
-    children: [
-      {
-        key: 'collab-mgmt',
-        label: '协同管理',
-        icon: 'menuicon-42',
-        children: [
-          { key: 'collab-flow-template', label: '流程编排', route: '/system/template' },
-          { key: 'collab-monitor', label: '协同监控', route: '/system/monitor' },
-        ],
-      },
-      { key: 'collab-pending', label: '待办事项', route: '/collab/task/pending' },
-      { key: 'collab-completed', label: '已办事项', route: '/collab/task/completed' },
-      { key: 'collab-started', label: '发起事项', route: '/collab/task/started' },
-    ],
-  },
-
-  // ===== 2c. 设备设施管理（设备台账 / 保养 / 运行监控 / 报表 / 日志 / 规则 / 推送） =====
-  // 菜单名称与层级对齐平台「设备管理」模块（智慧消防云平台，实测 2026-10-26，港南二中租户）
-  // 平台「首页」「使用手册」不纳入
-  {
-    key: 'device-facility',
-    label: '设备设施管理',
-    icon: 'menuicon-46',
-    children: [
-      { key: 'df-ledger', label: '设备台账', icon: 'menuicon-31', route: '/device-facility/ledger' },
-      {
-        key: 'df-maintenance',
-        label: '保养管理',
-        icon: 'menuicon-32',
-        children: [
-          { key: 'df-maint-standard', label: '保养规范', route: '/device-facility/maintenance/standard' },
-          { key: 'df-maint-plans', label: '保养计划', route: '/device-facility/maintenance/plans' },
-          { key: 'df-maint-tasks', label: '保养任务', route: '/device-facility/maintenance/tasks' },
-          { key: 'df-maint-records', label: '保养记录', route: '/device-facility/maintenance/records' },
-        ],
-      },
-      {
-        key: 'df-monitor',
-        label: '运行监控',
-        icon: 'menuicon-33',
-        children: [
-          { key: 'df-monitor-status', label: '状态监控', route: '/device-facility/monitor/status' },
-          { key: 'df-monitor-scene', label: '场景监控', route: '/device-facility/monitor/scene' },
-        ],
-      },
-      {
-        key: 'df-report',
-        label: '报表与报告',
-        icon: 'menuicon-35',
-        children: [
-          { key: 'df-report-alarm', label: '告警分析报告', route: '/device-facility/report/alarm' },
-          { key: 'df-report-device', label: '设备运行报表', route: '/device-facility/report/device' },
-        ],
-      },
-      {
-        key: 'df-log',
-        label: '系统日志',
-        icon: 'menuicon-36',
-        children: [
-          { key: 'df-log-event', label: '事件日志', route: '/device-facility/log/event' },
-        ],
-      },
-      {
-        key: 'df-rule',
-        label: '规则配置',
-        icon: 'menuicon-38',
-        children: [
-          { key: 'df-rule-custom-event', label: '自定义事件', route: '/device-facility/rule/custom-event' },
-          { key: 'df-rule-plan-point', label: '平面图描点', route: '/device-facility/rule/plan-point' },
-          { key: 'df-rule-data-fetch', label: '数据拉取', route: '/device-facility/rule/data-fetch' },
-          { key: 'df-rule-data-push', label: '数据推送', route: '/device-facility/rule/data-push' },
-          { key: 'df-rule-strategy', label: '策略执行器', route: '/device-facility/rule/strategy' },
-        ],
-      },
-      {
-        key: 'df-notify',
-        label: '消息推送',
-        icon: 'menuicon-39',
-        children: [
-          { key: 'df-notify-alarm-push', label: '告警推送', route: '/device-facility/notify/alarm-push' },
-        ],
-      },
-    ],
-  },
-
-  // ===== 2d. 安全概览（社会单位：学校/企业/商户/物业） =====
-  // 原「安全管理›安全概览」升为独立一级菜单（安全管理一级菜单已解散）
-  {
-    key: 'unit-overview',
-    label: '安全概览',
-    icon: 'chart',
-    visibleTo: ['unit'],
-    children: [
-      { key: 'unit-dashboard', label: '安全态势', icon: 'menuicon-48', route: '/unit/dashboard' },
-      { key: 'unit-data', label: '数据看板', icon: 'menuicon-47', route: '/unit/data' },
-      { key: 'unit-bigscreen', label: '可视化大屏', icon: 'menuicon-50', route: '/enterprise-cockpit' },
-    ],
-  },
-
-  // ===== 2e. 值守与应急（社会单位：值班员 / 安全管理员） =====
-  // 收拢原「安全管理›告警处置」「安全管理›消防监控」「安全管理›通知提醒」
-  {
-    key: 'unit-duty-emergency',
-    label: '值守与应急',
-    icon: 'alarm',
-    visibleTo: ['unit'],
-    children: [
-      { key: 'unit-duty-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/duty' },
-      {
-        key: 'unit-duty-mgmt',
-        label: '值守管理',
-        icon: 'menuicon-10',
-        children: [
-          { key: 'unit-duty-schedule', label: '值班表', route: '/unit/duty/schedule' },
-          { key: 'unit-duty-records', label: '值班记录', route: '/unit/duty/records' },
-          { key: 'unit-duty-checkin', label: '到岗打卡', route: '/unit/duty/checkin' },
-          { key: 'unit-duty-handover', label: '交接班', route: '/unit/duty/handover' },
-        ],
-      },
-      {
-        key: 'unit-alarm',
-        label: '告警处置',
-        icon: 'menuicon-24',
-        children: [
-          { key: 'unit-alarm-list', label: '告警列表', route: '/unit/alarms' },
-          { key: 'unit-alarm-record', label: '处置记录', route: '/unit/alarms/records' },
-        ],
-      },
-      {
-        key: 'unit-fire-monitor',
-        label: '消防监控',
-        icon: 'menuicon-29',
-        children: [
-          { key: 'unit-fire-pipeline', label: '消防管网系统', route: '/fire/pipeline' },
-          { key: 'unit-fire-pipeline-topology', label: '消防管网 · 组态总览', route: '/fire/pipeline/topology' },
-          { key: 'unit-fire-gas', label: '气体灭火系统', route: '/fire/gas' },
-          { key: 'unit-fire-smoke', label: '消防防排烟系统', route: '/fire/smoke' },
-        ],
-      },
-      {
-        key: 'unit-emergency',
-        label: '应急管理',
-        icon: 'menuicon-13',
-        children: [
-          { key: 'unit-emergency-plan', label: '应急预案', route: '/unit/duty/emergency/plans' },
-          { key: 'unit-emergency-supplies', label: '应急物资', route: '/unit/duty/emergency/supplies' },
-          { key: 'unit-emergency-incident', label: '事件处置', route: '/unit/duty/emergency/incidents' },
-        ],
-      },
-      {
-        key: 'unit-notify',
-        label: '通知提醒',
-        icon: 'menuicon-34',
-        children: [
-          { key: 'unit-notify-list', label: '推送记录', route: '/unit/notifications' },
-        ],
-      },
-    ],
-  },
-
-  // ===== 2f. 培训与演练（社会单位：安全管理员 / 员工） =====
-  // 原「安全管理›培训演练」并入本模块
-  {
-    key: 'unit-training-drill',
-    label: '培训与演练',
-    icon: 'book',
-    visibleTo: ['unit'],
-    children: [
-      { key: 'unit-training-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/training' },
-      {
-        key: 'unit-training-mgmt',
-        label: '培训管理',
-        icon: 'menuicon-6',
-        children: [
-          { key: 'unit-training-plan', label: '培训计划', route: '/unit/training/plans' },
-          { key: 'unit-training-record', label: '培训记录', route: '/unit/training/records' },
-          { key: 'unit-training-exam', label: '培训考试', route: '/unit/training/exams' },
-        ],
-      },
-      {
-        key: 'unit-drill-mgmt',
-        label: '演练管理',
-        icon: 'menuicon-17',
-        children: [
-          { key: 'unit-drill-plan', label: '演练计划', route: '/unit/training/drills/plans' },
-          { key: 'unit-drill-record', label: '演练记录', route: '/unit/training/drills' },
-          { key: 'unit-drill-evaluation', label: '演练评估', route: '/unit/training/drills/evaluations' },
-        ],
-      },
-      { key: 'unit-training-knowledge', label: '知识库', icon: 'menuicon-11', route: '/unit/training/knowledge' },
-    ],
-  },
-
-  // ===== 2g. 消防维保（社会单位：业主视角，服务商按合同履约） =====
-  // 原「安全管理›维保管理」并入本模块，子项按 docs/维保管理 文档体例扩展
-  {
-    key: 'unit-fire-maintenance',
-    label: '消防维保',
-    icon: 'tools',
-    visibleTo: ['unit'],
-    children: [
-      { key: 'unit-maint-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/maintenance' },
-      {
-        key: 'unit-maint-mgmt',
-        label: '维保管理',
-        icon: 'menuicon-9',
-        children: [
-          { key: 'unit-maint-contract', label: '维保合同', route: '/unit/maintenance/contracts' },
-          { key: 'unit-maint-plan', label: '维保计划', route: '/unit/maintenance/plans' },
-          { key: 'unit-maint-task', label: '维保任务', route: '/unit/maintenance/tasks' },
-          { key: 'unit-maint-record', label: '维保记录', route: '/unit/maintenance/records' },
-          { key: 'unit-maint-report', label: '维保报告', route: '/unit/maintenance/reports' },
-        ],
-      },
-      { key: 'unit-maint-ledger', label: '维保台账', icon: 'menuicon-20', route: '/unit/maintenance/ledger' },
-      { key: 'unit-maint-standard', label: '维保标准库', icon: 'menuicon-21', route: '/unit/maintenance/standards' },
-      { key: 'unit-maint-fault', label: '故障与隐患', icon: 'menuicon-22', route: '/unit/maintenance/faults' },
-      { key: 'unit-maint-todo', label: '待办工作台', icon: 'menuicon-23', route: '/unit/maintenance/todo' },
-    ],
-  },
-
-  // ===== 2h. 特种作业管理（动火 / 焊接 / 高处 / 有限空间 / 临时用电） =====
+  // ===== 6. 特种作业管理（动火 / 焊接 / 高处 / 有限空间 / 临时用电） =====
   // 原「安全管理›危险作业」并入本模块，按作业类型 + 作业流程 + 人员资质三条线组织
   {
     key: 'unit-special-work',
@@ -475,7 +377,68 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2i. 安全档案（消防档案归集、借阅与台账） =====
+  // ===== 7. 消防维保（社会单位：业主视角，服务商按合同履约） =====
+  // 原「安全管理›维保管理」并入本模块，子项按 docs/维保管理 文档体例扩展
+  {
+    key: 'unit-fire-maintenance',
+    label: '消防维保',
+    icon: 'tools',
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-maint-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/maintenance' },
+      {
+        key: 'unit-maint-mgmt',
+        label: '维保管理',
+        icon: 'menuicon-9',
+        children: [
+          { key: 'unit-maint-contract', label: '维保合同', route: '/unit/maintenance/contracts' },
+          { key: 'unit-maint-plan', label: '维保计划', route: '/unit/maintenance/plans' },
+          { key: 'unit-maint-task', label: '维保任务', route: '/unit/maintenance/tasks' },
+          { key: 'unit-maint-record', label: '维保记录', route: '/unit/maintenance/records' },
+          { key: 'unit-maint-report', label: '维保报告', route: '/unit/maintenance/reports' },
+        ],
+      },
+      { key: 'unit-maint-ledger', label: '维保台账', icon: 'menuicon-20', route: '/unit/maintenance/ledger' },
+      { key: 'unit-maint-standard', label: '维保标准库', icon: 'menuicon-21', route: '/unit/maintenance/standards' },
+      { key: 'unit-maint-fault', label: '故障与隐患', icon: 'menuicon-22', route: '/unit/maintenance/faults' },
+      { key: 'unit-maint-todo', label: '待办工作台', icon: 'menuicon-23', route: '/unit/maintenance/todo' },
+    ],
+  },
+
+  // ===== 8. 培训与演练（社会单位：安全管理员 / 员工） =====
+  // 原「安全管理›培训演练」并入本模块
+  {
+    key: 'unit-training-drill',
+    label: '培训与演练',
+    icon: 'book',
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-training-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/training' },
+      {
+        key: 'unit-training-mgmt',
+        label: '培训管理',
+        icon: 'menuicon-6',
+        children: [
+          { key: 'unit-training-plan', label: '培训计划', route: '/unit/training/plans' },
+          { key: 'unit-training-record', label: '培训记录', route: '/unit/training/records' },
+          { key: 'unit-training-exam', label: '培训考试', route: '/unit/training/exams' },
+        ],
+      },
+      {
+        key: 'unit-drill-mgmt',
+        label: '演练管理',
+        icon: 'menuicon-17',
+        children: [
+          { key: 'unit-drill-plan', label: '演练计划', route: '/unit/training/drills/plans' },
+          { key: 'unit-drill-record', label: '演练记录', route: '/unit/training/drills' },
+          { key: 'unit-drill-evaluation', label: '演练评估', route: '/unit/training/drills/evaluations' },
+        ],
+      },
+      { key: 'unit-training-knowledge', label: '知识库', icon: 'menuicon-11', route: '/unit/training/knowledge' },
+    ],
+  },
+
+  // ===== 9. 安全档案（消防档案归集、借阅与台账） =====
   {
     key: 'unit-safety-archive',
     label: '安全档案',
@@ -508,7 +471,29 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2j. 项目管理（社会单位：消防工程 / 维保服务项目） =====
+  // ===== 10. 协同工作（社会单位：协同管理 + 我的待办/已办/发起） =====
+  {
+    key: 'unit-collab-work',
+    label: '协同工作',
+    icon: 'menuicon-2',
+    visibleTo: ['unit'],
+    children: [
+      {
+        key: 'collab-mgmt',
+        label: '协同管理',
+        icon: 'menuicon-42',
+        children: [
+          { key: 'collab-flow-template', label: '流程编排', route: '/system/template' },
+          { key: 'collab-monitor', label: '协同监控', route: '/system/monitor' },
+        ],
+      },
+      { key: 'collab-pending', label: '待办事项', route: '/collab/task/pending' },
+      { key: 'collab-completed', label: '已办事项', route: '/collab/task/completed' },
+      { key: 'collab-started', label: '发起事项', route: '/collab/task/started' },
+    ],
+  },
+
+  // ===== 11. 项目管理（社会单位：消防工程 / 维保服务项目） =====
   // 与运营商侧「项目管理」（key=operator）分属不同群体，各自独立分组
   {
     key: 'unit-project',
@@ -548,7 +533,21 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2e. 安全管理 — 单位设置（社会单位管理员） =====
+  // ===== 12. 安全概览（社会单位：学校/企业/商户/物业） =====
+  // 原「安全管理›安全概览」升为独立一级菜单（安全管理一级菜单已解散）
+  {
+    key: 'unit-overview',
+    label: '安全概览',
+    icon: 'chart',
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-dashboard', label: '安全态势', icon: 'menuicon-48', route: '/unit/dashboard' },
+      { key: 'unit-data', label: '数据看板', icon: 'menuicon-47', route: '/unit/data' },
+      { key: 'unit-bigscreen', label: '可视化大屏', icon: 'menuicon-50', route: '/enterprise-cockpit' },
+    ],
+  },
+
+  // ===== 13. 单位设置（社会单位管理员） =====
   {
     key: 'unit-settings',
     label: '单位设置',
@@ -646,7 +645,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 3. 项目管理（社会单位-运营商） =====
+  // ===== 14. 项目管理（社会单位-运营商） =====
   {
     key: 'operator',
     label: '项目管理',
@@ -692,7 +691,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 4. 技术服务（技术服务机构） =====
+  // ===== 15. 技术服务（技术服务机构） =====
   {
     key: 'service',
     label: '技术服务',
@@ -738,7 +737,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 5. 运营管理（平台运营方 platform-ops） =====
+  // ===== 16. 运营管理（平台运营方 platform-ops） =====
   {
     key: 'platform-ops',
     label: '运营管理',
@@ -796,7 +795,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 6. 平台管理（技术管理 platform-admin；platform-ops 兼看） =====
+  // ===== 17. 平台管理（技术管理 platform-admin；platform-ops 兼看） =====
   {
     key: 'platform-admin',
     label: '平台管理',
