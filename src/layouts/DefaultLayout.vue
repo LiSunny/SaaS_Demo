@@ -122,23 +122,25 @@
           无匹配结果
         </div>
 
-        <!-- 5. 导航分组 -->
+        <!-- 5. 导航分组（一级菜单，可展开/折叠） -->
         <div
           v-for="group in filteredGroups"
           :key="group.key"
           class="nav-group"
         >
-          <div
-            class="section-header"
-            :class="{ 'section-header-clickable': !!group.defaultRoute }"
+          <button
+            type="button"
+            class="section-header section-header-clickable"
+            :aria-expanded="isGroupExpanded(group)"
             @click="onGroupClick(group)"
             @mouseenter="openFlyout(group.label, group.children, $event)"
             @mouseleave="scheduleHide"
           >
             <AppIcon v-if="sidebarCollapsed" :name="group.icon || 'menuicon'" class="side-icon" />
             <span class="section-label">{{ group.label }}</span>
-          </div>
-          <div class="section-body">
+            <svg class="section-chevron" :class="{ rotated: isGroupExpanded(group) }" width="14" height="14" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <div v-show="isGroupExpanded(group)" class="section-body">
             <template v-for="node in group.children" :key="node.key">
               <!-- 展开节点（有 children，无 route） -->
               <div v-if="node.children && !node.route" class="side-group">
@@ -420,12 +422,13 @@ function filterNode(node: NavNode, query: string): NavNode | null {
   return null
 }
 
-const filteredGroups = computed(() => {
+/** 按使用群体 / 岗位过滤后的分组（不含搜索） */
+const visibleGroups = computed<NavGroup[]>(() => {
   // 系统角色用户 → 按 systemRole 过滤（忽略岗位）
   const sysRole = userStore.systemRole
   if (sysRole) {
     const roleKey = sysRole // 'platform-ops' | 'platform-admin'
-    const roleFiltered = NAV_GROUPS
+    return NAV_GROUPS
       .filter(group => {
         if (group.visibleTo && group.visibleTo.length > 0) {
           return group.visibleTo.includes(roleKey)
@@ -437,18 +440,12 @@ const filteredGroups = computed(() => {
         children: filterNodesByPosition(group.children, [roleKey]),
       }))
       .filter(g => g.children.length > 0)
-
-    const q = searchQuery.value.trim()
-    if (!q) return roleFiltered
-    return roleFiltered
-      .map(group => filterGroup(group, q))
-      .filter(g => g.children.length > 0)
   }
 
   // 普通用户 → 先按使用群体过滤分组，再按岗位过滤子节点
   const groups = userStore.currentGroups
   const positionKeys = [userStore.currentPositionKey]
-  const positionFiltered = NAV_GROUPS
+  return NAV_GROUPS
     .filter(group => {
       if (group.visibleTo && group.visibleTo.length > 0) {
         // 群体分组：按企业 groups（或岗位 group 兜底）匹配
@@ -461,15 +458,78 @@ const filteredGroups = computed(() => {
       children: filterNodesByPosition(group.children, positionKeys),
     }))
     .filter(g => g.children.length > 0)
+})
 
+const filteredGroups = computed<NavGroup[]>(() => {
   // Step 2: 搜索过滤
   const q = searchQuery.value.trim()
-  if (!q) return positionFiltered
+  if (!q) return visibleGroups.value
 
-  return positionFiltered
+  return visibleGroups.value
     .map(group => filterGroup(group, q))
     .filter(g => g.children.length > 0)
 })
+
+// ===== 一级菜单（分组）展开/折叠 =====
+
+/** 用户手动展开过的一级菜单 */
+const userOpenedGroupKeys = ref<Set<string>>(new Set())
+/** 用户手动收起过的一级菜单（优先级最高） */
+const userClosedGroupKeys = ref<Set<string>>(new Set())
+/** 当前路由所在的一级菜单 */
+const activeGroupKey = ref('')
+
+/** 可见分组中的第一个 */
+const firstVisibleGroupKey = computed(() => visibleGroups.value[0]?.key ?? '')
+
+/**
+ * 一级菜单是否展开（不含搜索强开）。
+ * 优先级：手动收起 > 手动展开 > 当前页所在分组 > 默认第一个可见分组。
+ */
+function isGroupExpandedNormally(group: NavGroup): boolean {
+  // 手动收起
+  if (userClosedGroupKeys.value.has(group.key)) return false
+  // 手动展开
+  if (userOpenedGroupKeys.value.has(group.key)) return true
+  // 当前页所在分组：保证当前页菜单项可见
+  if (activeGroupKey.value === group.key) return true
+  // 默认展开第一个
+  return group.key === firstVisibleGroupKey.value
+}
+
+/** 一级菜单是否展开：搜索时强开，保证匹配项可见 */
+function isGroupExpanded(group: NavGroup): boolean {
+  if (searchQuery.value.trim()) return true
+  return isGroupExpandedNormally(group)
+}
+
+/** 展开/收起一级菜单 */
+function toggleGroup(group: NavGroup): void {
+  const nextOpened = new Set(userOpenedGroupKeys.value)
+  const nextClosed = new Set(userClosedGroupKeys.value)
+  if (isGroupExpandedNormally(group)) {
+    nextOpened.delete(group.key)
+    nextClosed.add(group.key)
+  } else {
+    nextClosed.delete(group.key)
+    nextOpened.add(group.key)
+  }
+  userOpenedGroupKeys.value = nextOpened
+  userClosedGroupKeys.value = nextClosed
+}
+
+/**
+ * 路由跳转到某分组时重新展开该分组。
+ * 不写入 userOpenedGroupKeys —— 离开该分组后自动收起，避免分组逐个堆叠常开。
+ */
+function expandGroupByRoute(groupKey: string): void {
+  if (!groupKey) return
+  if (userClosedGroupKeys.value.has(groupKey)) {
+    const next = new Set(userClosedGroupKeys.value)
+    next.delete(groupKey)
+    userClosedGroupKeys.value = next
+  }
+}
 
 // ===== 节点展开/折叠 =====
 function toggleExpand(key: string): void {
@@ -496,15 +556,27 @@ function onMixedNodeClick(node: NavNode): void {
   toggleExpand(node.key)
 }
 
-/** 分组标题点击：跳到 defaultRoute（如果存在），同时展开分组 */
+/**
+ * 分组标题点击：展开/折叠该一级菜单。
+ * 侧栏收起态（仅图标）下分组体被 CSS 隐藏，此时点击改为展开侧栏并展开该分组。
+ */
 function onGroupClick(group: NavGroup): void {
-  if (group.defaultRoute) {
-    if (!expandedKeys.value.includes(group.key)) {
-      expandedKeys.value.push(group.key)
-    }
-    activeNavKey.value = group.key
-    router.push(group.defaultRoute)
+  if (sidebarCollapsed.value) {
+    sidebarCollapsed.value = false
+    expandGroup(group)
+    return
   }
+  toggleGroup(group)
+}
+
+/** 展开指定一级菜单（清除其手动收起标记） */
+function expandGroup(group: NavGroup): void {
+  const nextOpened = new Set(userOpenedGroupKeys.value)
+  const nextClosed = new Set(userClosedGroupKeys.value)
+  nextClosed.delete(group.key)
+  nextOpened.add(group.key)
+  userOpenedGroupKeys.value = nextOpened
+  userClosedGroupKeys.value = nextClosed
 }
 
 // ===== 折叠态悬浮菜单（flyout） =====
@@ -608,7 +680,11 @@ function syncMenuFromRoute(): void {
 
   // 2. 自动展开父级
   const ancestors = findAncestors(navKey)
+  // 所在一级菜单跟随当前页展开（当前页的菜单项需要可见）
+  activeGroupKey.value = ancestors ? ancestors.groupKey : ''
   if (ancestors) {
+    // 用户手动收起过该分组时，路由跳转后重新展开
+    expandGroupByRoute(ancestors.groupKey)
     // 展开父节点
     for (const parentKey of ancestors.parentKeys) {
       if (!expandedKeys.value.includes(parentKey)) {
@@ -816,6 +892,7 @@ if (typeof window !== 'undefined') {
   display: flex; align-items: center; gap: 8px;
   width: 100%; padding: 8px 10px;
   border: none; background: none; cursor: pointer;
+  font-family: inherit;
   font-size: 15px; font-weight: 700; color: #1f2329;
   letter-spacing: 0.5px;
   text-align: left; border-radius: var(--radius-sm, 6px);

@@ -123,7 +123,6 @@ interface NavGroup {
   key: string
   label: string
   icon?: string
-  defaultOpen: boolean
   children: NavNode[]
 }
 
@@ -162,7 +161,9 @@ interface NavGroup {
 | 动作 | 行为 |
 |------|------|
 | 点击分组标题 | 切换 children 显隐，chevron 旋转 |
+| 默认状态 | 展开第一个可见分组（当前页所在分组同时展开） |
 | 路由切换 | 当前路由所在的父级分组和父级节点自动展开 |
+| 搜索时 | 命中的分组强制展开 |
 
 ### 5.4 收起模式（≤1280px）
 

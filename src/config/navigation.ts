@@ -34,10 +34,7 @@ export interface NavGroup {
   key: string
   label: string
   icon?: string
-  defaultOpen: boolean
   children: NavNode[]
-  /** 分组默认路由：点击分组标题/默认跳转入口；缺省 = 仅展开不跳转 */
-  defaultRoute?: string
   /** 使用群体标签白名单：regulator|unit|operator|service，缺省 = 全员可见 */
   visibleTo?: string[]
 }
@@ -61,7 +58,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'regulator',
     label: '区域监管',
     icon: 'dashboard',
-    defaultOpen: true,
     visibleTo: ['regulator'],
     children: [
       {
@@ -110,7 +106,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-hazard',
     label: '隐患排查治理',
     icon: 'menuicon-29',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       // 模块介绍（分组首项，进入该分组的明确入口）
@@ -182,7 +177,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-patrol',
     label: '巡查检查',
     icon: 'menuicon-25',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-patrol-home', label: '首页', icon: 'menuicon-48', route: '/unit/patrol' },
@@ -215,7 +209,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-collab-work',
     label: '协同工作',
     icon: 'menuicon-2',
-    defaultOpen: false,
     visibleTo: ['unit'],
     children: [
       {
@@ -240,7 +233,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'device-facility',
     label: '设备设施管理',
     icon: 'menuicon-46',
-    defaultOpen: true,
     children: [
       { key: 'df-ledger', label: '设备台账', icon: 'menuicon-31', route: '/device-facility/ledger' },
       {
@@ -309,7 +301,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-overview',
     label: '安全概览',
     icon: 'chart',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-dashboard', label: '安全态势', icon: 'menuicon-48', route: '/unit/dashboard' },
@@ -324,7 +315,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-duty-emergency',
     label: '值守与应急',
     icon: 'alarm',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-duty-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/duty' },
@@ -386,7 +376,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-training-drill',
     label: '培训与演练',
     icon: 'book',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-training-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/training' },
@@ -420,7 +409,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-fire-maintenance',
     label: '消防维保',
     icon: 'tools',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-maint-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/maintenance' },
@@ -449,7 +437,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-special-work',
     label: '特种作业管理',
     icon: 'secured',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-special-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/special-work' },
@@ -493,7 +480,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-safety-archive',
     label: '安全档案',
     icon: 'folder',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-archive-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/safety-archive' },
@@ -528,7 +514,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-project',
     label: '项目管理',
     icon: 'shop',
-    defaultOpen: true,
     visibleTo: ['unit'],
     children: [
       { key: 'unit-project-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/projects' },
@@ -568,7 +553,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'unit-settings',
     label: '单位设置',
     icon: 'setting',
-    defaultOpen: false,
     visibleTo: ['unit'],
     children: [
       {
@@ -667,7 +651,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'operator',
     label: '项目管理',
     icon: 'building',
-    defaultOpen: true,
     visibleTo: ['operator'],
     children: [
       {
@@ -714,7 +697,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'service',
     label: '技术服务',
     icon: 'rocket',
-    defaultOpen: false,
     visibleTo: ['service'],
     children: [
       {
@@ -761,7 +743,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'platform-ops',
     label: '运营管理',
     icon: 'setting',
-    defaultOpen: false,
     visibleTo: ['platform-ops'],
     children: [
       {
@@ -820,7 +801,6 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'platform-admin',
     label: '平台管理',
     icon: 'server',
-    defaultOpen: false,
     visibleTo: ['platform-admin', 'platform-ops'],
     children: [
       {

@@ -27,7 +27,7 @@ interface NavNode {
 |---|------|---------|
 | 1 | **不该看的看到了** | 维保工程师看到 `⚙️ 平台管理` 下有租户管理、用户管理、岗位管理 |
 | 2 | **该看的找不到** | 企业管理员需要"企业成员"入口，但 M1 没地方放——它不属于 `系统管理` |
-| 3 | **静态过滤不够** | `defaultOpen` 只控制默认展开/折叠，不控制可见性——维保工程师点开照样看到系统管理 |
+| 3 | **静态过滤不够** | 展开/折叠只控制默认展开状态，不控制可见性——维保工程师点开照样看到系统管理 |
 | 4 | **缺乏统一标准** | 每新增一个需限制的菜单，都要 ad-hoc 处理，没有复用逻辑 |
 
 ### 1.3 本方案目标
@@ -108,7 +108,6 @@ export interface NavGroup {
   key: string
   label: string
   icon?: string
-  defaultOpen: boolean
   children: NavNode[]
   visibleTo?: string[]  // 🆕 控制整个分组
 }
@@ -170,7 +169,6 @@ function isVisible(node, userPositionKeys):
   key: 'platform-admin',
   label: '平台管理',
   icon: 'admin',
-  defaultOpen: false,
   visibleTo: [
     'platform-admin',           // 平台管理员（看全部）
     'org-admin',                // 通用企业管理员（只看企业管理）
