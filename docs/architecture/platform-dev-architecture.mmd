@@ -1,0 +1,86 @@
+%% 人工智能 + 智能安全管控平台 · 平台分层框架图（全中文版）
+%% 用途：粘贴到 mermaid.live / 语雀 / 飞书文档 中直接渲染
+%% 读法：从下往上看。每层只使用它下面一层的东西；带 ★ 的两层是全团队共用的接口
+flowchart TB
+
+  subgraph L6["第 6 层 · 使用界面 —— 用户看到和操作的界面"]
+    direction LR
+    A1["电脑网页端"]
+    A2["监管大屏"]
+    A3["企业驾驶舱"]
+    A4["对外门户网站"]
+    A5["智能助手对话页"]
+    A6["手机端<br/>暂未建设"]
+  end
+
+  subgraph L5["第 5 层 · 系统组装 —— 把页面组装成一个完整系统"]
+    direction LR
+    B1["页面地址与跳转"]
+    B2["左侧菜单导航"]
+    B3["页面整体版式"]
+    B4["岗位权限控制"]
+    B5["主题与单位切换"]
+  end
+
+  subgraph L4["第 4 层 · 业务功能 —— 每个业务一块，写法统一"]
+    direction LR
+    C1["已建业务<br/>工单 · 隐患 · 设备 · 维保 · 巡查<br/>复工复产 · 项目管理 · 租户与人员"]
+    C2["统一套路<br/>新增业务不用重新设计结构<br/>照现有模块的样子复制一套即可"]
+  end
+
+  subgraph L3["第 3 层 · 平台能力 ★ —— 做一次，所有业务反复使用"]
+    direction LR
+    D1["流程编排<br/>办事过程画成流程图<br/>谁办多久都可设定"]
+    D2["动态表单<br/>业务人员自己画表单<br/>各步骤填不同内容"]
+    D3["台账与查询<br/>各类台账共用一套<br/>查询、筛选和翻页"]
+    D4["数据看板<br/>首页卡片自由搭配<br/>不同岗位看不同内容"]
+    D5["可视化大屏<br/>大屏统一框架<br/>换主题换数据即可复用"]
+    D6["权限控制<br/>按岗位决定能看什么<br/>能改哪些内容"]
+    D7["通用组件库<br/>跨业务复用的界面零件<br/>改一处全生效"]
+    D8["智能助手<br/>内置对话助手<br/>按提示词和技能清单编排"]
+  end
+
+  subgraph L2["第 2 层 · 数据读写 ★ —— 业务不直接碰后端和数据库"]
+    direction LR
+    E1["统一读写入口<br/>所有业务用同一套方式取数和存数"]
+    E2["演示与正式可切换<br/>没有后端也能跑，接真后端业务代码不用改"]
+    E3["后端固定四步<br/>接请求、校验、处理业务、读写数据库"]
+    E4["文件与影像<br/>图片和附件的统一上传入口"]
+  end
+
+  subgraph L1["第 1 层 · 运行基础 —— 程序跑起来依赖的东西"]
+    direction LR
+    F1["网页运行环境"]
+    F2["后端服务程序"]
+    F3["业务数据库"]
+    F4["图片附件存储"]
+    F5["一条命令启动前后端"]
+  end
+
+  subgraph EXT["扩展点 —— 要做新东西时，先找到该动哪一层"]
+    direction LR
+    X1["新增业务模块<br/>从第 4 层入手<br/>照现有模块复制一套，再挂进菜单"]
+    X2["新增首页卡片<br/>从第 3 层入手<br/>做一个卡片，登记进卡片清单"]
+    X3["新增大屏<br/>从第 3 层入手<br/>做一版页面，登记进清单并挂入口"]
+    X4["新增平台通用能力<br/>放进第 3 层<br/>供所有业务共用，别写进某个业务里"]
+    X5["新增后端接口<br/>从第 2 层入手<br/>按固定四步往后加"]
+  end
+
+  L1 --> L2 --> L3 --> L4 --> L5 --> L6
+  EXT -.-> L3
+
+  classDef deliver fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#5b21b6
+  classDef assemble fill:#eef2ff,stroke:#4f46e5,stroke-width:1.5px,color:#3730a3
+  classDef domain fill:#ecfeff,stroke:#0891b2,stroke-width:1.5px,color:#155e75
+  classDef engine fill:#eff6ff,stroke:#2563eb,stroke-width:2.5px,color:#1e3a8a
+  classDef access fill:#ecfdf5,stroke:#059669,stroke-width:2.5px,color:#065f46
+  classDef runtime fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,color:#475569
+  classDef ext fill:#fffbeb,stroke:#d97706,stroke-width:1.5px,color:#92400e
+
+  class A1,A2,A3,A4,A5,A6 deliver
+  class B1,B2,B3,B4,B5 assemble
+  class C1,C2 domain
+  class D1,D2,D3,D4,D5,D6,D7,D8 engine
+  class E1,E2,E3,E4 access
+  class F1,F2,F3,F4,F5 runtime
+  class X1,X2,X3,X4,X5 ext

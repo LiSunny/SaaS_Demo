@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>平台分层框架图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1254px; overflow: hidden;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: #fff; color: #1f2937; padding: 18px 34px 16px;
+    display: flex; flex-direction: column; gap: 16px; justify-content: space-between; -webkit-font-smoothing: antialiased;
+  }
+
+  header { flex: none; display: flex; align-items: baseline; padding-bottom: 12px; border-bottom: 3px solid #1e3a8a; }
+  .h-left { display: flex; align-items: baseline; gap: 22px; }
+  h1 { font-size: 38px; font-weight: 800; color: #0f172a; letter-spacing: 1px; }
+  .h-sub { font-size: 19px; color: #64748b; font-weight: 500; }
+
+  /* 层 */
+  .band { border-radius: 12px; border: 2px solid; overflow: hidden; display: flex; flex: none; }
+  .side { width: 232px; flex: none; color: #fff; padding: 16px; display: flex; flex-direction: column; justify-content: center; }
+  .side .no { font-size: 14px; font-weight: 800; opacity: .95; letter-spacing: 1px; }
+  .side .nm { font-size: 21px; font-weight: 800; margin: 4px 0 7px; letter-spacing: .5px; }
+  .side .st { font-size: 14px; opacity: .92; font-weight: 500; line-height: 1.3; }
+  .main { flex: 1; padding: 17px 18px; display: flex; flex-direction: column; justify-content: center; gap: 11px; }
+  .note { font-size: 13.5px; color: #64748b; font-weight: 500; line-height: 1.35; }
+  .note b { color: #334155; font-weight: 800; }
+
+  /* 行标签：上面一行是场景，下面一行是业务域 */
+  .rlabel { width: 84px; flex: none; font-size: 14.5px; font-weight: 800; color: #5b21b6; display: flex; flex-direction: column; justify-content: center; line-height: 1.25; letter-spacing: .3px; }
+  .rlabel i { font-style: normal; font-size: 11px; font-weight: 600; color: #a78bfa; letter-spacing: 0; }
+  .drow { display: flex; gap: 12px; align-items: stretch; }
+
+  /* L5 第一行：使用方 → 场景，每个场景写清管什么 */
+  .ucards { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .ucard { border: 1.5px solid #c4b5fd; border-radius: 10px; background: #fff; padding: 24px 20px; display: flex; flex-direction: column; }
+  .ucard .un { font-size: 19px; font-weight: 800; color: #5b21b6; letter-spacing: .3px; margin-bottom: 12px; }
+  .ucard .ul { font-size: 15.5px; font-weight: 800; color: #7c3aed; line-height: 1.5; margin-bottom: 10px; }
+  .ucard .ud { font-size: 15.5px; color: #4c1d95; font-weight: 500; line-height: 1.9; }
+  .ucard .ud b { color: #5b21b6; font-weight: 800; }
+
+  /* L5 第二行：业务域 → 能力 */
+  .domains { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .dcard { border: 1.5px solid #c4b5fd; border-radius: 10px; background: #fff; padding: 18px 12px; display: flex; flex-direction: column; gap: 5px; }
+  .dcard .dn { font-size: 16.5px; font-weight: 800; color: #5b21b6; letter-spacing: .3px; display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+  .dcard .badge { background: #7c3aed; font-size: 11.5px; font-weight: 800; color: #fff; border-radius: 8px; padding: 1.5px 7px; white-space: nowrap; flex: none; }
+  .dcard .dm { font-size: 13px; color: #64748b; line-height: 1.4; font-weight: 500; }
+  .dcard .dm b { color: #7c3aed; font-weight: 800; margin-right: 5px; }
+
+  /* 芯片行 */
+  .chips { display: flex; gap: 10px; }
+  .chip { border-radius: 8px; padding: 10px 18px; font-size: 18px; font-weight: 600; border: 1.5px solid; background: #fff; white-space: nowrap; }
+  .chip.dim { font-size: 14.5px; padding: 8px 14px; font-weight: 500; }
+
+  /* 五层配色 */
+  .b-l5 { border-color: #8b5cf6; } .b-l5 .side { background: #7c3aed; } .b-l5 .main { background: #f5f3ff; } .b-l5 .chip { border-color: #c4b5fd; color: #5b21b6; }
+  .b-l4 { border-color: #06b6d4; } .b-l4 .side { background: #0891b2; } .b-l4 .main { background: #ecfeff; } .b-l4 .chip { border-color: #67e8f9; color: #155e75; }
+  .b-l3 { border-color: #2563eb; border-width: 3px; box-shadow: 0 5px 18px rgba(37,99,235,.16); }
+  .b-l3 .side { background: linear-gradient(120deg, #1d4ed8, #2563eb); } .b-l3 .main { background: #eff6ff; }
+  .b-l2 { border-color: #059669; } .b-l2 .side { background: #059669; } .b-l2 .main { background: #ecfdf5; } .b-l2 .chip { border-color: #6ee7b7; color: #065f46; }
+  .b-l1 { border-color: #94a3b8; } .b-l1 .side { background: #64748b; } .b-l1 .main { background: #f8fafc; } .b-l1 .chip { border-color: #cbd5e1; color: #475569; }
+
+  /* L1 / L2 能力卡：名称 + 一句说明，撑住这两层的分量 */
+  .caps { display: flex; gap: 12px; }
+  .cap { flex: 1; border: 1.5px solid; border-radius: 9px; background: #fff; padding: 8px 14px; }
+  .cap .cn { font-size: 17px; font-weight: 800; letter-spacing: .3px; }
+  .cap .cd { font-size: 13px; color: #64748b; font-weight: 500; margin-top: 3px; line-height: 1.35; }
+  .b-l4 .cap { border-color: #67e8f9; } .b-l4 .cap .cn { color: #0e7490; }
+  .b-l2 .cap { border-color: #6ee7b7; } .b-l2 .cap .cn { color: #047857; }
+  .b-l1 .cap { border-color: #cbd5e1; } .b-l1 .cap .cn { color: #475569; }
+
+  /* L3 内部：9 个引擎 */
+  .engines { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .eng { border: 1.5px solid #93c5fd; border-left: 4px solid #2563eb; border-radius: 9px; background: #fff; padding: 11px 16px; }
+  .eng .en { font-size: 18px; font-weight: 800; color: #1d4ed8; letter-spacing: .5px; }
+  .eng .ed { font-size: 14px; color: #64748b; font-weight: 500; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <h1>平台分层框架图</h1>
+    <div class="h-sub">一层一层搭起来 · 9 个引擎撑起全部业务场景</div>
+  </div>
+</header>
+
+<!-- L5 业务域与场景层 -->
+<section class="band b-l5">
+  <div class="side">
+    <div class="no">⑤ 场景</div>
+    <div class="nm">L5 业务域与场景层</div>
+    <div class="st">域级模型＋业务场景</div>
+  </div>
+  <div class="main">
+    <div class="drow">
+      <span class="rlabel">管理场景<i>谁在用 · 管什么</i></span>
+      <div class="ucards">
+        <div class="ucard">
+          <div class="un">监管方</div>
+          <div class="ul">管「辖区单位安不安全、达不达标」</div>
+          <div class="ud">对下级单位下<b>检查任务</b>、现场打分取证；对超期未整改的隐患<b>自动督办升级</b>，重复问题<b>挂牌考核</b>；按周期把数据成表、审核后<b>向上报送</b>。</div>
+        </div>
+        <div class="ucard">
+          <div class="un">社会单位</div>
+          <div class="ul">管「自己楼宇、厂区、学校的消防安全」</div>
+          <div class="ud">消防设施<b>建档</b>并管住维保与到期；日常<b>防火巡查</b>与隐患<b>排查治理</b>；危险作业<b>线上审批</b>与现场监护；设备<b>告警初判</b>；预案、演练与应急指挥。</div>
+        </div>
+        <div class="ucard">
+          <div class="un">运营商</div>
+          <div class="ul">管「受托替客户把安全整体运行起来」</div>
+          <div class="ud">承接消防工程建设与<b>项目交付</b>；一个值班中心<b>集中值守</b>多个单位；维保工单按区域技能<b>派工</b>、超时自动改派；按合同做<b>履约考核</b>与结算。</div>
+        </div>
+        <div class="ucard">
+          <div class="un">平台方</div>
+          <div class="ul">管「这个平台本身怎么被配置」</div>
+          <div class="ud"><b>建租户</b>与单位部门；开停用户并配<b>岗位与数据权限</b>；可视化编排大屏、维护流程与表单模板；维护告警阈值、编号规则等<b>平台参数</b>。</div>
+        </div>
+      </div>
+    </div>
+    <div class="drow">
+      <span class="rlabel">业务域<i>提供什么</i></span>
+      <div class="domains">
+        <div class="dcard">
+          <div class="dn">消防资源<span class="badge">管物</span></div>
+          <div class="dm"><b>能力</b> 资产建账 · 维保管理 · 到期提醒</div>
+        </div>
+        <div class="dcard">
+          <div class="dn">风险防控<span class="badge">事前</span></div>
+          <div class="dm"><b>能力</b> 隐患登记 · 分级判定 · 整改闭环 · 作业审批</div>
+        </div>
+        <div class="dcard">
+          <div class="dn">应急响应<span class="badge">事后</span></div>
+          <div class="dm"><b>能力</b> 预案管理 · 演练管理 · 指挥调度 · 响应留痕</div>
+        </div>
+        <div class="dcard">
+          <div class="dn">运营服务<span class="badge">受托</span></div>
+          <div class="dm"><b>能力</b> 项目交付 · 集中值守 · 派工调度 · 履约考核</div>
+        </div>
+        <div class="dcard">
+          <div class="dn">监督管理<span class="badge">监管</span></div>
+          <div class="dm"><b>能力</b> 现场检查 · 超时督办 · 数据报送</div>
+        </div>
+        <div class="dcard">
+          <div class="dn">平台运营<span class="badge">运营</span></div>
+          <div class="dm"><b>能力</b> 租户组织 · 用户岗位 · 流程表单配置</div>
+        </div>
+      </div>
+    </div>
+    <div class="note">上面一行是<b>场景</b>（谁在用、管什么），下面一行是<b>业务域</b>（归哪个域、提供哪些能力）；本层同时承载两样东西：<b>域内复用的模型与规则</b>（写一次供本域多个场景用），以及由 <b>7 项配置 ＋ 域级逻辑</b>组装出的场景 —— 不是纯配置，也不该下推到 L3</div>
+  </div>
+</section>
+
+<!-- L4 交互视图层 -->
+<section class="band b-l4">
+  <div class="side">
+    <div class="no">④ 页面</div>
+    <div class="nm">L4 交互视图层</div>
+    <div class="st">建设中</div>
+  </div>
+  <div class="main">
+    <div class="caps">
+      <div class="cap"><div class="cn">列表</div><div class="cd">表格视图，列与操作按场景配</div></div>
+      <div class="cap"><div class="cn">表单</div><div class="cd">字段、校验与权限由业务自绘</div></div>
+      <div class="cap"><div class="cn">看板</div><div class="cd">组件拖拽，指标卡按场景选</div></div>
+      <div class="cap"><div class="cn">大屏</div><div class="cd">可视化编排，轮播与下钻</div></div>
+      <div class="cap"><div class="cn">工作台</div><div class="cd">待办、快捷入口按角色拼装</div></div>
+      <div class="cap"><div class="cn">移动端</div><div class="cd">同一套视图的窄屏形态</div></div>
+    </div>
+    <div class="note">6 种形状，列 / 字段 / 按钮按场景配；<b>表单已通用，列表 / 详情 / 看板待通用化</b> —— 本层如实标注「建设中」，不写复用比例</div>
+  </div>
+</section>
+
+<!-- L3 业务引擎层（支点） -->
+<section class="band b-l3">
+  <div class="side">
+    <div class="no">③ 核心</div>
+    <div class="nm">★ L3 业务引擎层</div>
+    <div class="st">写一次，反复复用</div>
+  </div>
+  <div class="main">
+    <div class="engines">
+      <div class="eng"><div class="en">数字台账</div><div class="ed">对象、关系、生命周期、指标</div></div>
+      <div class="eng"><div class="en">流程编排</div><div class="ed">模板、节点、流转、指派、时限</div></div>
+      <div class="eng"><div class="en">动态表单</div><div class="ed">设计器、运行时渲染、字段校验</div></div>
+      <div class="eng"><div class="en">策略执行</div><div class="ed">触发、动作、留痕</div></div>
+      <div class="eng"><div class="en">规则引擎</div><div class="ed">条件、判定、结论</div></div>
+      <div class="eng"><div class="en">消息中心</div><div class="ed">模板、通道、送达回执</div></div>
+      <div class="eng"><div class="en">任务调度</div><div class="ed">周期计划自动生成任务、超时催办</div></div>
+      <div class="eng"><div class="en">统计服务</div><div class="ed">指标、口径、取数</div></div>
+      <div class="eng"><div class="en">报表引擎</div><div class="ed">模板、出报、报送</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- L2 数据与集成层 -->
+<section class="band b-l2">
+  <div class="side">
+    <div class="no">② 数据</div>
+    <div class="nm">L2 数据与集成层</div>
+    <div class="st">原料</div>
+  </div>
+  <div class="main">
+    <div class="caps">
+      <div class="cap"><div class="cn">台账主数据</div><div class="cd">设备、隐患、人员等业务对象的地基</div></div>
+      <div class="cap"><div class="cn">时序告警</div><div class="cd">烟感与设备的持续读数、原始告警流</div></div>
+      <div class="cap"><div class="cn">物联接入</div><div class="cd">设备协议适配、边缘网关、断点续传</div></div>
+      <div class="cap"><div class="cn">外部系统</div><div class="cd">政务平台、单点登录、第三方接口</div></div>
+    </div>
+    <div class="note">引擎通过 L2 读写数据，不直接碰数据库和设备协议；<b>AI 识别、研判、问答的产物同样是一种数据，统一从「物联接入」进入</b>，不单独成条</div>
+  </div>
+</section>
+
+<!-- L1 平台底座 -->
+<section class="band b-l1">
+  <div class="side">
+    <div class="no">① 地基</div>
+    <div class="nm">L1 平台底座</div>
+    <div class="st">公共支撑</div>
+  </div>
+  <div class="main">
+    <div class="caps">
+      <div class="cap"><div class="cn">租户与组织</div><div class="cd">多租户隔离、单位与部门层级</div></div>
+      <div class="cap"><div class="cn">用户与身份</div><div class="cd">账号、岗位、一人多单位、登录认证</div></div>
+      <div class="cap"><div class="cn">权限</div><div class="cd">功能 / 数据 / 管理三层判定统一收口</div></div>
+      <div class="cap"><div class="cn">审计与留痕</div><div class="cd">操作、登录、数据变更全程可回溯</div></div>
+      <div class="cap"><div class="cn">系统配置</div><div class="cd">字典、编号规则、参数与菜单路由</div></div>
+    </div>
+    <div class="note">任何一种部署都躲不掉的公共支撑 —— 谁能看、谁能改、每步留痕，上面四层都建在它上面</div>
+  </div>
+</section>
+
+</body>
+</html>

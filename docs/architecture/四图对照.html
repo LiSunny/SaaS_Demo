@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>四种架构图对照 · 人工智能 + 智能安全管控平台</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+    background: #f1f5f9; color: #1f2937; padding: 40px 32px 80px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1440px; margin: 0 auto; }
+  h1 { font-size: 32px; font-weight: 800; color: #0f172a; }
+  .sub { font-size: 16px; color: #64748b; margin-top: 8px; }
+
+  .pick { background: #fff; border-radius: 14px; padding: 22px 26px; margin: 26px 0 34px; border: 1px solid #e2e8f0; }
+  .pick h2 { font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  th { background: #f8fafc; font-weight: 800; color: #334155; font-size: 13.5px; }
+  td b { color: #1d4ed8; }
+  .yes { color: #059669; font-weight: 800; }
+  .no { color: #b0b8c4; font-weight: 800; }
+
+  .fig { background: #fff; border-radius: 14px; padding: 22px 26px 26px; margin-bottom: 26px; border: 1px solid #e2e8f0; }
+  .fig .fh { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .fig .num { font-size: 13px; font-weight: 800; color: #fff; background: #2563eb; border-radius: 6px; padding: 3px 10px; letter-spacing: 1px; }
+  .fig .name { font-size: 23px; font-weight: 800; color: #0f172a; }
+  .fig .use { font-size: 14px; color: #64748b; }
+  .fig .desc { font-size: 15px; color: #475569; line-height: 1.6; margin: 10px 0 16px; }
+  .fig .desc b { color: #1d4ed8; }
+  .fig img { width: 100%; display: block; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .fig .src { font-size: 13px; color: #94a3b8; margin-top: 10px; }
+  code { background: #f1f5f9; border-radius: 4px; padding: 1px 6px; font-size: 13px; color: #334155; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>四种架构图对照</h1>
+  <div class="sub">人工智能 + 智能安全管控平台 ｜ 同一套内容，四种画法，给四种场合用</div>
+
+  <div class="pick">
+    <h2>什么时候用哪张</h2>
+    <table>
+      <tr>
+        <th style="width:15%">图</th>
+        <th style="width:26%">回答什么问题</th>
+        <th style="width:16%">给谁看</th>
+        <th style="width:43%">典型场合</th>
+      </tr>
+      <tr>
+        <td><b>图一 · 产品能力全景图</b></td>
+        <td>平台有什么能力、能支撑哪些场景</td>
+        <td>客户、领导、售前</td>
+        <td>对外介绍、售前材料、领导汇报第一页 —— 「一屏看清我们有什么」</td>
+      </tr>
+      <tr>
+        <td><b>图二 · 应用架构图</b></td>
+        <td>平台由哪几个应用组成、分别给谁用、共用什么</td>
+        <td>客户、产品、项目管理</td>
+        <td>讲产品结构、划功能边界、讨论「这个需求该放进哪个应用」</td>
+      </tr>
+      <tr>
+        <td><b>图三 · 部署架构图</b></td>
+        <td>装在哪里、请求怎么走、出问题看哪里</td>
+        <td>运维、客户技术对接</td>
+        <td>交付部署、故障定位、安全与运维评审</td>
+      </tr>
+      <tr>
+        <td><b>图四 · 分层架构图</b></td>
+        <td>系统怎么一层层搭起来、新功能该写哪层</td>
+        <td>研发</td>
+        <td>新人上手、代码评审、判断「这事该动哪一层」</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="fig">
+    <div class="fh">
+      <span class="num">图 一</span>
+      <span class="name">产品能力全景图</span>
+      <span class="use">给客户 / 领导 / 售前</span>
+    </div>
+    <div class="desc">自上而下四段：<b>使用端 → 场景应用 → 平台能力中心 → 技术底座</b>。
+      视觉重点是中间那句「以上全部场景，都由下面四个能力中心拼装出来」—— 想强调的是<b>能力是资产、场景是产物</b>。</div>
+    <img src="fig1-panorama.png" alt="产品能力全景图">
+    <div class="src">源文件：<code>fig1-panorama.html</code> ｜ 导出：<code>node docs/architecture/render.mjs fig1</code></div>
+  </div>
+
+  <div class="fig">
+    <div class="fh">
+      <span class="num">图 二</span>
+      <span class="name">应用架构图</span>
+      <span class="use">给客户 / 产品 / 项目管理</span>
+    </div>
+    <div class="desc">按<b>应用系统分栏</b>，不按层堆叠。六个应用并排，每栏写清「给谁用」和「有哪些功能模块」；
+      下方是它们共用的服务与数据，最后一条链路说明<b>一件事会在几个应用之间流转</b>。
+      好处是讨论需求边界时能直接指着某一栏说「这属于哪个应用」。</div>
+    <img src="fig2-application.png" alt="应用架构图">
+    <div class="src">源文件：<code>fig2-application.html</code> ｜ 导出：<code>node docs/architecture/render.mjs fig2</code></div>
+  </div>
+
+  <div class="fig">
+    <div class="fh">
+      <span class="num">图 三</span>
+      <span class="name">部署架构图</span>
+      <span class="use">给运维 / 客户技术对接</span>
+    </div>
+    <div class="desc">按<b>一次访问经过的五段</b>自上而下排：用户访问 → 接入层 → 应用层 → 数据与外部服务 → 运维与发布。
+      每段都说清「装在哪、出问题看哪里」，并标注了当前规模是<b>一台云服务器、单进程、单数据库文件</b>，
+      以及将来扩容该拆什么。</div>
+    <img src="fig3-deployment.png" alt="部署架构图">
+    <div class="src">源文件：<code>fig3-deployment.html</code> ｜ 导出：<code>node docs/architecture/render.mjs fig3</code></div>
+  </div>
+
+  <div class="fig">
+    <div class="fh">
+      <span class="num">图 四</span>
+      <span class="name">分层架构图（研发视角）</span>
+      <span class="use">给研发</span>
+    </div>
+    <div class="desc">六层自下而上，每层三块信息：<b>是什么 → 有什么 → 给上一层什么</b>。
+      第三块是这张图的灵魂，它说明「上层凭什么能用下层」。底部还有一张<b>扩展点表</b>：
+      要做新东西时先找到该动哪一层。图面全部中文，代码位置另见说明文档。</div>
+    <img src="fig4-layered.png" alt="分层架构图">
+    <div class="src">源文件：<code>platform-dev-architecture.html</code> ｜ 导出：<code>node docs/architecture/render.mjs fig4</code></div>
+  </div>
+
+</div>
+</body>
+</html>

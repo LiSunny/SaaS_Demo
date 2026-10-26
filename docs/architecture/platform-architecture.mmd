@@ -1,0 +1,83 @@
+%% 人工智能 + 智能安全管控平台 · 核心能力架构
+%% 用途：粘贴到 mermaid.live / 语雀 / 飞书文档 中直接渲染，或按需改动
+%% 状态图例：● 已具备   ◐ 部分具备   ○ 待建
+flowchart TB
+
+  subgraph L5["L5 · 应用场景层 —— 谁在用、用来做什么（应是配置产物，不是开发项目）"]
+    direction LR
+    S1["区域监管<br/>大屏 · 报表 · 督办 · 考核"]
+    S2["社会单位<br/>隐患 · 巡查 · 设备 · 维保<br/>告警 · 危险作业 · 培训 · 食安"]
+    S3["运营商<br/>项目总览 · 列表 · 交付 · 工单"]
+    S4["技术服务机构<br/>接单 · 合同 · 台账 · 报告"]
+    S5["平台运营<br/>租户 · 用户 · 岗位 · 大屏 · 类型注册"]
+  end
+
+  subgraph L4["L4 · 交互视图层 —— 看见什么、怎么操作"]
+    direction LR
+    V1["工作台 Widget 装配 ●"]
+    V2["可视化大屏模板 ●"]
+    V3["报表与导出 ◐"]
+    V4["列表与详情页 ◐"]
+    V5["消息与待办 ◐"]
+    V6["移动端 / 断网执行 ○"]
+  end
+
+  subgraph L3["L3 · 业务引擎层 —— 平台核心资产，写一次反复用 ★"]
+    direction LR
+    E1["数字台账 ◐<br/>对象 · 关系 · 生命周期 · 指标"]
+    E2["流程编排 ●<br/>模板 · 节点 · 流转 · 指派 · SLA"]
+    E3["动态表单 ●<br/>设计器 · 运行时 · 字段权限三态"]
+    E4["策略执行 ○<br/>触发 · 判断 · 处置 · 升级 · 留痕"]
+    E5["规则引擎 ○<br/>校验 · 联动 · 分级 · 阈值"]
+    E6["消息中心 ◐<br/>模板 · 通道 · 送达回执"]
+    E7["任务调度 ◐<br/>周期计划 · 定时提醒 · 超时催办"]
+    E8["报表引擎 ◐<br/>取数 · 模板 · 周期出报 · 报送"]
+  end
+
+  subgraph L2["L2 · 数据与集成层 —— 动什么数据、连什么设备"]
+    direction LR
+    D1["台账主数据 ●"]
+    D2["IoT 设备接入 ◐"]
+    D3["时序与告警数据 ◐"]
+    D4["外部系统 / 开放 API ◐"]
+    D5["AI 能力 ◐"]
+    D6["文件与影像证据 ◐"]
+  end
+
+  subgraph L1["L1 · 技术底座 —— 跑在哪"]
+    direction LR
+    T1["云资源与容器"]
+    T2["数据库与对象存储"]
+    T3["API 网关"]
+    T4["消息队列"]
+    T5["GIS 与地理信息"]
+    T6["日志与运行监控"]
+  end
+
+  subgraph GOV["治理主线 —— 贯穿 L2 – L5"]
+    direction LR
+    G1["多租户隔离"]
+    G2["角色与数据权限"]
+    G3["全链路审计留痕"]
+    G4["配置版本与发布"]
+  end
+
+  L1 --> L2 --> L3 --> L4 --> L5
+  L3 -. 配置化生成 .-> L5
+  GOV -.-> L3
+  GOV -.-> L4
+  GOV -.-> L5
+
+  classDef scene fill:#f5f3ff,stroke:#7c3aed,stroke-width:1.5px,color:#4c1d95
+  classDef view fill:#ecfeff,stroke:#0891b2,stroke-width:1.5px,color:#155e75
+  classDef engine fill:#eff6ff,stroke:#2563eb,stroke-width:2.5px,color:#1e3a8a
+  classDef data fill:#ecfdf5,stroke:#059669,stroke-width:1.5px,color:#065f46
+  classDef base fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,color:#475569
+  classDef gov fill:#fffbeb,stroke:#d97706,stroke-width:1.5px,color:#92400e
+
+  class S1,S2,S3,S4,S5 scene
+  class V1,V2,V3,V4,V5,V6 view
+  class E1,E2,E3,E4,E5,E6,E7,E8 engine
+  class D1,D2,D3,D4,D5,D6 data
+  class T1,T2,T3,T4,T5,T6 base
+  class G1,G2,G3,G4 gov

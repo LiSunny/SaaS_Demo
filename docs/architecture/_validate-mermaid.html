@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>mermaid 语法校验</title></head>
+<body>
+<pre id="out">running…</pre>
+<!--
+  离线 mermaid 语法校验页（不需要联网 / 不需要 mmdc）。
+  复用仓库里已打包的 mermaid：docs/工单管理/mermaid-inline.js
+  由 validate-mermaid.mjs 通过 addInitScript 注入 window.__MMD__ 后再读取结果。
+-->
+<script src="../工单管理/mermaid-inline.js"></script>
+<script>
+(async () => {
+  const out = document.getElementById('out')
+  try {
+    const mermaid = window.__esbuild_esm_mermaid_nm.mermaid.default
+    mermaid.initialize({ startOnLoad: false })
+    await mermaid.parse(window.__MMD__ || '')
+    window.__RESULT__ = 'PARSE_OK'
+  } catch (e) {
+    window.__RESULT__ = 'PARSE_FAIL: ' + (e && e.message ? e.message : String(e))
+  }
+  out.textContent = window.__RESULT__
+})()
+</script>
+</body>
+</html>

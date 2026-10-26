@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>图二 · 应用架构图</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; }
+  body {
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+    background: #fff; color: #1f2937; padding: 30px 40px 26px;
+    display: flex; flex-direction: column; gap: 12px; -webkit-font-smoothing: antialiased;
+  }
+
+  header { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 12px; border-bottom: 3px solid #1e3a8a; }
+  .h-left { display: flex; align-items: baseline; gap: 16px; }
+  h1 { font-size: 34px; font-weight: 800; color: #0f172a; }
+  h1 em { font-style: normal; color: #2563eb; }
+  .h-sub { font-size: 18px; color: #64748b; font-weight: 500; }
+  .tag { background: #eff6ff; border: 2px solid #2563eb; border-radius: 9px; padding: 7px 16px; font-size: 16px; font-weight: 700; color: #1d4ed8; }
+
+  .band { border-radius: 12px; border: 2px solid; overflow: hidden; }
+  .band-head { display: flex; align-items: center; gap: 12px; padding: 8px 16px; color: #fff; }
+  .band-head .bt { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+  .band-head .bd { font-size: 13.5px; opacity: .92; margin-left: auto; font-weight: 500; }
+  .band-body { padding: 15px 16px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; }
+  .chip { border-radius: 8px; padding: 10px 17px; font-size: 16.5px; font-weight: 600; border: 1.5px solid; background: #fff; }
+
+  /* 应用系统分栏 */
+  .apps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .app { border: 2px solid #2563eb; border-radius: 10px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+  .app .ah { background: #1d4ed8; color: #fff; padding: 10px 12px; }
+  .app .an { font-size: 17.5px; font-weight: 800; line-height: 1.25; }
+  .app .au { font-size: 12.5px; margin-top: 4px; } opacity: .9; margin-top: 3px; }
+  .app .ab { padding: 12px 10px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+  .mod { font-size: 14.5px; font-weight: 600; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 8px 10px; text-align: center; }
+  .mod.plan { color: #94a3b8; background: #f8fafc; border-color: #e2e8f0; font-weight: 500; }
+
+  /* 配色 */
+  .b-user { border-color: #8b5cf6; }
+  .b-user .band-head { background: #7c3aed; }
+  .b-user .band-body { background: #f5f3ff; }
+  .b-user .chip { border-color: #c4b5fd; color: #5b21b6; }
+
+  .b-app { border-color: #2563eb; border-width: 3px; box-shadow: 0 5px 18px rgba(37,99,235,.16); }
+  .b-app .band-head { background: linear-gradient(120deg, #1d4ed8, #2563eb); }
+  .b-app .band-body { background: #eff6ff; }
+
+  .b-share { border-color: #06b6d4; }
+  .b-share .band-head { background: #0891b2; }
+  .b-share .band-body { background: #ecfeff; }
+  .b-share .chip { border-color: #67e8f9; color: #155e75; }
+
+  .b-data { border-color: #10b981; }
+  .b-data .band-head { background: #059669; }
+  .b-data .band-body { background: #ecfdf5; }
+  .b-data .chip { border-color: #6ee7b7; color: #065f46; }
+
+  .chain { display: flex; align-items: stretch; gap: 10px; }
+  .step {
+    flex: 1; border: 1.5px solid #6ee7b7; border-radius: 9px; background: #fff;
+    padding: 11px 14px; font-size: 16px; font-weight: 800; color: #065f46; line-height: 1.3;
+  }
+  .step small { display: block; font-size: 12.5px; font-weight: 500; color: #64748b; margin-top: 4px; }
+  .to { display: flex; align-items: center; font-size: 22px; color: #94a3b8; }
+  .b-flow { border-color: #10b981; }
+  .b-flow .band-head { background: #059669; }
+  .b-flow .band-body { background: #ecfdf5; }
+
+  .legend { display: flex; gap: 18px; align-items: center; font-size: 13px; color: #64748b; font-weight: 600; padding-top: 2px; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <h1>人工智能 + 智能安全管控<em>平台</em></h1>
+    <div class="h-sub">应用架构图 —— 平台由哪几个应用组成、每个应用给谁用、共用什么</div>
+  </div>
+  <div class="tag">按「应用系统」看，不按层看</div>
+</header>
+
+<!-- 使用对象 -->
+<section class="band b-user">
+  <div class="band-head"><span class="bt">使用对象</span><span class="bd">下面这些应用分别服务谁</span></div>
+  <div class="band-body">
+    <div class="chips">
+      <span class="chip">监管机构（教育局 / 应急局 / 市监局 / 街道）</span>
+      <span class="chip">社会单位（学校 / 企业 / 商户 / 物业）</span>
+      <span class="chip">运营商（项目管理方）</span>
+      <span class="chip">技术服务机构（维保 / 检测 / 评估）</span>
+      <span class="chip">平台运营方</span>
+    </div>
+  </div>
+</section>
+
+<!-- 应用系统 -->
+<section class="band b-app">
+  <div class="band-head"><span class="bt">应用系统</span><span class="bd">每个应用是一个独立入口，功能模块就是用户看到的一级菜单</span></div>
+  <div class="band-body">
+    <div class="apps">
+      <div class="app">
+        <div class="ah"><div class="an">区域监管应用</div><div class="au">给监管机构 · 电脑端 + 大屏</div></div>
+        <div class="ab">
+          <div class="mod">态势总览</div>
+          <div class="mod">智能报表</div>
+          <div class="mod">超时督办</div>
+          <div class="mod">红黑榜考核</div>
+          <div class="mod">监管检查</div>
+          <div class="mod plan">白名单管理</div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="ah"><div class="an">单位安全管理应用</div><div class="au">给社会单位 · 电脑端</div></div>
+        <div class="ab">
+          <div class="mod">隐患排查治理</div>
+          <div class="mod">巡查检查</div>
+          <div class="mod">设备管理</div>
+          <div class="mod">维保管理</div>
+          <div class="mod">告警处置</div>
+          <div class="mod plan">危险作业</div>
+          <div class="mod plan">培训演练</div>
+          <div class="mod plan">食品安全</div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="ah"><div class="an">项目管理应用</div><div class="au">给运营商 · 电脑端</div></div>
+        <div class="ab">
+          <div class="mod plan">项目总览</div>
+          <div class="mod plan">项目列表</div>
+          <div class="mod plan">成员交付</div>
+          <div class="mod plan">项目工单</div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="ah"><div class="an">技术服务应用</div><div class="au">给技术服务机构 · 电脑端</div></div>
+        <div class="ab">
+          <div class="mod">工单接单</div>
+          <div class="mod">维保计划</div>
+          <div class="mod">维保记录</div>
+          <div class="mod plan">维保合同</div>
+          <div class="mod plan">服务报告</div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="ah"><div class="an">对外门户应用</div><div class="au">给客户与访客 · 电脑端</div></div>
+        <div class="ab">
+          <div class="mod">平台定位</div>
+          <div class="mod">应用场景</div>
+          <div class="mod">案例展示</div>
+          <div class="mod">AI 能力</div>
+          <div class="mod">大屏预览</div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="ah"><div class="an">智能助手应用</div><div class="au">给各角色 · 电脑端</div></div>
+        <div class="ab">
+          <div class="mod">对话问答</div>
+          <div class="mod">数据查询</div>
+          <div class="mod plan">报表解读</div>
+          <div class="mod plan">隐患图片识别</div>
+          <div class="mod plan">语音交互</div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eff6ff;border:1px solid #bfdbfe"></span>已建成</span>
+      <span><span class="dot" style="background:#f8fafc;border:1px solid #e2e8f0"></span>规划中（菜单已占位，页面待建设）</span>
+      <span>手机端相关功能整体仍在规划中</span>
+    </div>
+  </div>
+</section>
+
+<!-- 共享服务 -->
+<section class="band b-share">
+  <div class="band-head"><span class="bt">共享服务</span><span class="bd">六个应用共用同一套能力，不各做一套</span></div>
+  <div class="band-body">
+    <div class="chips">
+      <span class="chip">流程编排</span>
+      <span class="chip">动态表单</span>
+      <span class="chip">数字台账</span>
+      <span class="chip">任务调度</span>
+      <span class="chip">消息通知</span>
+      <span class="chip">权限控制</span>
+      <span class="chip">文件与影像</span>
+      <span class="chip">数据看板</span>
+      <span class="chip">可视化大屏</span>
+      <span class="chip">智能助手</span>
+    </div>
+  </div>
+</section>
+
+<!-- 数据资源 -->
+<section class="band b-data">
+  <div class="band-head"><span class="bt">数据资源</span><span class="bd">所有应用共用同一份数据，不各存一份</span></div>
+  <div class="band-body">
+    <div class="chips">
+      <span class="chip">单位与人员数据</span>
+      <span class="chip">设备与点位数据</span>
+      <span class="chip">业务过程数据（工单 / 隐患 / 巡查 / 维保）</span>
+      <span class="chip">设备运行与告警数据</span>
+      <span class="chip">图片与附件</span>
+      <span class="chip">操作日志与留痕</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- 应用之间怎么协同 -->
+<section class="band b-flow">
+  <div class="band-head"><span class="bt">应用之间怎么协同</span><span class="bd">一件事从发现到处置，会在几个应用之间流转</span></div>
+  <div class="band-body">
+    <div class="chain">
+      <span class="step">单位安全管理应用<br><small>发现问题，拍照上报</small></span>
+      <span class="to">➜</span>
+      <span class="step">区域监管应用<br><small>看到态势，超时督办</small></span>
+      <span class="to">➜</span>
+      <span class="step">技术服务应用<br><small>接单上门，处置留痕</small></span>
+      <span class="to">➜</span>
+      <span class="step">数据回到大屏与报表<br><small>结果自动汇总，不用人工报</small></span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

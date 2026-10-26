@@ -9,6 +9,7 @@
 ---
 
 ## 一、平台总体
+- ⭐ [平台使用场景与用户分类](使用场景与用户分类.md) — **用户口径唯一事实源**（五类使用主体 × 使用场景）
 - [平台总体设计](design/biz-design.md)
 - [四方用户导航与体验账号设计](四方用户导航与体验账号设计.md)
 - [应用场景总览](应用场景总览.md)
@@ -16,6 +17,20 @@
 - [平台介绍PPT大纲](平台介绍PPT大纲.md)
 - [功能结构排查分析](功能结构排查分析.md)
 - [文档书写原则](文档书写原则.md)
+- **平台架构图** ⭐ 架构图说明(选图 + 看图 + 讲图 + 改图)
+  - [架构图说明](architecture/平台架构图说明.md) — 含"四种架构图怎么选"对照表
+  - [四图对照.html](architecture/四图对照.html) — **一页看全四张图**（浏览器打开）
+  - ⭐ [平台底座介绍.md](architecture/平台底座介绍.md) — L1 的概述 / 5 组能力详解 / 建设顺序 / FAQ
+  - ⭐ [业务域与场景层介绍.md](architecture/应用场景层介绍.md) — L5 的概述 / **业务域·场景·域级模型三概念与判定** / 6 业务域 21 场景 + 7 行业解决方案包 / FAQ
+  - ⭐ [业务引擎层介绍.md](architecture/业务引擎层介绍.md) — L3 的概述 / 9 个引擎核心能力详解 / FAQ
+  - [业务引擎层文案.md](architecture/业务引擎层文案.md) — 图面文案的唯一来源
+  - **图一 · 产品能力全景图**(客户/领导/售前) — [PNG](architecture/fig1-panorama.png) / [HTML 源](architecture/fig1-panorama.html)
+  - **图二 · 应用架构图**(按应用系统分栏) — [PNG](architecture/fig2-application.png) / [HTML 源](architecture/fig2-application.html)
+  - **图三 · 部署架构图**(运维/技术对接) — [PNG](architecture/fig3-deployment.png) / [HTML 源](architecture/fig3-deployment.html)
+  - **图四 · 分层架构图**(研发视角，全中文) — [PNG](architecture/fig4-layered.png) / [HTML 源](architecture/platform-dev-architecture.html) / [Mermaid](architecture/platform-dev-architecture.mmd)
+  - **能力架构图**(五层能力 + 建设现状 ●◐○) — [16:9 PNG](architecture/platform-architecture.png) / [竖版长图](architecture/platform-architecture-portrait.png)
+    - [横版 HTML](architecture/platform-architecture.html) / [竖版 HTML](architecture/platform-architecture-portrait.html) / [Mermaid](architecture/platform-architecture.mmd)
+  - 工具:[导出脚本](architecture/render.mjs) / [Mermaid 语法校验](architecture/validate-mermaid.mjs)
 
 ---
 
