@@ -233,7 +233,77 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2c. 安全管理（社会单位：学校/企业/商户/物业） =====
+  // ===== 2c. 设备设施管理（设备台账 / 保养 / 运行监控 / 报表 / 日志 / 规则 / 推送） =====
+  // 菜单名称与层级对齐平台「设备管理」模块（智慧消防云平台，实测 2026-10-26，港南二中租户）
+  // 平台「首页」「使用手册」不纳入
+  {
+    key: 'device-facility',
+    label: '设备设施管理',
+    icon: 'menuicon-46',
+    defaultOpen: true,
+    children: [
+      { key: 'df-ledger', label: '设备台账', icon: 'menuicon-31', route: '/device-facility/ledger' },
+      {
+        key: 'df-maintenance',
+        label: '保养管理',
+        icon: 'menuicon-32',
+        children: [
+          { key: 'df-maint-standard', label: '保养规范', route: '/device-facility/maintenance/standard' },
+          { key: 'df-maint-plans', label: '保养计划', route: '/device-facility/maintenance/plans' },
+          { key: 'df-maint-tasks', label: '保养任务', route: '/device-facility/maintenance/tasks' },
+          { key: 'df-maint-records', label: '保养记录', route: '/device-facility/maintenance/records' },
+        ],
+      },
+      {
+        key: 'df-monitor',
+        label: '运行监控',
+        icon: 'menuicon-33',
+        children: [
+          { key: 'df-monitor-status', label: '状态监控', route: '/device-facility/monitor/status' },
+          { key: 'df-monitor-scene', label: '场景监控', route: '/device-facility/monitor/scene' },
+        ],
+      },
+      {
+        key: 'df-report',
+        label: '报表与报告',
+        icon: 'menuicon-35',
+        children: [
+          { key: 'df-report-alarm', label: '告警分析报告', route: '/device-facility/report/alarm' },
+          { key: 'df-report-device', label: '设备运行报表', route: '/device-facility/report/device' },
+        ],
+      },
+      {
+        key: 'df-log',
+        label: '系统日志',
+        icon: 'menuicon-36',
+        children: [
+          { key: 'df-log-event', label: '事件日志', route: '/device-facility/log/event' },
+        ],
+      },
+      {
+        key: 'df-rule',
+        label: '规则配置',
+        icon: 'menuicon-38',
+        children: [
+          { key: 'df-rule-custom-event', label: '自定义事件', route: '/device-facility/rule/custom-event' },
+          { key: 'df-rule-plan-point', label: '平面图描点', route: '/device-facility/rule/plan-point' },
+          { key: 'df-rule-data-fetch', label: '数据拉取', route: '/device-facility/rule/data-fetch' },
+          { key: 'df-rule-data-push', label: '数据推送', route: '/device-facility/rule/data-push' },
+          { key: 'df-rule-strategy', label: '策略执行器', route: '/device-facility/rule/strategy' },
+        ],
+      },
+      {
+        key: 'df-notify',
+        label: '消息推送',
+        icon: 'menuicon-39',
+        children: [
+          { key: 'df-notify-alarm-push', label: '告警推送', route: '/device-facility/notify/alarm-push' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 2d. 安全管理（社会单位：学校/企业/商户/物业） =====
   {
     key: 'unit-daily',
     label: '安全管理',
@@ -322,7 +392,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2d. 安全管理 — 单位设置（社会单位管理员） =====
+  // ===== 2e. 安全管理 — 单位设置（社会单位管理员） =====
   {
     key: 'unit-settings',
     label: '单位设置',
@@ -654,6 +724,23 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/unit/patrol/reports': 'unit-patrol-reports',
   '/unit/patrol/notices': 'unit-patrol-notices',
   '/unit/patrol': 'unit-patrol-home',
+  // 设备设施管理：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/device-facility/ledger': 'df-ledger',
+  '/device-facility/maintenance/standard': 'df-maint-standard',
+  '/device-facility/maintenance/plans': 'df-maint-plans',
+  '/device-facility/maintenance/tasks': 'df-maint-tasks',
+  '/device-facility/maintenance/records': 'df-maint-records',
+  '/device-facility/monitor/status': 'df-monitor-status',
+  '/device-facility/monitor/scene': 'df-monitor-scene',
+  '/device-facility/report/alarm': 'df-report-alarm',
+  '/device-facility/report/device': 'df-report-device',
+  '/device-facility/log/event': 'df-log-event',
+  '/device-facility/rule/custom-event': 'df-rule-custom-event',
+  '/device-facility/rule/plan-point': 'df-rule-plan-point',
+  '/device-facility/rule/data-fetch': 'df-rule-data-fetch',
+  '/device-facility/rule/data-push': 'df-rule-data-push',
+  '/device-facility/rule/strategy': 'df-rule-strategy',
+  '/device-facility/notify/alarm-push': 'df-notify-alarm-push',
   '/collab/flow/template': 'collab-flow-template',  // 兼容旧路径：/collab/flow/* 已合并到 /system/*
   '/collab/flow/monitor': 'collab-monitor',
   '/landing': 'reg-bigscreen',
@@ -703,6 +790,22 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'unit-patrol-abnormal': '/unit/patrol/abnormal',
   'unit-patrol-reports': '/unit/patrol/reports',
   'unit-patrol-notices': '/unit/patrol/notices',
+  'df-ledger': '/device-facility/ledger',
+  'df-maint-standard': '/device-facility/maintenance/standard',
+  'df-maint-plans': '/device-facility/maintenance/plans',
+  'df-maint-tasks': '/device-facility/maintenance/tasks',
+  'df-maint-records': '/device-facility/maintenance/records',
+  'df-monitor-status': '/device-facility/monitor/status',
+  'df-monitor-scene': '/device-facility/monitor/scene',
+  'df-report-alarm': '/device-facility/report/alarm',
+  'df-report-device': '/device-facility/report/device',
+  'df-log-event': '/device-facility/log/event',
+  'df-rule-custom-event': '/device-facility/rule/custom-event',
+  'df-rule-plan-point': '/device-facility/rule/plan-point',
+  'df-rule-data-fetch': '/device-facility/rule/data-fetch',
+  'df-rule-data-push': '/device-facility/rule/data-push',
+  'df-rule-strategy': '/device-facility/rule/strategy',
+  'df-notify-alarm-push': '/device-facility/notify/alarm-push',
   'collab-flow-template': '/system/template',
   'collab-monitor': '/system/monitor',
   'collab-pending': '/collab/task/pending',

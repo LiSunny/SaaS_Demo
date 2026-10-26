@@ -196,6 +196,32 @@ const router = createRouter({
       ],
     },
 
+    // ===== 设备设施管理（菜单名称与层级对齐平台「设备管理」模块） =====
+    {
+      path: '/device-facility',
+      component: DefaultLayout,
+      children: [
+        // 真实页：复用设备台账与保养计划组件
+        { path: 'ledger', name: 'DeviceFacilityLedger', component: () => import('@/views/device/DeviceList.vue') },
+        { path: 'maintenance/plans', name: 'DeviceFacilityMaintenancePlans', component: () => import('@/views/maintenance/PlanList.vue') },
+        // 占位页：按 route.name 读取 src/views/device-facility/facility-pages.ts 配置渲染
+        { path: 'maintenance/standard', name: 'DeviceFacilityMaintenanceStandard', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'maintenance/tasks', name: 'DeviceFacilityMaintenanceTasks', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'maintenance/records', name: 'DeviceFacilityMaintenanceRecords', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'monitor/status', name: 'DeviceFacilityMonitorStatus', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'monitor/scene', name: 'DeviceFacilityMonitorScene', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'report/alarm', name: 'DeviceFacilityReportAlarm', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'report/device', name: 'DeviceFacilityReportDevice', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'log/event', name: 'DeviceFacilityLogEvent', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'rule/custom-event', name: 'DeviceFacilityRuleCustomEvent', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'rule/plan-point', name: 'DeviceFacilityRulePlanPoint', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'rule/data-fetch', name: 'DeviceFacilityRuleDataFetch', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'rule/data-push', name: 'DeviceFacilityRuleDataPush', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'rule/strategy', name: 'DeviceFacilityRuleStrategy', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        { path: 'notify/alarm-push', name: 'DeviceFacilityNotifyAlarmPush', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+      ],
+    },
+
     // ===== 跳转式域首页（>10 模块的大域，占位页，后续填充） =====
     {
       path: '/device',

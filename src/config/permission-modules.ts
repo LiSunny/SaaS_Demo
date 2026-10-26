@@ -22,6 +22,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     label: '设备与物联',
     modules: [
       { key: 'device', name: '设备管理' },
+      { key: 'device-facility', name: '设备设施管理' },
       { key: 'iot', name: 'IOT' },
       { key: 'maintain-app', name: '维保应用' },
     ],

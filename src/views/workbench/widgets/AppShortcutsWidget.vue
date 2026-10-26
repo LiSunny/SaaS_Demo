@@ -34,7 +34,7 @@ interface AppShortcut {
 }
 
 const apps = computed<AppShortcut[]>(() => [
-  { key: 'device',    label: '设备管理', icon: '🏭', route: '/maintenance/plans', ready: true },
+  { key: 'device',    label: '设备管理', icon: '🏭', route: '/device-facility/ledger', ready: true },
   { key: 'inspect',   label: '巡查检查', icon: '🔍', route: '/unit/patrol',       ready: true },
   { key: 'remote',    label: '远程值守', icon: '📡', route: '',                    ready: false },
   { key: 'maintain',  label: '维保应用', icon: '🔧', route: '/maintenance/plans', ready: true },
