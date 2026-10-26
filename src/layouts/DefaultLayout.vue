@@ -4,7 +4,7 @@
     <header class="top-header">
       <div class="logo-area">
         <img class="logo-icon" src="/favicon.svg" alt="平台logo" />
-        <span class="company-name">消防安全管理平台</span>
+        <span class="company-name">智能安全管控平台</span>
       </div>
 
       <div class="user-area">

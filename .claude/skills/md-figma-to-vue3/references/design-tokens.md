@@ -1,4 +1,4 @@
-# Design Tokens — 人工智能公共安全管理平台
+# Design Tokens — 智能安全管控平台
 
 > 来源：Figma `62lfkdpu51JTVjGo7pvHJk` Token JSON 导出，共 82 个 token。
 

@@ -5,11 +5,11 @@
       <div class="nav-inner">
         <a href="/portal" class="nav-brand">
           <img class="nav-logo" src="/favicon.svg" alt="logo" width="28" height="28" />
-          <span class="nav-name" :class="{ scrolled }">公共安全管理平台</span>
+          <span class="nav-name" :class="{ scrolled }">智能安全管控平台</span>
         </a>
         <div class="nav-links">
-          <a href="/portal#平台定位" class="nav-link" :class="{ scrolled }">平台定位</a>
-          <a href="/portal#应用场景" class="nav-link" :class="{ scrolled }">应用场景</a>
+          <a href="/portal#平台定位" class="nav-link" :class="{ scrolled }">使用场景</a>
+          <a href="/portal#应用场景" class="nav-link" :class="{ scrolled }">行业场景</a>
           <a href="/portal#案例展示" class="nav-link" :class="{ scrolled }">案例展示</a>
         </div>
         <div class="nav-actions">
@@ -171,10 +171,10 @@
         <div>
           <p class="ft-cta-label">开始使用</p>
           <h2 class="ft-cta-title">让安全管理从"被动响应"走向"主动智治"</h2>
-          <p class="ft-cta-sub">人工智能 + 公共安全管理平台 — 以大安全（消防 + 应急）为核心</p>
+          <p class="ft-cta-sub">人工智能 + 智能安全管控平台 — 以大安全（消防 + 应急）为核心</p>
           <div class="ft-cta-btns">
             <a href="/portal#应用场景" class="hero-btn-fill">
-              浏览应用场景
+              浏览行业场景
               <ArrowRight :size="14" style="margin-left:4px" />
             </a>
             <a href="#" class="hero-btn-ghost">联系商务团队</a>
@@ -185,7 +185,7 @@
         <div class="ft-links">
           <div class="ft-brand">
             <div class="ft-brand-icon"><img src="/favicon.svg" alt="logo" width="12" height="12" /></div>
-            <span class="ft-brand-name">公共安全管理平台</span>
+            <span class="ft-brand-name">智能安全管控平台</span>
             <p class="ft-brand-desc">以大安全为核心，赋能企业、教育、政务三大场景。</p>
             <div class="ft-contact">
               <span><Phone :size="10" color="rgba(54,120,227,0.7)" />xxx-xxx-xxx</span>
@@ -198,7 +198,7 @@
           </div>
         </div>
         <div class="ft-bottom">
-          <span>© 2026 人工智能 + 公共安全管理平台. All rights reserved.</span>
+          <span>© 2026 人工智能 + 智能安全管控平台. All rights reserved.</span>
           <span class="footer-divider">|</span>
           <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
         </div>
@@ -535,7 +535,7 @@ const mobileSrc = computed(() => MOBILE_SCREENSHOTS[current.value?.previewType |
 
 // ===== Footer =====
 const FOOTER_COLS = [
-  { title: '应用场景', links: ['校园安全', '工贸企业', '小商户安全监管'] },
+  { title: '行业场景', links: ['校园安全', '工贸企业', '小商户安全监管'] },
   { title: '功能模块', links: ['远程值守', '巡查检查', '隐患排查治理', 'AI 告警分析', '可视化大屏'] },
   { title: '技术', links: ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', '多端协同', 'API 文档'] },
   { title: '联系我们', links: ['预约演示', '商务合作', '技术支持', '关于平台'] },

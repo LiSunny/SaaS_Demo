@@ -1,8 +1,8 @@
 openapi: "3.0.3"
 info:
-  title: 韧性云 - 公共安全管理平台 API
+  title: 韧性云 - 智能安全管控平台 API
   description: |
-    韧性云公共安全管理平台后端接口文档。
+    韧性云 · 智能安全管控平台后端接口文档。
 
     ## 认证
     除登录接口外，大部分接口需 Bearer Token（JWT），在请求头中携带：

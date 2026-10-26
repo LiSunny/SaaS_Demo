@@ -6,7 +6,7 @@
     <header class="login-header">
       <div class="login-header-left">
         <img class="brand-logo" src="/favicon.svg" alt="平台logo" />
-        <span class="brand-name">公共安全管理平台</span>
+        <span class="brand-name">智能安全管控平台</span>
       </div>
     </header>
 
@@ -17,7 +17,7 @@
         <div class="hero-text">
           <h1 class="hero-title">
             <span class="hero-title--accent">人工智能+ </span>
-            <span class="hero-title--dark">公共安全管理平台</span>
+            <span class="hero-title--dark">智能安全管控平台</span>
           </h1>
           <p class="hero-subtitle">以AI观微知著 · 赋能韧性城市</p>
         </div>
@@ -34,7 +34,7 @@
       <!-- 右侧：登录卡片 -->
       <div class="login-form-area">
         <div class="login-card">
-          <h2 class="card-title">欢迎使用公共安全管理平台</h2>
+          <h2 class="card-title">欢迎使用智能安全管控平台</h2>
 
           <!-- 登录方式切换 -->
           <div class="login-mode-tabs">
@@ -194,7 +194,7 @@
 
     <!-- 底部版权 -->
     <footer class="login-footer">
-      <a href="/portal" target="_blank" class="footer-portal">关于公共安全管理平台</a>
+      <a href="/portal" target="_blank" class="footer-portal">关于智能安全管控平台</a>
       <div class="footer-copyright">
         <span>版权所有©️李阳的空间2026</span>
         <span class="footer-divider">|</span>

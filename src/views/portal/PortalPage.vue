@@ -5,14 +5,14 @@
       <div class="nav-inner">
         <a href="#" class="nav-brand">
           <img class="nav-logo" src="/favicon.svg" alt="logo" width="28" height="28" />
-          <span class="nav-name" :class="{ scrolled }">公共安全管理平台</span>
+          <span class="nav-name" :class="{ scrolled }">智能安全管控平台</span>
         </a>
         <div class="nav-links">
           <a href="/portal/agent-intro" class="nav-link nav-link-agent" :class="{ scrolled }">
             小安助手
             <span class="nav-agent-badge">NEW</span>
           </a>
-          <a v-for="l in navLinks" :key="l" :href="`#${l}`" class="nav-link" :class="{ scrolled }">{{ l }}</a>
+          <a v-for="l in navLinks" :key="l.id" :href="`#${l.id}`" class="nav-link" :class="{ scrolled }">{{ l.label }}</a>
           <a href="https://www.yuque.com/meiyouhoutaideyaoguai/nuwueb?# 《人工智能+公共安全管理平台》" target="_blank" rel="noopener" class="nav-link nav-link-manual" :class="{ scrolled }">使用手册</a>
         </div>
         <div class="nav-actions">
@@ -33,7 +33,7 @@
           </h1>
           <p class="hero-sub">覆盖教育、工业、城市治理三大领域，构建从单点管控到全域联动的完整安全治理体系</p>
           <div class="hero-btns">
-            <a href="#应用场景" class="hero-btn-fill"><span>了解应用场景</span><ArrowRight :size="15" /></a>
+            <a href="#应用场景" class="hero-btn-fill"><span>了解行业场景</span><ArrowRight :size="15" /></a>
             <a href="/login" class="hero-btn-ghost"><span>去体验</span><ArrowRight :size="15" /></a>
           </div>
         </div>
@@ -73,11 +73,11 @@
     <section id="平台定位" class="pos">
       <div class="sec-wrap">
         <div ref="posHead" class="pos-head reveal" :class="{ visible: posHeadV }">
-          <div class="sec-label"><span class="sec-label-line"></span>平台定位<span class="sec-label-line"></span></div>
+          <div class="sec-label"><span class="sec-label-line"></span>使用场景<span class="sec-label-line"></span></div>
           <h2 class="sec-title">安全管控生态体系</h2>
-          <p class="sec-desc">监管、执行、服务、运营四方协同，让每一方都拥有适合自己的安全管理方式</p>
+          <p class="sec-desc">监管、履责、托管、服务、居家——五类使用主体，各有各的安全管理方式</p>
         </div>
-        <!-- 四方用户 错落悬浮布局 -->
+        <!-- 五类使用主体 错落悬浮布局 -->
         <div class="pos-layout reveal" :style="{ transitionDelay: '80ms' }">
           <div
             v-for="(p, i) in POSITIONING"
@@ -102,9 +102,9 @@
     <section id="应用场景" class="scenarios-sec">
       <div class="sec-wrap">
         <div ref="scHead" class="reveal" :class="{ visible: scHeadV }" style="text-align:center; margin-bottom:36px;">
-          <div class="sec-label"><span class="sec-label-line"></span>应用场景<span class="sec-label-line"></span></div>
-          <h2 class="sec-title">核心应用场景</h2>
-          <p class="sec-desc">覆盖校园安全、工贸企业、小商户经营等典型场景，提供从日常巡检、隐患排查治理到应急响应的闭环解决方案</p>
+          <div class="sec-label"><span class="sec-label-line"></span>行业场景<span class="sec-label-line"></span></div>
+          <h2 class="sec-title">核心行业场景</h2>
+          <p class="sec-desc">覆盖校园安全、工贸企业、小商户经营等典型行业，提供从日常巡检、隐患排查治理到应急响应的闭环解决方案</p>
         </div>
         <!-- Content panel with horizontal slide -->
         <div class="sc-stage">
@@ -273,9 +273,9 @@
         <div ref="ftCta" class="reveal" :class="{ visible: ftCtaV }">
           <p class="ft-cta-label">开始使用</p>
           <h2 class="ft-cta-title">让安全管理从"被动响应"走向"主动智治"</h2>
-          <p class="ft-cta-sub">人工智能 + 公共安全管理平台 — 以大安全（消防 + 应急）为核心</p>
+          <p class="ft-cta-sub">人工智能 + 智能安全管控平台 — 以大安全（消防 + 应急）为核心</p>
           <div class="ft-cta-btns">
-            <a href="#应用场景" class="hero-btn-fill">浏览应用场景<ArrowRight :size="14" /></a>
+            <a href="#应用场景" class="hero-btn-fill">浏览行业场景<ArrowRight :size="14" /></a>
             <a href="#" class="hero-btn-ghost">联系商务团队</a>
           </div>
         </div>
@@ -284,7 +284,7 @@
         <div class="ft-links">
           <div class="ft-brand">
             <div class="ft-brand-icon"><img src="/favicon.svg" alt="logo" width="24" height="24" /></div>
-            <span class="ft-brand-name">公共安全管理平台</span>
+            <span class="ft-brand-name">智能安全管控平台</span>
             <p class="ft-brand-desc">以大安全为核心，赋能企业、教育、政务三大场景。</p>
             <div class="ft-contact">
               <span><Phone :size="10" color="rgba(54,120,227,0.7)" />xxx-xxx-xxx</span>
@@ -297,7 +297,7 @@
           </div>
         </div>
         <div class="ft-bottom">
-          <span>© 2026 人工智能 + 公共安全管理平台. All rights reserved.</span>
+          <span>© 2026 人工智能 + 智能安全管控平台. All rights reserved.</span>
           
           <a class="footer-icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026024061号-1</a>
         </div>
@@ -361,7 +361,13 @@ const copyExpUrl = async () => {
 
 // ===== Scroll & Nav =====
 const scrolled = ref(false)
-const navLinks = ['平台定位', '应用场景', 'AI 能力', '案例展示']
+// 锚点 id 保持不变（外部深链依赖），显示名随章节口径调整
+const navLinks = [
+  { id: '平台定位', label: '使用场景' },
+  { id: '应用场景', label: '行业场景' },
+  { id: 'AI 能力', label: 'AI 能力' },
+  { id: '案例展示', label: '案例展示' },
+]
 let scrollFn: () => void
 const anchorHandlers: Array<[HTMLAnchorElement, (e: Event) => void]> = []
 onMounted(() => {
@@ -387,7 +393,7 @@ onUnmounted(() => {
 })
 
 // ===== Hero =====
-const titleChars = '人工智能 + 公共安全管理平台'.split('')
+const titleChars = '人工智能 + 智能安全管控平台'.split('')
 
 // ===== Hero stack carousel =====
 import heroCampusImg from '@/assets/portal/hero-campus.png'
@@ -458,17 +464,19 @@ onMounted(() => {
 // ===== Trust Bar =====
 const TRUST_NUMS = [
   { num: '205', unit: '+', label: '台设备接入' },
-  { num: '3', unit: '类', label: '核心场景覆盖' },
+  { num: '3', unit: '类', label: '行业场景覆盖' },
   { num: '3', unit: '端', label: '多端协同' },
   { num: '4', unit: '种', label: '通信协议兼容' },
 ]
 
 // ===== Positioning =====
+// 五类使用主体 × 各自的使用场景 —— 口径以 docs/使用场景与用户分类.md 为准
 const POSITIONING = [
-  { tag: '区域监管', title: '监管机构', body: '面向应急局、教育局等监管单位，区域态势总览、联勤督办、监管检查、监管报告，一屏掌握辖区安全。', image: '/images/portal/regulator.png' },
-  { tag: '安全管理', title: '社会单位', body: '学校、企业、商户的日常安全履职：自查自管、隐患闭环整改、设备保养、培训演练，责任落地留痕。', image: '/images/portal/social-unit.png' },
-  { tag: '项目托管', title: '运营管理', body: '辅助用户管理消防安全，以项目为单位组织与交付——重点单位联网、九小场所管理，安全有人管、有人查。', image: '/images/portal/operator.png' },
+  { tag: '区域监管', title: '监管机构', body: '面向应急局等监管单位，区域态势总览、联勤督办、监管检查、监管报告，一屏掌握辖区安全。', image: '/images/portal/regulator.png' },
+  { tag: '安全管理', title: '社会单位', body: '学校、企业、集团、商户的日常安全履职：自查自管、隐患闭环整改、设备保养、培训演练，责任落地留痕。', image: '/images/portal/social-unit.png' },
   { tag: '技术服务', title: '服务机构', body: '维保、检测机构线上接单、现场处置、服务报告留痕，专业能力数字化，服务过程全程可追溯。', image: '/images/portal/service-tech.png' },
+  { tag: '项目托管', title: '运营商', body: '以项目为单位组织与交付——重点单位联网、九小场所管理、区域安全托管，受托代管一批单位的消防安全。', image: '/images/portal/operator.png' },
+  { tag: '居家安全', title: '家庭用户', body: '自购烟感、燃气报警等居家消防设备，接入平台建档；设备告警即时提醒，短信、电话多通道直达本人与家人。', image: '/images/portal/household.png' },
 ]
 
 // ===== Scenarios =====
@@ -618,7 +626,7 @@ watch(activeCaseTab, () => {
 
 // ===== Footer =====
 const FOOTER_COLS = [
-  { title: '应用场景', links: ['校园安全', '工贸企业', '小商户安全监管'] },
+  { title: '行业场景', links: ['校园安全', '工贸企业', '小商户安全监管'] },
   { title: '功能模块', links: ['远程值守', '巡查检查', '隐患排查治理', 'AI 告警分析', '可视化大屏'] },
   { title: '技术', links: ['MQTT 直连', 'TCP 直连', 'HTTP 订阅', '多端协同', 'API 文档'] },
   { title: '联系我们', links: ['预约演示', '商务合作', '技术支持', '关于平台'] },
@@ -796,15 +804,17 @@ html, body { margin: 0; padding: 0; }
 /* ===== Positioning ===== */
 .pos { padding: 80px 0; background: #fafafa; }
 @media (min-width: 640px) { .pos { padding: 112px 0; } }
+/* 五张卡需要更宽的容器，避免正文挤压 */
+.pos .sec-wrap { max-width: 1320px; }
 .pos-head { text-align: center; margin-bottom: 36px; }
 
-/* 四方用户 错落悬浮布局（中间高、两侧低，2.5D 空间感） */
+/* 五类使用主体 错落悬浮布局（中间高、两侧低，2.5D 空间感） */
 .pos-layout {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   gap: 24px;
-  max-width: 1180px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 28px 0 8px;
 }
@@ -813,16 +823,18 @@ html, body { margin: 0; padding: 0; }
   min-width: 0;
   transition: transform 0.3s ease;
 }
-/* 错落：两侧下沉、中间上浮 */
+/* 错落：两端下沉、两侧上浮、正中最高 */
 .pos-item-0 { transform: translateY(26px); }
 .pos-item-1 { transform: translateY(-16px); }
-.pos-item-2 { transform: translateY(-16px); }
-.pos-item-3 { transform: translateY(26px); }
+.pos-item-2 { transform: translateY(-24px); }
+.pos-item-3 { transform: translateY(-16px); }
+.pos-item-4 { transform: translateY(26px); }
 /* hover：轻微抬起，强调悬浮感 */
 .pos-item-0:hover { transform: translateY(20px); }
 .pos-item-1:hover { transform: translateY(-22px); }
-.pos-item-2:hover { transform: translateY(-22px); }
-.pos-item-3:hover { transform: translateY(20px); }
+.pos-item-2:hover { transform: translateY(-30px); }
+.pos-item-3:hover { transform: translateY(-22px); }
+.pos-item-4:hover { transform: translateY(20px); }
 
 .pos-item-imgwrap {
   border-radius: 14px;
@@ -866,19 +878,20 @@ html, body { margin: 0; padding: 0; }
   margin: 0;
 }
 
-/* 平板：2×2 错落 */
+/* 平板：3+2 错落，末行居中 */
 @media (max-width: 1000px) {
-  .pos-layout { flex-wrap: wrap; gap: 16px; max-width: 760px; }
-  .pos-item { flex: 0 0 calc(50% - 8px); }
+  .pos-layout { flex-wrap: wrap; gap: 16px; max-width: 900px; }
+  .pos-item { flex: 0 0 calc(33.333% - 11px); }
   .pos-item-0 { transform: translateY(12px); }
   .pos-item-1 { transform: translateY(-10px); }
   .pos-item-2 { transform: translateY(-10px); }
   .pos-item-3 { transform: translateY(12px); }
+  .pos-item-4 { transform: translateY(-10px); }
 }
 /* 移动端：单列 */
 @media (max-width: 640px) {
   .pos-layout { flex-direction: column; gap: 20px; padding-top: 8px; }
-  .pos-item, .pos-item-0, .pos-item-1, .pos-item-2, .pos-item-3 { transform: none; flex: none; }
+  .pos-item, .pos-item-0, .pos-item-1, .pos-item-2, .pos-item-3, .pos-item-4 { transform: none; flex: none; }
 }
 
 /* ===== Scenarios ===== */

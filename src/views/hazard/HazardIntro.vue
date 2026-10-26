@@ -5,7 +5,7 @@
       <div class="hi-wrap">
         <div class="hi-hero-grid">
           <div class="hi-hero-text">
-            <span class="hi-eyebrow"><span class="hi-eyebrow-dot"></span>消防安全管理平台 · 核心模块</span>
+            <span class="hi-eyebrow"><span class="hi-eyebrow-dot"></span>智能安全管控平台 · 核心模块</span>
             <h1 class="hi-hero-title">{{ hero.title }}</h1>
             <p class="hi-hero-sub">{{ hero.sub }}</p>
             <div class="hi-hero-stats">

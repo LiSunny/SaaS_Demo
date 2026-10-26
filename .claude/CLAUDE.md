@@ -1,4 +1,4 @@
-# maintenance-demo — 人工智能+公共安全管理平台（产品 Demo）
+# maintenance-demo — 人工智能+智能安全管控平台（产品 Demo）
 
 > Skill 调试验证项目。Skill 流水线、调试方法见[父目录 CLAUDE.md](../CLAUDE.md)。
 
