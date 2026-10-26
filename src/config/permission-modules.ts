@@ -13,7 +13,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
   {
     label: '监控与值守',
     modules: [
-      { key: 'remote-duty', name: '远程值守' },
+      { key: 'remote-duty', name: '值守与应急' },
       { key: 'data-visual', name: '数据可视化' },
       { key: 'order-mgmt', name: '工单管理' },
     ],
@@ -24,7 +24,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
       { key: 'device', name: '设备管理' },
       { key: 'device-facility', name: '设备设施管理' },
       { key: 'iot', name: 'IOT' },
-      { key: 'maintain-app', name: '维保应用' },
+      { key: 'maintain-app', name: '消防维保' },
     ],
   },
   {
@@ -32,7 +32,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     modules: [
       { key: 'patrol-inspect', name: '巡查检查' },
       { key: 'hazard-mgmt', name: '隐患排查治理' },
-      { key: 'danger-work', name: '危险作业' },
+      { key: 'danger-work', name: '特种作业管理' },
     ],
   },
   {
@@ -40,6 +40,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     modules: [
       { key: 'gov-mgmt', name: '政务管理' },
       { key: 'project-mgmt', name: '项目管理' },
+      { key: 'safety-archive', name: '安全档案' },
       { key: 'food-mgmt', name: '食品安全' },
     ],
   },

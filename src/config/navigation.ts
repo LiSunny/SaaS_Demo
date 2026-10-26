@@ -5,7 +5,7 @@
  *
  * 群体分组：
  *   regulator → 区域监管（监管机构）
- *   unit      → 安全管理（社会单位-普通）
+ *   unit      → 社会单位业务域（学校/企业/商户/物业）
  *   operator  → 项目管理（社会单位-运营商）
  *   service   → 技术服务（技术服务机构）
  *   platform  → 系统管理（平台方，按 systemRole）
@@ -303,43 +303,49 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 2d. 安全管理（社会单位：学校/企业/商户/物业） =====
+  // ===== 2d. 安全概览（社会单位：学校/企业/商户/物业） =====
+  // 原「安全管理›安全概览」升为独立一级菜单（安全管理一级菜单已解散）
   {
-    key: 'unit-daily',
-    label: '安全管理',
-    icon: 'shield',
+    key: 'unit-overview',
+    label: '安全概览',
+    icon: 'chart',
     defaultOpen: true,
     visibleTo: ['unit'],
     children: [
+      { key: 'unit-dashboard', label: '安全态势', icon: 'menuicon-48', route: '/unit/dashboard' },
+      { key: 'unit-data', label: '数据看板', icon: 'menuicon-47', route: '/unit/data' },
+      { key: 'unit-bigscreen', label: '可视化大屏', icon: 'menuicon-50', route: '/enterprise-cockpit' },
+    ],
+  },
+
+  // ===== 2e. 值守与应急（社会单位：值班员 / 安全管理员） =====
+  // 收拢原「安全管理›告警处置」「安全管理›消防监控」「安全管理›通知提醒」
+  {
+    key: 'unit-duty-emergency',
+    label: '值守与应急',
+    icon: 'alarm',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-duty-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/duty' },
       {
-        key: 'unit-overview',
-        label: '安全概览',
-        icon: 'menuicon-48',
+        key: 'unit-duty-mgmt',
+        label: '值守管理',
+        icon: 'menuicon-10',
         children: [
-          { key: 'unit-dashboard', label: '安全态势', route: '/unit/dashboard' },
-          { key: 'unit-data', label: '数据看板', route: '/unit/data' },
-          { key: 'unit-bigscreen', label: '可视化大屏', route: '/enterprise-cockpit' },
+          { key: 'unit-duty-schedule', label: '值班表', route: '/unit/duty/schedule' },
+          { key: 'unit-duty-records', label: '值班记录', route: '/unit/duty/records' },
+          { key: 'unit-duty-checkin', label: '到岗打卡', route: '/unit/duty/checkin' },
+          { key: 'unit-duty-handover', label: '交接班', route: '/unit/duty/handover' },
         ],
       },
       {
-        key: 'unit-device',
-        label: '设备管理',
-        icon: 'menuicon-45',
+        key: 'unit-alarm',
+        label: '告警处置',
+        icon: 'menuicon-24',
         children: [
-          { key: 'unit-device-ledger', label: '设备台账', route: '/device/list' },
-          { key: 'unit-device-maint-task', label: '保养任务', route: '/unit/device/tasks' },
-          { key: 'unit-device-maint-record', label: '保养记录', route: '/unit/device/records' },
-        ],
-      },
-      {
-        key: 'unit-maintenance',
-        label: '维保管理',
-        icon: 'menuicon-9',
-        children: [
-          { key: 'unit-maint-contract', label: '维保合同', route: '/unit/maintenance/contracts' },
-          { key: 'unit-maint-ledger', label: '维保台账', route: '/unit/maintenance/ledger' },
-          { key: 'unit-maint-record', label: '维保记录', route: '/unit/maintenance/records' },
-          { key: 'unit-maint-report', label: '维保报告', route: '/unit/maintenance/reports' },
+          { key: 'unit-alarm-list', label: '告警列表', route: '/unit/alarms' },
+          { key: 'unit-alarm-record', label: '处置记录', route: '/unit/alarms/records' },
         ],
       },
       {
@@ -354,31 +360,13 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
-        key: 'unit-alarm',
-        label: '告警处置',
-        icon: 'menuicon-24',
+        key: 'unit-emergency',
+        label: '应急管理',
+        icon: 'menuicon-13',
         children: [
-          { key: 'unit-alarm-list', label: '告警列表', route: '/unit/alarms' },
-          { key: 'unit-alarm-record', label: '处置记录', route: '/unit/alarms/records' },
-        ],
-      },
-      {
-        key: 'unit-danger',
-        label: '危险作业',
-        icon: 'menuicon-27',
-        children: [
-          { key: 'unit-danger-apply', label: '作业申请', route: '/unit/danger/apply' },
-          { key: 'unit-danger-record', label: '作业记录', route: '/unit/danger/records' },
-        ],
-      },
-      {
-        key: 'unit-training',
-        label: '培训演练',
-        icon: 'menuicon-6',
-        children: [
-          { key: 'unit-training-knowledge', label: '知识库', route: '/unit/training/knowledge' },
-          { key: 'unit-training-record', label: '培训记录', route: '/unit/training/records' },
-          { key: 'unit-training-exercise', label: '演练记录', route: '/unit/training/exercises' },
+          { key: 'unit-emergency-plan', label: '应急预案', route: '/unit/duty/emergency/plans' },
+          { key: 'unit-emergency-supplies', label: '应急物资', route: '/unit/duty/emergency/supplies' },
+          { key: 'unit-emergency-incident', label: '事件处置', route: '/unit/duty/emergency/incidents' },
         ],
       },
       {
@@ -389,6 +377,189 @@ export const NAV_GROUPS: NavGroup[] = [
           { key: 'unit-notify-list', label: '推送记录', route: '/unit/notifications' },
         ],
       },
+    ],
+  },
+
+  // ===== 2f. 培训与演练（社会单位：安全管理员 / 员工） =====
+  // 原「安全管理›培训演练」并入本模块
+  {
+    key: 'unit-training-drill',
+    label: '培训与演练',
+    icon: 'book',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-training-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/training' },
+      {
+        key: 'unit-training-mgmt',
+        label: '培训管理',
+        icon: 'menuicon-6',
+        children: [
+          { key: 'unit-training-plan', label: '培训计划', route: '/unit/training/plans' },
+          { key: 'unit-training-record', label: '培训记录', route: '/unit/training/records' },
+          { key: 'unit-training-exam', label: '培训考试', route: '/unit/training/exams' },
+        ],
+      },
+      {
+        key: 'unit-drill-mgmt',
+        label: '演练管理',
+        icon: 'menuicon-17',
+        children: [
+          { key: 'unit-drill-plan', label: '演练计划', route: '/unit/training/drills/plans' },
+          { key: 'unit-drill-record', label: '演练记录', route: '/unit/training/drills' },
+          { key: 'unit-drill-evaluation', label: '演练评估', route: '/unit/training/drills/evaluations' },
+        ],
+      },
+      { key: 'unit-training-knowledge', label: '知识库', icon: 'menuicon-11', route: '/unit/training/knowledge' },
+    ],
+  },
+
+  // ===== 2g. 消防维保（社会单位：业主视角，服务商按合同履约） =====
+  // 原「安全管理›维保管理」并入本模块，子项按 docs/维保管理 文档体例扩展
+  {
+    key: 'unit-fire-maintenance',
+    label: '消防维保',
+    icon: 'tools',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-maint-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/maintenance' },
+      {
+        key: 'unit-maint-mgmt',
+        label: '维保管理',
+        icon: 'menuicon-9',
+        children: [
+          { key: 'unit-maint-contract', label: '维保合同', route: '/unit/maintenance/contracts' },
+          { key: 'unit-maint-plan', label: '维保计划', route: '/unit/maintenance/plans' },
+          { key: 'unit-maint-task', label: '维保任务', route: '/unit/maintenance/tasks' },
+          { key: 'unit-maint-record', label: '维保记录', route: '/unit/maintenance/records' },
+          { key: 'unit-maint-report', label: '维保报告', route: '/unit/maintenance/reports' },
+        ],
+      },
+      { key: 'unit-maint-ledger', label: '维保台账', icon: 'menuicon-20', route: '/unit/maintenance/ledger' },
+      { key: 'unit-maint-standard', label: '维保标准库', icon: 'menuicon-21', route: '/unit/maintenance/standards' },
+      { key: 'unit-maint-fault', label: '故障与隐患', icon: 'menuicon-22', route: '/unit/maintenance/faults' },
+      { key: 'unit-maint-todo', label: '待办工作台', icon: 'menuicon-23', route: '/unit/maintenance/todo' },
+    ],
+  },
+
+  // ===== 2h. 特种作业管理（动火 / 焊接 / 高处 / 有限空间 / 临时用电） =====
+  // 原「安全管理›危险作业」并入本模块，按作业类型 + 作业流程 + 人员资质三条线组织
+  {
+    key: 'unit-special-work',
+    label: '特种作业管理',
+    icon: 'secured',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-special-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/special-work' },
+      {
+        key: 'unit-special-type',
+        label: '作业类型',
+        icon: 'menuicon-27',
+        children: [
+          { key: 'unit-special-hotwork', label: '动火作业', route: '/unit/special-work/hot-work' },
+          { key: 'unit-special-welding', label: '电焊作业', route: '/unit/special-work/welding' },
+          { key: 'unit-special-height', label: '高处作业', route: '/unit/special-work/height' },
+          { key: 'unit-special-confined', label: '有限空间作业', route: '/unit/special-work/confined-space' },
+          { key: 'unit-special-power', label: '临时用电作业', route: '/unit/special-work/temp-power' },
+        ],
+      },
+      {
+        key: 'unit-special-process',
+        label: '作业流程',
+        icon: 'menuicon-28',
+        children: [
+          { key: 'unit-special-apply', label: '作业申请', route: '/unit/special-work/applications' },
+          { key: 'unit-special-approve', label: '作业审批', route: '/unit/special-work/approvals' },
+          { key: 'unit-special-watch', label: '作业监护', route: '/unit/special-work/watch' },
+          { key: 'unit-special-record', label: '作业记录', route: '/unit/special-work/records' },
+        ],
+      },
+      {
+        key: 'unit-special-personnel',
+        label: '人员资质',
+        icon: 'menuicon-40',
+        children: [
+          { key: 'unit-special-people', label: '特种作业人员', route: '/unit/special-work/personnel' },
+          { key: 'unit-special-cert', label: '证件台账', route: '/unit/special-work/certificates' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 2i. 安全档案（消防档案归集、借阅与台账） =====
+  {
+    key: 'unit-safety-archive',
+    label: '安全档案',
+    icon: 'folder',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-archive-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/safety-archive' },
+      {
+        key: 'unit-archive-collect',
+        label: '档案归集',
+        icon: 'menuicon-49',
+        children: [
+          { key: 'unit-archive-unit', label: '单位档案', route: '/unit/safety-archive/unit' },
+          { key: 'unit-archive-facility', label: '设施档案', route: '/unit/safety-archive/facility' },
+          { key: 'unit-archive-policy', label: '制度档案', route: '/unit/safety-archive/policy' },
+          { key: 'unit-archive-plan', label: '预案档案', route: '/unit/safety-archive/plan' },
+          { key: 'unit-archive-license', label: '证照档案', route: '/unit/safety-archive/license' },
+        ],
+      },
+      {
+        key: 'unit-archive-mgmt',
+        label: '档案管理',
+        icon: 'menuicon-50',
+        children: [
+          { key: 'unit-archive-ledger', label: '归档台账', route: '/unit/safety-archive/ledger' },
+          { key: 'unit-archive-record', label: '归档记录', route: '/unit/safety-archive/records' },
+          { key: 'unit-archive-borrow', label: '借阅记录', route: '/unit/safety-archive/borrow' },
+        ],
+      },
+    ],
+  },
+
+  // ===== 2j. 项目管理（社会单位：消防工程 / 维保服务项目） =====
+  // 与运营商侧「项目管理」（key=operator）分属不同群体，各自独立分组
+  {
+    key: 'unit-project',
+    label: '项目管理',
+    icon: 'shop',
+    defaultOpen: true,
+    visibleTo: ['unit'],
+    children: [
+      { key: 'unit-project-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/projects' },
+      {
+        key: 'unit-project-overview',
+        label: '项目总览',
+        icon: 'menuicon-30',
+        children: [
+          { key: 'unit-project-board', label: '项目看板', route: '/unit/projects/board' },
+          { key: 'unit-project-stat', label: '项目统计', route: '/unit/projects/statistics' },
+        ],
+      },
+      {
+        key: 'unit-project-ledger',
+        label: '项目台账',
+        icon: 'menuicon-28',
+        children: [
+          { key: 'unit-project-list', label: '全部项目', route: '/unit/projects/list' },
+          { key: 'unit-project-members', label: '项目成员', route: '/unit/projects/members' },
+        ],
+      },
+      {
+        key: 'unit-project-delivery',
+        label: '项目交付',
+        icon: 'menuicon-31',
+        children: [
+          { key: 'unit-project-milestone', label: '交付节点', route: '/unit/projects/milestones' },
+          { key: 'unit-project-acceptance', label: '验收记录', route: '/unit/projects/acceptance' },
+        ],
+      },
+      { key: 'unit-project-evaluate', label: '服务评价', icon: 'menuicon-47', route: '/unit/projects/evaluation' },
     ],
   },
 
@@ -420,7 +591,7 @@ export const NAV_GROUPS: NavGroup[] = [
         children: [
           { key: 'unit-set-alarm-config', label: '告警配置', route: '/unit/settings/alarms/config' },
           { key: 'unit-set-alarm-report', label: '值守报表', route: '/unit/settings/alarms/reports' },
-          { key: 'unit-set-alarm-plan', label: '预案管理', route: '/unit/settings/alarms/plans' },
+          // 「预案管理」已并入「值守与应急 › 应急管理 › 应急预案」，此处不再重复
         ],
       },
       {
@@ -495,7 +666,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'operator',
     label: '项目管理',
-    icon: 'briefcase',
+    icon: 'building',
     defaultOpen: true,
     visibleTo: ['operator'],
     children: [
@@ -542,7 +713,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'service',
     label: '技术服务',
-    icon: 'tools',
+    icon: 'rocket',
     defaultOpen: false,
     visibleTo: ['service'],
     children: [
@@ -686,9 +857,9 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/system/dashboard': 'svc-order-dashboard',
   '/maintenance/plans': 'svc-maintain-record',
   '/maintenance/plans/detail': 'svc-maintain-record',
-  '/device': 'unit-device',
-  '/device/list': 'unit-device-ledger',
-  '/iot': 'unit-device',
+  '/device': 'df-ledger',
+  '/device/list': 'df-ledger',
+  '/iot': 'df-ledger',
   '/platform': 'platform-admin',
   '/admin': 'tenant-mgmt',
   '/admin/enterpriseManagement': 'tenant-mgmt',
@@ -744,10 +915,77 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/collab/flow/template': 'collab-flow-template',  // 兼容旧路径：/collab/flow/* 已合并到 /system/*
   '/collab/flow/monitor': 'collab-monitor',
   '/landing': 'reg-bigscreen',
-  '/fire/pipeline': 'unit-fire-pipeline',
   '/fire/pipeline/topology': 'unit-fire-pipeline-topology',
+  '/fire/pipeline': 'unit-fire-pipeline',
   '/fire/gas': 'unit-fire-gas',
   '/fire/smoke': 'unit-fire-smoke',
+  // 安全概览
+  '/unit/dashboard': 'unit-dashboard',
+  '/unit/data': 'unit-data',
+  // 值守与应急：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/duty/emergency/plans': 'unit-emergency-plan',
+  '/unit/duty/emergency/supplies': 'unit-emergency-supplies',
+  '/unit/duty/emergency/incidents': 'unit-emergency-incident',
+  '/unit/duty/schedule': 'unit-duty-schedule',
+  '/unit/duty/records': 'unit-duty-records',
+  '/unit/duty/checkin': 'unit-duty-checkin',
+  '/unit/duty/handover': 'unit-duty-handover',
+  '/unit/duty': 'unit-duty-home',
+  '/unit/alarms/records': 'unit-alarm-record',
+  '/unit/alarms': 'unit-alarm-list',
+  '/unit/notifications': 'unit-notify-list',
+  // 培训与演练：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/training/drills/plans': 'unit-drill-plan',
+  '/unit/training/drills/evaluations': 'unit-drill-evaluation',
+  '/unit/training/drills': 'unit-drill-record',
+  '/unit/training/plans': 'unit-training-plan',
+  '/unit/training/records': 'unit-training-record',
+  '/unit/training/exams': 'unit-training-exam',
+  '/unit/training/knowledge': 'unit-training-knowledge',
+  '/unit/training': 'unit-training-home',
+  // 消防维保：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/maintenance/contracts': 'unit-maint-contract',
+  '/unit/maintenance/plans': 'unit-maint-plan',
+  '/unit/maintenance/tasks': 'unit-maint-task',
+  '/unit/maintenance/records': 'unit-maint-record',
+  '/unit/maintenance/reports': 'unit-maint-report',
+  '/unit/maintenance/ledger': 'unit-maint-ledger',
+  '/unit/maintenance/standards': 'unit-maint-standard',
+  '/unit/maintenance/faults': 'unit-maint-fault',
+  '/unit/maintenance/todo': 'unit-maint-todo',
+  '/unit/maintenance': 'unit-maint-home',
+  // 特种作业管理：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/special-work/hot-work': 'unit-special-hotwork',
+  '/unit/special-work/welding': 'unit-special-welding',
+  '/unit/special-work/height': 'unit-special-height',
+  '/unit/special-work/confined-space': 'unit-special-confined',
+  '/unit/special-work/temp-power': 'unit-special-power',
+  '/unit/special-work/applications': 'unit-special-apply',
+  '/unit/special-work/approvals': 'unit-special-approve',
+  '/unit/special-work/watch': 'unit-special-watch',
+  '/unit/special-work/records': 'unit-special-record',
+  '/unit/special-work/personnel': 'unit-special-people',
+  '/unit/special-work/certificates': 'unit-special-cert',
+  '/unit/special-work': 'unit-special-home',
+  // 安全档案：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/safety-archive/unit': 'unit-archive-unit',
+  '/unit/safety-archive/facility': 'unit-archive-facility',
+  '/unit/safety-archive/policy': 'unit-archive-policy',
+  '/unit/safety-archive/plan': 'unit-archive-plan',
+  '/unit/safety-archive/license': 'unit-archive-license',
+  '/unit/safety-archive/ledger': 'unit-archive-ledger',
+  '/unit/safety-archive/records': 'unit-archive-record',
+  '/unit/safety-archive/borrow': 'unit-archive-borrow',
+  '/unit/safety-archive': 'unit-archive-home',
+  // 项目管理（社会单位）：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
+  '/unit/projects/board': 'unit-project-board',
+  '/unit/projects/statistics': 'unit-project-stat',
+  '/unit/projects/list': 'unit-project-list',
+  '/unit/projects/members': 'unit-project-members',
+  '/unit/projects/milestones': 'unit-project-milestone',
+  '/unit/projects/acceptance': 'unit-project-acceptance',
+  '/unit/projects/evaluation': 'unit-project-evaluate',
+  '/unit/projects': 'unit-project-home',
   '/collab/task/pending': 'collab-pending',
   '/collab/task/completed': 'collab-completed',
   '/collab/task/started': 'collab-started',
@@ -758,8 +996,6 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'workbench': '/workbench',
   'svc-order-dashboard': '/system/dashboard',
   'svc-maintain-record': '/maintenance/plans',
-  'unit-device': '/device',
-  'unit-device-ledger': '/device/list',
   'tenant-mgmt': '/admin/enterpriseManagement/index',
   'user-list': '/admin/users',
   'position-mgmt': '/admin/positions',
@@ -825,6 +1061,73 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'unit-fire-pipeline-topology': '/fire/pipeline/topology',
   'unit-fire-gas': '/fire/gas',
   'unit-fire-smoke': '/fire/smoke',
+  // 安全概览
+  'unit-dashboard': '/unit/dashboard',
+  'unit-data': '/unit/data',
+  // 值守与应急
+  'unit-duty-home': '/unit/duty',
+  'unit-duty-schedule': '/unit/duty/schedule',
+  'unit-duty-records': '/unit/duty/records',
+  'unit-duty-checkin': '/unit/duty/checkin',
+  'unit-duty-handover': '/unit/duty/handover',
+  'unit-alarm-list': '/unit/alarms',
+  'unit-alarm-record': '/unit/alarms/records',
+  'unit-emergency-plan': '/unit/duty/emergency/plans',
+  'unit-emergency-supplies': '/unit/duty/emergency/supplies',
+  'unit-emergency-incident': '/unit/duty/emergency/incidents',
+  'unit-notify-list': '/unit/notifications',
+  // 培训与演练
+  'unit-training-home': '/unit/training',
+  'unit-training-plan': '/unit/training/plans',
+  'unit-training-record': '/unit/training/records',
+  'unit-training-exam': '/unit/training/exams',
+  'unit-training-knowledge': '/unit/training/knowledge',
+  'unit-drill-plan': '/unit/training/drills/plans',
+  'unit-drill-record': '/unit/training/drills',
+  'unit-drill-evaluation': '/unit/training/drills/evaluations',
+  // 消防维保
+  'unit-maint-home': '/unit/maintenance',
+  'unit-maint-contract': '/unit/maintenance/contracts',
+  'unit-maint-plan': '/unit/maintenance/plans',
+  'unit-maint-task': '/unit/maintenance/tasks',
+  'unit-maint-record': '/unit/maintenance/records',
+  'unit-maint-report': '/unit/maintenance/reports',
+  'unit-maint-ledger': '/unit/maintenance/ledger',
+  'unit-maint-standard': '/unit/maintenance/standards',
+  'unit-maint-fault': '/unit/maintenance/faults',
+  'unit-maint-todo': '/unit/maintenance/todo',
+  // 特种作业管理
+  'unit-special-home': '/unit/special-work',
+  'unit-special-hotwork': '/unit/special-work/hot-work',
+  'unit-special-welding': '/unit/special-work/welding',
+  'unit-special-height': '/unit/special-work/height',
+  'unit-special-confined': '/unit/special-work/confined-space',
+  'unit-special-power': '/unit/special-work/temp-power',
+  'unit-special-apply': '/unit/special-work/applications',
+  'unit-special-approve': '/unit/special-work/approvals',
+  'unit-special-watch': '/unit/special-work/watch',
+  'unit-special-record': '/unit/special-work/records',
+  'unit-special-people': '/unit/special-work/personnel',
+  'unit-special-cert': '/unit/special-work/certificates',
+  // 安全档案
+  'unit-archive-home': '/unit/safety-archive',
+  'unit-archive-unit': '/unit/safety-archive/unit',
+  'unit-archive-facility': '/unit/safety-archive/facility',
+  'unit-archive-policy': '/unit/safety-archive/policy',
+  'unit-archive-plan': '/unit/safety-archive/plan',
+  'unit-archive-license': '/unit/safety-archive/license',
+  'unit-archive-ledger': '/unit/safety-archive/ledger',
+  'unit-archive-record': '/unit/safety-archive/records',
+  'unit-archive-borrow': '/unit/safety-archive/borrow',
+  // 项目管理（社会单位）
+  'unit-project-home': '/unit/projects',
+  'unit-project-board': '/unit/projects/board',
+  'unit-project-stat': '/unit/projects/statistics',
+  'unit-project-list': '/unit/projects/list',
+  'unit-project-members': '/unit/projects/members',
+  'unit-project-milestone': '/unit/projects/milestones',
+  'unit-project-acceptance': '/unit/projects/acceptance',
+  'unit-project-evaluate': '/unit/projects/evaluation',
 }
 
 // ===== 工具函数 =====

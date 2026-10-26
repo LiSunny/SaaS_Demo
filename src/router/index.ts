@@ -222,6 +222,134 @@ const router = createRouter({
       ],
     },
 
+    // ===== 安全概览（原「安全管理›安全概览」升为一级菜单） =====
+    {
+      path: '/unit',
+      component: DefaultLayout,
+      children: [
+        { path: 'dashboard', name: 'OverviewSituation', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'data', name: 'OverviewData', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
+    // ===== 值守与应急（值守 / 告警 / 消防监控 / 应急 / 通知） =====
+    {
+      path: '/unit/duty',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'DutyHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'schedule', name: 'DutySchedule', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'records', name: 'DutyRecords', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'checkin', name: 'DutyCheckin', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'handover', name: 'DutyHandover', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'emergency/plans', name: 'DutyEmergencyPlans', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'emergency/supplies', name: 'DutyEmergencySupplies', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'emergency/incidents', name: 'DutyEmergencyIncidents', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+    {
+      path: '/unit/alarms',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'AlarmList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'records', name: 'AlarmRecords', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+    {
+      path: '/unit/notifications',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'NotificationList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
+    // ===== 培训与演练 =====
+    {
+      path: '/unit/training',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'TrainingHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'plans', name: 'TrainingPlanList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'records', name: 'TrainingRecordList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'exams', name: 'TrainingExamList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'knowledge', name: 'TrainingKnowledgeList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'drills/plans', name: 'DrillPlanList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'drills', name: 'DrillRecordList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'drills/evaluations', name: 'DrillEvaluationList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
+    // ===== 消防维保（业主视角） =====
+    {
+      path: '/unit/maintenance',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'MaintHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'contracts', name: 'MaintContractList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'plans', name: 'MaintPlanList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'tasks', name: 'MaintTaskList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'records', name: 'MaintRecordList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'reports', name: 'MaintReportList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'ledger', name: 'MaintLedgerList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'standards', name: 'MaintStandardList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'faults', name: 'MaintFaultList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'todo', name: 'MaintTodoList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
+    // ===== 特种作业管理 =====
+    {
+      path: '/unit/special-work',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'SpecialWorkHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'hot-work', name: 'SpecialWorkHot', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'welding', name: 'SpecialWorkWelding', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'height', name: 'SpecialWorkHeight', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'confined-space', name: 'SpecialWorkConfined', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'temp-power', name: 'SpecialWorkPower', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'applications', name: 'SpecialWorkApply', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'approvals', name: 'SpecialWorkApprove', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'watch', name: 'SpecialWorkWatch', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'records', name: 'SpecialWorkRecord', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'personnel', name: 'SpecialWorkPersonnel', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'certificates', name: 'SpecialWorkCert', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
+    // ===== 安全档案 =====
+    {
+      path: '/unit/safety-archive',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'ArchiveHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'unit', name: 'ArchiveUnit', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'facility', name: 'ArchiveFacility', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'policy', name: 'ArchivePolicy', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'plan', name: 'ArchivePlan', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'license', name: 'ArchiveLicense', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'ledger', name: 'ArchiveLedger', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'records', name: 'ArchiveRecord', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'borrow', name: 'ArchiveBorrow', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
+    // ===== 项目管理（社会单位侧） =====
+    {
+      path: '/unit/projects',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'UnitProjectHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'board', name: 'UnitProjectBoard', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'statistics', name: 'UnitProjectStat', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'list', name: 'UnitProjectList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'members', name: 'UnitProjectMembers', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'milestones', name: 'UnitProjectMilestone', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'acceptance', name: 'UnitProjectAcceptance', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: 'evaluation', name: 'UnitProjectEvaluate', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+      ],
+    },
+
     // ===== 跳转式域首页（>10 模块的大域，占位页，后续填充） =====
     {
       path: '/device',

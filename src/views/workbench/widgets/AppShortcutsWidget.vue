@@ -34,12 +34,15 @@ interface AppShortcut {
 }
 
 const apps = computed<AppShortcut[]>(() => [
-  { key: 'device',    label: '设备管理', icon: '🏭', route: '/device-facility/ledger', ready: true },
-  { key: 'inspect',   label: '巡查检查', icon: '🔍', route: '/unit/patrol',       ready: true },
-  { key: 'remote',    label: '远程值守', icon: '📡', route: '',                    ready: false },
-  { key: 'maintain',  label: '维保应用', icon: '🔧', route: '/maintenance/plans', ready: true },
-  { key: 'risk',      label: '隐患排查治理', icon: '⚠',  route: '',                    ready: false },
-  { key: 'system',    label: '系统管理', icon: '⚙',  route: '/system/dashboard',  ready: true },
+  { key: 'device',    label: '设备设施管理', icon: '🏭', route: '/device-facility/ledger', ready: true },
+  { key: 'inspect',   label: '巡查检查',     icon: '🔍', route: '/unit/patrol',             ready: true },
+  { key: 'risk',      label: '隐患排查治理', icon: '⚠',  route: '/unit/hazards',            ready: true },
+  { key: 'remote',    label: '值守与应急',   icon: '📡', route: '/unit/duty',               ready: true },
+  { key: 'maintain',  label: '消防维保',     icon: '🔧', route: '/unit/maintenance',        ready: true },
+  { key: 'special',   label: '特种作业管理', icon: '🔥', route: '/unit/special-work',       ready: true },
+  { key: 'training',  label: '培训与演练',   icon: '📘', route: '/unit/training',           ready: true },
+  { key: 'archive',   label: '安全档案',     icon: '🗂',  route: '/unit/safety-archive',      ready: true },
+  { key: 'project',   label: '项目管理',     icon: '🏗',  route: '/unit/projects',           ready: true },
 ])
 
 function navigate(app: AppShortcut) {
