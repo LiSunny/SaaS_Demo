@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工单系统 — 功能介绍</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;max-width:900px;margin:0 auto;padding:32px 24px 80px;color:#0F172A;background:#F5F7FB;line-height:1.7}
+h1{font-size:26px;border-bottom:2px solid #2563EB;padding-bottom:12px}
+h2{font-size:20px;margin-top:36px;color:#1D4ED8;border-left:4px solid #2563EB;padding-left:10px}
+h3{font-size:16px;margin-top:22px;color:#0F172A;background:#EFF4FC;padding:8px 12px;border-radius:8px}
+p{font-size:15px}
+strong{color:#0F172A}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(31,38,135,.06)}
+th{background:#2563EB;color:#fff;padding:10px 12px;text-align:left;font-weight:600}
+td{padding:9px 12px;border-bottom:1px solid #EEF1F6}
+tr:nth-child(even) td{background:#F8FAFE}
+code{background:#EEF2F8;padding:2px 6px;border-radius:5px;font-size:13px;color:#1D4ED8}
+.codeblock{background:#0F172A;color:#E2E8F0;padding:16px;border-radius:12px;overflow-x:auto;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+blockquote{border-left:4px solid #F59E0B;background:#FFF8ED;padding:10px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:14px;color:#92400E}
+ul{padding-left:22px}
+li{margin:5px 0;font-size:14.5px}
+.mermaid{background:#fff;border-radius:14px;padding:18px 10px;margin:16px 0;box-shadow:0 2px 12px rgba(31,38,135,.07);overflow-x:auto}
+.mermaid svg{max-width:100%;height:auto}
+</style>
+</head>
+<body>
+<h1>工单系统 — 功能介绍</h1>
+<blockquote>智能安全管控平台 · 工单系统功能介绍。本文介绍工单系统的定位、运转方式和核心概念；具体操作步骤请见《工单系统 — 使用说明》（测试定稿后发布）。</blockquote>
+<blockquote>最后更新：2026-09-08</blockquote>
+<p>---</p>
+<h2>一、工单系统是什么</h2>
+<p>工单系统是智能安全管控平台的<strong>流程中枢</strong>，承载"任务流转与处置闭环"：一件事从发起、处理、把关到办结，全程在系统里走完，每一步都有记录、有时限、有责任人。</p>
+<p>它的本质是一套<strong>可配置的通用流程引擎</strong>——工单的类型、要填哪些信息、按什么路线流转，都不写死在系统里，而是由管理员通过"模板"自由定义。因此它既能支撑<strong>企业内部协作</strong>（发起人、执行人、验收人都在本企业），也能支撑<strong>跨企业协同</strong>（业主方、服务商、监管方围绕同一张工单协作）。</p>
+<p>工单系统解决三个老问题：</p>
+<table>
+<tr><th>老问题</th><th>工单系统的解法</th></tr>
+<tr><td>任务靠口头、微信派活，说过就忘</td><td>一切流转在系统内完成，每一步谁做的、什么时候做的，系统自动记录</td></tr>
+<tr><td>办没办、办到哪了说不清</td><td>工单有明确状态和进度，发起人随时可查，管理者全局可见</td></tr>
+<tr><td>处理没有时限，拖到没人记得</td><td>双计时管控（见下文），临近超时自动预警，超时红线可见</td></tr>
+</table>
+<p>---</p>
+<h2>二、一张图看懂运转</h2>
+<p>一张工单的完整生命线：</p>
+<div class="mermaid">
+flowchart LR
+    A[管理员配置模板] --> B[发起人填表发起]
+    B --> C{需要认领?}
+    C -- 放到岗位认领 --> D[接单]
+    C -- 指定到人 --> E[执行人处置]
+    D --> E
+    E --> F[审批人把关]
+    F -- 驳回 --> E
+    F -- 通过 --> G[工单关闭归档]
+</div>
+<p>图中的每个环节都是一次"交接"：系统把任务从一个人手里交到下一个人手里，并记下交接时间。整条链路对<strong>所有工单通用</strong>，不同场景只是参与方和填的内容不同。</p>
+<p>两种典型应用场景：</p>
+<table>
+<tr><th></th><th>企业内工单</th><th>跨企业协同工单</th></tr>
+<tr><td>参与方</td><td>本企业内部岗位</td><td>业主方 + 服务商 + 监管方</td></tr>
+<tr><td>典型例子</td><td>消控值班员发现故障，发起维修单派给本企业工程师，安全管理人验收</td><td>物业把维保任务委托给维保公司；监管方对隐患整改发起督办</td></tr>
+<tr><td>链路特点</td><td>发起 → 指派 → 执行 → 验收，全在本企业内</td><td>处置环节跨企业：服务商干完，业主验收；监管可督办</td></tr>
+</table>
+<p>两个场景<strong>共用同一套流转规则</strong>：同样的状态、同样的双计时、同样的留痕。学会一种，另一种自然会用。</p>
+<p>---</p>
+<h2>三、核心概念速览</h2>
+<p><strong>模板与工单</strong>——模板是图纸，工单是一次任务。管理员先画好图纸（模板），发起人照着填一张单子（工单），系统照图纸把任务送到该到的人手里。一份图纸可以开出无数张单子。</p>
+<p>画这张图纸，就是配置模板时要做两件事：</p>
+<ul>
+<li><strong>表单设计</strong>——定"这张单子<strong>要填什么</strong>"。要填哪些框、哪些必填、填文字还是传照片，管理员预先画好，发起人照着框填就行，不用想该写什么。</li>
+<li><strong>流程设计</strong>——定"这张单子<strong>按什么路线走</strong>"。先给谁办、再给谁审、不通过退回给谁，像画一张接力路线图；任务走到哪一步，系统就自动把单子送到那一步负责人面前。</li>
+</ul>
+<p>一句话：<strong>表单设计管"填什么"，流程设计管"怎么流"</strong>，两者合起来就是一份完整模板。</p>
+<p><strong>流程由 5 种基础节点和 1 种跨企业节点组成</strong>——流程设计就是用这些"积木"拼出接力路线：</p>
+<table>
+<tr><th>节点</th><th>一句话说明</th></tr>
+<tr><td>开始</td><td>工单的起点，发起人在这里填表提交</td></tr>
+<tr><td>指派</td><td>把任务分给具体的人：可指定到人，也可放到岗位由人认领</td></tr>
+<tr><td>执行</td><td>干活的步骤：处理人填写处置结果、上传照片</td></tr>
+<tr><td>审批</td><td>把关的步骤：审批人查看结果后通过或驳回</td></tr>
+<tr><td>条件判断</td><td>岔路口：系统按情况自动分流（如按是否超时走不同路线）</td></tr>
+<tr><td>跨企业协同</td><td>跨企业场景专用：任务流转到协作方企业，对方企业内部自行接力处理，办完结果自动回流（如业主把维保任务交给维保公司，维保公司内部安排工程师处理，处理结果回到业主这边）</td></tr>
+</table>
+<blockquote>说明：开始、结束由系统自动生成，不用配置；普通工单只用前 5 种基础节点，跨企业协同工单才会用到"跨企业协同"节点。</blockquote>
+<p><strong>优先级</strong>——发起工单时选择，分四档：紧急 / 高 / 普通 / 低。优先级决定这张工单的两张"秒表"走多快。</p>
+<p><strong>SLA 双计时</strong>——每张工单挂着<strong>两张秒表</strong>：</p>
+<ul>
+<li><strong>响应秒表</strong>：从发起到有人开始处理。按下的答复快不快；</li>
+<li><strong>解决秒表</strong>：从发起到最终办结。量的是整件事办完快不快。</li>
+</ul>
+<p>两张表各有各的时限。用时达到时限的 80% 亮<strong>黄灯</strong>提醒，超过时限亮<strong>红灯</strong>并触发升级动作。驳回、转交不会让秒表归零——超时的工单不会因为重新派单而"洗白"。</p>
+<p><strong>三种状态</strong>——草稿 / 进行中 / 已关闭。这是<strong>工单</strong>的状态，描述"这件任务办到哪了"。注意与模板状态区分：模板也有自己的状态，描述"这个模板能不能用"（见《使用说明》第 8 章），两者不要混淆。</p>
+<p>---</p>
+<h2>四、一张工单里都有谁（最佳实践示例）</h2>
+<p>任何一张工单都由<strong>五种职责</strong>构成。职责跟着工单走，不跟着人固定——同一个人在这张单里是发起人，在下张单里可能就是执行人。五种职责可以由本企业不同岗位担任，也可以分属不同企业：</p>
+<table>
+<tr><th>职责</th><th>干什么</th></tr>
+<tr><td>发起人</td><td>填单发起，跟踪进度，验收把关</td></tr>
+<tr><td>执行人</td><td>认领（按需）并处理任务，填结果、传照片</td></tr>
+<tr><td>审批人</td><td>对执行结果把关：通过或驳回</td></tr>
+<tr><td>管理督办岗</td><td>盯全局、盯超时，必要时强制改派、取消</td></tr>
+<tr><td>平台配置员</td><td>配置模板，定义工单类型与流转规则</td></tr>
+</table>
+<p>两张真实走单示例，看五种职责如何接力：</p>
+<p><strong>示例一：企业内维修单</strong>（消控值班员发现烟感报故障）</p>
+<p>1. 消控值班员在「我的发起」选"设备维修"模板，填故障现象，发起工单 —— <strong>发起人</strong></p>
+<p>2. 系统按模板把任务派给维修班；工程师小王在「待办任务」接单，换下故障烟感，填处置结果、拍照上传 —— <strong>执行人</strong></p>
+<p>3. 消防安全管理人在「待办任务」里核对更换照片与测试记录，确认正常，点击通过 —— <strong>审批人</strong></p>
+<p>4. 期间安全责任人翻「工单监控」看进度，发现这张单临近响应时限，电话提醒了维修班 —— <strong>管理督办岗</strong></p>
+<p>5. 一整天的维修任务能顺畅转起来，靠的是平台管理员提前配好"设备维修"模板：要填什么、走哪些环节 —— <strong>平台配置员</strong></p>
+<p><strong>示例二：跨企业维保单</strong>（物业把月度维保委托给维保公司）</p>
+<p>1. 物业管理人选"维保任务"模板发起，填维保范围与期限 —— <strong>发起人</strong>（业主方）</p>
+<p>2. 任务通过跨企业协同节点流转到维保公司：对方管理员指派维保工程师，工程师现场保养设备、上传记录 —— <strong>执行人</strong>（服务方）</p>
+<p>3. 维保公司项目负责人先做内部技术审核，通过后结果自动回流到物业 —— <strong>审批人</strong>（服务方先行把关）</p>
+<p>4. 物业管理人核对保养记录与照片后验收通过，工单关闭 —— <strong>发起人兼审批人</strong>（业主方）</p>
+<p>5. 若任务超期未完成，监管方可在「工单监控」看到这张单的红灯，发起督办推动处理 —— <strong>管理督办岗</strong>（监管方）</p>
+<p>两个示例用的是<strong>同一套模板机制、同一套流转规则</strong>——区别只在模板怎么配、职责分给谁。</p>
+<p>---</p>
+<h2>五、你该用哪个入口</h2>
+<p>工单相关的菜单共 <strong>5 个</strong>，按使用身份分两类：</p>
+<table>
+<tr><th>类别</th><th>菜单</th><th>干什么用</th></tr>
+<tr><td>管理功能</td><td>流程设计</td><td>配置工单模板：定义工单类型、表单字段、流转规则</td></tr>
+<tr><td>管理功能</td><td>工单监控</td><td>看全量工单、盯 SLA 超时预警、强制改派等督办干预</td></tr>
+<tr><td>普通用户</td><td>我的发起</td><td>发起工单，跟踪我发起的工单进展</td></tr>
+<tr><td>普通用户</td><td>待办任务</td><td>轮到我处理的事都在这里：执行、审批都从此进入</td></tr>
+<tr><td>普通用户</td><td>我的已办</td><td>我处理完的任务留档，随时回查</td></tr>
+</table>
+<p>"想做什么 → 用哪个"速查：</p>
+<ul>
+<li>发起工单、看我发起的进度 → <strong>我的发起</strong></li>
+<li>处理任务、审批验收 → <strong>待办任务</strong></li>
+<li>回查我处理过的记录 → <strong>我的已办</strong></li>
+<li>看全局、盯超时、督办干预 → <strong>工单监控</strong>（管理岗）</li>
+<li>新建或调整工单类型 → <strong>流程设计</strong>（管理岗）</li>
+</ul>
+<p>---</p>
+<h2>六、能力蓝图</h2>
+<table>
+<tr><th>能力</th><th>说明</th><th>状态</th></tr>
+<tr><td>流程模板配置</td><td>三步配置：基础设置 → 表单设计 → 流程设计，发布后即可发起</td><td>✅ 已上线</td></tr>
+<tr><td>工单发起</td><td>选模板 → 填信息 → 保存草稿或立即发起</td><td>✅ 已上线</td></tr>
+<tr><td>待办处置与审批</td><td>待办任务集中处理；按需接单；执行、审批全程留痕</td><td>✅ 已上线</td></tr>
+<tr><td>工单监控</td><td>统计卡片、多维筛选、SLA 三色预警、强制改派 / 取消 / 手动关闭</td><td>✅ 已上线</td></tr>
+<tr><td>双计时预警</td><td>响应 + 解决两张秒表，黄灯预警、红灯升级</td><td>✅ 已上线</td></tr>
+<tr><td>工单归档与导出</td><td>已关闭工单检索，导出 Excel / CSV</td><td>📋 规划中</td></tr>
+<tr><td>统计看板</td><td>达标率、趋势、效率排行</td><td>📋 规划中</td></tr>
+<tr><td>消息通知</td><td>站内消息 + 语音 + 短信，超时主动找人</td><td>📋 规划中</td></tr>
+<tr><td>移动端小程序</td><td>工程师现场接单、处置、拍照上传</td><td>📋 规划中</td></tr>
+<tr><td>监管督办</td><td>监管方发起督办单，跨企业跟踪整改进度</td><td>📋 规划中</td></tr>
+</table>
+<blockquote>规划中能力尚未上线，以上线公告为准。</blockquote>
+<script src="mermaid-inline.js"></script>
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>
