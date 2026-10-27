@@ -156,6 +156,7 @@ export const NAV_GROUPS: NavGroup[] = [
           { key: 'df-rule-data-fetch', label: '数据拉取', route: '/device-facility/rule/data-fetch' },
           { key: 'df-rule-data-push', label: '数据推送', route: '/device-facility/rule/data-push' },
           { key: 'df-rule-strategy', label: '策略执行器', route: '/device-facility/rule/strategy' },
+          { key: 'df-rule-scene-config', label: '组态配置', route: '/device-facility/rule/scene-config' },
         ],
       },
       {
@@ -836,6 +837,12 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/system/dashboard': 'svc-order-dashboard',
   '/maintenance/plans': 'svc-maintain-record',
   '/maintenance/plans/detail': 'svc-maintain-record',
+  // 组态编辑器路由带动态段，无法精确匹配，靠前缀兜底。
+  // 必须排在 '/device' 之前：'/device' 会把所有 /device-facility/* 前缀一并吃掉，
+  // 导致侧栏高亮落到「设备台账」而不是「组态配置」。
+  '/device-facility/rule/scene-config': 'df-rule-scene-config',
+  // 图元管理是组态编辑器内的入口页，侧栏高亮仍留在「组态配置」
+  '/device-facility/rule/symbol-library': 'df-rule-scene-config',
   '/device': 'df-ledger',
   '/device/list': 'df-ledger',
   '/iot': 'df-ledger',
@@ -1020,6 +1027,7 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'df-rule-data-fetch': '/device-facility/rule/data-fetch',
   'df-rule-data-push': '/device-facility/rule/data-push',
   'df-rule-strategy': '/device-facility/rule/strategy',
+  'df-rule-scene-config': '/device-facility/rule/scene-config',
   'df-notify-alarm-push': '/device-facility/notify/alarm-push',
   'collab-flow-template': '/system/template',
   'collab-monitor': '/system/monitor',

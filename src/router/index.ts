@@ -218,6 +218,10 @@ const router = createRouter({
         { path: 'rule/data-fetch', name: 'DeviceFacilityRuleDataFetch', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'rule/data-push', name: 'DeviceFacilityRuleDataPush', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'rule/strategy', name: 'DeviceFacilityRuleStrategy', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        // 真实页：组态配置（画面列表 + 编辑器）与图元管理（编辑器内入口）
+        { path: 'rule/scene-config', name: 'DeviceFacilityRuleSceneConfig', component: () => import('@/views/device-facility/SceneConfigList.vue') },
+        { path: 'rule/scene-config/:id/editor', name: 'DeviceFacilityRuleSceneEditor', component: () => import('@/views/device-facility/SceneEditor.vue') },
+        { path: 'rule/symbol-library', name: 'DeviceFacilityRuleSymbolLibrary', component: () => import('@/views/device-facility/SymbolLibraryPage.vue') },
         { path: 'notify/alarm-push', name: 'DeviceFacilityNotifyAlarmPush', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
       ],
     },

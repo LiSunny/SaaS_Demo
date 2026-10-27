@@ -1,0 +1,88 @@
+/* 图元样式：状态色只在这里定义，几何本身不含颜色 */
+
+.sym-root {
+  --sym-fill: #e2e8f0;
+  --sym-stroke: #334155;
+  --sym-accent: #2563eb;
+  --sym-liquid: #38bdf8;
+  --sym-on: #334155;
+  --sym-alarm: #dc2626;
+  --sym-flow: #38bdf8;
+  --sym-label: #94a3b8;
+  --sym-value: #0f172a;
+}
+
+.sym-body    { fill: var(--sym-fill);   stroke: var(--sym-stroke); stroke-width: 2; stroke-linejoin: round; }
+.sym-outline { fill: none;              stroke: var(--sym-stroke); stroke-width: 2; stroke-linejoin: round; }
+.sym-pipe    { fill: none;              stroke: var(--sym-stroke); stroke-width: 8; stroke-linecap: butt; }
+.sym-line    { fill: none;              stroke: var(--sym-stroke); stroke-width: 2; stroke-linecap: round; }
+.sym-band    { fill: var(--sym-fill);   stroke: var(--sym-stroke); stroke-width: 2; stroke-linejoin: round; }
+.sym-accent  { fill: var(--sym-accent);  stroke: none; }
+.sym-liquid  { fill: var(--sym-liquid);  stroke: none; }
+.sym-rotor   { fill: none;              stroke: var(--sym-on);    stroke-width: 2; stroke-linecap: round; }
+.sym-needle  { fill: none;              stroke: var(--sym-alarm); stroke-width: 2; stroke-linecap: round; }
+
+.sym-dashed    { stroke-dasharray: 5 3; }
+.sym-rotor-off { stroke: var(--sym-stroke); }
+.sym-port      { fill: #10b981; stroke: #ffffff; stroke-width: 1; }
+
+.sym-label { fill: var(--sym-label); font-size: 11px; text-anchor: middle; }
+.sym-val   { fill: var(--sym-value); font-size: 12px; font-weight: 600; text-anchor: middle; }
+
+/* 状态色：每类状态一个类名，由绑定驱动 */
+.sym-root.is-off    { --sym-fill: #cbd5e1; --sym-stroke: #64748b; }
+.sym-root.is-closed { --sym-fill: #cbd5e1; --sym-stroke: #64748b; }
+.sym-root.is-open   { --sym-fill: #22c55e; --sym-stroke: #15803d; }
+.sym-root.is-run    { --sym-fill: #22c55e; --sym-stroke: #15803d; }
+.sym-root.is-manual { --sym-fill: #eab308; --sym-stroke: #a16207; }
+.sym-root.is-fault  { --sym-fill: #ef4444; --sym-stroke: #b91c1c; }
+.sym-root.is-over   { --sym-liquid: #ef4444; }
+.sym-root.is-flow   { --sym-flow: #38bdf8; }
+
+.sym-root.is-flow .sym-pipe { stroke: var(--sym-flow); }
+.sym-root.is-fault .sym-body,
+.sym-root.is-fault .sym-band { animation: sym-blink 1s steps(2, start) infinite; }
+
+@keyframes sym-blink { 50% { opacity: 0.35; } }
+@keyframes sym-spin { to { transform: rotate(360deg); } }
+
+/* ── 图片版图元：状态用光晕 + 角标表达，图片本身不变色 ────────── */
+.sym-img { pointer-events: none; }
+.sym-halo {
+  fill: none; stroke: transparent; stroke-width: 4; opacity: 0;
+  transition: opacity .25s ease; pointer-events: none;
+}
+.sym-root.is-run .sym-halo     { stroke: #22c55e; opacity: .40; animation: sym-pulse 1.6s ease-in-out infinite; }
+.sym-root.is-fault .sym-halo   { stroke: #ef4444; opacity: .55; animation: sym-pulse .9s ease-in-out infinite; }
+.sym-root.is-manual .sym-halo  { stroke: #eab308; opacity: .45; }
+.sym-root.is-open .sym-halo    { stroke: #22c55e; opacity: .38; }
+.sym-root.is-closed .sym-halo  { stroke: #94a3b8; opacity: .30; }
+.sym-root.is-over .sym-halo    { stroke: #ef4444; opacity: .50; }
+.sym-root.is-flow .sym-halo    { stroke: #38bdf8; opacity: .40; }
+.sym-root.is-off .sym-halo     { stroke: #94a3b8; opacity: .22; }
+
+@keyframes sym-pulse { 0%, 100% { opacity: .16; } 50% { opacity: .60; } }
+
+.sym-badge { display: none; }
+.sym-root.is-run .sym-badge-run,
+.sym-root.is-fault .sym-badge-fault,
+.sym-root.is-manual .sym-badge-manual { display: block; }
+
+.sym-badge-bg { stroke: #ffffff; stroke-width: 1.5; }
+.sym-badge-run .sym-badge-bg { fill: #22c55e; }
+.sym-badge-fault .sym-badge-bg { fill: #ef4444; }
+.sym-badge-manual .sym-badge-bg { fill: #eab308; }
+.sym-badge-fg { fill: #ffffff; }
+.sym-badge-stroke { fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: round; }
+.sym-badge-label { fill: #ffffff; font-size: 11px; font-weight: 700; text-anchor: middle; }
+
+/* 图片版液位条 */
+.sym-levelbar-bg { fill: #ffffff; fill-opacity: .82; }
+.sym-levelbar-fg { fill: none; stroke: #94a3b8; stroke-width: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sym-root.is-fault .sym-body,
+  .sym-root.is-fault .sym-band { animation: none; }
+  .sym-root.is-run .sym-halo,
+  .sym-root.is-fault .sym-halo { animation: none; }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "firewater-symbol-library",
+  "version": "1.0.0",
+  "description": "消防给水监控组态图元库（Web 端 SVG / React）",
+  "type": "module",
+  "scripts": {
+    "build": "node src/build.mjs",
+    "preview": "open dist/preview.html"
+  }
+}

@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>消防给水组态编辑器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+__CSS__
+:root{
+  --bg:#0f172a; --panel:#1b2839; --panel2:#223047; --line:#2f3f57;
+  --ink:#e6edf6; --muted:#93a4bd; --green:#22c55e; --cyan:#38bdf8;
+  --amber:#eab308; --red:#ef4444; --pipe:#6b7c93; --accent:#38bdf8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Outfit','Noto Sans SC',sans-serif;font-size:14px;line-height:1.5}
+.app{display:grid;grid-template-columns:246px 1fr 288px;grid-template-rows:auto 1fr auto;height:100vh;gap:10px;padding:10px}
+
+/* 顶栏 */
+.bar{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 14px}
+.bar h1{font-size:16px;font-weight:600;margin:0 8px 0 0}
+.bar input[type=text]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;width:190px}
+button{font:inherit;font-size:12.5px;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;transition:all .15s}
+button:hover{border-color:var(--accent)}
+button.on{background:var(--accent);border-color:var(--accent);color:#06202e;font-weight:600}
+button.ghost{background:transparent}
+.sep{width:1px;height:22px;background:var(--line)}
+.spacer{flex:1}
+label.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+
+/* 图元库 */
+.lib{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;overflow:auto}
+.lib h2,.prop h2{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.08em;margin:0 0 8px;text-transform:uppercase}
+.cat{margin-bottom:6px}
+.cat > button{width:100%;text-align:left;background:transparent;border-color:transparent;padding:5px 8px;color:var(--muted)}
+.cat > button.on{background:transparent;color:var(--ink);border-color:transparent;font-weight:600}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px 0 8px}
+.item{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center;cursor:pointer;transition:all .15s}
+.item:hover{border-color:var(--accent);transform:translateY(-1px)}
+.item.sel{border-color:var(--accent);background:#22374f}
+.item svg{width:100%;height:38px;display:block}
+.item span{display:block;font-size:9.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 画布 */
+.stagewrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;overflow:auto;position:relative}
+#canvas{display:block;background:#101a2c;border-radius:8px;cursor:default}
+#canvas.place{cursor:crosshair}
+.grid-line{stroke:#1c2942;stroke-width:1}
+.edge{fill:none;stroke:var(--pipe);stroke-width:7;stroke-linecap:butt}
+.edge.ctrl{stroke:#5a6b85;stroke-width:1.5;stroke-dasharray:5 4}
+.edge.sel{stroke:var(--cyan)}
+.edge.hot{stroke:var(--cyan);stroke-width:3;stroke-dasharray:12 10;opacity:.9}
+.node{cursor:move}
+.node .selbox{fill:none;stroke:var(--cyan);stroke-width:1.5;stroke-dasharray:4 3;opacity:0}
+.node.sel .selbox{opacity:1}
+.node .nlabel{fill:#b9c7da;font-size:11px;text-anchor:middle}
+.node .npoint{fill:#6f8199;font-size:9px;text-anchor:middle;font-family:'JetBrains Mono',monospace}
+.node .nvalue{fill:var(--cyan);font-size:11px;font-weight:600;text-anchor:middle;font-family:'JetBrains Mono',monospace}
+.port{fill:#10b981;stroke:#06231a;stroke-width:1;cursor:crosshair;opacity:0}
+.node.sel .port,.node:hover .port{opacity:1}
+.ghost{opacity:.45}
+
+/* 属性 */
+.prop{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.field input,.field select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 9px;font:inherit;font-size:12.5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.states{display:flex;flex-wrap:wrap;gap:6px}
+.states button{font-size:12px;padding:5px 9px}
+.states button.on[data-state=run]{background:var(--green);border-color:var(--green);color:#05230f}
+.states button.on[data-state=fault]{background:var(--red);border-color:var(--red);color:#fff}
+.states button.on[data-state=manual]{background:var(--amber);border-color:var(--amber);color:#2b1d00}
+.states button.on[data-state=open]{background:var(--green);border-color:var(--green);color:#05230f}
+.states button.on[data-state=closed]{background:#64748b;border-color:#64748b;color:#fff}
+.hint{font-size:11.5px;color:var(--muted);line-height:1.7}
+.hint b{color:var(--ink);font-weight:500}
+.stats{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px}
+.stats span{color:var(--muted)}
+.stats b{font-family:'JetBrains Mono',monospace;font-weight:500}
+.status{grid-column:1/-1;display:flex;gap:16px;font-size:11.5px;color:var(--muted);padding:0 4px}
+.status .t{font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="bar">
+    <h1>组态编辑器</h1>
+    <input type="text" id="lay-name" placeholder="画面名称">
+    <button id="b-new">新建</button>
+    <button id="b-save">保存</button>
+    <select id="b-load" class="ghost" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit;font-size:12.5px"></select>
+    <button id="b-export">导出 JSON</button>
+    <button id="b-import">导入 JSON</button>
+    <button id="b-sample">载入示例</button>
+    <span class="sep"></span>
+    <button id="b-style">图片版</button>
+    <label class="chk"><input type="checkbox" id="snap" checked> 网格吸附</label>
+    <span class="spacer"></span>
+    <button id="b-zoom-out">－</button><button id="b-zoom-in">＋</button>
+    <button id="b-zoom-fit">适配</button>
+  </header>
+
+  <aside class="lib" id="lib">
+    <h2>图元库</h2>
+    <div id="lib-body"></div>
+  </aside>
+
+  <main class="stagewrap" id="stagewrap">
+    <svg id="canvas" viewBox="0 0 1200 700" width="1200" height="700"></svg>
+  </main>
+
+  <aside class="prop" id="prop">
+    <h2>属性</h2>
+    <div id="prop-body"></div>
+  </aside>
+
+  <footer class="status">
+    <span id="st-mode">模式：选择</span>
+    <span id="st-sel">未选中</span>
+    <span id="st-pos">—</span>
+    <span class="spacer"></span>
+    <span id="st-hint">点击左侧图元后到画布放置；拖动图元移动；选中图元后拖动绿色圆点连线</span>
+  </footer>
+</div>
+
+<input type="file" id="file" accept=".json,application/json" hidden>
+<script type="module">
+const MANIFEST = __MANIFEST__;
+const GEOMETRY = __GEOMETRY__;
+const GEOMETRY_IMAGE = __GEOMETRY_IMAGE__;
+const SAMPLE = __SAMPLE__;
+__RUNTIME__
+
+const rt = createRuntime(MANIFEST, GEOMETRY, GEOMETRY_IMAGE);
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const $ = (id) => document.getElementById(id);
+const canvas = $('canvas');
+const defs = new Map(MANIFEST.symbols.map(s => [s.id, s]));
+
+let layout = blank();
+let sel = null;
+let placeSymbol = null;
+let useImage = true;
+let zoom = 1;
+let snapOn = true;
+let drag = null;          // {type:'move'|'link', ...}
+let linkFrom = null;
+
+function blank() { return { version: 1, name: '未命名画面', nodes: [], edges: [] }; }
+const uid = (p) => p + Math.random().toString(36).slice(2, 8);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+/* ── 图元库面板 ─────────────────────────────────────── */
+const cats = [...new Set(MANIFEST.symbols.map(s => s.category))];
+function buildLib() {
+  const box = $('lib-body');
+  box.innerHTML = '';
+  cats.forEach(c => {
+    const list = MANIFEST.symbols.filter(s => s.category === c);
+    const wrap = document.createElement('div');
+    wrap.className = 'cat';
+    const head = document.createElement('button');
+    head.textContent = c + '（' + list.length + '）';
+    head.onclick = () => {
+      const show = items.style.display === 'none';
+      items.style.display = show ? 'grid' : 'none';
+      head.classList.toggle('on', show);
+    };
+    const items = document.createElement('div');
+    items.className = 'items';
+    items.style.display = 'none';
+    list.forEach(s => {
+      const it = document.createElement('div');
+      it.className = 'item';
+      it.dataset.symbol = s.id;
+      it.title = s.id + ' · ' + s.name;
+      const svg = rt.renderSymbol(s.id, { style: useImage ? 'image' : 'line', size: 38 });
+      it.appendChild(svg);
+      const nm = document.createElement('span');
+      nm.textContent = s.name;
+      it.appendChild(nm);
+      it.onclick = () => {
+        placeSymbol = s.id;
+        canvas.classList.add('place');
+        $('st-mode').textContent = '模式：放置 ' + s.name;
+        $('st-hint').textContent = '在画布上点击放置；Esc 取消';
+        [...document.querySelectorAll('.item')].forEach(x => x.classList.toggle('sel', x === it));
+      };
+      items.appendChild(it);
+    });
+    wrap.appendChild(head);
+    wrap.appendChild(items);
+    box.appendChild(wrap);
+  });
+}
+
+/* ── 坐标与几何 ─────────────────────────────────────── */
+function nodeById(id) { return layout.nodes.find(n => n.id === id); }
+function portPos(node, port) {
+  const def = defs.get(node.symbol);
+  const p = (def.ports || [])[port];
+  if (!p) return null;
+  const s = node.size || 60;
+  return { x: node.x - s / 2 + p.x * s / 64, y: node.y - s / 2 + p.y * s / 64, dir: p.dir || 'right' };
+}
+function dirVec(d) {
+  return d === 'left' ? { x: -1, y: 0 } : d === 'up' ? { x: 0, y: -1 } : d === 'down' ? { x: 0, y: 1 } : { x: 1, y: 0 };
+}
+function edgePath(e) {
+  const a = nodeById(e.from.node), b = nodeById(e.to.node);
+  if (!a || !b) return '';
+  if (e.kind === 'control') {
+    return `M${a.x},${a.y} L${b.x},${b.y}`;
+  }
+  const pa = portPos(a, e.from.port), pb = portPos(b, e.to.port);
+  if (!pa || !pb) return '';
+  const va = dirVec(pa.dir), vb = dirVec(pb.dir);
+  const A = { x: pa.x + va.x * 16, y: pa.y + va.y * 16 };
+  const B = { x: pb.x + vb.x * 16, y: pb.y + vb.y * 16 };
+  const pts = [[pa.x, pa.y], [A.x, A.y]];
+  let cur = A;
+  const mids = e.via || [];
+  for (const m of mids) {
+    if (m[0] !== cur.x) pts.push([m[0], cur.y]);
+    if (m[1] !== cur.y) pts.push([m[0], m[1]]);
+    cur = { x: m[0], y: m[1] };
+  }
+  if (B.x !== cur.x) pts.push([B.x, cur.y]);
+  if (B.y !== cur.y) pts.push([B.x, B.y]);
+  pts.push([pb.x, pb.y]);
+  return 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+}
+
+/* ── 渲染 ───────────────────────────────────────────── */
+function el(tag, attrs, cls) {
+  const n = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) n.setAttribute(k, attrs[k]);
+  if (cls) n.setAttribute('class', cls);
+  return n;
+}
+function stateClasses(node) {
+  const s = node.state || {};
+  const out = [];
+  if (s.run) out.push('is-run');
+  if (s.fault) out.push('is-fault');
+  if (s.manual) out.push('is-manual');
+  if (s.open) out.push('is-open');
+  if (s.closed) out.push('is-closed');
+  if (!out.length && (s.off)) out.push('is-off');
+  return out;
+}
+function render() {
+  canvas.innerHTML = '';
+  const g = el('g');
+  canvas.appendChild(g);
+
+  // 网格
+  const grid = el('g');
+  for (let x = 0; x <= 1200; x += 40) grid.appendChild(el('line', { x1: x, y1: 0, x2: x, y2: 700 }, 'grid-line'));
+  for (let y = 0; y <= 700; y += 40) grid.appendChild(el('line', { x1: 0, y1: y, x2: 1200, y2: y }, 'grid-line'));
+  g.appendChild(grid);
+
+  // 连线
+  layout.edges.forEach(e => {
+    const p = el('path', { d: edgePath(e), 'data-edge': e.id }, 'edge' + (e.kind === 'control' ? ' ctrl' : '') + (sel && sel.type === 'edge' && sel.id === e.id ? ' sel' : ''));
+    p.addEventListener('mousedown', ev => { ev.stopPropagation(); sel = { type: 'edge', id: e.id }; render(); renderProp(); });
+    g.appendChild(p);
+  });
+
+  // 图元
+  layout.nodes.forEach(n => {
+    const s = n.size || 60;
+    const ng = el('g', { transform: `translate(${n.x - s / 2},${n.y - s / 2})`, 'data-node': n.id }, 'node' + (sel && sel.type === 'node' && sel.id === n.id ? ' sel' : ''));
+    const svg = rt.renderSymbol(n.symbol, { style: useImage ? 'image' : 'line', size: s });
+    stateClasses(n).forEach(c => svg.classList.add(c));
+    if (n.value !== undefined && n.value !== '') {
+      const v = svg.querySelector('.sym-val');
+      if (v) v.textContent = n.value;
+    }
+    ng.appendChild(svg);
+    ng.appendChild(el('rect', { x: -6, y: -6, width: s + 12, height: s + 12, rx: 4 }, 'selbox'));
+    const t1 = el('text', { x: s / 2, y: s + 16 }, 'nlabel'); t1.textContent = n.label || defs.get(n.symbol).name;
+    const t2 = el('text', { x: s / 2, y: s + 29 }, 'npoint'); t2.textContent = n.point || '';
+    ng.appendChild(t1); ng.appendChild(t2);
+
+    const def = defs.get(n.symbol);
+    (def.ports || []).forEach((p, i) => {
+      const pos = portPos(n, i);
+      const c = el('circle', { cx: pos.x - (n.x - s / 2), cy: pos.y - (n.y - s / 2), r: 4, 'data-port': i, 'data-node': n.id }, 'port');
+      c.addEventListener('mousedown', ev => {
+        ev.stopPropagation();
+        drag = { type: 'link' };
+        linkFrom = { node: n.id, port: i };
+        tempPath = el('path', { d: '' }, 'edge hot');
+        g.appendChild(tempPath);
+      });
+      ng.appendChild(c);
+    });
+
+    ng.addEventListener('mousedown', ev => {
+      ev.stopPropagation();
+      sel = { type: 'node', id: n.id };
+      drag = { type: 'move', node: n.id, dx: n.x - ev.clientX, dy: n.y - ev.clientY };
+      render(); renderProp();
+    });
+    g.appendChild(ng);
+  });
+
+  if (drag && drag.type === 'link' && tempPath) tempPath.setAttribute('d', linkPath(evPos()));
+}
+
+/* 连线拖拽预览 */
+let tempPath = null;
+function evPos() {
+  const r = canvas.getBoundingClientRect();
+  const sc = 1200 / r.width;
+  return { x: (ev_clientX - r.left) * sc, y: (ev_clientY - r.top) * sc };
+}
+let ev_clientX = 0, ev_clientY = 0;
+function linkPath(mouse) {
+  const a = nodeById(linkFrom.node);
+  const pa = portPos(a, linkFrom.port);
+  const va = dirVec(pa.dir);
+  const A = { x: pa.x + va.x * 16, y: pa.y + va.y * 16 };
+  const pts = [[pa.x, pa.y], [A.x, A.y]];
+  if (A.x !== mouse.x) pts.push([mouse.x, A.y]);
+  pts.push([mouse.x, mouse.y]);
+  return 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+}
+
+/* ── 交互 ───────────────────────────────────────────── */
+canvas.addEventListener('mousemove', ev => {
+  ev_clientX = ev.clientX; ev_clientY = ev.clientY;
+  const r = canvas.getBoundingClientRect();
+  $('st-pos').textContent = Math.round((ev.clientX - r.left) * 1200 / r.width) + ', ' + Math.round((ev.clientY - r.top) * 700 / r.height);
+  if (drag && drag.type === 'move') {
+    const n = nodeById(drag.node);
+    let x = ev.clientX + drag.dx, y = ev.clientY + drag.dy;
+    if (snapOn) { x = Math.round(x / 8) * 8; y = Math.round(y / 8) * 8; }
+    n.x = x; n.y = y;
+    render();
+  } else if (drag && drag.type === 'link' && tempPath) {
+    tempPath.setAttribute('d', linkPath(evPos()));
+  }
+});
+window.addEventListener('mouseup', ev => {
+  if (drag && drag.type === 'link') {
+    const target = document.elementFromPoint(ev.clientX, ev.clientY);
+    const portEl = target && target.closest ? target.closest('.port') : null;
+    if (portEl && portEl.dataset.node !== linkFrom.node) {
+      layout.edges.push({
+        id: uid('e'), from: { node: linkFrom.node, port: +portEl.dataset.port },
+        to: { node: portEl.dataset.node, port: +portEl.dataset.port }
+      });
+    }
+    if (tempPath) tempPath.remove();
+    tempPath = null; drag = null; linkFrom = null;
+    render(); saveDraft(); renderProp();
+    return;
+  }
+  if (drag && drag.type === 'move') { drag = null; saveDraft(); renderProp(); }
+});
+canvas.addEventListener('mousedown', ev => {
+  if (ev.target === canvas) {
+    if (placeSymbol) {
+      const r = canvas.getBoundingClientRect();
+      let x = (ev.clientX - r.left) * 1200 / r.width, y = (ev.clientY - r.top) * 700 / r.height;
+      if (snapOn) { x = Math.round(x / 8) * 8; y = Math.round(y / 8) * 8; }
+      const n = { id: uid('n'), symbol: placeSymbol, x, y, size: 60, label: defs.get(placeSymbol).name, point: '', value: '', state: {} };
+      layout.nodes.push(n);
+      sel = { type: 'node', id: n.id };
+      placeSymbol = null; canvas.classList.remove('place');
+      $('st-mode').textContent = '模式：选择';
+      render(); saveDraft(); renderProp();
+      return;
+    }
+    sel = null; render(); renderProp();
+  }
+});
+window.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') { placeSymbol = null; canvas.classList.remove('place'); $('st-mode').textContent = '模式：选择'; }
+  if ((ev.key === 'Delete' || ev.key === 'Backspace') && sel) {
+    if (sel.type === 'node') {
+      layout.nodes = layout.nodes.filter(n => n.id !== sel.id);
+      layout.edges = layout.edges.filter(e => e.from.node !== sel.id && e.to.node !== sel.id);
+    } else {
+      layout.edges = layout.edges.filter(e => e.id !== sel.id);
+    }
+    sel = null; render(); saveDraft(); renderProp();
+  }
+});
+
+/* ── 属性面板 ───────────────────────────────────────── */
+function renderProp() {
+  const box = $('prop-body');
+  box.innerHTML = '';
+  const st = $('st-sel');
+  if (sel && sel.type === 'node') {
+    const n = nodeById(sel.id);
+    const def = defs.get(n.symbol);
+    st.textContent = '已选图元 ' + (n.label || n.symbol);
+    box.innerHTML = `
+      <div class="field"><label>图元</label><div style="font-family:'JetBrains Mono',monospace;font-size:12.5px">${n.symbol}</div>
+      <div style="font-size:11.5px;color:var(--muted)">${def.name} · ${def.category}</div></div>
+      <div class="field"><label>标签</label><input type="text" id="p-label" value="${n.label || ''}"></div>
+      <div class="field"><label>绑定点名</label><select id="p-point">${pointOptions(n)}</select></div>
+      <div class="field"><label>显示值</label><input type="text" id="p-value" value="${n.value || ''}" placeholder="例：0.65 MPa"></div>
+      <div class="field row2">
+        <div><label>X</label><input type="text" id="p-x" value="${Math.round(n.x)}"></div>
+        <div><label>Y</label><input type="text" id="p-y" value="${Math.round(n.y)}"></div>
+      </div>
+      <div class="field"><label>图元尺寸</label><select id="p-size">${[40, 48, 60, 72, 96].map(v => `<option ${n.size === v ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div class="field"><label>状态预览</label><div class="states">
+        ${['run', 'fault', 'manual', 'open', 'closed'].map(k => `<button data-state="${k}" class="${n.state && n.state[k] ? 'on' : ''}">${({ run: '运行', fault: '故障', manual: '手动', open: '阀开', closed: '阀关' })[k]}</button>`).join('')}
+      </div></div>
+      <button id="p-del" class="danger" style="width:100%;border-color:rgba(239,68,68,.6);color:#fca5a5">删除该图元</button>`;
+    const bind = (id, fn) => { const e = $(id); if (e) e.oninput = e.onchange = () => { fn(e.value); render(); saveDraft(); }; };
+    bind('p-label', v => n.label = v);
+    bind('p-value', v => n.value = v);
+    bind('p-point', v => n.point = v);
+    bind('p-size', v => n.size = +v);
+    bind('p-x', v => n.x = +v || 0);
+    bind('p-y', v => n.y = +v || 0);
+    $('p-del').onclick = () => { layout.nodes = layout.nodes.filter(x => x.id !== n.id); layout.edges = layout.edges.filter(e => e.from.node !== n.id && e.to.node !== n.id); sel = null; render(); saveDraft(); renderProp(); };
+    box.querySelectorAll('.states button').forEach(b => b.onclick = () => {
+      n.state = n.state || {};
+      n.state[b.dataset.state] = !n.state[b.dataset.state];
+      render(); saveDraft(); renderProp();
+    });
+  } else if (sel && sel.type === 'edge') {
+    const e = layout.edges.find(x => x.id === sel.id);
+    st.textContent = '已选连线 ' + sel.id;
+    box.innerHTML = `
+      <div class="field"><label>连线类型</label>
+        <select id="e-kind"><option value="pipe" ${e.kind !== 'control' ? 'selected' : ''}>管道</option><option value="control" ${e.kind === 'control' ? 'selected' : ''}>电气（虚线）</option></select></div>
+      <div class="field"><label>折点</label><input type="text" id="e-via" value="${(e.via || []).map(v => v.join(',')).join(' | ')}" placeholder="例：700,300 | 700,500"></div>
+      <button id="e-del" style="width:100%;border-color:rgba(239,68,68,.6);color:#fca5a5">删除该连线</button>`;
+    $('e-kind').onchange = () => { e.kind = $('e-kind').value; render(); saveDraft(); };
+    $('e-via').onchange = () => {
+      e.via = $('e-via').value.split('|').map(s => s.split(',').map(Number)).filter(p => p.length === 2 && !isNaN(p[0]));
+      render(); saveDraft();
+    };
+    $('e-del').onclick = () => { layout.edges = layout.edges.filter(x => x.id !== e.id); sel = null; render(); saveDraft(); renderProp(); };
+  } else {
+    st.textContent = '未选中';
+    box.innerHTML = `
+      <div class="field"><label>画面</label><input type="text" id="p-name" value="${layout.name}"></div>
+      <div class="field"><label>统计</label><div class="stats">
+        <span>图元</span><b>${layout.nodes.length}</b>
+        <span>连线</span><b>${layout.edges.length}</b>
+        <span>图元库</span><b>${MANIFEST.symbols.length}</b>
+      </div></div>
+      <div class="hint">
+        <b>放置</b>：点左侧图元 → 画布点击<br>
+        <b>移动</b>：拖动图元<br>
+        <b>连线</b>：选中图元后拖动绿色连接点到另一图元<br>
+        <b>删除</b>：选中后按 Delete<br>
+        <b>保存</b>：写入浏览器本地；导出 JSON 可交付
+      </div>`;
+    const nm = $('p-name');
+    if (nm) nm.onchange = () => { layout.name = nm.value; $('lay-name').value = nm.value; saveDraft(); };
+  }
+}
+function pointOptions(n) {
+  const def = defs.get(n.symbol);
+  let h = `<option value="">（不绑定）</option>`;
+  (def.bindings || []).forEach(b => {
+    h += `<option value="${b.point}" ${n.point === b.point ? 'selected' : ''}>${b.name} · ${b.point}</option>`;
+  });
+  return h;
+}
+
+/* ── 存取 ───────────────────────────────────────────── */
+const KEY_DRAFT = 'hmi.layout.draft';
+const KEY_SET = 'hmi.layouts';
+function saveDraft() {
+  try { localStorage.setItem(KEY_DRAFT, JSON.stringify(layout)); } catch (e) { }
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(KEY_DRAFT);
+    if (raw) { layout = JSON.parse(raw); return true; }
+  } catch (e) { }
+  return false;
+}
+function listSaved() {
+  const sel = $('b-load');
+  sel.innerHTML = '<option value="">读取画面…</option>';
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem(KEY_SET) || '{}'); } catch (e) { }
+  Object.keys(all).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = k; sel.appendChild(o); });
+}
+$('b-save').onclick = () => {
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem(KEY_SET) || '{}'); } catch (e) { }
+  const name = $('lay-name').value.trim() || '未命名画面';
+  layout.name = name;
+  all[name] = clone(layout);
+  localStorage.setItem(KEY_SET, JSON.stringify(all));
+  listSaved();
+  $('st-hint').textContent = '已保存：' + name;
+};
+$('b-load').onchange = () => {
+  const k = $('b-load').value; if (!k) return;
+  let all = {}; try { all = JSON.parse(localStorage.getItem(KEY_SET) || '{}'); } catch (e) { }
+  if (all[k]) { layout = clone(all[k]); $('lay-name').value = layout.name; sel = null; render(); renderProp(); saveDraft(); $('st-hint').textContent = '已读取：' + k; }
+};
+$('b-new').onclick = () => { layout = blank(); $('lay-name').value = layout.name; sel = null; render(); renderProp(); saveDraft(); $('st-hint').textContent = '已新建空白画面'; };
+$('b-export').onclick = () => {
+  const blob = new Blob([JSON.stringify(layout, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (layout.name || 'layout') + '.json';
+  a.click();
+};
+$('b-import').onclick = () => $('file').click();
+$('file').onchange = ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      layout = JSON.parse(r.result);
+      $('lay-name').value = layout.name || '';
+      sel = null; render(); renderProp(); saveDraft();
+      $('st-hint').textContent = '已导入：' + (layout.name || f.name);
+    } catch (e) { $('st-hint').textContent = 'JSON 解析失败'; }
+  };
+  r.readAsText(f);
+};
+$('b-sample').onclick = () => { layout = clone(SAMPLE); $('lay-name').value = layout.name; sel = null; render(); renderProp(); saveDraft(); $('st-hint').textContent = '已载入示例画面'; };
+$('b-style').onclick = () => { useImage = !useImage; $('b-style').textContent = useImage ? '图片版' : '线框版'; buildLib(); render(); $('st-hint').textContent = useImage ? '已切换到图片版' : '已切换到线框版'; };
+$('snap').onchange = ev => snapOn = ev.target.checked;
+$('b-zoom-in').onclick = () => { zoom = Math.min(2, zoom + 0.15); applyZoom(); };
+$('b-zoom-out').onclick = () => { zoom = Math.max(0.4, zoom - 0.15); applyZoom(); };
+$('b-zoom-fit').onclick = fitZoom;
+function fitZoom() {
+  const w = $('stagewrap').clientWidth - 18;
+  zoom = Math.min(1, w / 1200); applyZoom();
+}
+function applyZoom() {
+  canvas.setAttribute('width', Math.round(1200 * zoom));
+  canvas.setAttribute('height', Math.round(700 * zoom));
+}
+$('lay-name').onchange = ev => { layout.name = ev.target.value; saveDraft(); };
+
+/* ── 启动 ───────────────────────────────────────────── */
+window.__editor = {
+  get layout() { return layout; },
+  get sel() { return sel; },
+  render, renderProp, saveDraft
+};
+buildLib();
+listSaved();
+if (!loadDraft()) layout = clone(SAMPLE);
+$('lay-name').value = layout.name;
+render();
+renderProp();
+fitZoom();
+window.addEventListener('resize', fitZoom);
+</script>
+</body>
+</html>

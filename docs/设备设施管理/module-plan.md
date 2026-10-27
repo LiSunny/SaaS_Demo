@@ -3,6 +3,7 @@
 > 调研日期：2026-10-26
 > 对标平台：智慧消防云平台 `beijingrenxing.com:9443`（租户：港南二中，账号 李文学）
 > 状态：方案待实施（第 1 批菜单骨架 / 第 2~4 批真实页面）
+> 后续补充：组态配置 + 图元库接入（第 2 批）
 
 ---
 
@@ -35,11 +36,11 @@
 | 4 | 运行监控 | 父级 | 状态监控、场景监控 | 未获取 |
 | 5 | 报表与报告 | 父级 | 告警分析报告、设备运行报表 | 未获取 |
 | 6 | 系统日志 | 父级 | 事件日志 | 未获取 |
-| 7 | 规则配置 | 父级 | 自定义事件、平面图描点、数据拉取、数据推送、策略执行器 | 未获取 |
+| 7 | 规则配置 | 父级 | 自定义事件、平面图描点、数据拉取、数据推送、策略执行器 | 未获取（本仓库另加「组态配置」，平台无对应项） |
 | 8 | 消息推送 | 父级 | 告警推送 | 未获取 |
 | 9 | 使用手册 | 叶子（语雀外链） | — | `#/iframes/<base64>` |
 
-计数：二级 9 项（叶子 2、父级 6、外链 1），三级 15 项，叶子合计 18（含外链 1），站内可落地叶子 17。按要求不落地平台「首页」，本方案落地叶子 16 个。
+计数：二级 9 项（叶子 2、父级 6、外链 1），三级 16 项，叶子合计 19（含外链 1），站内可落地叶子 18。按要求不落地平台「首页」，本方案落地叶子 17 个。
 
 ### 2.3 租户差异
 
@@ -63,7 +64,7 @@
 │   └── 保养记录      /device-facility/maintenance/records
 ├── 运行监控
 │   ├── 状态监控      /device-facility/monitor/status
-│   └── 场景监控      /device-facility/monitor/scene
+│   ├── 场景监控      /device-facility/monitor/scene
 ├── 报表与报告
 │   ├── 告警分析报告   /device-facility/report/alarm
 │   └── 设备运行报表   /device-facility/report/device
@@ -74,12 +75,15 @@
 │   ├── 平面图描点     /device-facility/rule/plan-point
 │   ├── 数据拉取       /device-facility/rule/data-fetch
 │   ├── 数据推送       /device-facility/rule/data-push
-│   └── 策略执行器     /device-facility/rule/strategy
+│   ├── 策略执行器     /device-facility/rule/strategy
+│   └── 组态配置       /device-facility/rule/scene-config
 └── 消息推送
     └── 告警推送      /device-facility/notify/alarm-push
 ```
 
-节点 22 个（7 个二级 + 15 个三级），叶子 16 个 = 路由 16 条。
+组态配置另有两条非菜单路由：编辑器 `/device-facility/rule/scene-config/:id/editor`、图元管理 `/device-facility/rule/symbol-library`（编辑器右侧图元选择组件右上角入口，不进侧栏）。
+
+节点 23 个（7 个二级 + 16 个三级），叶子 17 个 = 菜单路由 17 条 + 非菜单路由 2 条 = 路由 19 条。
 
 侧栏渲染能力满足该层级：`src/layouts/DefaultLayout.vue:142-219` 支持「分组 → 节点 → 节点子项」三级可点，三级项不带图标。
 
@@ -104,11 +108,14 @@
 | 规则配置 › 数据拉取 | 数据拉取 | `/device-facility/rule/data-fetch` | 新建占位页 |
 | 规则配置 › 数据推送 | 数据推送 | `/device-facility/rule/data-push` | 新建占位页 |
 | 规则配置 › 策略执行器 | 策略执行器 | `/device-facility/rule/strategy` | 新建占位页 |
+| 规则配置 › 组态配置 | 组态配置 | `/device-facility/rule/scene-config` | 新建真实页 `src/views/device-facility/SceneConfigList.vue`（画面列表 + 新增） |
+| 组态配置 › 编辑器 | 组态编辑器 | `/device-facility/rule/scene-config/:id/editor` | 新建真实页 `src/views/device-facility/SceneEditor.vue`（非菜单项） |
+| 组态配置 › 图元管理 | 图元管理 | `/device-facility/rule/symbol-library` | 新建真实页 `src/views/device-facility/SymbolLibraryPage.vue`（编辑器内入口，非菜单项） |
 | 消息推送 › 告警推送 | 告警推送 | `/device-facility/notify/alarm-push` | 新建占位页 |
 | 首页 | 不纳入 | — | 平台模块首页，按要求不做菜单项 |
 | 使用手册 | 不纳入 | — | 语雀外链，与巡查检查一致处理 |
 
-复用 2 页 + 占位 14 页 = 16 页；不纳入 2 项（首页、使用手册）。
+复用 2 页 + 占位 14 页 + 新建真实页 3 页（组态配置列表、组态编辑器、图元管理）= 19 页；不纳入 2 项（首页、使用手册）。
 
 ---
 
@@ -140,7 +147,7 @@
 | 其中 router 内无对应页面 | 43（50.6%） | 与 `src/router/index.ts` 路径表逐条比对 |
 | 可复用的设备类真实页 | 2（`/device/list`、`/maintenance/plans`） | `src/views/device/DeviceList.vue`、`src/views/maintenance/PlanList.vue` |
 
-死链 43 条与本模块无关（隐患、培训、单位设置等历史项），本模块新增的 16 条路由全部落地。
+死链 43 条与本模块无关（隐患、培训、单位设置等历史项），本模块新增的 19 条路由全部落地。
 
 ---
 
@@ -174,11 +181,28 @@
 | 规则配置 | `menuicon-38` |
 | 消息推送 | `menuicon-39` |
 
-15 个三级项不带图标。
+16 个三级项不带图标。
 
 ### 6.3 可见范围
 
 `visibleTo` 缺省时：普通用户按企业群体匹配时全部通过（`src/layouts/DefaultLayout.vue:448-458`）；系统角色账号（`platform-ops` / `platform-admin`）只显示带 `visibleTo` 的分组，故看不到本分组（`src/layouts/DefaultLayout.vue:426-434`）。
+
+### 6.4 第 2 批：组态配置 + 图元库接入
+
+| 文件 | 改动 |
+|------|------|
+| `symbol-library/` | 迁入消防给水图元库子工程：27 图元 / 8 分类 / 69 绑定点 / 54 连接点，真源 `src/symbols.source.js`，构建产物 `dist/`（含 27 张 512×512 位图） |
+| `scripts/build-symbols.mjs`、`scripts/sync-symbol-assets.mjs` | 图元库构建入口 + 位图同步到 `public/symbols/img`（服务路径 `/symbols/img/`）；npm 命令 `symbols:build`、`symbols:sync` |
+| `src/symbols/index.ts`、`src/symbols/runtime.d.ts`、`src/symbols/theme.css` | 接入层：运行时单例、图元元数据、点表解析、几何计算；类型声明；配色令牌化（`--sym-*` 改挂 `var(--xxx)`） |
+| `src/types/scene-config.ts`、`src/stores/scene-config.ts` | 组态画面类型与 store（画面列表走 `src/utils/db-adapter.ts`，草稿键 `scene-config:draft:<id>`） |
+| `src/views/device-facility/SceneConfigList.vue` | 组态配置列表页（范式对齐 `src/views/maintenance/PlanList.vue`）：筛选、新增/编辑弹窗、预览弹窗、启停、删除 |
+| `src/views/device-facility/SceneEditor.vue` | 组态编辑器：顶栏 + 画布 + 右侧图元选择组件 + 属性面板；改动自动存草稿，保存写回画面记录，导入导出 JSON |
+| `src/views/device-facility/SymbolLibraryPage.vue` | 图元管理（只读）：分类浏览、缩略图、状态预览、绑定点表 |
+| `src/components/device-facility/` | `SceneCanvas.vue`、`SymbolPicker.vue`（含「图元管理」入口）、`ScenePropertyPanel.vue`、`SymbolThumb.vue`、`SceneSymbolNode.vue` |
+| `src/config/navigation.ts` | `df-rule` 增加三级项「组态配置」；`ROUTE_TO_NAV_KEY` 补 2 条并置于 `'/device'` 之前（否则 `/device` 前缀会抢命中）；`NAV_KEY_TO_ROUTE` 补 1 条 |
+| `src/router/index.ts` | 新增 3 条路由（列表、编辑器、图元管理） |
+| `vite.config.ts` | alias 增加 `@symbols` → `symbol-library/dist` |
+| `e2e/specs/scene-config.spec.ts` | 新增组态配置 e2e 用例 3 条 |
 
 ---
 

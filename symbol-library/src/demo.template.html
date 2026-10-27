@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>消防给水系统监控画面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+__CSS__
+:root{
+  --bg:#0f172a; --panel:#1b2839; --panel2:#223047; --line:#2f3f57;
+  --ink:#e6edf6; --muted:#93a4bd; --green:#22c55e; --cyan:#38bdf8;
+  --amber:#eab308; --red:#ef4444; --pipe:#6b7c93; --accent:#38bdf8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Outfit','Noto Sans SC',sans-serif;font-size:14px;line-height:1.5}
+.screen{min-height:100vh;display:flex;flex-direction:column;gap:10px;padding:12px 14px}
+
+/* 顶栏 */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.brand{font-size:17px;font-weight:600;letter-spacing:.02em}
+.brand small{display:block;font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0}
+.nav{display:flex;gap:6px;margin-left:8px}
+.nav span{white-space:nowrap;padding:5px 12px;border-radius:8px;font-size:13px;color:var(--muted);border:1px solid transparent}
+.nav span.on{background:var(--accent);color:#06202e;font-weight:600}
+.clock{margin-left:auto;text-align:right;font-family:'JetBrains Mono',monospace}
+.clock b{font-size:19px;font-weight:500;display:block;line-height:1.2}
+.clock span{font-size:11px;color:var(--muted)}
+.banner{flex:1 1 100%;display:none;align-items:center;gap:12px;background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.5);border-radius:10px;padding:8px 14px;color:#fecaca}
+.banner.on{display:flex}
+.banner b{color:#fff}
+.banner .t{font-family:'JetBrains Mono',monospace}
+
+/* 主体 */
+.body{display:grid;grid-template-columns:1fr 340px;gap:10px;flex:1;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card h2{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.08em;margin:0 0 10px;text-transform:uppercase}
+.stage{position:relative}
+.stage svg{width:100%;height:auto;display:block}
+.sym-label{fill:#b9c7da;font-size:10px;text-anchor:middle;font-family:'Outfit',sans-serif}
+.sym-point{fill:#6f8199;font-size:8.5px;text-anchor:middle;font-family:'JetBrains Mono',monospace}
+.sym-val{fill:var(--cyan);font-size:9.5px;font-weight:600;text-anchor:middle;font-family:'JetBrains Mono',monospace}
+.sym-readout{fill:var(--cyan);font-size:10px;font-weight:600;text-anchor:middle;font-family:'JetBrains Mono',monospace}
+.stage .sym-root .sym-val{display:none}
+.pipe-line{stroke:var(--pipe);stroke-width:7;stroke-linecap:butt;fill:none}
+.pipe-live{stroke:var(--cyan);stroke-width:3;stroke-linecap:round;fill:none;stroke-dasharray:10 14;opacity:.9}
+.ctrl-link{stroke:#64748b;stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+
+/* 右侧 */
+.side{display:flex;flex-direction:column;gap:10px;min-height:0}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:12.5px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-family:'JetBrains Mono',monospace;text-align:right}
+.kv dd.hi{color:var(--cyan)}
+.kv dd.warn{color:var(--amber)}
+.kv dd.err{color:var(--red)}
+.bar{grid-column:1/-1;height:6px;background:#26364e;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--cyan);border-radius:3px;transition:width .4s}
+.bar i.low{background:var(--amber)} .bar i.high{background:var(--red)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:12.5px;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;transition:all .15s}
+button:hover{border-color:var(--accent)}
+button.danger{border-color:rgba(239,68,68,.6);color:#fca5a5}
+button.danger:hover{background:rgba(239,68,68,.16)}
+button.on{background:var(--green);border-color:var(--green);color:#05230f;font-weight:600}
+button.armed{background:var(--amber);border-color:var(--amber);color:#2b1d00;font-weight:600}
+.alarms{list-style:none;margin:0;padding:0;font-size:12px;display:flex;flex-direction:column;gap:6px;overflow:auto;max-height:190px}
+.alarms li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-left-width:3px;border-radius:8px;padding:6px 9px}
+.alarms li.lv1{border-left-color:var(--red)} .alarms li.lv2{border-left-color:var(--amber)} .alarms li.lv3{border-left-color:var(--cyan)}
+.alarms time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.alarms .ack{font-size:11px;color:var(--muted);cursor:pointer;border-bottom:1px dashed}
+.alarms .ack:hover{color:var(--ink)}
+
+/* 趋势 */
+.trend{display:grid;grid-template-columns:1fr 150px;gap:14px;align-items:center}
+.trend canvas{width:100%;height:112px;display:block}
+.legend{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:8px;vertical-align:3px}
+.foot{display:flex;gap:16px;font-size:11px;color:var(--muted);padding:0 4px}
+@media (max-width:1080px){ .body{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <header class="top">
+    <div class="brand">消防给水系统监控<small>示例工程 · 某商业综合体 B1 消防水池泵房</small></div>
+    <nav class="nav">
+      <span class="on">系统总貌</span><span>水泵房</span><span>管网压力</span><span>末端试水</span><span>报警记录</span><span>报表</span>
+    </nav>
+    <div class="clock"><b id="clk">--:--:--</b><span id="date">----</span></div>
+    <div class="banner" id="banner"><b>火警</b><span id="banner-txt">消防泵已联动启动</span><span class="t" id="banner-time"></span></div>
+  </header>
+
+  <div class="body">
+    <section class="card stage">
+      <h2>给水流程总貌</h2>
+      <svg id="stage" viewBox="0 0 960 540" preserveAspectRatio="xMidYMid meet"></svg>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <h2>实时数据</h2>
+        <dl class="kv">
+          <dt>消防水池液位</dt><dd id="v-pool">--</dd>
+          <div class="bar"><i id="b-pool"></i></div>
+          <dt>消防水箱液位</dt><dd id="v-tank">--</dd>
+          <div class="bar"><i id="b-tank"></i></div>
+          <dt>主泵出口压力</dt><dd id="v-press" class="hi">--</dd>
+          <dt>管网压力</dt><dd id="v-net" class="hi">--</dd>
+          <dt>末端试水压力</dt><dd id="v-test" class="hi">--</dd>
+          <dt>末端试水流量</dt><dd id="v-flow" class="hi">--</dd>
+          <dt>主泵 / 备用泵</dt><dd id="v-pump">--</dd>
+          <dt>控制柜</dt><dd id="v-cab">--</dd>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h2>操作</h2>
+        <div class="btns">
+          <button id="b-run">启动主泵</button>
+          <button id="b-stop">停止主泵</button>
+          <button id="b-stby">切备用泵</button>
+          <button id="b-mode">转手动</button>
+          <button id="b-valve">开总阀</button>
+          <button id="b-fire" class="danger">模拟火警</button>
+          <button id="b-ack">复位报警</button>
+        </div>
+      </section>
+
+      <section class="card" style="flex:1;min-height:0">
+        <h2>实时报警 <span id="alarm-count" style="color:var(--muted)"></span></h2>
+        <ul class="alarms" id="alarms"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <section class="card trend">
+    <canvas id="chart"></canvas>
+    <div class="legend">
+      <span><i style="background:#38bdf8"></i>泵出口压力 0–0.8 MPa</span>
+      <span><i style="background:#22c55e"></i>管网压力 0–0.8 MPa</span>
+      <span><i style="background:#eab308"></i>末端流量 0–15 L/s</span>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span id="foot-src">图元来源：图元库 v1.0.0 · 图片版 27 图元</span>
+    <span>模拟数据，仅用于画面示例</span>
+  </div>
+</div>
+
+<script type="module">
+const MANIFEST = __MANIFEST__;
+const GEOMETRY = __GEOMETRY__;
+const GEOMETRY_IMAGE = __GEOMETRY_IMAGE__;
+__RUNTIME__
+
+const rt = createRuntime(MANIFEST, GEOMETRY, GEOMETRY_IMAGE);
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const stage = document.getElementById('stage');
+const syms = new Map();
+
+/* ── 画面状态 ─────────────────────────────────────────── */
+const S = {
+  pool: 72, tank: 68, running: false, standby: false, fault: false, manual: false,
+  valve: true, press: 0, net: 0, test: 0, flow: 0, fire: false, alarms: []
+};
+
+/* ── 流程图绘制 ───────────────────────────────────────── */
+function el(tag, attrs) {
+  const n = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+function pipe(d, live) {
+  stage.appendChild(el('path', { class: 'pipe-line', d }));
+  if (live) stage.appendChild(el('path', { class: 'pipe-live', id: 'live-' + live, d }));
+}
+function device(id, x, y, label, point, size = 60) {
+  const g = el('g', { transform: `translate(${x - size / 2},${y - size / 2})` });
+  const svg = rt.renderSymbol(id, { style: 'image', size });
+  g.appendChild(svg);
+  g.appendChild(el('text', { class: 'sym-label', x: size / 2, y: size + 14 })).textContent = label;
+  g.appendChild(el('text', { class: 'sym-point', x: size / 2, y: size + 26 })).textContent = point;
+  const val = el('text', { class: 'sym-readout', x: size / 2, y: size + 40 });
+  g.appendChild(val);
+  stage.appendChild(g);
+  syms.set(id, { svg, val });
+  return g;
+}
+function valveAt(id, x, y, label, point) {
+  const g = el('g', { transform: `translate(${x - 24},${y - 24})` });
+  const svg = rt.renderSymbol(id, { style: 'image', size: 48 });
+  g.appendChild(svg);
+  g.appendChild(el('text', { class: 'sym-label', x: 24, y: 62 })).textContent = label;
+  g.appendChild(el('text', { class: 'sym-point', x: 24, y: 74 })).textContent = point;
+  stage.appendChild(g);
+  syms.set(id, { svg });
+  return g;
+}
+
+const s = el('g');
+stage.appendChild(s);
+
+/* 管网主干与支管 */
+pipe('M92,300 H180', 'a');
+pipe('M244,300 H320', 'b');
+pipe('M412,300 H470', 'c');
+pipe('M470,300 V238', 'c');
+pipe('M470,300 H580 V150', 'd');
+pipe('M580,150 H586', 'd');
+pipe('M580,250 H586', 'd');
+pipe('M580,350 H586', 'd');
+pipe('M580,450 H586', 'd');
+
+/* 设备 */
+device('TNK-FIRE-01', 56, 300, '消防水池', 'TNK_FIRE_01_LV');
+device('RES-TANK-01', 212, 300, '消防水箱', 'RES_TANK_01_LV');
+device('PMP-SET-01', 366, 300, '消防泵组', 'PMP_SET_01_RUN');
+device('CAB-PMP-01', 340, 452, '消防泵控制柜', 'CAB_PMP_01_FAULT');
+device('PMP-STAB-01', 205, 452, '稳压泵', 'PMP_STAB_01_RUN');
+device('VES-PRE-01', 80, 452, '稳压气压罐', 'VES_PRE_01_PRESS');
+device('PAI-SPG-01', 440, 206, '管网压力表', 'PAI_SPG_01_P');
+device('TST-TEST-01', 730, 450, '末端试水装置', 'TST_TEST_01_P');
+device('HYD-IND-01', 730, 150, '室内消火栓', 'HYD_IND_01_PRESS');
+device('HYD-HOSE-01', 730, 250, '消火栓箱', 'HYD_HOSE_01_PRESS');
+device('CON-OUT-01', 730, 350, '水泵接合器', 'CON_OUT_01_PRESS');
+
+valveAt('VLV-GATE-01', 610, 150, '阀门', 'VLV_GATE_01_OPEN');
+valveAt('VLV-BUTT-01', 610, 250, '阀门', 'VLV_BUTT_01_OPEN');
+valveAt('VLV-CHK-01', 610, 350, '阀门', 'VLV_CHK_01_OPEN');
+valveAt('VLV-SIG-01', 610, 450, '阀门', 'VLV_SIG_01_OPEN');
+
+/* 电气连线与标注 */
+stage.appendChild(el('path', { class: 'ctrl-link', d: 'M340,418 V344 H362' }));
+
+/* ── 数据与状态刷新 ───────────────────────────────────── */
+const $ = (id) => document.getElementById(id);
+function set(id, txt, cls) {
+  const n = $(id); n.textContent = txt;
+  if (cls !== undefined) n.className = n.className.replace(/\b(hi|warn|err)\b/g, '').trim() + (cls ? ' ' + cls : '');
+}
+function setBar(id, v, cls) {
+  const b = $(id); b.style.width = Math.max(0, Math.min(100, v)) + '%';
+  b.className = cls || '';
+}
+function apply(id, cls, data) {
+  const it = syms.get(id); if (!it) return;
+  it.svg.classList.remove('is-run', 'is-off', 'is-fault', 'is-manual', 'is-open', 'is-closed');
+  if (cls) it.svg.classList.add(cls);
+  if (data) rt.applyData(it.svg, data);
+}
+function val(id, txt) { const it = syms.get(id); if (it && it.val) it.val.textContent = txt; }
+
+function render() {
+  set('v-pool', S.pool.toFixed(0) + ' %', S.pool < 20 ? 'warn' : S.pool > 92 ? 'err' : '');
+  setBar('b-pool', S.pool, S.pool < 20 ? 'low' : S.pool > 92 ? 'high' : '');
+  set('v-tank', S.tank.toFixed(0) + ' %', S.tank < 20 ? 'warn' : '');
+  setBar('b-tank', S.tank, S.tank < 20 ? 'low' : '');
+
+  set('v-press', S.press.toFixed(2) + ' MPa', S.press < 0.2 ? 'warn' : '');
+  set('v-net', S.net.toFixed(2) + ' MPa', S.net < 0.2 ? 'warn' : '');
+  set('v-test', S.test.toFixed(2) + ' MPa', S.test < 0.15 ? 'warn' : '');
+  set('v-flow', S.flow.toFixed(1) + ' L/s');
+  set('v-pump', (S.running ? '运行' : '停止') + ' / ' + (S.standby ? '运行' : '停止'), S.running || S.standby ? 'hi' : '');
+  set('v-cab', S.fault ? '故障' : S.manual ? '手动' : '自动', S.fault ? 'err' : S.manual ? 'warn' : '');
+
+  apply('PMP-SET-01', S.fault ? 'is-fault' : S.running || S.standby ? 'is-run' : 'is-off');
+  apply('CAB-PMP-01', S.fault ? 'is-fault' : S.manual ? 'is-manual' : null);
+  apply('PMP-STAB-01', 'is-run');
+  apply('TNK-FIRE-01', S.pool > 92 ? 'is-over' : null, { TNK_FIRE_01_LV: S.pool });
+  apply('RES-TANK-01', S.tank < 20 ? 'is-over' : null, { RES_TANK_01_LV: S.tank });
+  apply('PAI-SPG-01', S.net < 0.2 ? 'is-fault' : null, { PAI_SPG_01_P: S.net });
+  apply('TST-TEST-01', S.valve ? 'is-open' : 'is-closed', { TST_TEST_01_P: S.test, TST_TEST_01_Q: S.flow });
+  apply('HYD-IND-01', null, { HYD_IND_01_PRESS: S.net });
+  apply('HYD-HOSE-01', null, { HYD_HOSE_01_PRESS: S.net });
+  apply('CON-OUT-01', null, { CON_OUT_01_PRESS: S.net });
+  apply('VES-PRE-01', null, { VES_PRE_01_PRESS: 0.62 });
+  apply('VLV-GATE-01', S.valve ? 'is-open' : 'is-closed');
+  apply('VLV-BUTT-01', S.valve ? 'is-open' : 'is-closed');
+  apply('VLV-CHK-01', 'is-open');
+  apply('VLV-SIG-01', S.valve ? 'is-open' : 'is-closed');
+
+  val('TNK-FIRE-01', S.pool.toFixed(0) + '%');
+  val('RES-TANK-01', S.tank.toFixed(0) + '%');
+  val('PMP-SET-01', S.press.toFixed(2) + ' MPa');
+  val('PAI-SPG-01', S.net.toFixed(2) + ' MPa');
+  val('TST-TEST-01', S.test.toFixed(2) + ' MPa');
+  val('CAB-PMP-01', S.manual ? '手动' : '自动');
+  val('PMP-STAB-01', '0.62 MPa');
+  val('VES-PRE-01', '0.62 MPa');
+
+  const live = document.getElementById('live-c');
+  if (live) live.style.opacity = (S.running || S.standby) ? 0.9 : 0;
+  for (const id of ['live-a', 'live-b', 'live-d']) {
+    const n = document.getElementById(id);
+    if (n) n.style.opacity = (S.running || S.standby) ? 0.9 : 0.15;
+  }
+  $('b-run').classList.toggle('on', S.running);
+  $('b-stop').classList.toggle('on', !S.running);
+  $('b-stby').classList.toggle('armed', S.standby);
+  $('b-mode').classList.toggle('armed', S.manual);
+  $('b-valve').textContent = S.valve ? '关总阀' : '开总阀';
+  $('banner').classList.toggle('on', S.fire);
+}
+
+/* ── 报警 ─────────────────────────────────────────────── */
+let seq = 0;
+function alarm(lv, dev, text) {
+  const t = new Date();
+  const hh = String(t.getHours()).padStart(2, '0'), mm = String(t.getMinutes()).padStart(2, '0'), ss = String(t.getSeconds()).padStart(2, '0');
+  S.alarms.unshift({ lv, dev, text, time: hh + ':' + mm + ':' + ss, id: ++seq, ack: false });
+  if (S.alarms.length > 30) S.alarms.pop();
+  drawAlarms();
+}
+function drawAlarms() {
+  const ul = $('alarms'); ul.innerHTML = '';
+  const unack = S.alarms.filter(a => !a.ack).length;
+  $('alarm-count').textContent = unack ? `· ${unack} 条未确认` : '';
+  S.alarms.forEach(a => {
+    const li = document.createElement('li');
+    li.className = 'lv' + a.lv;
+    li.innerHTML = `<time>${a.time}</time><span><b>${a.dev}</b> ${a.text}</span>`;
+    const ack = document.createElement('span');
+    ack.className = 'ack'; ack.textContent = a.ack ? '已确认' : '确认';
+    ack.onclick = () => { a.ack = true; drawAlarms(); };
+    li.appendChild(ack);
+    ul.appendChild(li);
+  });
+}
+
+/* ── 趋势 ─────────────────────────────────────────────── */
+const hist = { press: [], net: [], flow: [] };
+const N = 90;
+function pushHist() {
+  hist.press.push(S.press); hist.net.push(S.net); hist.flow.push(S.flow);
+  if (hist.press.length > N) { hist.press.shift(); hist.net.shift(); hist.flow.shift(); }
+}
+function drawChart() {
+  const cv = $('chart'), dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(147,164,189,.14)'; c.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) { const y = 8 + (h - 20) * i / 4; c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+  const line = (arr, max, color) => {
+    if (arr.length < 2) return;
+    c.strokeStyle = color; c.lineWidth = 1.8; c.beginPath();
+    arr.forEach((v, i) => {
+      const x = w - (arr.length - 1 - i) * (w / N), y = 8 + (h - 20) * (1 - v / max);
+      i ? c.lineTo(x, y) : c.moveTo(x, y);
+    });
+    c.stroke();
+  };
+  line(hist.press, 0.8, '#38bdf8');
+  line(hist.net, 0.8, '#22c55e');
+  line(hist.flow, 15, '#eab308');
+}
+
+/* ── 仿真与交互 ───────────────────────────────────────── */
+function tick() {
+  const on = S.running || S.standby;
+  const target = on ? (S.standby ? 0.58 : 0.65) : 0;
+  S.press += (target - S.press) * 0.12;
+  S.net = S.press * 0.92;
+  S.test = S.valve ? S.net * 0.95 : 0;
+  S.flow += ((on && S.valve ? 11.5 : 0) - S.flow) * 0.12;
+  if (on && S.tank > 0) S.tank = Math.max(0, S.tank - 0.12);
+  if (S.tank < 30 && S.pool > 30) { S.tank = Math.min(100, S.tank + 0.05); S.pool = Math.max(0, S.pool - 0.05); }
+  if (on && S.tank < 20 && !S.alarms.some(a => a.dev === '消防水箱' && !a.ack)) alarm(2, '消防水箱', '液位低于 20%');
+  pushHist(); render(); drawChart();
+}
+
+$('b-run').onclick = () => { S.running = true; S.standby = false; alarm(3, '消防泵', '手动启泵'); render(); };
+$('b-stop').onclick = () => { S.running = false; S.standby = false; alarm(3, '消防泵', '手动停泵'); render(); };
+$('b-stby').onclick = () => { S.standby = !S.standby; S.running = false; alarm(3, '消防泵', S.standby ? '切换至备用泵' : '退出备用泵'); render(); };
+$('b-mode').onclick = () => { S.manual = !S.manual; alarm(3, '控制柜', S.manual ? '转手动' : '转自动'); render(); };
+$('b-valve').onclick = () => { S.valve = !S.valve; alarm(3, '总阀', S.valve ? '阀门开启' : '阀门关闭'); render(); };
+$('b-fire').onclick = () => {
+  S.fire = true;
+  alarm(1, '火警', '楼层报警信号触发，消防泵联动启动');
+  if (!S.manual) { S.running = true; S.standby = false; }
+  render();
+};
+$('b-ack').onclick = () => { S.alarms.forEach(a => a.ack = true); S.fire = false; drawAlarms(); render(); };
+
+function clock() {
+  const t = new Date();
+  $('clk').textContent = t.toTimeString().slice(0, 8);
+  $('date').textContent = t.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
+}
+clock(); setInterval(clock, 1000);
+drawAlarms(); render();
+setInterval(tick, 1000);
+window.addEventListener('resize', drawChart);
+</script>
+</body>
+</html>

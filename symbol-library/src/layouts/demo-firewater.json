@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "name": "消防给水系统总貌",
+  "nodes": [
+    { "id": "n1",  "symbol": "TNK-FIRE-01", "x": 70,  "y": 375, "size": 60, "label": "消防水池",     "point": "TNK_FIRE_01_LV" },
+    { "id": "n2",  "symbol": "RES-TANK-01", "x": 265, "y": 375, "size": 60, "label": "消防水箱",     "point": "RES_TANK_01_LV" },
+    { "id": "n3",  "symbol": "PMP-SET-01",  "x": 458, "y": 375, "size": 60, "label": "消防泵组",     "point": "PMP_SET_01_RUN" },
+    { "id": "n4",  "symbol": "PAI-SPG-01",  "x": 550, "y": 258, "size": 60, "label": "管网压力表",   "point": "PAI_SPG_01_P" },
+    { "id": "n5",  "symbol": "CAB-PMP-01",  "x": 425, "y": 565, "size": 60, "label": "消防泵控制柜", "point": "CAB_PMP_01_FAULT" },
+    { "id": "n6",  "symbol": "PMP-STAB-01", "x": 256, "y": 565, "size": 60, "label": "稳压泵",       "point": "PMP_STAB_01_RUN" },
+    { "id": "n7",  "symbol": "VES-PRE-01",  "x": 100, "y": 565, "size": 60, "label": "稳压气压罐",   "point": "VES_PRE_01_PRESS" },
+    { "id": "n8",  "symbol": "VLV-GATE-01", "x": 763, "y": 188, "size": 48, "label": "阀门", "point": "VLV_GATE_01_OPEN" },
+    { "id": "n9",  "symbol": "HYD-IND-01",  "x": 913, "y": 188, "size": 60, "label": "室内消火栓", "point": "HYD_IND_01_PRESS" },
+    { "id": "n10", "symbol": "VLV-BUTT-01", "x": 763, "y": 313, "size": 48, "label": "阀门", "point": "VLV_BUTT_01_OPEN" },
+    { "id": "n11", "symbol": "HYD-HOSE-01", "x": 913, "y": 313, "size": 60, "label": "消火栓箱",   "point": "HYD_HOSE_01_PRESS" },
+    { "id": "n12", "symbol": "VLV-CHK-01",  "x": 763, "y": 438, "size": 48, "label": "阀门", "point": "VLV_CHK_01_OPEN" },
+    { "id": "n13", "symbol": "CON-OUT-01",  "x": 913, "y": 438, "size": 60, "label": "水泵接合器", "point": "CON_OUT_01_PRESS" },
+    { "id": "n14", "symbol": "VLV-SIG-01",  "x": 763, "y": 563, "size": 48, "label": "阀门", "point": "VLV_SIG_01_OPEN" },
+    { "id": "n15", "symbol": "TST-TEST-01", "x": 913, "y": 563, "size": 60, "label": "末端试水装置", "point": "TST_TEST_01_P" }
+  ],
+  "edges": [
+    { "id": "e1",  "from": { "node": "n1", "port": 1 }, "to": { "node": "n2", "port": 0 } },
+    { "id": "e2",  "from": { "node": "n2", "port": 1 }, "to": { "node": "n3", "port": 0 } },
+    { "id": "e3",  "from": { "node": "n3", "port": 1 }, "to": { "node": "n4", "port": 0 }, "via": [[550, 375]] },
+    { "id": "e4",  "from": { "node": "n3", "port": 1 }, "to": { "node": "n8", "port": 0 }, "via": [[700, 375], [700, 188]] },
+    { "id": "e5",  "from": { "node": "n3", "port": 1 }, "to": { "node": "n10", "port": 0 }, "via": [[700, 313]] },
+    { "id": "e6",  "from": { "node": "n3", "port": 1 }, "to": { "node": "n12", "port": 0 }, "via": [[700, 438]] },
+    { "id": "e7",  "from": { "node": "n3", "port": 1 }, "to": { "node": "n14", "port": 0 }, "via": [[700, 563]] },
+    { "id": "e8",  "from": { "node": "n8",  "port": 1 }, "to": { "node": "n9",  "port": 0 } },
+    { "id": "e9",  "from": { "node": "n10", "port": 1 }, "to": { "node": "n11", "port": 0 } },
+    { "id": "e10", "from": { "node": "n12", "port": 1 }, "to": { "node": "n13", "port": 0 } },
+    { "id": "e11", "from": { "node": "n14", "port": 1 }, "to": { "node": "n15", "port": 0 } },
+    { "id": "e12", "from": { "node": "n5" }, "to": { "node": "n3" }, "kind": "control" }
+  ]
+}

@@ -27,6 +27,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // 图元库产物（symbol-library/dist）—— MANIFEST / GEOMETRY / runtime / 点表 / 示例布局
+      '@symbols': resolve(__dirname, 'symbol-library/dist'),
       '@': resolve(__dirname, 'src'),
     },
   },

@@ -1,0 +1,56 @@
+/**
+ * 图元库配色令牌化
+ *
+ * 图元库自带 symbols.css 用的是它自己的 --sym-* 调色板（#22c55e/#ef4444/#eab308…）。
+ * 平台侧不引入第二套色板：把 --sym-* 全部改挂项目设计令牌，
+ * 颜色只从 var(--xxx) 派生，明暗主题跟随全局变量切换。
+ *
+ * 本文件必须在图元库 symbols.css 之后加载（同选择器、靠后覆盖）。
+ */
+
+.sym-root {
+  --sym-fill: var(--border-input);
+  --sym-stroke: var(--text-tertiary);
+  --sym-accent: var(--accent-primary);
+  --sym-liquid: var(--info);
+  --sym-on: var(--text-secondary);
+  --sym-alarm: var(--danger);
+  --sym-flow: var(--info);
+  --sym-label: var(--text-muted);
+  --sym-value: var(--text-primary);
+}
+
+/* 状态色 */
+.sym-root.is-off    { --sym-fill: var(--border-high); --sym-stroke: var(--text-muted); }
+.sym-root.is-closed { --sym-fill: var(--border-high); --sym-stroke: var(--text-muted); }
+.sym-root.is-open   { --sym-fill: var(--success); --sym-stroke: var(--success); }
+.sym-root.is-run    { --sym-fill: var(--success); --sym-stroke: var(--success); }
+.sym-root.is-manual { --sym-fill: var(--warning); --sym-stroke: var(--warning); }
+.sym-root.is-fault  { --sym-fill: var(--danger); --sym-stroke: var(--danger); }
+.sym-root.is-over   { --sym-liquid: var(--danger); }
+.sym-root.is-flow   { --sym-flow: var(--info); }
+
+/* 图片版：状态用外圈光晕 + 右上角角标表达 */
+.sym-root.is-run .sym-halo     { stroke: var(--success); }
+.sym-root.is-fault .sym-halo   { stroke: var(--danger); }
+.sym-root.is-manual .sym-halo  { stroke: var(--warning); }
+.sym-root.is-open .sym-halo    { stroke: var(--success); }
+.sym-root.is-closed .sym-halo  { stroke: var(--text-muted); }
+.sym-root.is-over .sym-halo    { stroke: var(--danger); }
+.sym-root.is-flow .sym-halo    { stroke: var(--info); }
+.sym-root.is-off .sym-halo     { stroke: var(--text-muted); }
+
+.sym-badge-bg { stroke: var(--bg-card); }
+.sym-badge-run .sym-badge-bg { fill: var(--success); }
+.sym-badge-fault .sym-badge-bg { fill: var(--danger); }
+.sym-badge-manual .sym-badge-bg { fill: var(--warning); }
+.sym-badge-fg { fill: var(--bg-card); }
+.sym-badge-stroke { stroke: var(--bg-card); }
+.sym-badge-label { fill: var(--bg-card); }
+
+/* 连接点（编辑态用） */
+.sym-port { fill: var(--success); stroke: var(--bg-card); }
+
+/* 图片版液位条 */
+.sym-levelbar-bg { fill: var(--bg-card); }
+.sym-levelbar-fg { stroke: var(--text-muted); }
