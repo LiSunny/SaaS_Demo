@@ -38,7 +38,7 @@ async function login(page: import('@playwright/test').Page) {
   )
 }
 
-/** 从「共 46 个图元 / 4 个系统 / 14 个分类」这类标题文案里取数字 */
+/** 从「共 47 个图元 / 4 个系统 / 14 个分类」这类标题文案里取数字 */
 function declared(text: string | null, label: string) {
   const m = text?.match(new RegExp(`(\\d+)\\s*个${label}`))
   if (!m) throw new Error(`标题里找不到「个${label}」：${text}`)

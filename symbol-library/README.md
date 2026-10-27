@@ -5,13 +5,13 @@ Web 端组态图元库，**两套并存**：
 - **图片版**：扁平拟物正视实物图（512×512 PNG），给值班运维人员看，形态直观
 - **线框版**：SVG 工程符号，给施工图、打印图和工程师看
 
-46 个消防图元 / 4 个系统 / 14 个分类 / 104 个动态绑定点 / 69 个连接点，两套图元共用同一份点表与同一套绑定定义。
+47 个消防图元 / 4 个系统 / 14 个分类 / 109 个动态绑定点 / 71 个连接点，两套图元共用同一份点表与同一套绑定定义。
 
 分类与数量：
 
 | 一级（系统） | 二级（分类） | 图元数 |
 |---|---|---|
-| 消防给水 `pipeline` | 水源、泵组、末端设施、接合器 | 15 |
+| 消防给水 `pipeline` | 水源、泵组、末端设施、接合器 | 16 |
 | 气体灭火 `gas` | 储存装置、驱动装置、灭火剂管网、探测报警、控制、辅助设施 | 18 |
 | 消防防排烟 `smoke` | 预留 | 0 |
 | 通用件 `common` | 管道管件、阀门、仪表、电气 | 13 |
@@ -40,7 +40,7 @@ export const CATEGORIES = [
 规则：
 
 - 一级分类的 key 与平台 `systemKey`（`pipeline` / `gas` / `smoke` / `custom`）同源，图元库分组与组态画面的「归属系统」用同一套词
-- 图元只引用二级分类键；系统归属默认取分类的 `system`，图元可用自身 `system` 字段覆盖（`PAI-CYL-01` 分类属通用「仪表」，系统归属为气体灭火）
+- 图元只引用二级分类键；系统归属默认取分类的 `system`，图元可用自身 `system` 字段覆盖（`PAI-CYL-01` 分类属通用「仪表」，系统归属为气体灭火；`ALV-GRP-01` 分类属通用「阀门」，系统归属为消防给水）
 - 通用件（`system: 'common'`）在所有系统视图下都可见，界面带「通用」标记
 - 新增分类只改分类表，构建时校验图元引用的分类与系统必须已声明
 
@@ -73,7 +73,7 @@ symbol-library/
    ├─ symbols.css         样式
    ├─ runtime.js          运行时
    ├─ manifest.json       元数据（含分类树）
-   ├─ points.sample.csv   示例点表（104 点）
+   ├─ points.sample.csv   示例点表（109 点）
    ├─ preview.html        图元总览页，双击可打开
    ├─ demo.html           示例组态画面，双击可打开
    ├─ editor.html         组态编辑器，双击可打开
@@ -139,6 +139,20 @@ const svg = rt.renderSymbol('PMP-FIRE-01', { style: 'image', size: 60, imageBase
 | 消防水箱 `RES-TANK-01` | 矩形平顶箱体剖面，顶盖钢板、正视剖面，箱内盛水 |
 
 两者位图内已含水体，图片版不再叠加液位条；液位数值仍由 `TNK_FIRE_01_LV` / `RES_TANK_01_LV` 点提供，在画面上以文本显示，线框版仍用容器内液柱随液位变化。
+
+### 报警阀组 `ALV-GRP-01`
+
+湿式报警阀组，分类归通用「阀门」，系统归属消防给水（`system` 字段覆盖）。管道内串联，左右各 1 口（x=4 / 60，y=32）。建议画面继承分类的 G04 管网压力。
+
+| 绑定 | 点名 | 类型 | 状态类 / 量程 |
+|---|---|---|---|
+| 阀前压力 | `ALV_GRP_01_PIN` | text | 0~1.6 MPa，报警 0.14~1.2 |
+| 阀后压力 | `ALV_GRP_01_POUT` | text | 0~1.6 MPa，报警 0.1~1.2 |
+| 水力报警 | `ALV_GRP_01_ALM` | bool | is-alarm |
+| 阀位 | `ALV_GRP_01_OPEN` | bool | is-open / is-closed |
+| 故障 | `ALV_GRP_01_FAULT` | bool | is-fault |
+
+线框版为阀体 + 阀前后压力表 + 顶部报警开关 + 底部排水阀；图片版为正视实物位图，阀体带红标识牌。
 
 ### 气体灭火 18 个图元
 
@@ -351,7 +365,7 @@ runtime.renderSymbol('PMP-FIRE-01', { style: 'image', imageBase: '/assets/symbol
 ## 位图生成流程
 
 ```bash
-python3 tools/generate.py                     # 全部 27 张，原始图落到 assets/raw/
+python3 tools/generate.py                     # 全部 47 张，原始图落到 assets/raw/
 python3 tools/generate.py VLV-GATE-01         # 只重生成某一张
 python3 tools/process.py                      # 抠图 + 归一化，产出 dist/img/
 npm run build

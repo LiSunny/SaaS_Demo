@@ -186,7 +186,12 @@ def process(path, dest, index, sid):
 def main(ids):
     os.makedirs(OUT, exist_ok=True)
     ok = 0
+    # 增量处理：保留已有内容框，只更新本次处理的图元，避免单张重跑抹掉其他图元的数据
+    idx_path = os.path.join(OUT, 'index.json')
     index = {}
+    if os.path.exists(idx_path):
+        with open(idx_path) as f:
+            index = json.load(f)
     for sid in ids:
         src = os.path.join(RAW, sid + '.png')
         if not os.path.exists(src):
@@ -195,7 +200,7 @@ def main(ids):
         if process(src, os.path.join(OUT, sid + '.png'), index, sid):
             ok += 1
     if index:
-        with open(os.path.join(OUT, 'index.json'), 'w') as f:
+        with open(idx_path, 'w') as f:
             json.dump(index, f, indent=2)
     print(f'处理完成 {ok}/{len(ids)}')
 

@@ -812,5 +812,32 @@ export const SYMBOLS = [
       { t: 'line', role: 'needle', x1: 32, y1: 26, x2: 32, y2: 14, pivot: [32, 26] },
       { t: 'path', role: 'pipe', d: 'M32,41 V56' }
     ]
+  },
+
+  // ── 消防给水：报警阀组（分类属通用「阀门」，系统归属覆盖为消防给水） ──
+  // 追加在数组末尾：点表寄存器按图元顺序连续分配，末尾追加不改动既有点名地址。
+  {
+    id: 'ALV-GRP-01', name: '报警阀组', category: '阀门', system: 'pipeline',
+    desc: '湿式报警阀组：阀体带阀前后压力表与报警装置；水力报警橙、故障红闪',
+    ports: [{ x: 4, y: 32, dir: 'left' }, { x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '阀前压力', kind: 'text', point: 'ALV_GRP_01_PIN', min: 0, max: 1.6, unit: 'MPa', alarmLo: 0.14, alarmHi: 1.2 },
+      { name: '阀后压力', kind: 'text', point: 'ALV_GRP_01_POUT', min: 0, max: 1.6, unit: 'MPa', alarmLo: 0.1, alarmHi: 1.2 },
+      { name: '水力报警', kind: 'bool', point: 'ALV_GRP_01_ALM', onClass: ['is-alarm'] },
+      { name: '阀位', kind: 'bool', point: 'ALV_GRP_01_OPEN', onClass: ['is-open'], offClass: ['is-closed'] },
+      { name: '故障', kind: 'bool', point: 'ALV_GRP_01_FAULT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'path', role: 'pipe', d: 'M4,32 H16 M48,32 H60' },
+      { t: 'rect', role: 'body', x: 16, y: 20, width: 32, height: 24, rx: 3 },
+      { t: 'circle', role: 'outline', cx: 20, cy: 11, r: 4.5 },
+      { t: 'line', role: 'line', x1: 20, y1: 15.5, x2: 20, y2: 20 },
+      { t: 'circle', role: 'outline', cx: 44, cy: 11, r: 4.5 },
+      { t: 'line', role: 'line', x1: 44, y1: 15.5, x2: 44, y2: 20 },
+      { t: 'rect', role: 'accent', x: 27, y: 2, width: 10, height: 7, rx: 1.5 },
+      { t: 'line', role: 'line', x1: 32, y1: 9, x2: 32, y2: 20 },
+      { t: 'line', role: 'line', x1: 32, y1: 44, x2: 32, y2: 49 },
+      { t: 'line', role: 'line', x1: 29, y1: 49, x2: 35, y2: 49 }
+    ]
   }
 ];
