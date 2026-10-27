@@ -1,48 +1,88 @@
-# 消防给水图元库
+# 消防系统图元库
 
 Web 端组态图元库，**两套并存**：
 
 - **图片版**：扁平拟物正视实物图（512×512 PNG），给值班运维人员看，形态直观
 - **线框版**：SVG 工程符号，给施工图、打印图和工程师看
 
-27 个消防给水图元 / 8 个分类 / 69 个动态绑定点 / 54 个连接点，两套图元共用同一份点表与同一套绑定定义。
+46 个消防图元 / 4 个系统 / 14 个分类 / 104 个动态绑定点 / 69 个连接点，两套图元共用同一份点表与同一套绑定定义。
 
-分类与数量：水源 2、泵组 5、管道管件 4、阀门 5、末端设施 5、接合器 2、仪表 3、电气 1。
+分类与数量：
 
-每个图元固定 2 个连接点：0 号在左（画布 x=4）、1 号在右（画布 x=60），y 均为 32。连线按左右进出，管道与支管走向一致。
+| 一级（系统） | 二级（分类） | 图元数 |
+|---|---|---|
+| 消防给水 `pipeline` | 水源、泵组、末端设施、接合器 | 15 |
+| 气体灭火 `gas` | 储存装置、驱动装置、灭火剂管网、探测报警、控制、辅助设施 | 18 |
+| 消防防排烟 `smoke` | 预留 | 0 |
+| 通用件 `common` | 管道管件、阀门、仪表、电气 | 13 |
+
+管道管件类图元统一 2 个连接点：0 号在左（画布 x=4）、1 号在右（画布 x=60），y 均为 32。连线按左右进出，管道与支管走向一致。气体灭火图元按需取 0 / 1 / 2 / 3 口。
+
+## 分类体系
+
+两级分类，**分类表是分类的唯一真源**，声明在 `src/symbols.source.js`：
+
+```js
+export const SYSTEMS = [
+  { key: 'pipeline', name: '消防给水', desc: '...' },
+  { key: 'gas', name: '气体灭火', desc: '...' },
+  { key: 'smoke', name: '消防防排烟', desc: '...' },
+  { key: 'common', name: '通用件', desc: '...' },
+];
+
+export const CATEGORIES = [
+  { key: '水源', system: 'pipeline', screen: 'G02 水源监控' },
+  { key: '管道管件', system: 'common', screen: 'G04 管网压力' },
+  // ...
+];
+```
+
+规则：
+
+- 一级分类的 key 与平台 `systemKey`（`pipeline` / `gas` / `smoke` / `custom`）同源，图元库分组与组态画面的「归属系统」用同一套词
+- 图元只引用二级分类键；系统归属默认取分类的 `system`，图元可用自身 `system` 字段覆盖（`PAI-CYL-01` 分类属通用「仪表」，系统归属为气体灭火）
+- 通用件（`system: 'common'`）在所有系统视图下都可见，界面带「通用」标记
+- 新增分类只改分类表，构建时校验图元引用的分类与系统必须已声明
+
+构建产物中 `manifest.systems` 给出分类树，`manifest.categories` 给出每个分类的图元数与建议画面编号。
 
 ## 目录
 
 ```
 symbol-library/
 ├─ src/
-│  ├─ symbols.source.js   唯一真源：几何、端口、绑定
+│  ├─ symbols.source.js   唯一真源：几何、端口、绑定、分类表
 │  ├─ runtime.js          渲染与状态应用
 │  ├─ symbols.css         状态色与角色样式
 │  ├─ build.mjs           构建 + 入库校验
 │  ├─ demo.template.html  示例组态画面模板
 │  ├─ editor.template.html 组态编辑器模板
 │  ├─ layouts/
-│  │  └─ demo-firewater.json  示例布局（编辑器「载入示例」读取）
+│  │  ├─ demo-firewater.json  给水系统总貌（编辑器「载入示例」读取）
+│  │  └─ demo-gasfire.json    气体灭火系统总貌
 │  └─ react/Symbol.jsx    React 包装示例
 ├─ tools/
-│  ├─ generate.py         位图生成（27 张提示词在此）
+│  ├─ generate.py         位图生成（提示词在此）
 │  └─ process.py          抠图 → 512×512 透明 PNG → 内容框索引
 ├─ assets/raw/            生成原图（不进交付包）
 └─ dist/                  构建产物
-   ├─ img/                27 张图片版图元 PNG + index.json
+   ├─ img/                图片版图元 PNG + index.json
    ├─ symbols.js          MANIFEST + GEOMETRY + GEOMETRY_IMAGE
    ├─ symbols.svg         线框版精灵图
    ├─ symbols-img.svg     图片版精灵图
    ├─ symbols.css         样式
    ├─ runtime.js          运行时
-   ├─ manifest.json       元数据
-   ├─ points.sample.csv   示例点表（69 点）
+   ├─ manifest.json       元数据（含分类树）
+   ├─ points.sample.csv   示例点表（104 点）
    ├─ preview.html        图元总览页，双击可打开
    ├─ demo.html           示例组态画面，双击可打开
    ├─ editor.html         组态编辑器，双击可打开
    └─ layouts/
-      └─ demo-firewater.json  示例布局 JSON，供外部系统直接取用
+      ├─ demo-firewater.json  给水总貌布局 JSON
+      └─ demo-gasfire.json    气体灭火总貌布局 JSON
+├─ docs/
+   ├─ editor.png
+   └─ 气体灭火图元清单.md     气体灭火系统的图元、测点与画面清单
 ```
 
 ## 构建
@@ -99,6 +139,25 @@ const svg = rt.renderSymbol('PMP-FIRE-01', { style: 'image', size: 60, imageBase
 
 两者位图内已含水体，图片版不再叠加液位条；液位数值仍由 `TNK_FIRE_01_LV` / `RES_TANK_01_LV` 点提供，在画面上以文本显示，线框版仍用容器内液柱随液位变化。
 
+### 气体灭火 18 个图元
+
+| 分类 | 图元 |
+|---|---|
+| 储存装置 | 灭火剂钢瓶组 `CYL-GRP-01`、启动气瓶 `CYL-DRV-01`、集流管 `MAN-COL-01` |
+| 驱动装置 | 启动电磁阀 `VLV-SOL-01`、手动启动拉环 `MAN-PUL-01`、压力信号器 `PRS-SIG-01`、延时继电器 `RLY-DLY-01` |
+| 灭火剂管网 | 灭火剂管道 `PIP-GAS-01`、喷嘴 `NZL-GAS-01` |
+| 探测报警 | 感烟探测器 `DET-SMK-01`、感温探测器 `DET-HST-01`、声光警报器 `ALM-SLR-01`、手动报警按钮 `MAN-CLB-01` |
+| 控制 | 气体灭火控制器 `CTL-GAS-01`、输入输出模块 `MDL-IOR-01` |
+| 辅助设施 | 泄压口 `VNT-REL-01`、排风机 `FAN-EXH-01` |
+| 仪表 | 钢瓶压力表 `PAI-CYL-01` |
+
+完整清单（几何要点、端口、绑定、点表、画面落位）见 `docs/气体灭火图元清单.md`。
+
+两点与给水图元不同：
+
+- 钢瓶压力用 `text` 绑定显示数值，不用液柱表达——压力不是液位，且 `level` 绑定在运行时只认单个 `.sym-liquid` 元素，三瓶并列放不下
+- 这批图元引入 `is-alarm`（报警）与 `is-discharge`（已喷放）两个状态类，与给水图的「运行 / 故障 / 手动」语义分开
+
 ## 示例组态画面
 
 `dist/demo.html` 是用本图元库拼出的消防给水总貌画面，自包含，双击即可打开。
@@ -113,6 +172,8 @@ const svg = rt.renderSymbol('PMP-FIRE-01', { style: 'image', size: 60, imageBase
 | 底部 | 泵出口压力 / 管网压力 / 末端流量趋势曲线 |
 
 可操作项：启动主泵、停止主泵、切备用泵、转手动、开/关总阀、模拟火警（自动联动启泵并推送一级报警）、复位报警。数据为前端仿真，1 秒一拍。
+
+`src/layouts/demo-gasfire.json` 是气体灭火系统总貌布局：1400×920，69 节点 / 37 连线。左侧为控制列（控制器、输入输出模块、延时继电器、压力信号器、手动启动拉环、控制柜），中部 4 个保护区各一套独立回路（启动气瓶 → 启动电磁阀 → 灭火剂钢瓶组 → 集流管 → 灭火剂主管 → 支管阀 → 喷嘴），每个保护区上方挂探测器、声光警报器、手动报警按钮，下方挂泄压口与排风机，底部是联动流程条（探测 → 声光 → 延时 0~10s → 启动 → 喷放反馈 → 喷嘴喷放）。
 
 ## 组态编辑器
 
@@ -140,7 +201,7 @@ const svg = rt.renderSymbol('PMP-FIRE-01', { style: 'image', size: 60, imageBase
 
 ### 界面结构
 
-- 左栏：图元库，按 8 个分类折叠，每项带缩略图、ID、名称
+- 左栏：图元库，一级为系统切换标签（全部 / 消防给水 / 气体灭火 / 消防防排烟 / 通用件），二级为分类折叠，每项带缩略图、ID、名称；顶部可按名称 / ID / 说明搜索
 - 中间：画布，支持缩放（－/＋）与「适配」
 - 右栏：属性面板 + 状态预览
 - 顶栏：新建、保存、读取画面下拉、导出 JSON、导入 JSON、载入示例、图片版/线框版、网格吸附开关、缩放、适配
@@ -173,7 +234,7 @@ const svg = rt.renderSymbol('PMP-FIRE-01', { style: 'image', size: 60, imageBase
 | `nodes[].point` | 绑定点名，可从点表下拉选取 |
 | `nodes[].value` | 显示值文本 |
 | `nodes[].state` | 状态标志对象，键为 `run`/`fault`/`manual`/`open`/`closed`/`off`，值为布尔 |
-| `edges[].from/to` | 起止节点 ID 与连接点序号（0=左，1=右） |
+| `edges[].from/to` | 起止节点 ID 与连接点序号（0=左，1=右）；`kind=control` 的电气连线不经过端口，两端只写 `node` |
 | `edges[].via` | 折点坐标数组，可省略 |
 | `edges[].kind` | `pipe` 管道连线 / `control` 电气虚线 |
 
@@ -210,6 +271,8 @@ const layout = await (await fetch('my-layout.json')).json();
 | `is-run` | 运行 | 绿填充 | 绿色光晕 + ▶ 角标 |
 | `is-off` | 停机 / 备用 | 灰填充 | 灰色光晕 |
 | `is-fault` | 故障 | 红填充 + 闪烁 | 红色光晕 + ! 角标 |
+| `is-alarm` | 报警 | 橙填充 | 橙色光晕 + 三角角标 |
+| `is-discharge` | 已喷放 | 深红填充 + 闪烁 | 深红光晕 + 喷射角标 |
 | `is-manual` | 手动 | 黄填充 | 黄色光晕 + M 角标 |
 | `is-open` | 阀开 | 绿填充 | 绿色光晕 |
 | `is-closed` | 阀关 | 灰填充 | 灰色光晕 |
@@ -274,12 +337,14 @@ runtime.renderSymbol('PMP-FIRE-01', { style: 'image', imageBase: '/assets/symbol
 
 ## 点表
 
-`dist/points.sample.csv` 由绑定自动生成，列：点名、图元ID、图元名称、分类、绑定、数据类型、寄存器、读写、量程、单位、报警上下限、死区、延时、画面、说明。
+`dist/points.sample.csv` 由绑定自动生成，列：点名、图元ID、图元名称、**系统**、分类、绑定、数据类型、寄存器、读写、量程、单位、报警上下限、死区、延时、画面、说明（共 18 列）。
 
 - 点名规则：`图元ID` 下划线化 + 语义，如 `PMP_FIRE_01_RUN`
+- 「系统」列取一级分类名（消防给水 / 气体灭火 / 消防防排烟 / 通用件）
 - AI → `3x####`，DI → `1x####`，寄存器号按出现顺序分配，现场按实际协议改写
 - 报警限值为示例值，须按现场整定
 - 远程启停点需改为可写并加权限与二次确认
+- 多实例场景（同一图元多个保护区）按 `图元前缀_实例号_参数` 展开，见 `docs/气体灭火图元清单.md`
 
 ## 位图生成流程
 
@@ -310,26 +375,33 @@ npm run build
 
 ## 新增图元
 
-1. 在 `src/symbols.source.js` 增加一项：`id`、`name`、`category`、`ports`、`bindings`、`shapes`
+1. 在 `src/symbols.source.js` 增加一项：`id`、`name`、`category`、`system`（可选，覆盖分类默认）、`ports`、`bindings`、`shapes`
 2. `shapes` 只写形状与 `role`，不写颜色
-3. 在 `tools/generate.py` 增加同名提示词并出图，`python3 tools/process.py` 抠图
-4. `npm run build`，校验通过后 `dist/` 自动更新
-5. 在 `dist/preview.html` 核对渲染与状态效果
+3. 若要用到新分类，先在 `SYSTEMS` / `CATEGORIES` 中声明
+4. 在 `tools/generate.py` 增加同名提示词并出图，`python3 tools/process.py` 抠图
+5. `npm run build`，校验通过后 `dist/` 自动更新
+6. 在 `dist/preview.html` 核对渲染与状态效果
+
+### 两种情况
+
+- **只要线框**：在 `src/symbols.source.js` 加 `shapes` 即可，构建后直接可用
+- **要图片版**：还需在 `tools/generate.py` 加提示词并出图，`python3 tools/process.py` 抠图后再构建；缺图时该图元自动退化为线框版
 
 ## 校验规则
 
 构建时自动检查，不通过则退出码 1：
 
 - 图元 ID 唯一、符合 `类别-对象-序号`
-- 连接点坐标在画布内
+- 图元引用的分类与系统已在分类表中声明
+- 分类的 `screen`（建议画面）非空
+- 连接点坐标在画布内，方向取值限 `left` / `right` / `up` / `down`
 - 绑定点名全局唯一且已进入点表
+- 绑定引用的状态类已在 `spec.stateColors` 中声明
 - 几何中无 `fill`/`stroke` 颜色属性
 - 声明 `spin` / `angle` 的绑定存在对应旋转元素与轴心
+- 每个图元至少有一个绑定
 
-## 新增图元的两种情况
-
-- **只要线框**：在 `src/symbols.source.js` 加 `shapes` 即可，构建后直接可用
-- **要图片版**：还需在 `tools/generate.py` 加提示词并出图，`python3 tools/process.py` 抠图后再构建；缺图时该图元自动退化为线框版
+无图元的分类或系统给出警告（不阻断构建）。
 
 ## 已知限制
 

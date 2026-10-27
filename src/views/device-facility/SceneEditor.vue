@@ -350,7 +350,11 @@ function validateLayout(data: unknown): { nodes: SceneNode[]; edges: SceneEdge[]
     const a = symbolDef((raw.nodes as SceneNode[]).find((n) => n.id === e.from.node)!.symbol)
     const b = symbolDef((raw.nodes as SceneNode[]).find((n) => n.id === e.to.node)!.symbol)
     if (!a || !b) return null
-    if (e.from.port >= (a.ports?.length || 0) || e.to.port >= (b.ports?.length || 0)) return null
+    // 控制连线不经过端口，只校验节点引用
+    if (e.kind !== 'control') {
+      if ((e.from.port ?? 0) >= (a.ports?.length || 0)) return null
+      if ((e.to.port ?? 0) >= (b.ports?.length || 0)) return null
+    }
   }
   return {
     nodes: raw.nodes as SceneNode[],

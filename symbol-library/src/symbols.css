@@ -36,12 +36,16 @@
 .sym-root.is-run    { --sym-fill: #22c55e; --sym-stroke: #15803d; }
 .sym-root.is-manual { --sym-fill: #eab308; --sym-stroke: #a16207; }
 .sym-root.is-fault  { --sym-fill: #ef4444; --sym-stroke: #b91c1c; }
+.sym-root.is-alarm  { --sym-fill: #f97316; --sym-stroke: #c2410c; }
+.sym-root.is-discharge { --sym-fill: #b91c1c; --sym-stroke: #7f1d1d; }
 .sym-root.is-over   { --sym-liquid: #ef4444; }
 .sym-root.is-flow   { --sym-flow: #38bdf8; }
 
 .sym-root.is-flow .sym-pipe { stroke: var(--sym-flow); }
 .sym-root.is-fault .sym-body,
 .sym-root.is-fault .sym-band { animation: sym-blink 1s steps(2, start) infinite; }
+.sym-root.is-discharge .sym-body,
+.sym-root.is-discharge .sym-band { animation: sym-blink .7s steps(2, start) infinite; }
 
 @keyframes sym-blink { 50% { opacity: 0.35; } }
 @keyframes sym-spin { to { transform: rotate(360deg); } }
@@ -54,6 +58,8 @@
 }
 .sym-root.is-run .sym-halo     { stroke: #22c55e; opacity: .40; animation: sym-pulse 1.6s ease-in-out infinite; }
 .sym-root.is-fault .sym-halo   { stroke: #ef4444; opacity: .55; animation: sym-pulse .9s ease-in-out infinite; }
+.sym-root.is-alarm .sym-halo   { stroke: #f97316; opacity: .55; animation: sym-pulse 1.2s ease-in-out infinite; }
+.sym-root.is-discharge .sym-halo { stroke: #dc2626; opacity: .75; animation: sym-pulse .7s ease-in-out infinite; }
 .sym-root.is-manual .sym-halo  { stroke: #eab308; opacity: .45; }
 .sym-root.is-open .sym-halo    { stroke: #22c55e; opacity: .38; }
 .sym-root.is-closed .sym-halo  { stroke: #94a3b8; opacity: .30; }
@@ -66,14 +72,19 @@
 .sym-badge { display: none; }
 .sym-root.is-run .sym-badge-run,
 .sym-root.is-fault .sym-badge-fault,
-.sym-root.is-manual .sym-badge-manual { display: block; }
+.sym-root.is-manual .sym-badge-manual,
+.sym-root.is-alarm .sym-badge-alarm,
+.sym-root.is-discharge .sym-badge-discharge { display: block; }
 
 .sym-badge-bg { stroke: #ffffff; stroke-width: 1.5; }
 .sym-badge-run .sym-badge-bg { fill: #22c55e; }
 .sym-badge-fault .sym-badge-bg { fill: #ef4444; }
 .sym-badge-manual .sym-badge-bg { fill: #eab308; }
+.sym-badge-alarm .sym-badge-bg { fill: #f97316; }
+.sym-badge-discharge .sym-badge-bg { fill: #dc2626; }
 .sym-badge-fg { fill: #ffffff; }
 .sym-badge-stroke { fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: round; }
+.sym-badge-mark { fill: none; stroke: #7c2d12; stroke-width: 1.8; stroke-linecap: round; }
 .sym-badge-label { fill: #ffffff; font-size: 11px; font-weight: 700; text-anchor: middle; }
 
 /* 图片版液位条 */
@@ -82,7 +93,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sym-root.is-fault .sym-body,
-  .sym-root.is-fault .sym-band { animation: none; }
+  .sym-root.is-fault .sym-band,
+  .sym-root.is-discharge .sym-body,
+  .sym-root.is-discharge .sym-band { animation: none; }
   .sym-root.is-run .sym-halo,
+  .sym-root.is-alarm .sym-halo,
+  .sym-root.is-discharge .sym-halo,
   .sym-root.is-fault .sym-halo { animation: none; }
 }

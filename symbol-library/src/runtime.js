@@ -1,7 +1,7 @@
 // 运行时：渲染图元 + 应用状态。无 import，供 dist/runtime.js 与预览页内联复用。
 // 三层结构：静态几何(GEOMETRY) → 动态属性(bindings) → 文本层(label/value)
 
-export const STATE_CLASSES = ['is-run', 'is-off', 'is-fault', 'is-manual', 'is-open', 'is-closed', 'is-over', 'is-flow'];
+export const STATE_CLASSES = ['is-run', 'is-off', 'is-fault', 'is-manual', 'is-open', 'is-closed', 'is-over', 'is-flow', 'is-alarm', 'is-discharge'];
 
 const NS = 'http://www.w3.org/2000/svg';
 

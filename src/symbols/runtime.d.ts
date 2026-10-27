@@ -46,6 +46,10 @@ declare module '@symbols/symbols.js' {
     id: string
     name: string
     category: string
+    /** 所属系统（一级分类），默认取分类的 system，可由图元自身覆盖 */
+    system: string
+    /** 建议画面编号，默认取分类的 screen */
+    screen?: string | null
     desc: string
     size: { w: number; h: number }
     anchor: [number, number]
@@ -55,6 +59,26 @@ declare module '@symbols/symbols.js' {
     image?: string
     styles: string[]
     bindings: SymbolBinding[]
+  }
+
+  /** 一级分类：系统归属 */
+  export interface SymbolSystemMeta {
+    key: string
+    name: string
+    desc?: string
+    /** 该系统下的二级分类键 */
+    categories: string[]
+    /** 该系统下的图元 ID */
+    symbols: string[]
+  }
+
+  /** 二级分类：部件类别 */
+  export interface SymbolCategoryMeta {
+    key: string
+    name: string
+    system: string
+    screen: string
+    count: number
   }
 
   export interface SymbolManifest {
@@ -68,6 +92,9 @@ declare module '@symbols/symbols.js' {
     }
     /** 分类 → 建议画面编号 */
     screens: Record<string, string>
+    /** 分类树：一级系统 → 二级分类 */
+    systems: SymbolSystemMeta[]
+    categories: SymbolCategoryMeta[]
     symbols: SymbolDef[]
   }
 

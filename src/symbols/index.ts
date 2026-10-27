@@ -14,9 +14,9 @@ import './theme.css'
 import { MANIFEST, GEOMETRY, GEOMETRY_IMAGE } from '@symbols/symbols.js'
 import { createRuntime } from '@symbols/runtime.js'
 import pointsCsv from '@symbols/points.sample.csv?raw'
-import type { SymbolDef } from '@symbols/symbols.js'
+import type { SymbolDef, SymbolSystemMeta, SymbolCategoryMeta } from '@symbols/symbols.js'
 
-export type { SymbolDef, SymbolBinding, SymbolPort } from '@symbols/symbols.js'
+export type { SymbolDef, SymbolBinding, SymbolPort, SymbolSystemMeta, SymbolCategoryMeta } from '@symbols/symbols.js'
 
 /** 图元运行时单例 */
 export const symbolRuntime = createRuntime(MANIFEST, GEOMETRY, GEOMETRY_IMAGE)
@@ -33,8 +33,31 @@ export const SYMBOL_GRID = MANIFEST.spec.grid
 /** 全部图元 */
 export const SYMBOLS = MANIFEST.symbols
 
-/** 分类列表（按图元库首次出现顺序） */
-export const SYMBOL_CATEGORIES: string[] = [...new Set(SYMBOLS.map((s) => s.category))]
+/** 一级分类：系统归属，与平台 systemKey 同源（pipeline / gas / smoke / common） */
+export const SYMBOL_SYSTEMS: SymbolSystemMeta[] = MANIFEST.systems ?? []
+
+/** 二级分类：部件类别 */
+export const SYMBOL_CATEGORIES: SymbolCategoryMeta[] = MANIFEST.categories ?? []
+
+/** 分类键 → 分类元数据 */
+const CATEGORY_MAP = new Map<string, SymbolCategoryMeta>(
+  SYMBOL_CATEGORIES.map((c) => [c.key, c]),
+)
+
+/** 图元所属系统 */
+export function symbolSystem(id: string): string | undefined {
+  return symbolDef(id)?.system
+}
+
+/** 分类元数据 */
+export function symbolCategory(key: string): SymbolCategoryMeta | undefined {
+  return CATEGORY_MAP.get(key)
+}
+
+/** 某系统下的图元（含通用件） */
+export function symbolsOfSystem(systemKey: string): SymbolDef[] {
+  return SYMBOLS.filter((s) => s.system === systemKey || s.system === 'common')
+}
 
 const DEF_MAP = new Map<string, SymbolDef>(SYMBOLS.map((s) => [s.id, s]))
 
@@ -49,6 +72,8 @@ export function stateClasses(state?: Record<string, boolean>): string[] {
   const out: string[] = []
   if (s.run) out.push('is-run')
   if (s.fault) out.push('is-fault')
+  if (s.alarm) out.push('is-alarm')
+  if (s.discharge) out.push('is-discharge')
   if (s.manual) out.push('is-manual')
   if (s.open) out.push('is-open')
   if (s.closed) out.push('is-closed')
@@ -82,7 +107,12 @@ export function dirVec(d: string): { x: number; y: number } {
 
 /** 连线路径（正交，电气连线走直线） */
 export function edgePath(
-  edge: { from: { node: string; port: number }; to: { node: string; port: number }; via?: [number, number][]; kind?: string },
+  edge: {
+    from: { node: string; port?: number }
+    to: { node: string; port?: number }
+    via?: [number, number][]
+    kind?: string
+  },
   nodes: Array<{ id: string; symbol: string; x: number; y: number; size?: number }>,
 ): string {
   const a = nodes.find((n) => n.id === edge.from.node)
@@ -90,8 +120,8 @@ export function edgePath(
   if (!a || !b) return ''
   if (edge.kind === 'control') return `M${a.x},${a.y} L${b.x},${b.y}`
 
-  const pa = portPos(a, edge.from.port)
-  const pb = portPos(b, edge.to.port)
+  const pa = portPos(a, edge.from.port ?? 0)
+  const pb = portPos(b, edge.to.port ?? 0)
   if (!pa || !pb) return ''
 
   const va = dirVec(pa.dir)
@@ -140,6 +170,8 @@ export interface SymbolPoint {
   point: string
   symbolId: string
   symbolName: string
+  /** 所属系统（一级分类） */
+  system: string
   category: string
   binding: string
   dataType: string
@@ -157,7 +189,7 @@ export interface SymbolPoint {
 }
 
 const CSV_COLUMNS = [
-  'point', 'symbolId', 'symbolName', 'category', 'binding', 'dataType', 'register', 'rw',
+  'point', 'symbolId', 'symbolName', 'system', 'category', 'binding', 'dataType', 'register', 'rw',
   'min', 'max', 'unit', 'alarmLo', 'alarmHi', 'deadband', 'delay', 'screen', 'note',
 ] as const
 

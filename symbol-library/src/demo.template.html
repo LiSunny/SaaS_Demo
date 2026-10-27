@@ -216,6 +216,7 @@ pipe('M580,150 H586', 'd');
 pipe('M580,250 H586', 'd');
 pipe('M580,350 H586', 'd');
 pipe('M580,450 H586', 'd');
+pipe('M580,150 V60 H830', 'd');
 
 /* 设备 */
 device('TNK-FIRE-01', 56, 300, '消防水池', 'TNK_FIRE_01_LV');
@@ -229,6 +230,7 @@ device('TST-TEST-01', 730, 450, '末端试水装置', 'TST_TEST_01_P');
 device('HYD-IND-01', 730, 150, '室内消火栓', 'HYD_IND_01_PRESS');
 device('HYD-HOSE-01', 730, 250, '消火栓箱', 'HYD_HOSE_01_PRESS');
 device('CON-OUT-01', 730, 350, '水泵接合器', 'CON_OUT_01_PRESS');
+device('SPK-SPR-01', 860, 60, '喷淋喷头', 'SPK_SPR_01_PRESS');
 
 valveAt('VLV-GATE-01', 610, 150, '阀门', 'VLV_GATE_01_OPEN');
 valveAt('VLV-BUTT-01', 610, 250, '阀门', 'VLV_BUTT_01_OPEN');
@@ -279,6 +281,7 @@ function render() {
   apply('HYD-IND-01', null, { HYD_IND_01_PRESS: S.net });
   apply('HYD-HOSE-01', null, { HYD_HOSE_01_PRESS: S.net });
   apply('CON-OUT-01', null, { CON_OUT_01_PRESS: S.net });
+  apply('SPK-SPR-01', null, { SPK_SPR_01_PRESS: S.net, SPK_SPR_01_Q: S.flow });
   apply('VES-PRE-01', null, { VES_PRE_01_PRESS: 0.62 });
   apply('VLV-GATE-01', S.valve ? 'is-open' : 'is-closed');
   apply('VLV-BUTT-01', S.valve ? 'is-open' : 'is-closed');

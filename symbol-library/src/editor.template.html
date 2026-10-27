@@ -37,6 +37,12 @@ label.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--m
 .cat{margin-bottom:6px}
 .cat > button{width:100%;text-align:left;background:transparent;border-color:transparent;padding:5px 8px;color:var(--muted)}
 .cat > button.on{background:transparent;color:var(--ink);border-color:transparent;font-weight:600}
+.cat-tag{font-size:9px;padding:1px 5px;border-radius:999px;background:var(--panel2);color:var(--muted);margin-left:5px}
+.lib-sys{display:flex;flex-wrap:wrap;gap:4px;padding:0 8px 8px}
+.sys-tab{font:inherit;font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);cursor:pointer}
+.sys-tab.on{background:var(--accent);border-color:var(--accent);color:#06202a;font-weight:600}
+.lib-search{width:calc(100% - 16px);margin:0 8px 8px;padding:6px 9px;font:inherit;font-size:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--ink)}
+.lib-search:focus{outline:none;border-color:var(--accent)}
 .items{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px 0 8px}
 .item{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center;cursor:pointer;transition:all .15s}
 .item:hover{border-color:var(--accent);transform:translateY(-1px)}
@@ -96,7 +102,7 @@ label.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--m
     <select id="b-load" class="ghost" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit;font-size:12.5px"></select>
     <button id="b-export">导出 JSON</button>
     <button id="b-import">导入 JSON</button>
-    <button id="b-sample">载入示例</button>
+    <select id="b-sample" class="ghost" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit;font-size:12.5px"></select>
     <span class="sep"></span>
     <button id="b-style">图片版</button>
     <label class="chk"><input type="checkbox" id="snap" checked> 网格吸附</label>
@@ -107,6 +113,8 @@ label.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--m
 
   <aside class="lib" id="lib">
     <h2>图元库</h2>
+    <div class="lib-sys" id="lib-sys"></div>
+    <input id="lib-search" class="lib-search" placeholder="搜索名称 / ID" />
     <div id="lib-body"></div>
   </aside>
 
@@ -133,7 +141,9 @@ label.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--m
 const MANIFEST = __MANIFEST__;
 const GEOMETRY = __GEOMETRY__;
 const GEOMETRY_IMAGE = __GEOMETRY_IMAGE__;
-const SAMPLE = __SAMPLE__;
+const SAMPLES = __SAMPLES__;
+const SAMPLE = SAMPLES.find(s => s.key === 'demo-firewater.json')?.layout
+  || { version: 1, name: '空画面', nodes: [], edges: [] };
 __RUNTIME__
 
 const rt = createRuntime(MANIFEST, GEOMETRY, GEOMETRY_IMAGE);
@@ -156,16 +166,52 @@ const uid = (p) => p + Math.random().toString(36).slice(2, 8);
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
 /* ── 图元库面板 ─────────────────────────────────────── */
-const cats = [...new Set(MANIFEST.symbols.map(s => s.category))];
+const SYS_TABS = [{ key: '', name: '全部' }].concat(
+  (MANIFEST.systems || []).map((s) => ({ key: s.key, name: s.name })),
+);
+let activeSys = '';
+let libKeyword = '';
+
+/** 图元是否在当前系统视图内（通用件对所有系统可见） */
+function inSys(s) {
+  return !activeSys || s.system === activeSys || s.system === 'common';
+}
+
+/** 名称 / ID / 说明 命中关键字 */
+function matchKw(s) {
+  const kw = libKeyword.trim().toLowerCase();
+  if (!kw) return true;
+  return s.name.toLowerCase().includes(kw)
+    || s.id.toLowerCase().includes(kw)
+    || (s.desc || '').toLowerCase().includes(kw);
+}
+
+function buildSysTabs() {
+  const box = $('lib-sys');
+  box.innerHTML = '';
+  SYS_TABS.forEach((t) => {
+    const b = document.createElement('button');
+    b.className = 'sys-tab' + (t.key === activeSys ? ' on' : '');
+    b.textContent = t.name;
+    b.onclick = () => { activeSys = t.key; buildLib(); };
+    box.appendChild(b);
+  });
+}
+
 function buildLib() {
+  buildSysTabs();
   const box = $('lib-body');
   box.innerHTML = '';
-  cats.forEach(c => {
-    const list = MANIFEST.symbols.filter(s => s.category === c);
+  const cats = (MANIFEST.categories || []).filter(
+    (c) => !activeSys || c.system === activeSys || c.system === 'common',
+  );
+  cats.forEach((c) => {
+    const list = MANIFEST.symbols.filter((s) => s.category === c.key && inSys(s) && matchKw(s));
+    if (!list.length) return;
     const wrap = document.createElement('div');
     wrap.className = 'cat';
     const head = document.createElement('button');
-    head.textContent = c + '（' + list.length + '）';
+    head.innerHTML = `${c.name}<span class="cat-tag">${list.length}</span>`;
     head.onclick = () => {
       const show = items.style.display === 'none';
       items.style.display = show ? 'grid' : 'none';
@@ -174,7 +220,7 @@ function buildLib() {
     const items = document.createElement('div');
     items.className = 'items';
     items.style.display = 'none';
-    list.forEach(s => {
+    list.forEach((s) => {
       const it = document.createElement('div');
       it.className = 'item';
       it.dataset.symbol = s.id;
@@ -532,7 +578,18 @@ $('file').onchange = ev => {
   };
   r.readAsText(f);
 };
-$('b-sample').onclick = () => { layout = clone(SAMPLE); $('lay-name').value = layout.name; sel = null; render(); renderProp(); saveDraft(); $('st-hint').textContent = '已载入示例画面'; };
+$('b-sample').innerHTML = '<option value="">载入示例…</option>'
+  + SAMPLES.map(s => `<option value="${s.key}">${s.name}</option>`).join('');
+$('b-sample').onchange = (e) => {
+  const s = SAMPLES.find(x => x.key === e.target.value);
+  if (!s) return;
+  layout = clone(s.layout);
+  $('lay-name').value = layout.name;
+  sel = null;
+  render(); renderProp(); saveDraft();
+  $('st-hint').textContent = '已载入示例画面：' + s.name;
+  e.target.value = '';
+};
 $('b-style').onclick = () => { useImage = !useImage; $('b-style').textContent = useImage ? '图片版' : '线框版'; buildLib(); render(); $('st-hint').textContent = useImage ? '已切换到图片版' : '已切换到线框版'; };
 $('snap').onchange = ev => snapOn = ev.target.checked;
 $('b-zoom-in').onclick = () => { zoom = Math.min(2, zoom + 0.15); applyZoom(); };
@@ -555,6 +612,7 @@ window.__editor = {
   render, renderProp, saveDraft
 };
 buildLib();
+$('lib-search').addEventListener('input', (e) => { libKeyword = e.target.value; buildLib(); });
 listSaved();
 if (!loadDraft()) layout = clone(SAMPLE);
 $('lay-name').value = layout.name;

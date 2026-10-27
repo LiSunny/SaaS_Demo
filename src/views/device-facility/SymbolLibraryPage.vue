@@ -4,8 +4,9 @@
       <div class="symbol-page__head-left">
         <span class="symbol-page__title">图元管理</span>
         <span class="symbol-page__desc">
-          消防给水图元库 · 共 {{ SYMBOLS.length }} 个图元 / {{ SYMBOL_CATEGORIES.length }} 个分类 /
-          {{ SYMBOL_POINTS.length }} 个绑定点 / {{ portCount }} 个连接点
+          消防系统图元库 · 共 {{ SYMBOLS.length }} 个图元 / {{ SYMBOL_SYSTEMS.length }} 个系统 /
+          {{ SYMBOL_CATEGORIES.length }} 个分类 / {{ SYMBOL_POINTS.length }} 个绑定点 /
+          {{ portCount }} 个连接点
         </span>
       </div>
       <div class="symbol-page__head-right">
@@ -29,23 +30,39 @@
           </div>
         </div>
 
+        <div class="symbol-page__sys">
+          <button
+            v-for="s in systemTabs"
+            :key="s.key"
+            class="symbol-page__sys-btn"
+            :class="{ 'is-active': activeSys === s.key }"
+            @click="activeSys = s.key"
+          >
+            {{ s.name }}
+            <span class="symbol-page__cat-count">{{ countOfSystem(s.key) }}</span>
+          </button>
+        </div>
+
         <button
           class="symbol-page__cat"
           :class="{ 'is-active': activeCat === '' }"
           @click="activeCat = ''"
         >
-          <span>全部</span>
+          <span>全部分类</span>
           <span class="symbol-page__cat-count">{{ filteredSymbols.length }}</span>
         </button>
         <button
-          v-for="cat in SYMBOL_CATEGORIES"
-          :key="cat"
+          v-for="cat in visibleCategories"
+          :key="cat.key"
           class="symbol-page__cat"
-          :class="{ 'is-active': activeCat === cat }"
-          @click="activeCat = cat"
+          :class="{ 'is-active': activeCat === cat.key }"
+          @click="activeCat = cat.key"
         >
-          <span>{{ cat }}</span>
-          <span class="symbol-page__cat-count">{{ countOf(cat) }}</span>
+          <span>
+            {{ cat.name }}
+            <span v-if="cat.system === 'common'" class="symbol-page__cat-tag">通用</span>
+          </span>
+          <span class="symbol-page__cat-count">{{ countOf(cat.key) }}</span>
         </button>
       </aside>
 
@@ -62,7 +79,7 @@
             <span class="symbol-page__card-name">{{ s.name }}</span>
             <span class="symbol-page__card-id">{{ s.id }}</span>
             <span class="symbol-page__card-meta">
-              {{ s.category }} · {{ s.bindings.length }} 绑定点
+              {{ systemName(s.system) }} · {{ s.category }} · {{ s.bindings.length }} 绑定点
             </span>
           </button>
           <p v-if="!shownSymbols.length" class="symbol-page__empty">没有匹配的图元</p>
@@ -81,6 +98,7 @@
 
         <dl class="symbol-detail__meta">
           <div><dt>图元 ID</dt><dd>{{ detail.id }}</dd></div>
+          <div><dt>所属系统</dt><dd>{{ systemName(detail.system) }}</dd></div>
           <div><dt>分类</dt><dd>{{ detail.category }}</dd></div>
           <div><dt>画布</dt><dd>{{ detail.size.w }} × {{ detail.size.h }}</dd></div>
           <div><dt>连接点</dt><dd>{{ detail.ports.length }} 个</dd></div>
@@ -148,7 +166,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/base/AppIcon.vue'
 import SymbolThumb from '@/components/device-facility/SymbolThumb.vue'
-import { SYMBOL_CATEGORIES, SYMBOL_POINTS, SYMBOLS, symbolDef } from '@/symbols'
+import { SYMBOL_CATEGORIES, SYMBOL_POINTS, SYMBOLS, SYMBOL_SYSTEMS, symbolDef } from '@/symbols'
 import type { SceneStyle } from '@/types/scene-config'
 
 const router = useRouter()
@@ -157,16 +175,32 @@ const route = useRoute()
 const variant = ref<SceneStyle>('image')
 const keyword = ref('')
 const activeCat = ref('')
+const activeSys = ref('')
 const detailVisible = ref(false)
 const detailId = ref('')
 
 const PREVIEW_STATES = [
   { key: 'run', label: '运行' },
   { key: 'fault', label: '故障' },
+  { key: 'alarm', label: '报警' },
+  { key: 'discharge', label: '喷放' },
   { key: 'manual', label: '手动' },
   { key: 'open', label: '阀开' },
   { key: 'closed', label: '阀关' },
 ]
+
+/** 系统标签页：全部 + 每个系统 */
+const systemTabs = computed(() => [
+  { key: '', name: '全部' },
+  ...SYMBOL_SYSTEMS.map((s) => ({ key: s.key, name: s.name })),
+])
+
+/** 某系统下可见的分类：该系统专属 + 通用件 */
+const visibleCategories = computed(() =>
+  SYMBOL_CATEGORIES.filter(
+    (c) => !activeSys.value || c.system === activeSys.value || c.system === 'common',
+  ),
+)
 
 /** 连接点总数（manifest 求和） */
 const portCount = computed(() => SYMBOLS.reduce((n, s) => n + s.ports.length, 0))
@@ -177,9 +211,14 @@ const backLabel = computed(() => (route.query.scene ? '返回编辑器' : '返�
 const filteredSymbols = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
   return SYMBOLS.filter((s) => {
+    if (activeSys.value && s.system !== activeSys.value && s.system !== 'common') return false
     if (activeCat.value && s.category !== activeCat.value) return false
     if (!kw) return true
-    return s.name.toLowerCase().includes(kw) || s.id.toLowerCase().includes(kw)
+    return (
+      s.name.toLowerCase().includes(kw) ||
+      s.id.toLowerCase().includes(kw) ||
+      (s.desc || '').toLowerCase().includes(kw)
+    )
   })
 })
 
@@ -190,6 +229,15 @@ const detailPoints = computed(() => SYMBOL_POINTS.filter((p) => p.symbolId === d
 
 function countOf(cat: string) {
   return SYMBOLS.filter((s) => s.category === cat).length
+}
+
+function countOfSystem(sys: string) {
+  if (!sys) return SYMBOLS.length
+  return SYMBOLS.filter((s) => s.system === sys).length
+}
+
+function systemName(key: string) {
+  return SYMBOL_SYSTEMS.find((s) => s.key === key)?.name || key
 }
 
 function openDetail(id: string) {
@@ -299,6 +347,48 @@ function goBack() {
   color: var(--text-muted);
 }
 
+/* 一级分类：系统 */
+.symbol-page__sys {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-low);
+}
+.symbol-page__sys-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font: inherit;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+}
+.symbol-page__sys-btn:hover { background: var(--accent-primary10); }
+.symbol-page__sys-btn.is-active {
+  color: var(--accent-primary);
+  background: var(--accent-primary10);
+  border-color: var(--accent-primary);
+  font-weight: 600;
+}
+.symbol-page__cat-tag {
+  margin-left: var(--spacing-xs);
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--bg-sub-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+}
+
 /* 网格 */
 .symbol-page__grid-wrap {
   flex: 1;
@@ -399,7 +489,7 @@ function goBack() {
 }
 .symbol-detail__states {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-md);
 }
 .symbol-detail__state {

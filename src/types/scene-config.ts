@@ -27,15 +27,16 @@ export interface SceneNode {
   point?: string
   /** 显示值文本 */
   value?: string
-  /** 状态标志：run / fault / manual / open / closed / off */
+  /** 状态标志：run / fault / alarm / discharge / manual / open / closed / off */
   state?: Record<string, boolean>
 }
 
 /** 连线 —— 两个节点端口之间的连接 */
 export interface SceneEdge {
   id: string
-  from: { node: string; port: number }
-  to: { node: string; port: number }
+  /** kind=control 的电气连线不经过端口，port 可省略 */
+  from: { node: string; port?: number }
+  to: { node: string; port?: number }
   /** 折点坐标数组（正交路径拐点） */
   via?: [number, number][]
   /** pipe 管道连线 / control 电气虚线 */

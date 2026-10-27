@@ -38,6 +38,41 @@ const stubs = () => ([
   { t: 'line', role: 'line', x1: 44, y1: 32, x2: 60, y2: 32 }
 ]);
 
+// ── 分类体系 ────────────────────────────────────────────────
+// 一级：系统归属（与平台 systemKey 同源 pipeline/gas/smoke/common）
+// 二级：部件类别
+//
+// 分类表是分类的唯一真源。图元只引用分类键；系统归属默认取分类的 system，
+// 个别图元可用自身 system 字段覆盖（如钢瓶压力表属气体灭火，但归在通用「仪表」类）。
+// 新增分类只改这里，构建时校验图元引用的分类与系统必须已声明。
+
+export const SYSTEMS = [
+  { key: 'pipeline', name: '消防给水', desc: '水源、泵组、末端设施与接合器' },
+  { key: 'gas', name: '气体灭火', desc: '储存装置、驱动装置、灭火剂管网、探测报警、控制与辅助设施' },
+  { key: 'smoke', name: '消防防排烟', desc: '风机与风阀（预留）' },
+  { key: 'common', name: '通用件', desc: '跨系统共用的管道管件、阀门、仪表与电气件' },
+];
+
+export const CATEGORIES = [
+  // ── 消防给水 ──
+  { key: '水源', system: 'pipeline', screen: 'G02 水源监控' },
+  { key: '泵组', system: 'pipeline', screen: 'G03 水泵房' },
+  { key: '末端设施', system: 'pipeline', screen: 'G05 末端设施' },
+  { key: '接合器', system: 'pipeline', screen: 'G05 末端设施' },
+  // ── 气体灭火 ──
+  { key: '储存装置', system: 'gas', screen: 'G07 气体灭火总貌' },
+  { key: '驱动装置', system: 'gas', screen: 'G07 气体灭火总貌' },
+  { key: '灭火剂管网', system: 'gas', screen: 'G07 气体灭火总貌' },
+  { key: '探测报警', system: 'gas', screen: 'G07 气体灭火总貌' },
+  { key: '控制', system: 'gas', screen: 'G07 气体灭火总貌' },
+  { key: '辅助设施', system: 'gas', screen: 'G07 气体灭火总貌' },
+  // ── 通用件 ──
+  { key: '管道管件', system: 'common', screen: 'G04 管网压力' },
+  { key: '阀门', system: 'common', screen: 'G04 管网压力' },
+  { key: '仪表', system: 'common', screen: 'G06 仪表趋势' },
+  { key: '电气', system: 'common', screen: 'G03 水泵房' },
+];
+
 export const SYMBOLS = [
   // ── 水源 ────────────────────────────────────────────────
   {
@@ -462,6 +497,320 @@ export const SYMBOLS = [
       { t: 'line', role: 'needle', x1: 32, y1: 20, x2: 32, y2: 14, pivot: [32, 20] },
       { t: 'line', role: 'line', x1: 40, y1: 37, x2: 50, y2: 37 },
       { t: 'circle', role: 'accent', cx: 52, cy: 37, r: 2.5 }
+    ]
+  },
+  {
+    id: 'SPK-SPR-01', name: '喷淋喷头', category: '末端设施',
+    desc: '下垂型喷头，顶部接支管，底部溅水盘，附末端压力与流量',
+    ports: [{ x: 4, y: 32, dir: 'left' }, { x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '末端压力', kind: 'text', point: 'SPK_SPR_01_PRESS', unit: 'MPa' },
+      { name: '流量', kind: 'text', point: 'SPK_SPR_01_Q', unit: 'L/s' },
+      { name: '故障', kind: 'bool', point: 'SPK_SPR_01_FAULT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'line', role: 'line', x1: 4, y1: 32, x2: 17, y2: 32 },
+      { t: 'line', role: 'line', x1: 47, y1: 32, x2: 60, y2: 32 },
+      { t: 'path', role: 'pipe', d: 'M32,32 V18' },
+      { t: 'rect', role: 'body', x: 24, y: 8, width: 16, height: 10, rx: 1 },
+      { t: 'circle', role: 'accent', cx: 32, cy: 40, r: 4 },
+      { t: 'path', role: 'line', d: 'M18,50 H46' },
+      { t: 'path', role: 'line', d: 'M18,50 L13,58 M46,50 L51,58' }
+    ]
+  },
+
+  // ── 气体灭火：储存装置 ────────────────────────────────────
+  {
+    id: 'CYL-GRP-01', name: '灭火剂钢瓶组', category: '储存装置',
+    desc: '三瓶并列钢瓶阵，含瓶头阀与瓶组架，左侧进启动管路、右端出管接集流管',
+    ports: [{ x: 4, y: 32, dir: 'left' }, { x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '钢瓶压力', kind: 'text', point: 'CYL_GRP_01_PRESS', unit: 'MPa', min: 0, max: 1.6, alarmLo: 1.2, alarmHi: 1.4 },
+      { name: '失重', kind: 'bool', point: 'CYL_GRP_01_LOSS', onClass: ['is-fault'] },
+      { name: '瓶头阀阀位', kind: 'bool', point: 'CYL_GRP_01_VALVE', onClass: ['is-open'], offClass: ['is-closed'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 8, y: 20, width: 13, height: 34, rx: 3 },
+      { t: 'rect', role: 'body', x: 23, y: 20, width: 13, height: 34, rx: 3 },
+      { t: 'rect', role: 'body', x: 38, y: 20, width: 13, height: 34, rx: 3 },
+      { t: 'rect', role: 'accent', x: 11, y: 13, width: 7, height: 7, rx: 1 },
+      { t: 'rect', role: 'accent', x: 26, y: 13, width: 7, height: 7, rx: 1 },
+      { t: 'rect', role: 'accent', x: 41, y: 13, width: 7, height: 7, rx: 1 },
+      { t: 'path', role: 'line', d: 'M14,16 H44' },
+      { t: 'path', role: 'pipe', d: 'M44,16 V32 H60' },
+      { t: 'rect', role: 'band', x: 6, y: 54, width: 48, height: 4 }
+    ]
+  },
+  {
+    id: 'CYL-DRV-01', name: '启动气瓶', category: '储存装置',
+    desc: '氮气驱动瓶，小口径瓶体带阀头与压力表，右侧出气',
+    ports: [{ x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '驱动气瓶压力', kind: 'text', point: 'CYL_DRV_01_PRESS', unit: 'MPa', min: 0, max: 6.3 },
+      { name: '启动', kind: 'bool', point: 'CYL_DRV_01_RUN', onClass: ['is-run'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 22, y: 22, width: 20, height: 32, rx: 4 },
+      { t: 'rect', role: 'accent', x: 28, y: 14, width: 8, height: 8, rx: 1 },
+      { t: 'circle', role: 'body', cx: 32, cy: 9, r: 4 },
+      { t: 'path', role: 'pipe', d: 'M42,32 H60' },
+      { t: 'rect', role: 'band', x: 18, y: 54, width: 28, height: 4 }
+    ]
+  },
+  {
+    id: 'MAN-COL-01', name: '集流管', category: '储存装置',
+    desc: '汇流管汇集各瓶组，左端进、右端出主管、下端出支管',
+    ports: [
+      { x: 4, y: 32, dir: 'left' },
+      { x: 60, y: 32, dir: 'right' },
+      { x: 32, y: 60, dir: 'down' }
+    ],
+    bindings: [
+      { name: '集流管压力', kind: 'text', point: 'MAN_COL_01_PRESS', unit: 'MPa', min: 0, max: 1.6 }
+    ],
+    shapes: [
+      { t: 'path', role: 'pipe', d: 'M4,32 H60' },
+      { t: 'rect', role: 'band', x: 10, y: 26, width: 4, height: 12 },
+      { t: 'rect', role: 'band', x: 50, y: 26, width: 4, height: 12 },
+      { t: 'path', role: 'pipe', d: 'M32,32 V60' },
+      { t: 'rect', role: 'band', x: 27, y: 48, width: 10, height: 4 }
+    ]
+  },
+
+  // ── 气体灭火：驱动装置 ────────────────────────────────────
+  {
+    id: 'VLV-SOL-01', name: '启动电磁阀', category: '驱动装置',
+    desc: '电磁阀本体带线圈方盒与手动旁通，区别于手动阀',
+    ports: [{ x: 4, y: 32, dir: 'left' }, { x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '阀位', kind: 'bool', point: 'VLV_SOL_01_OPEN', onClass: ['is-open'], offClass: ['is-closed'] },
+      { name: '启动指令', kind: 'bool', point: 'VLV_SOL_01_CMD', onClass: ['is-run'] },
+      { name: '故障', kind: 'bool', point: 'VLV_SOL_01_FAULT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      ...stubs(), ...bowtie(),
+      { t: 'rect', role: 'band', x: 24, y: 13, width: 16, height: 11, rx: 2 },
+      { t: 'line', role: 'line', x1: 32, y1: 24, x2: 32, y2: 20 },
+      { t: 'circle', role: 'accent', cx: 32, cy: 9, r: 2.5 }
+    ]
+  },
+  {
+    id: 'MAN-PUL-01', name: '手动启动拉环', category: '驱动装置',
+    desc: '就地手动启动箱，拉环外露带标识牌',
+    ports: [],
+    bindings: [
+      { name: '手动启动', kind: 'bool', point: 'MAN_PUL_01_ACT', onClass: ['is-run'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 14, y: 16, width: 36, height: 36, rx: 2 },
+      { t: 'circle', role: 'outline', cx: 32, cy: 29, r: 7 },
+      { t: 'rect', role: 'accent', x: 27, y: 37, width: 10, height: 11, rx: 1 },
+      { t: 'line', role: 'line', x1: 32, y1: 37, x2: 32, y2: 33 }
+    ]
+  },
+  {
+    id: 'PRS-SIG-01', name: '压力信号器', category: '驱动装置',
+    desc: '管网压力信号器，喷放后压力上升触发反馈',
+    ports: [],
+    bindings: [
+      { name: '喷放反馈', kind: 'bool', point: 'PRS_SIG_01_FB', onClass: ['is-discharge'] },
+      { name: '故障', kind: 'bool', point: 'PRS_SIG_01_FAULT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'circle', role: 'body', cx: 32, cy: 27, r: 13 },
+      { t: 'circle', role: 'outline', cx: 32, cy: 27, r: 7 },
+      { t: 'rect', role: 'band', x: 25, y: 43, width: 14, height: 13, rx: 1 },
+      { t: 'line', role: 'line', x1: 28, y1: 48, x2: 36, y2: 48 },
+      { t: 'line', role: 'line', x1: 28, y1: 52, x2: 36, y2: 52 }
+    ]
+  },
+  {
+    id: 'RLY-DLY-01', name: '延时继电器', category: '驱动装置',
+    desc: '导轨式延时继电器，带延时旋钮与指示灯',
+    ports: [],
+    bindings: [
+      { name: '延时中', kind: 'bool', point: 'RLY_DLY_01_RUN', onClass: ['is-manual'] },
+      { name: '剩余时间', kind: 'text', point: 'RLY_DLY_01_LEFT', unit: 's', min: 0, max: 10 }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 14, y: 16, width: 36, height: 32, rx: 2 },
+      { t: 'rect', role: 'band', x: 14, y: 23, width: 36, height: 4 },
+      { t: 'circle', role: 'outline', cx: 24, cy: 37, r: 5 },
+      { t: 'circle', role: 'accent', cx: 40, cy: 37, r: 3 }
+    ]
+  },
+
+  // ── 气体灭火：灭火剂管网 ──────────────────────────────────
+  {
+    id: 'PIP-GAS-01', name: '灭火剂管道', category: '灭火剂管网',
+    desc: '灭火剂输送管，中段带气介质双环标识',
+    ports: [{ x: 4, y: 32, dir: 'left' }, { x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '充压', kind: 'bool', point: 'PIP_GAS_01_CHARGED', onClass: ['is-run'] }
+    ],
+    shapes: [
+      { t: 'path', role: 'pipe', d: 'M4,32 H60' },
+      { t: 'rect', role: 'band', x: 26, y: 26, width: 4, height: 12 },
+      { t: 'rect', role: 'band', x: 34, y: 26, width: 4, height: 12 }
+    ]
+  },
+  {
+    id: 'NZL-GAS-01', name: '喷嘴', category: '灭火剂管网',
+    desc: '孔口喷嘴，仅左侧进管，喷口朝上',
+    ports: [{ x: 4, y: 32, dir: 'left' }],
+    bindings: [
+      { name: '喷放', kind: 'bool', point: 'NZL_GAS_01_FB', onClass: ['is-discharge'] }
+    ],
+    shapes: [
+      { t: 'path', role: 'pipe', d: 'M4,32 H32' },
+      { t: 'rect', role: 'body', x: 28, y: 27, width: 9, height: 11, rx: 1 },
+      { t: 'poly', role: 'body', points: '27,38 38,38 48,14 17,14' }
+    ]
+  },
+
+  // ── 气体灭火：探测报警 ────────────────────────────────────
+  {
+    id: 'DET-SMK-01', name: '感烟探测器', category: '探测报警',
+    desc: '顶装圆形感烟探测器底视，中心带指示灯',
+    ports: [],
+    bindings: [
+      { name: '报警', kind: 'bool', point: 'DET_SMK_01_ALM', onClass: ['is-alarm'] },
+      { name: '故障', kind: 'bool', point: 'DET_SMK_01_FLT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'circle', role: 'body', cx: 32, cy: 32, r: 18 },
+      { t: 'circle', role: 'outline', cx: 32, cy: 32, r: 11 },
+      { t: 'circle', role: 'accent', cx: 32, cy: 32, r: 3 }
+    ]
+  },
+  {
+    id: 'DET-HST-01', name: '感温探测器', category: '探测报警',
+    desc: '差定温探测器底视，圆形底座带栅格',
+    ports: [],
+    bindings: [
+      { name: '报警', kind: 'bool', point: 'DET_HST_01_ALM', onClass: ['is-alarm'] },
+      { name: '故障', kind: 'bool', point: 'DET_HST_01_FLT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'circle', role: 'body', cx: 32, cy: 32, r: 18 },
+      { t: 'rect', role: 'outline', x: 23, y: 25, width: 18, height: 14, rx: 1 },
+      { t: 'line', role: 'line', x1: 26, y1: 29, x2: 38, y2: 29 },
+      { t: 'line', role: 'line', x1: 26, y1: 33, x2: 38, y2: 33 },
+      { t: 'line', role: 'line', x1: 26, y1: 37, x2: 38, y2: 37 }
+    ]
+  },
+  {
+    id: 'ALM-SLR-01', name: '声光警报器', category: '探测报警',
+    desc: '声光警报器，罩壳加下方蜂鸣栅格',
+    ports: [],
+    bindings: [
+      { name: '运行', kind: 'bool', point: 'ALM_SLR_01_RUN', onClass: ['is-run'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 18, y: 12, width: 28, height: 28, rx: 3 },
+      { t: 'rect', role: 'outline', x: 21, y: 15, width: 22, height: 22, rx: 2 },
+      { t: 'rect', role: 'band', x: 22, y: 42, width: 20, height: 14, rx: 1 },
+      { t: 'line', role: 'line', x1: 25, y1: 46, x2: 39, y2: 46 },
+      { t: 'line', role: 'line', x1: 25, y1: 51, x2: 39, y2: 51 }
+    ]
+  },
+  {
+    id: 'MAN-CLB-01', name: '手动报警按钮', category: '探测报警',
+    desc: '圆形手动报警按钮，蘑菇头带十字标识',
+    ports: [],
+    bindings: [
+      { name: '动作', kind: 'bool', point: 'MAN_CLB_01_ACT', onClass: ['is-alarm'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 16, y: 16, width: 32, height: 32, rx: 3 },
+      { t: 'circle', role: 'accent', cx: 32, cy: 32, r: 10 },
+      { t: 'line', role: 'line', x1: 32, y1: 26, x2: 32, y2: 38 },
+      { t: 'line', role: 'line', x1: 26, y1: 32, x2: 38, y2: 32 }
+    ]
+  },
+
+  // ── 气体灭火：控制 ────────────────────────────────────────
+  {
+    id: 'CTL-GAS-01', name: '气体灭火控制器', category: '控制',
+    desc: '柜式气体灭火控制器，面板三灯加显示窗',
+    ports: [],
+    bindings: [
+      { name: '正常', kind: 'bool', point: 'CTL_GAS_01_RUN', onClass: ['is-run'] },
+      { name: '故障', kind: 'bool', point: 'CTL_GAS_01_FAULT', onClass: ['is-fault'] },
+      { name: '喷放', kind: 'bool', point: 'CTL_GAS_01_DIS', onClass: ['is-discharge'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 12, y: 8, width: 40, height: 48, rx: 2 },
+      { t: 'rect', role: 'outline', x: 16, y: 13, width: 32, height: 17, rx: 1 },
+      { t: 'circle', role: 'accent', cx: 22, cy: 40, r: 3.5 },
+      { t: 'circle', role: 'accent', cx: 32, cy: 40, r: 3.5 },
+      { t: 'circle', role: 'accent', cx: 42, cy: 40, r: 3.5 },
+      { t: 'line', role: 'line', x1: 19, y1: 50, x2: 45, y2: 50 }
+    ]
+  },
+  {
+    id: 'MDL-IOR-01', name: '输入输出模块', category: '控制',
+    desc: 'DIN 导轨输入输出模块，正视带端子与指示灯',
+    ports: [],
+    bindings: [
+      { name: '运行', kind: 'bool', point: 'MDL_IOR_01_RUN', onClass: ['is-run'] },
+      { name: '故障', kind: 'bool', point: 'MDL_IOR_01_FAULT', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 12, y: 18, width: 40, height: 28, rx: 1 },
+      { t: 'rect', role: 'band', x: 12, y: 25, width: 40, height: 4 },
+      { t: 'circle', role: 'accent', cx: 20, cy: 37, r: 2.5 },
+      { t: 'circle', role: 'accent', cx: 32, cy: 37, r: 2.5 },
+      { t: 'circle', role: 'accent', cx: 44, cy: 37, r: 2.5 }
+    ]
+  },
+
+  // ── 气体灭火：辅助设施 ────────────────────────────────────
+  {
+    id: 'VNT-REL-01', name: '泄压口', category: '辅助设施',
+    desc: '墙体泄压口挡板，带向上泄压方向标识',
+    ports: [],
+    bindings: [
+      { name: '开启', kind: 'bool', point: 'VNT_REL_01_OPEN', onClass: ['is-open'], offClass: ['is-closed'] }
+    ],
+    shapes: [
+      { t: 'rect', role: 'body', x: 8, y: 24, width: 48, height: 24, rx: 2 },
+      { t: 'rect', role: 'outline', x: 13, y: 29, width: 38, height: 14, rx: 1 },
+      { t: 'path', role: 'line', d: 'M32,22 V9' },
+      { t: 'path', role: 'line', d: 'M26,15 L32,7 L38,15' }
+    ]
+  },
+  {
+    id: 'FAN-EXH-01', name: '排风机', category: '辅助设施',
+    desc: '柜式离心排风机，运行叶轮旋转，用于保护区排风',
+    ports: [{ x: 4, y: 32, dir: 'left' }, { x: 60, y: 32, dir: 'right' }],
+    bindings: [
+      { name: '指令', kind: 'bool', point: 'FAN_EXH_01_CMD', onClass: ['is-run'], spin: true },
+      { name: '反馈', kind: 'bool', point: 'FAN_EXH_01_FB', onClass: ['is-open'] }
+    ],
+    shapes: [
+      ...stubs(),
+      { t: 'rect', role: 'body', x: 16, y: 14, width: 32, height: 36, rx: 2 },
+      { t: 'circle', role: 'outline', cx: 32, cy: 32, r: 12 },
+      { t: 'g', role: 'rotor', pivot: [32, 32], children: blades(32, 32, 4, 11) }
+    ]
+  },
+
+  // ── 气体灭火：仪表（分类属通用「仪表」，系统归属覆盖为气体灭火） ──
+  {
+    id: 'PAI-CYL-01', name: '钢瓶压力表', category: '仪表', system: 'gas', screen: 'G07 气体灭火总貌',
+    desc: '小口径表头压力表，指针随压力旋转，区别于管网压力表',
+    ports: [],
+    bindings: [
+      { name: '压力', kind: 'angle', point: 'PAI_CYL_01_P', min: 0, max: 1.6, unit: 'MPa', minAngle: -135, maxAngle: 135, alarmHi: 1.4, alarmLo: 1.2 },
+      { name: '欠压', kind: 'bool', point: 'PAI_CYL_01_LOW', onClass: ['is-fault'] }
+    ],
+    shapes: [
+      { t: 'circle', role: 'body', cx: 32, cy: 26, r: 15 },
+      { t: 'line', role: 'line', x1: 24, y1: 19, x2: 26, y2: 21 },
+      { t: 'line', role: 'line', x1: 40, y1: 21, x2: 38, y2: 19 },
+      { t: 'line', role: 'needle', x1: 32, y1: 26, x2: 32, y2: 14, pivot: [32, 26] },
+      { t: 'path', role: 'pipe', d: 'M32,41 V56' }
     ]
   }
 ];

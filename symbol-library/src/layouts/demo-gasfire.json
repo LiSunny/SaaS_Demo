@@ -1,0 +1,1050 @@
+{
+ "version": 1,
+ "name": "气体灭火系统总貌",
+ "nodes": [
+  {
+   "id": "n1",
+   "symbol": "CTL-GAS-01",
+   "x": 110,
+   "y": 710,
+   "size": 72,
+   "label": "气体灭火控制器",
+   "point": "CTL_GAS_01_RUN"
+  },
+  {
+   "id": "n2",
+   "symbol": "MDL-IOR-01",
+   "x": 230,
+   "y": 710,
+   "size": 48,
+   "label": "输入输出模块",
+   "point": "MDL_IOR_01_RUN"
+  },
+  {
+   "id": "n3",
+   "symbol": "MDL-IOR-01",
+   "x": 320,
+   "y": 710,
+   "size": 48,
+   "label": "输入输出模块",
+   "point": "MDL_IOR_01_FAULT"
+  },
+  {
+   "id": "n4",
+   "symbol": "RLY-DLY-01",
+   "x": 410,
+   "y": 710,
+   "size": 48,
+   "label": "延时继电器",
+   "point": "RLY_DLY_01_RUN"
+  },
+  {
+   "id": "n5",
+   "symbol": "PRS-SIG-01",
+   "x": 500,
+   "y": 710,
+   "size": 48,
+   "label": "压力信号器",
+   "point": "PRS_SIG_01_FB"
+  },
+  {
+   "id": "n6",
+   "symbol": "MAN-PUL-01",
+   "x": 590,
+   "y": 710,
+   "size": 48,
+   "label": "手动启动拉环",
+   "point": "MAN_PUL_01_ACT"
+  },
+  {
+   "id": "n7",
+   "symbol": "CAB-PMP-01",
+   "x": 690,
+   "y": 710,
+   "size": 60,
+   "label": "气体灭火盘控制柜",
+   "point": "CAB_PMP_01_MODE"
+  },
+  {
+   "id": "n8",
+   "symbol": "CYL-DRV-01",
+   "x": 120,
+   "y": 100,
+   "size": 48,
+   "label": "1# 启动气瓶",
+   "point": "CYL_DRV_01_Z1_PRESS"
+  },
+  {
+   "id": "n9",
+   "symbol": "VLV-SOL-01",
+   "x": 230,
+   "y": 100,
+   "size": 48,
+   "label": "启动电磁阀",
+   "point": "VLV_SOL_01_Z1_OPEN"
+  },
+  {
+   "id": "n10",
+   "symbol": "CYL-GRP-01",
+   "x": 360,
+   "y": 100,
+   "size": 60,
+   "label": "1# 灭火剂钢瓶组",
+   "point": "CYL_GRP_01_Z1_PRESS"
+  },
+  {
+   "id": "n11",
+   "symbol": "PAI-CYL-01",
+   "x": 360,
+   "y": 162,
+   "size": 48,
+   "label": "钢瓶压力表",
+   "point": "PAI_CYL_01_Z1_P"
+  },
+  {
+   "id": "n12",
+   "symbol": "MAN-COL-01",
+   "x": 480,
+   "y": 100,
+   "size": 60,
+   "label": "集流管",
+   "point": "MAN_COL_01_Z1_PRESS"
+  },
+  {
+   "id": "n13",
+   "symbol": "PIP-GAS-01",
+   "x": 590,
+   "y": 100,
+   "size": 60,
+   "label": "灭火剂主管",
+   "point": "PIP_GAS_01_Z1_CHARGED"
+  },
+  {
+   "id": "n14",
+   "symbol": "VLV-SIG-01",
+   "x": 700,
+   "y": 100,
+   "size": 48,
+   "label": "支管阀",
+   "point": "VLV_SIG_01_Z1_OPEN"
+  },
+  {
+   "id": "n15",
+   "symbol": "NZL-GAS-01",
+   "x": 800,
+   "y": 100,
+   "size": 60,
+   "label": "喷嘴",
+   "point": "NZL_GAS_01_Z1_FB"
+  },
+  {
+   "id": "n16",
+   "symbol": "DET-SMK-01",
+   "x": 920,
+   "y": 38,
+   "size": 48,
+   "label": "感烟探测器",
+   "point": "DET_SMK_01_Z1_ALM"
+  },
+  {
+   "id": "n17",
+   "symbol": "DET-HST-01",
+   "x": 1030,
+   "y": 38,
+   "size": 48,
+   "label": "感温探测器",
+   "point": "DET_HST_01_Z1_ALM"
+  },
+  {
+   "id": "n18",
+   "symbol": "ALM-SLR-01",
+   "x": 1140,
+   "y": 38,
+   "size": 48,
+   "label": "声光警报器",
+   "point": "ALM_SLR_01_Z1_RUN"
+  },
+  {
+   "id": "n19",
+   "symbol": "MAN-CLB-01",
+   "x": 1250,
+   "y": 38,
+   "size": 48,
+   "label": "手动报警按钮",
+   "point": "MAN_CLB_01_Z1_ACT"
+  },
+  {
+   "id": "n20",
+   "symbol": "VNT-REL-01",
+   "x": 960,
+   "y": 162,
+   "size": 48,
+   "label": "泄压口",
+   "point": "VNT_REL_01_Z1_OPEN"
+  },
+  {
+   "id": "n21",
+   "symbol": "FAN-EXH-01",
+   "x": 1070,
+   "y": 162,
+   "size": 60,
+   "label": "排风机",
+   "point": "FAN_EXH_01_Z1_CMD"
+  },
+  {
+   "id": "n22",
+   "symbol": "CYL-DRV-01",
+   "x": 120,
+   "y": 260,
+   "size": 48,
+   "label": "2# 启动气瓶",
+   "point": "CYL_DRV_01_Z2_PRESS"
+  },
+  {
+   "id": "n23",
+   "symbol": "VLV-SOL-01",
+   "x": 230,
+   "y": 260,
+   "size": 48,
+   "label": "启动电磁阀",
+   "point": "VLV_SOL_01_Z2_OPEN"
+  },
+  {
+   "id": "n24",
+   "symbol": "CYL-GRP-01",
+   "x": 360,
+   "y": 260,
+   "size": 60,
+   "label": "2# 灭火剂钢瓶组",
+   "point": "CYL_GRP_01_Z2_PRESS"
+  },
+  {
+   "id": "n25",
+   "symbol": "PAI-CYL-01",
+   "x": 360,
+   "y": 322,
+   "size": 48,
+   "label": "钢瓶压力表",
+   "point": "PAI_CYL_01_Z2_P"
+  },
+  {
+   "id": "n26",
+   "symbol": "MAN-COL-01",
+   "x": 480,
+   "y": 260,
+   "size": 60,
+   "label": "集流管",
+   "point": "MAN_COL_01_Z2_PRESS"
+  },
+  {
+   "id": "n27",
+   "symbol": "PIP-GAS-01",
+   "x": 590,
+   "y": 260,
+   "size": 60,
+   "label": "灭火剂主管",
+   "point": "PIP_GAS_01_Z2_CHARGED"
+  },
+  {
+   "id": "n28",
+   "symbol": "VLV-SIG-01",
+   "x": 700,
+   "y": 260,
+   "size": 48,
+   "label": "支管阀",
+   "point": "VLV_SIG_01_Z2_OPEN"
+  },
+  {
+   "id": "n29",
+   "symbol": "NZL-GAS-01",
+   "x": 800,
+   "y": 260,
+   "size": 60,
+   "label": "喷嘴",
+   "point": "NZL_GAS_01_Z2_FB"
+  },
+  {
+   "id": "n30",
+   "symbol": "DET-SMK-01",
+   "x": 920,
+   "y": 198,
+   "size": 48,
+   "label": "感烟探测器",
+   "point": "DET_SMK_01_Z2_ALM"
+  },
+  {
+   "id": "n31",
+   "symbol": "DET-HST-01",
+   "x": 1030,
+   "y": 198,
+   "size": 48,
+   "label": "感温探测器",
+   "point": "DET_HST_01_Z2_ALM"
+  },
+  {
+   "id": "n32",
+   "symbol": "ALM-SLR-01",
+   "x": 1140,
+   "y": 198,
+   "size": 48,
+   "label": "声光警报器",
+   "point": "ALM_SLR_01_Z2_RUN"
+  },
+  {
+   "id": "n33",
+   "symbol": "MAN-CLB-01",
+   "x": 1250,
+   "y": 198,
+   "size": 48,
+   "label": "手动报警按钮",
+   "point": "MAN_CLB_01_Z2_ACT"
+  },
+  {
+   "id": "n34",
+   "symbol": "VNT-REL-01",
+   "x": 960,
+   "y": 322,
+   "size": 48,
+   "label": "泄压口",
+   "point": "VNT_REL_01_Z2_OPEN"
+  },
+  {
+   "id": "n35",
+   "symbol": "FAN-EXH-01",
+   "x": 1070,
+   "y": 322,
+   "size": 60,
+   "label": "排风机",
+   "point": "FAN_EXH_01_Z2_CMD"
+  },
+  {
+   "id": "n36",
+   "symbol": "CYL-DRV-01",
+   "x": 120,
+   "y": 420,
+   "size": 48,
+   "label": "3# 启动气瓶",
+   "point": "CYL_DRV_01_Z3_PRESS"
+  },
+  {
+   "id": "n37",
+   "symbol": "VLV-SOL-01",
+   "x": 230,
+   "y": 420,
+   "size": 48,
+   "label": "启动电磁阀",
+   "point": "VLV_SOL_01_Z3_OPEN"
+  },
+  {
+   "id": "n38",
+   "symbol": "CYL-GRP-01",
+   "x": 360,
+   "y": 420,
+   "size": 60,
+   "label": "3# 灭火剂钢瓶组",
+   "point": "CYL_GRP_01_Z3_PRESS"
+  },
+  {
+   "id": "n39",
+   "symbol": "PAI-CYL-01",
+   "x": 360,
+   "y": 482,
+   "size": 48,
+   "label": "钢瓶压力表",
+   "point": "PAI_CYL_01_Z3_P"
+  },
+  {
+   "id": "n40",
+   "symbol": "MAN-COL-01",
+   "x": 480,
+   "y": 420,
+   "size": 60,
+   "label": "集流管",
+   "point": "MAN_COL_01_Z3_PRESS"
+  },
+  {
+   "id": "n41",
+   "symbol": "PIP-GAS-01",
+   "x": 590,
+   "y": 420,
+   "size": 60,
+   "label": "灭火剂主管",
+   "point": "PIP_GAS_01_Z3_CHARGED"
+  },
+  {
+   "id": "n42",
+   "symbol": "VLV-SIG-01",
+   "x": 700,
+   "y": 420,
+   "size": 48,
+   "label": "支管阀",
+   "point": "VLV_SIG_01_Z3_OPEN"
+  },
+  {
+   "id": "n43",
+   "symbol": "NZL-GAS-01",
+   "x": 800,
+   "y": 420,
+   "size": 60,
+   "label": "喷嘴",
+   "point": "NZL_GAS_01_Z3_FB"
+  },
+  {
+   "id": "n44",
+   "symbol": "DET-SMK-01",
+   "x": 920,
+   "y": 358,
+   "size": 48,
+   "label": "感烟探测器",
+   "point": "DET_SMK_01_Z3_ALM"
+  },
+  {
+   "id": "n45",
+   "symbol": "DET-HST-01",
+   "x": 1030,
+   "y": 358,
+   "size": 48,
+   "label": "感温探测器",
+   "point": "DET_HST_01_Z3_ALM"
+  },
+  {
+   "id": "n46",
+   "symbol": "ALM-SLR-01",
+   "x": 1140,
+   "y": 358,
+   "size": 48,
+   "label": "声光警报器",
+   "point": "ALM_SLR_01_Z3_RUN"
+  },
+  {
+   "id": "n47",
+   "symbol": "MAN-CLB-01",
+   "x": 1250,
+   "y": 358,
+   "size": 48,
+   "label": "手动报警按钮",
+   "point": "MAN_CLB_01_Z3_ACT"
+  },
+  {
+   "id": "n48",
+   "symbol": "VNT-REL-01",
+   "x": 960,
+   "y": 482,
+   "size": 48,
+   "label": "泄压口",
+   "point": "VNT_REL_01_Z3_OPEN"
+  },
+  {
+   "id": "n49",
+   "symbol": "FAN-EXH-01",
+   "x": 1070,
+   "y": 482,
+   "size": 60,
+   "label": "排风机",
+   "point": "FAN_EXH_01_Z3_CMD"
+  },
+  {
+   "id": "n50",
+   "symbol": "CYL-DRV-01",
+   "x": 120,
+   "y": 580,
+   "size": 48,
+   "label": "4# 启动气瓶",
+   "point": "CYL_DRV_01_Z4_PRESS"
+  },
+  {
+   "id": "n51",
+   "symbol": "VLV-SOL-01",
+   "x": 230,
+   "y": 580,
+   "size": 48,
+   "label": "启动电磁阀",
+   "point": "VLV_SOL_01_Z4_OPEN"
+  },
+  {
+   "id": "n52",
+   "symbol": "CYL-GRP-01",
+   "x": 360,
+   "y": 580,
+   "size": 60,
+   "label": "4# 灭火剂钢瓶组",
+   "point": "CYL_GRP_01_Z4_PRESS"
+  },
+  {
+   "id": "n53",
+   "symbol": "PAI-CYL-01",
+   "x": 360,
+   "y": 642,
+   "size": 48,
+   "label": "钢瓶压力表",
+   "point": "PAI_CYL_01_Z4_P"
+  },
+  {
+   "id": "n54",
+   "symbol": "MAN-COL-01",
+   "x": 480,
+   "y": 580,
+   "size": 60,
+   "label": "集流管",
+   "point": "MAN_COL_01_Z4_PRESS"
+  },
+  {
+   "id": "n55",
+   "symbol": "PIP-GAS-01",
+   "x": 590,
+   "y": 580,
+   "size": 60,
+   "label": "灭火剂主管",
+   "point": "PIP_GAS_01_Z4_CHARGED"
+  },
+  {
+   "id": "n56",
+   "symbol": "VLV-SIG-01",
+   "x": 700,
+   "y": 580,
+   "size": 48,
+   "label": "支管阀",
+   "point": "VLV_SIG_01_Z4_OPEN"
+  },
+  {
+   "id": "n57",
+   "symbol": "NZL-GAS-01",
+   "x": 800,
+   "y": 580,
+   "size": 60,
+   "label": "喷嘴",
+   "point": "NZL_GAS_01_Z4_FB"
+  },
+  {
+   "id": "n58",
+   "symbol": "DET-SMK-01",
+   "x": 920,
+   "y": 518,
+   "size": 48,
+   "label": "感烟探测器",
+   "point": "DET_SMK_01_Z4_ALM"
+  },
+  {
+   "id": "n59",
+   "symbol": "DET-HST-01",
+   "x": 1030,
+   "y": 518,
+   "size": 48,
+   "label": "感温探测器",
+   "point": "DET_HST_01_Z4_ALM"
+  },
+  {
+   "id": "n60",
+   "symbol": "ALM-SLR-01",
+   "x": 1140,
+   "y": 518,
+   "size": 48,
+   "label": "声光警报器",
+   "point": "ALM_SLR_01_Z4_RUN"
+  },
+  {
+   "id": "n61",
+   "symbol": "MAN-CLB-01",
+   "x": 1250,
+   "y": 518,
+   "size": 48,
+   "label": "手动报警按钮",
+   "point": "MAN_CLB_01_Z4_ACT"
+  },
+  {
+   "id": "n62",
+   "symbol": "VNT-REL-01",
+   "x": 960,
+   "y": 642,
+   "size": 48,
+   "label": "泄压口",
+   "point": "VNT_REL_01_Z4_OPEN"
+  },
+  {
+   "id": "n63",
+   "symbol": "FAN-EXH-01",
+   "x": 1070,
+   "y": 642,
+   "size": 60,
+   "label": "排风机",
+   "point": "FAN_EXH_01_Z4_CMD"
+  },
+  {
+   "id": "n64",
+   "symbol": "DET-SMK-01",
+   "x": 380,
+   "y": 840,
+   "size": 48,
+   "label": "① 探测报警",
+   "point": "DET_SMK_01_ALM"
+  },
+  {
+   "id": "n65",
+   "symbol": "ALM-SLR-01",
+   "x": 540,
+   "y": 840,
+   "size": 48,
+   "label": "② 声光启动",
+   "point": "ALM_SLR_01_RUN"
+  },
+  {
+   "id": "n66",
+   "symbol": "RLY-DLY-01",
+   "x": 700,
+   "y": 840,
+   "size": 48,
+   "label": "③ 延时 0~10s",
+   "point": "RLY_DLY_01_RUN"
+  },
+  {
+   "id": "n67",
+   "symbol": "VLV-SOL-01",
+   "x": 860,
+   "y": 840,
+   "size": 48,
+   "label": "④ 启动电磁阀",
+   "point": "VLV_SOL_01_CMD"
+  },
+  {
+   "id": "n68",
+   "symbol": "PRS-SIG-01",
+   "x": 1020,
+   "y": 840,
+   "size": 48,
+   "label": "⑤ 喷放反馈",
+   "point": "PRS_SIG_01_FB"
+  },
+  {
+   "id": "n69",
+   "symbol": "NZL-GAS-01",
+   "x": 1180,
+   "y": 840,
+   "size": 48,
+   "label": "⑥ 喷嘴喷放",
+   "point": "NZL_GAS_01_FB"
+  }
+ ],
+ "edges": [
+  {
+   "id": "e1",
+   "from": {
+    "node": "n8",
+    "port": 0
+   },
+   "to": {
+    "node": "n9",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e2",
+   "from": {
+    "node": "n9",
+    "port": 1
+   },
+   "to": {
+    "node": "n10",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e3",
+   "from": {
+    "node": "n10",
+    "port": 1
+   },
+   "to": {
+    "node": "n12",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e4",
+   "from": {
+    "node": "n12",
+    "port": 1
+   },
+   "to": {
+    "node": "n13",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e5",
+   "from": {
+    "node": "n13",
+    "port": 1
+   },
+   "to": {
+    "node": "n14",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e6",
+   "from": {
+    "node": "n14",
+    "port": 1
+   },
+   "to": {
+    "node": "n15",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e7",
+   "from": {
+    "node": "n1"
+   },
+   "to": {
+    "node": "n9"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e8",
+   "from": {
+    "node": "n4"
+   },
+   "to": {
+    "node": "n9"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e9",
+   "from": {
+    "node": "n22",
+    "port": 0
+   },
+   "to": {
+    "node": "n23",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e10",
+   "from": {
+    "node": "n23",
+    "port": 1
+   },
+   "to": {
+    "node": "n24",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e11",
+   "from": {
+    "node": "n24",
+    "port": 1
+   },
+   "to": {
+    "node": "n26",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e12",
+   "from": {
+    "node": "n26",
+    "port": 1
+   },
+   "to": {
+    "node": "n27",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e13",
+   "from": {
+    "node": "n27",
+    "port": 1
+   },
+   "to": {
+    "node": "n28",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e14",
+   "from": {
+    "node": "n28",
+    "port": 1
+   },
+   "to": {
+    "node": "n29",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e15",
+   "from": {
+    "node": "n1"
+   },
+   "to": {
+    "node": "n23"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e16",
+   "from": {
+    "node": "n4"
+   },
+   "to": {
+    "node": "n23"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e17",
+   "from": {
+    "node": "n36",
+    "port": 0
+   },
+   "to": {
+    "node": "n37",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e18",
+   "from": {
+    "node": "n37",
+    "port": 1
+   },
+   "to": {
+    "node": "n38",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e19",
+   "from": {
+    "node": "n38",
+    "port": 1
+   },
+   "to": {
+    "node": "n40",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e20",
+   "from": {
+    "node": "n40",
+    "port": 1
+   },
+   "to": {
+    "node": "n41",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e21",
+   "from": {
+    "node": "n41",
+    "port": 1
+   },
+   "to": {
+    "node": "n42",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e22",
+   "from": {
+    "node": "n42",
+    "port": 1
+   },
+   "to": {
+    "node": "n43",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e23",
+   "from": {
+    "node": "n1"
+   },
+   "to": {
+    "node": "n37"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e24",
+   "from": {
+    "node": "n4"
+   },
+   "to": {
+    "node": "n37"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e25",
+   "from": {
+    "node": "n50",
+    "port": 0
+   },
+   "to": {
+    "node": "n51",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e26",
+   "from": {
+    "node": "n51",
+    "port": 1
+   },
+   "to": {
+    "node": "n52",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e27",
+   "from": {
+    "node": "n52",
+    "port": 1
+   },
+   "to": {
+    "node": "n54",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e28",
+   "from": {
+    "node": "n54",
+    "port": 1
+   },
+   "to": {
+    "node": "n55",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e29",
+   "from": {
+    "node": "n55",
+    "port": 1
+   },
+   "to": {
+    "node": "n56",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e30",
+   "from": {
+    "node": "n56",
+    "port": 1
+   },
+   "to": {
+    "node": "n57",
+    "port": 0
+   },
+   "kind": "pipe"
+  },
+  {
+   "id": "e31",
+   "from": {
+    "node": "n1"
+   },
+   "to": {
+    "node": "n51"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e32",
+   "from": {
+    "node": "n4"
+   },
+   "to": {
+    "node": "n51"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e33",
+   "from": {
+    "node": "n64"
+   },
+   "to": {
+    "node": "n65"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e34",
+   "from": {
+    "node": "n65"
+   },
+   "to": {
+    "node": "n66"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e35",
+   "from": {
+    "node": "n66"
+   },
+   "to": {
+    "node": "n67"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e36",
+   "from": {
+    "node": "n67"
+   },
+   "to": {
+    "node": "n68"
+   },
+   "kind": "control"
+  },
+  {
+   "id": "e37",
+   "from": {
+    "node": "n68"
+   },
+   "to": {
+    "node": "n69"
+   },
+   "kind": "control"
+  }
+ ],
+ "remark": "每个保护区一套独立回路：启动气瓶→启动电磁阀→灭火剂钢瓶组→集流管→灭火剂主管→支管阀→喷嘴；探测器、声光警报器、手报挂在保护区上方，泄压口与排风机在下方。底部为控制列与联动流程条：探测→声光→延时→启动→喷放反馈→喷嘴喷放。点位按实例编号：图元前缀_保护区号_参数（Z1~Z4），点表需按现场实例数展开。",
+ "width": 1400,
+ "height": 920
+}

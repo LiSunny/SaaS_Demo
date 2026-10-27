@@ -5,21 +5,26 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SYMBOLS, SPEC } from './symbols.source.js';
+import { SYMBOLS, SPEC, SYSTEMS, CATEGORIES } from './symbols.source.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
 const dist = join(root, 'dist');
 mkdirSync(dist, { recursive: true });
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const ID_RE = /^[A-Z]{2,4}-[A-Z]{2,5}-\d{2}$/;
 
-const SCREENS = {
-  水源: 'G02 水源监控', 泵组: 'G03 水泵房', 管道管件: 'G04 管网压力',
-  阀门: 'G04 管网压力', 末端设施: 'G05 末端设施', 接合器: 'G05 末端设施',
-  仪表: 'G06 仪表趋势', 电气: 'G03 水泵房'
-};
+// 分类 → 建议画面编号，由分类表声明
+const SCREENS = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.screen]));
+const CAT_MAP = new Map(CATEGORIES.map((c) => [c.key, c]));
+const SYS_MAP = new Map(SYSTEMS.map((s) => [s.key, s]));
+
+/** 图元所属系统：图元自身 system 优先，否则取其分类的 system */
+function systemOf(def) {
+  const cat = CAT_MAP.get(def.category);
+  return def.system || cat?.system || null;
+}
 
 const errors = [];
 const warns = [];
@@ -76,7 +81,9 @@ const imgIndex = existsSync(join(IMG_DIR, 'index.json'))
 const BADGES = [
   '<g class="sym-badge sym-badge-run"><rect class="sym-badge-bg" x="45" y="1" width="18" height="18" rx="5"/><path class="sym-badge-fg" d="M51.5 5.5 L58.5 10 L51.5 14.5 Z"/></g>',
   '<g class="sym-badge sym-badge-fault"><rect class="sym-badge-bg" x="45" y="1" width="18" height="18" rx="5"/><path class="sym-badge-stroke" d="M54 5.5 V11"/><path class="sym-badge-stroke" d="M54 14 V14.8"/></g>',
-  '<g class="sym-badge sym-badge-manual"><rect class="sym-badge-bg" x="45" y="1" width="18" height="18" rx="5"/><path class="sym-badge-stroke" d="M50 14.5 V5.5 L54 11 L58 5.5 V14.5"/></g>'
+  '<g class="sym-badge sym-badge-manual"><rect class="sym-badge-bg" x="45" y="1" width="18" height="18" rx="5"/><path class="sym-badge-stroke" d="M50 14.5 V5.5 L54 11 L58 5.5 V14.5"/></g>',
+  '<g class="sym-badge sym-badge-alarm"><rect class="sym-badge-bg" x="45" y="1" width="18" height="18" rx="5"/><path class="sym-badge-fg" d="M54 4 L62 15.5 H46 Z"/><path class="sym-badge-mark" d="M54 8.6 V11.4"/><path class="sym-badge-mark" d="M54 13.4 V14"/></g>',
+  '<g class="sym-badge sym-badge-discharge"><rect class="sym-badge-bg" x="45" y="1" width="18" height="18" rx="5"/><path class="sym-badge-stroke" d="M49 5.5 L53.5 9.5"/><path class="sym-badge-stroke" d="M52.5 5.5 L57 9.5"/><path class="sym-badge-stroke" d="M49 12 L53.5 16"/><path class="sym-badge-stroke" d="M52.5 12 L57 16"/></g>'
 ].join('');
 
 const r2 = (n) => Number(n.toFixed(2));
@@ -138,7 +145,9 @@ for (const def of SYMBOLS) {
   });
 
   manifestSymbols.push({
-    id: def.id, name: def.name, category: def.category, desc: def.desc || '',
+    id: def.id, name: def.name, category: def.category, system: systemOf(def),
+    screen: def.screen || SCREENS[def.category] || null,
+    desc: def.desc || '',
     size: { w: SPEC.canvas.w, h: SPEC.canvas.h },
     anchor: SPEC.anchor,
     ports: def.ports || [],
@@ -149,18 +158,38 @@ for (const def of SYMBOLS) {
   });
 }
 
+// 分类树：一级为系统归属，二级为部件类别
+const systemMeta = SYSTEMS.map((sys) => ({
+  key: sys.key,
+  name: sys.name,
+  desc: sys.desc || '',
+  categories: CATEGORIES.filter((c) => c.system === sys.key).map((c) => c.key),
+  symbols: manifestSymbols.filter((s) => s.system === sys.key).map((s) => s.id),
+}));
+
+const categoryMeta = CATEGORIES.map((c) => ({
+  key: c.key,
+  name: c.key,
+  system: c.system,
+  screen: c.screen,
+  count: manifestSymbols.filter((s) => s.category === c.key).length,
+}));
+
 const manifest = {
-  name: '消防给水图元库',
+  name: '消防系统图元库',
   version: VERSION,
   spec: {
     canvas: SPEC.canvas, anchor: SPEC.anchor, grid: SPEC.grid,
     roles: Object.fromEntries(Object.entries(SPEC.roles).map(([k, v]) => [k, { cls: v.cls, css: v.inline }])),
     stateColors: {
       'is-run': '运行', 'is-off': '停机/备用', 'is-fault': '故障', 'is-manual': '手动',
-      'is-open': '阀开', 'is-closed': '阀关', 'is-over': '溢流/超高', 'is-flow': '过流'
+      'is-open': '阀开', 'is-closed': '阀关', 'is-over': '溢流/超高', 'is-flow': '过流',
+      'is-alarm': '报警', 'is-discharge': '喷放'
     }
   },
   screens: SCREENS,
+  systems: systemMeta,
+  categories: categoryMeta,
   symbols: manifestSymbols
 };
 
@@ -178,6 +207,7 @@ for (const s of manifestSymbols) {
       点名: b.point,
       图元ID: s.id,
       图元名称: s.name,
+      系统: SYS_MAP.get(s.system)?.name || s.system,
       分类: s.category,
       绑定: b.name,
       数据类型: isAI ? 'AI' : 'DI',
@@ -190,12 +220,12 @@ for (const s of manifestSymbols) {
       报警上限: b.alarmHi !== undefined ? b.alarmHi : '',
       死区: isAI ? 0.5 : 0,
       延时s: isAI ? 2 : 0,
-      画面: SCREENS[s.category] || 'G01 系统总貌',
+      画面: s.screen || SCREENS[s.category] || 'G01 系统总貌',
       说明: `${b.name}（示例限值，须按现场整定）`
     });
   }
 }
-const CSV_COLS = ['点名', '图元ID', '图元名称', '分类', '绑定', '数据类型', '寄存器', '读写', '量程下限', '量程上限', '单位', '报警下限', '报警上限', '死区', '延时s', '画面', '说明'];
+const CSV_COLS = ['点名', '图元ID', '图元名称', '系统', '分类', '绑定', '数据类型', '寄存器', '读写', '量程下限', '量程上限', '单位', '报警下限', '报警上限', '死区', '延时s', '画面', '说明'];
 const csv = [CSV_COLS.join(',')].concat(
   rows.map((r) => CSV_COLS.map((c) => {
     const v = r[c];
@@ -204,14 +234,25 @@ const csv = [CSV_COLS.join(',')].concat(
 ).join('\n');
 
 /* ── 5. 校验 ──────────────────────────────────────────────── */
+const PORT_DIRS = ['left', 'right', 'up', 'down'];
+const stateClassSet = new Set(Object.keys(manifest.spec.stateColors));
 const ids = new Set();
 for (const s of manifestSymbols) {
   if (ids.has(s.id)) err(`图元 ID 重复：${s.id}`);
   ids.add(s.id);
   if (!ID_RE.test(s.id)) err(`图元 ID 不符合命名规范：${s.id}`);
+  if (!CAT_MAP.has(s.category)) err(`${s.id} 引用了未声明的分类：${s.category}`);
+  if (!s.system) err(`${s.id} 未解析到所属系统`);
+  else if (!SYS_MAP.has(s.system)) err(`${s.id} 引用了未声明的系统：${s.system}`);
   if (!s.bindings.length) err(`${s.id} 未定义任何动态绑定`);
   for (const p of s.ports) {
     if (p.x < 0 || p.x > 64 || p.y < 0 || p.y > 64) err(`${s.id} 连接点越界：${p.x},${p.y}`);
+    if (!PORT_DIRS.includes(p.dir)) err(`${s.id} 连接点方向非法：${p.dir}（应为 ${PORT_DIRS.join('/')}）`);
+  }
+  for (const b of s.bindings) {
+    for (const c of [...(b.onClass || []), ...(b.offClass || [])]) {
+      if (!stateClassSet.has(c)) err(`${s.id} 绑定「${b.name}」使用了未声明的状态类 ${c}`);
+    }
   }
   if (s.pivots) {
     for (const [sel, pv] of Object.entries(s.pivots)) {
@@ -230,6 +271,23 @@ for (const s of manifestSymbols) {
 for (const s of manifestSymbols) {
   const ok = s.bindings.every((b) => rows.some((r) => r.点名 === b.point));
   if (!ok) err(`${s.id} 存在未进入点表的绑定`);
+}
+
+// 分类表自身
+{
+  const seen = new Set();
+  for (const c of CATEGORIES) {
+    if (seen.has(c.key)) err(`分类重复：${c.key}`);
+    seen.add(c.key);
+    if (!SYS_MAP.has(c.system)) err(`分类 ${c.key} 归属了未声明的系统：${c.system}`);
+    if (!c.screen) err(`分类 ${c.key} 未声明建议画面编号`);
+    const n = manifestSymbols.filter((s) => s.category === c.key).length;
+    if (!n) warn(`分类 ${c.key} 下没有任何图元`);
+  }
+  for (const s of SYSTEMS) {
+    const n = manifestSymbols.filter((x) => x.system === s.key).length;
+    if (!n) warn(`系统 ${s.key} 下没有任何图元`);
+  }
 }
 
 /* ── 6. 产物 ──────────────────────────────────────────────── */
@@ -268,7 +326,7 @@ writeFileSync(join(dist, 'manifest.json'), JSON.stringify(manifest, null, 2));
 writeFileSync(join(dist, 'points.sample.csv'), '﻿' + csv);
 
 /* ── 7. 预览页（自包含，双击可打开） ───────────────────────── */
-const catList = [...new Set(manifestSymbols.map((s) => s.category))];
+const catList = CATEGORIES.map((c) => c.key);
 const pointCount = rows.length;
 const previewHTML = `<!doctype html>
 <html lang="zh-CN">
@@ -333,10 +391,11 @@ footer{margin-top:28px;color:var(--muted);font-size:12.5px}
 <body>
 <div class="wrap">
   <header>
-    <h1>消防给水图元库</h1>
+    <h1>消防系统图元库</h1>
     <p class="sub">Web 端 SVG 精灵图 · ${manifestSymbols.length} 个图元 / ${pointCount} 个动态绑定点 · 规范 v${VERSION}</p>
     <div class="stats">
       <div class="stat"><b>${manifestSymbols.length}</b><span>图元</span></div>
+      <div class="stat"><b>${SYSTEMS.length}</b><span>系统</span></div>
       <div class="stat"><b>${catList.length}</b><span>分类</span></div>
       <div class="stat"><b>${pointCount}</b><span>绑定点</span></div>
       <div class="stat"><b>64×64</b><span>画布 / 锚点 32,32</span></div>
@@ -348,6 +407,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12.5px}
   <div class="toolbar">
     <input type="search" id="q" placeholder="搜索 图元名 / ID / 绑定点名" autocomplete="off">
     <div class="chips" id="styles"></div>
+    <div class="chips" id="syschips"></div>
     <div class="chips" id="cats"></div>
     <div class="chips" id="states"></div>
     <label class="toggle"><input type="checkbox" id="ports"> 显示连接点</label>
@@ -395,7 +455,9 @@ const grid = document.getElementById('grid');
 const cats = document.getElementById('cats');
 const states = document.getElementById('states');
 const styles = document.getElementById('styles');
+const syschips = document.getElementById('syschips');
 let activeCat = 'ALL';
+let activeSys = 'ALL';
 let activeState = 'none';
 let activeStyle = 'image';
 
@@ -411,11 +473,29 @@ styles.addEventListener('click', e=>{
 });
 
 const STATE_BTNS = [
-  ['none','正常'],['is-run','运行'],['is-off','停机'],['is-fault','故障'],['is-manual','手动'],['is-open','阀开'],['is-closed','阀关']
+  ['none','正常'],['is-run','运行'],['is-off','停机'],['is-fault','故障'],['is-manual','手动'],['is-open','阀开'],['is-closed','阀关'],
+  ['is-alarm','报警'],['is-discharge','喷放']
 ];
 
-cats.innerHTML = ['ALL'].concat([...new Set(MANIFEST.symbols.map(s=>s.category))])
-  .map(c=>'<button class="chip'+(c==='ALL'?' on':'')+'" data-cat="'+c+'">'+(c==='ALL'?'全部':c)+'</button>').join('');
+syschips.innerHTML = ['ALL'].concat(MANIFEST.systems.map(s=>s.key))
+  .map(k=>'<button class="chip'+(k==='ALL'?' on':'')+'" data-sys="'+k+'">'
+    +(k==='ALL'?'全部系统':(MANIFEST.systems.find(s=>s.key===k)||{}).name)+'</button>').join('');
+syschips.addEventListener('click', e=>{
+  const b = e.target.closest('.chip'); if(!b) return;
+  activeSys = b.dataset.sys;
+  syschips.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on', x===b));
+  buildCatChips();
+  draw();
+});
+
+function buildCatChips(){
+  const list = MANIFEST.categories
+    .filter(c => activeSys==='ALL' || c.system===activeSys || c.system==='common')
+    .map(c=>c.key);
+  cats.innerHTML = ['ALL'].concat(list)
+    .map(c=>'<button class="chip'+(c==='ALL'?' on':'')+'" data-cat="'+c+'">'+(c==='ALL'?'全部分类':c)+'</button>').join('');
+}
+buildCatChips();
 cats.addEventListener('click', e=>{
   const b = e.target.closest('.chip'); if(!b) return;
   activeCat = b.dataset.cat;
@@ -434,12 +514,12 @@ states.addEventListener('click', e=>{
 document.getElementById('ports').addEventListener('change', draw);
 document.getElementById('q').addEventListener('input', draw);
 
-const swatch = { 'is-run':'#22c55e','is-off':'#cbd5e1','is-fault':'#ef4444','is-manual':'#eab308','is-open':'#22c55e','is-closed':'#cbd5e1','is-over':'#ef4444','is-flow':'#38bdf8' };
+const swatch = { 'is-run':'#22c55e','is-off':'#cbd5e1','is-fault':'#ef4444','is-manual':'#eab308','is-open':'#22c55e','is-closed':'#cbd5e1','is-over':'#ef4444','is-flow':'#38bdf8','is-alarm':'#f97316','is-discharge':'#b91c1c' };
 document.getElementById('legend').innerHTML = Object.entries(MANIFEST.spec.stateColors)
   .map(([k,v])=>'<span><i style="background:'+(swatch[k]||'#94a3b8')+'"></i>'+v+' <span class="mono">'+k+'</span></span>').join('');
 
 const scrMap = {};
-MANIFEST.symbols.forEach(s=>{ const k=MANIFEST.screens[s.category]||'G01 系统总貌'; scrMap[k]=(scrMap[k]||0)+1; });
+MANIFEST.symbols.forEach(s=>{ const k=s.screen||'G01 系统总貌'; scrMap[k]=(scrMap[k]||0)+1; });
 document.getElementById('screens').innerHTML = Object.entries(scrMap)
   .map(([k,v])=>'<tr><td class="mono">'+k.split(' ')[0]+'</td><td>'+k.split(' ')[1]+'</td><td>'+v+'</td></tr>').join('');
 
@@ -447,6 +527,7 @@ function draw(){
   const q = document.getElementById('q').value.trim().toLowerCase();
   const showPorts = document.getElementById('ports').checked;
   const list = MANIFEST.symbols.filter(s=>{
+    if (activeSys!=='ALL' && s.system!==activeSys && s.system!=='common') return false;
     if (activeCat!=='ALL' && s.category!==activeCat) return false;
     if (!q) return true;
     const hay = (s.id+' '+s.name+' '+s.desc+' '+s.bindings.map(b=>b.point+' '+b.name).join(' ')).toLowerCase();
@@ -463,7 +544,9 @@ function draw(){
     glyph.appendChild(svg);
     const meta = document.createElement('div'); meta.className='meta';
     meta.innerHTML =
-      '<div class="top"><span class="id">'+s.id+'</span><span class="cat">'+s.category+(s.image?'':' · 仅线框')+'</span></div>'+
+      '<div class="top"><span class="id">'+s.id+'</span><span class="cat">'
+        +(MANIFEST.systems.find(x=>x.key===s.system)||{}).name+' / '+s.category
+        +(s.image?'':' · 仅线框')+'</span></div>'+
       '<h3>'+s.name+'</h3><p>'+(s.desc||'')+'</p>'+
       '<ul class="bind">'+s.bindings.map(b=>'<li><b>'+b.name+'</b> · '+b.point+'</li>').join('')+'</ul>';
     card.appendChild(glyph); card.appendChild(meta); grid.appendChild(card);
@@ -503,6 +586,11 @@ for (const f of layoutFiles) {
   layouts[f] = JSON.parse(raw);
   writeFileSync(join(dist, 'layouts', f), raw);
 }
+// 编辑器「载入示例」可选的示例画面（按文件名排序）
+const SAMPLES = layoutFiles
+  .slice()
+  .sort()
+  .map((f) => ({ key: f, name: layouts[f].name || f, layout: layouts[f] }));
 const editorTpl = readFileSync(join(here, 'editor.template.html'), 'utf8');
 writeFileSync(join(dist, 'editor.html'),
   editorTpl
@@ -510,7 +598,7 @@ writeFileSync(join(dist, 'editor.html'),
     .replace('__MANIFEST__', JSON.stringify(manifest))
     .replace('__GEOMETRY__', JSON.stringify(GEOMETRY))
     .replace('__GEOMETRY_IMAGE__', JSON.stringify(GEOMETRY_IMAGE))
-    .replace('__SAMPLE__', JSON.stringify(layouts['demo-firewater.json'] || { version: 1, name: '空画面', nodes: [], edges: [] }))
+    .replace('__SAMPLES__', JSON.stringify(SAMPLES))
     .replace('__RUNTIME__', runtimeSrc));
 
 /* ── 8. 结果 ──────────────────────────────────────────────── */

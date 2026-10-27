@@ -1,6 +1,8 @@
 {
   "version": 1,
   "name": "消防给水系统总貌",
+  "width": 1200,
+  "height": 700,
   "nodes": [
     { "id": "n1",  "symbol": "TNK-FIRE-01", "x": 70,  "y": 375, "size": 60, "label": "消防水池",     "point": "TNK_FIRE_01_LV" },
     { "id": "n2",  "symbol": "RES-TANK-01", "x": 265, "y": 375, "size": 60, "label": "消防水箱",     "point": "RES_TANK_01_LV" },
@@ -16,7 +18,8 @@
     { "id": "n12", "symbol": "VLV-CHK-01",  "x": 763, "y": 438, "size": 48, "label": "阀门", "point": "VLV_CHK_01_OPEN" },
     { "id": "n13", "symbol": "CON-OUT-01",  "x": 913, "y": 438, "size": 60, "label": "水泵接合器", "point": "CON_OUT_01_PRESS" },
     { "id": "n14", "symbol": "VLV-SIG-01",  "x": 763, "y": 563, "size": 48, "label": "阀门", "point": "VLV_SIG_01_OPEN" },
-    { "id": "n15", "symbol": "TST-TEST-01", "x": 913, "y": 563, "size": 60, "label": "末端试水装置", "point": "TST_TEST_01_P" }
+    { "id": "n15", "symbol": "TST-TEST-01", "x": 913, "y": 563, "size": 60, "label": "末端试水装置", "point": "TST_TEST_01_P" },
+    { "id": "n16", "symbol": "SPK-SPR-01",  "x": 913, "y": 110, "size": 60, "label": "喷淋喷头", "point": "SPK_SPR_01_PRESS" }
   ],
   "edges": [
     { "id": "e1",  "from": { "node": "n1", "port": 1 }, "to": { "node": "n2", "port": 0 } },
@@ -30,6 +33,7 @@
     { "id": "e9",  "from": { "node": "n10", "port": 1 }, "to": { "node": "n11", "port": 0 } },
     { "id": "e10", "from": { "node": "n12", "port": 1 }, "to": { "node": "n13", "port": 0 } },
     { "id": "e11", "from": { "node": "n14", "port": 1 }, "to": { "node": "n15", "port": 0 } },
-    { "id": "e12", "from": { "node": "n5" }, "to": { "node": "n3" }, "kind": "control" }
+    { "id": "e12", "from": { "node": "n5" }, "to": { "node": "n3" }, "kind": "control" },
+    { "id": "e13", "from": { "node": "n3", "port": 1 }, "to": { "node": "n16", "port": 0 }, "via": [[700, 375], [700, 110]] }
   ]
 }
