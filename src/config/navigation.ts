@@ -103,6 +103,7 @@ export const NAV_GROUPS: NavGroup[] = [
   // ===== 2. 设备设施管理（设备台账 / 保养 / 运行监控 / 报表 / 日志 / 规则 / 推送） =====
   // 菜单名称与层级对齐平台「设备管理」模块（智慧消防云平台，实测 2026-10-26，港南二中租户）
   // 平台「首页」「使用手册」不纳入
+  // 「运行监控」下另加消防三系统监测（平台无对应项，本仓库新增，2026-10-27）
   {
     key: 'device-facility',
     label: '设备设施管理',
@@ -127,6 +128,10 @@ export const NAV_GROUPS: NavGroup[] = [
         children: [
           { key: 'df-monitor-status', label: '状态监控', route: '/device-facility/monitor/status' },
           { key: 'df-monitor-scene', label: '场景监控', route: '/device-facility/monitor/scene' },
+          // 消防三系统实时监测（真实页），原「值守与应急 › 消防监控」迁入
+          { key: 'df-monitor-fire-water', label: '消防水系统监测', route: '/device-facility/monitor/fire-water' },
+          { key: 'df-monitor-fire-gas', label: '气体灭火系统监测', route: '/device-facility/monitor/fire-gas' },
+          { key: 'df-monitor-fire-smoke', label: '防排烟系统监测', route: '/device-facility/monitor/fire-smoke' },
         ],
       },
       {
@@ -204,7 +209,8 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 
   // ===== 4. 值守与应急（社会单位：值班员 / 安全管理员） =====
-  // 收拢原「安全管理›告警处置」「安全管理›消防监控」「安全管理›通知提醒」
+  // 收拢原「安全管理›告警处置」「安全管理›通知提醒」
+  // 原「安全管理›消防监控」已迁至「设备设施管理 › 运行监控」（2026-10-27）
   {
     key: 'unit-duty-emergency',
     label: '值守与应急',
@@ -230,17 +236,6 @@ export const NAV_GROUPS: NavGroup[] = [
         children: [
           { key: 'unit-alarm-list', label: '告警列表', route: '/unit/alarms' },
           { key: 'unit-alarm-record', label: '处置记录', route: '/unit/alarms/records' },
-        ],
-      },
-      {
-        key: 'unit-fire-monitor',
-        label: '消防监控',
-        icon: 'menuicon-29',
-        children: [
-          { key: 'unit-fire-pipeline', label: '消防管网系统', route: '/fire/pipeline' },
-          { key: 'unit-fire-pipeline-topology', label: '消防管网 · 组态总览', route: '/fire/pipeline/topology' },
-          { key: 'unit-fire-gas', label: '气体灭火系统', route: '/fire/gas' },
-          { key: 'unit-fire-smoke', label: '消防防排烟系统', route: '/fire/smoke' },
         ],
       },
       {
@@ -889,6 +884,9 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/device-facility/maintenance/records': 'df-maint-records',
   '/device-facility/monitor/status': 'df-monitor-status',
   '/device-facility/monitor/scene': 'df-monitor-scene',
+  '/device-facility/monitor/fire-water': 'df-monitor-fire-water',
+  '/device-facility/monitor/fire-gas': 'df-monitor-fire-gas',
+  '/device-facility/monitor/fire-smoke': 'df-monitor-fire-smoke',
   '/device-facility/report/alarm': 'df-report-alarm',
   '/device-facility/report/device': 'df-report-device',
   '/device-facility/log/event': 'df-log-event',
@@ -901,10 +899,9 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/collab/flow/template': 'collab-flow-template',  // 兼容旧路径：/collab/flow/* 已合并到 /system/*
   '/collab/flow/monitor': 'collab-monitor',
   '/landing': 'reg-bigscreen',
-  '/fire/pipeline/topology': 'unit-fire-pipeline-topology',
-  '/fire/pipeline': 'unit-fire-pipeline',
-  '/fire/gas': 'unit-fire-gas',
-  '/fire/smoke': 'unit-fire-smoke',
+  // 消防三系统监测的历史路径：/fire/pipeline、/fire/gas、/fire/smoke 已改为重定向到
+  // /device-facility/monitor/*；组态总览无菜单入口，仅保留 URL 可达，高亮跟随「消防水系统监测」
+  '/fire/pipeline/topology': 'df-monitor-fire-water',
   // 安全概览
   '/unit/dashboard': 'unit-dashboard',
   '/unit/data': 'unit-data',
@@ -1019,6 +1016,9 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'df-maint-records': '/device-facility/maintenance/records',
   'df-monitor-status': '/device-facility/monitor/status',
   'df-monitor-scene': '/device-facility/monitor/scene',
+  'df-monitor-fire-water': '/device-facility/monitor/fire-water',
+  'df-monitor-fire-gas': '/device-facility/monitor/fire-gas',
+  'df-monitor-fire-smoke': '/device-facility/monitor/fire-smoke',
   'df-report-alarm': '/device-facility/report/alarm',
   'df-report-device': '/device-facility/report/device',
   'df-log-event': '/device-facility/log/event',
@@ -1044,10 +1044,6 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'svc-members': '/enterprise/members',
   'svc-positions': '/enterprise/positions',
   'flow-template': '/system/template',
-  'unit-fire-pipeline': '/fire/pipeline',
-  'unit-fire-pipeline-topology': '/fire/pipeline/topology',
-  'unit-fire-gas': '/fire/gas',
-  'unit-fire-smoke': '/fire/smoke',
   // 安全概览
   'unit-dashboard': '/unit/dashboard',
   'unit-data': '/unit/data',

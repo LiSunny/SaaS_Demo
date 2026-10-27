@@ -10,9 +10,9 @@ const OUT = '/tmp/fire-shots'
 fs.mkdirSync(OUT, { recursive: true })
 
 const PAGES = [
-  { path: '/fire/pipeline', name: '01-消防管网系统' },
-  { path: '/fire/gas', name: '02-气体灭火系统' },
-  { path: '/fire/smoke', name: '03-消防防排烟系统' },
+  { path: '/device-facility/monitor/fire-water', name: '01-消防管网系统' },
+  { path: '/device-facility/monitor/fire-gas', name: '02-气体灭火系统' },
+  { path: '/device-facility/monitor/fire-smoke', name: '03-消防防排烟系统' },
 ]
 
 const errors = []

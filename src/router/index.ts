@@ -210,6 +210,10 @@ const router = createRouter({
         { path: 'maintenance/records', name: 'DeviceFacilityMaintenanceRecords', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'monitor/status', name: 'DeviceFacilityMonitorStatus', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'monitor/scene', name: 'DeviceFacilityMonitorScene', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
+        // 真实页：复用消防三系统实时监测页（原「值守与应急 › 消防监控」，2026-10-27 迁入运行监控）
+        { path: 'monitor/fire-water', name: 'DeviceFacilityMonitorFireWater', component: () => import('@/views/subsystem/PipelineMonitor.vue') },
+        { path: 'monitor/fire-gas', name: 'DeviceFacilityMonitorFireGas', component: () => import('@/views/subsystem/GasExtinguishMonitor.vue') },
+        { path: 'monitor/fire-smoke', name: 'DeviceFacilityMonitorFireSmoke', component: () => import('@/views/subsystem/SmokeExhaustMonitor.vue') },
         { path: 'report/alarm', name: 'DeviceFacilityReportAlarm', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'report/device', name: 'DeviceFacilityReportDevice', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'log/event', name: 'DeviceFacilityLogEvent', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
@@ -236,7 +240,7 @@ const router = createRouter({
       ],
     },
 
-    // ===== 值守与应急（值守 / 告警 / 消防监控 / 应急 / 通知） =====
+    // ===== 值守与应急（值守 / 告警 / 应急 / 通知） =====
     {
       path: '/unit/duty',
       component: DefaultLayout,
@@ -371,15 +375,17 @@ const router = createRouter({
       ],
     },
 
-    // ===== 智慧消防 · 子系统实时状态监测（三系统各自独立页面） =====
+    // ===== 智慧消防 · 子系统实时状态监测（历史路径，兼容旧链接） =====
+    // 三系统监测页已迁至 /device-facility/monitor/*，旧路径重定向过去
     {
       path: '/fire',
       component: DefaultLayout,
       children: [
-        { path: 'pipeline', name: 'FirePipelineMonitor', component: () => import('@/views/subsystem/PipelineMonitor.vue') },
+        { path: 'pipeline', redirect: '/device-facility/monitor/fire-water' },
+        { path: 'gas', redirect: '/device-facility/monitor/fire-gas' },
+        { path: 'smoke', redirect: '/device-facility/monitor/fire-smoke' },
+        // 组态总览无菜单入口，仅保留 URL 可达
         { path: 'pipeline/topology', name: 'FirePipelineTopology', component: () => import('@/views/subsystem/PipelineTopology.vue') },
-        { path: 'gas', name: 'FireGasMonitor', component: () => import('@/views/subsystem/GasExtinguishMonitor.vue') },
-        { path: 'smoke', name: 'FireSmokeMonitor', component: () => import('@/views/subsystem/SmokeExhaustMonitor.vue') },
       ],
     },
     {

@@ -3,7 +3,7 @@
 > 调研日期：2026-10-26
 > 对标平台：智慧消防云平台 `beijingrenxing.com:9443`（租户：港南二中，账号 李文学）
 > 状态：方案待实施（第 1 批菜单骨架 / 第 2~4 批真实页面）
-> 后续补充：组态配置 + 图元库接入（第 2 批）
+> 后续补充：组态配置 + 图元库接入（第 2 批）；消防三系统监测迁入运行监控（2026-10-27，见 §6.5）
 
 ---
 
@@ -15,6 +15,7 @@
 4. 与现有菜单重名的条目 10 处，本期并存不删，收口时机见 §九。
 5. 可复用的真实页面 2 个（设备台账、保养计划），其余 14 个叶子先做占位页。
 6. 新增路由 16 条，前缀 `/device-facility`，不复用旧路径，避免与 `安全管理›设备管理›设备台账` 抢占同一路由的选中态。
+7. 2026-10-27：「运行监控」新增 3 项消防三系统监测（消防水 / 气体灭火 / 防排烟），页面复用 `src/views/subsystem/` 既有真实页；平台「运行监控」只有状态监控、场景监控 2 项，这 3 项为本仓库新增。
 
 ---
 
@@ -65,6 +66,9 @@
 ├── 运行监控
 │   ├── 状态监控      /device-facility/monitor/status
 │   ├── 场景监控      /device-facility/monitor/scene
+│   ├── 消防水系统监测   /device-facility/monitor/fire-water      ← 本仓库新增
+│   ├── 气体灭火系统监测 /device-facility/monitor/fire-gas       ← 本仓库新增
+│   └── 防排烟系统监测   /device-facility/monitor/fire-smoke     ← 本仓库新增
 ├── 报表与报告
 │   ├── 告警分析报告   /device-facility/report/alarm
 │   └── 设备运行报表   /device-facility/report/device
@@ -83,7 +87,7 @@
 
 组态配置另有两条非菜单路由：编辑器 `/device-facility/rule/scene-config/:id/editor`、图元管理 `/device-facility/rule/symbol-library`（编辑器右侧图元选择组件右上角入口，不进侧栏）。
 
-节点 23 个（7 个二级 + 16 个三级），叶子 17 个 = 菜单路由 17 条 + 非菜单路由 2 条 = 路由 19 条。
+节点 26 个（7 个二级 + 19 个三级），叶子 20 个 = 菜单路由 20 条 + 非菜单路由 2 条 = 路由 22 条。
 
 侧栏渲染能力满足该层级：`src/layouts/DefaultLayout.vue:142-219` 支持「分组 → 节点 → 节点子项」三级可点，三级项不带图标。
 
@@ -100,6 +104,9 @@
 | 保养管理 › 保养记录 | 保养记录 | `/device-facility/maintenance/records` | 新建占位页 |
 | 运行监控 › 状态监控 | 状态监控 | `/device-facility/monitor/status` | 新建占位页 |
 | 运行监控 › 场景监控 | 场景监控 | `/device-facility/monitor/scene` | 新建占位页 |
+| 运行监控 › 消防水系统监测 | 消防水系统监测 | `/device-facility/monitor/fire-water` | 复用 `src/views/subsystem/PipelineMonitor.vue`（真实页） |
+| 运行监控 › 气体灭火系统监测 | 气体灭火系统监测 | `/device-facility/monitor/fire-gas` | 复用 `src/views/subsystem/GasExtinguishMonitor.vue`（真实页） |
+| 运行监控 › 防排烟系统监测 | 防排烟系统监测 | `/device-facility/monitor/fire-smoke` | 复用 `src/views/subsystem/SmokeExhaustMonitor.vue`（真实页） |
 | 报表与报告 › 告警分析报告 | 告警分析报告 | `/device-facility/report/alarm` | 新建占位页 |
 | 报表与报告 › 设备运行报表 | 设备运行报表 | `/device-facility/report/device` | 新建占位页 |
 | 系统日志 › 事件日志 | 事件日志 | `/device-facility/log/event` | 新建占位页 |
@@ -115,7 +122,7 @@
 | 首页 | 不纳入 | — | 平台模块首页，按要求不做菜单项 |
 | 使用手册 | 不纳入 | — | 语雀外链，与巡查检查一致处理 |
 
-复用 2 页 + 占位 14 页 + 新建真实页 3 页（组态配置列表、组态编辑器、图元管理）= 19 页；不纳入 2 项（首页、使用手册）。
+复用 5 页（设备台账、保养计划、消防水、气体灭火、防排烟监测）+ 占位 14 页 + 新建真实页 3 页（组态配置列表、组态编辑器、图元管理）= 22 页；不纳入 2 项（首页、使用手册）。
 
 ---
 
@@ -204,6 +211,18 @@
 | `vite.config.ts` | alias 增加 `@symbols` → `symbol-library/dist` |
 | `e2e/specs/scene-config.spec.ts` | 新增组态配置 e2e 用例 3 条 |
 
+### 6.5 第 3 批：消防三系统监测迁入运行监控（2026-10-27）
+
+原「值守与应急 › 消防监控」4 项（消防管网系统 / 消防管网·组态总览 / 气体灭火系统 / 消防防排烟系统）删除，3 项三系统监测迁到「设备设施管理 › 运行监控」，组态总览无菜单入口。
+
+| 文件 | 改动 |
+|------|------|
+| `src/config/navigation.ts` | 删除 `unit-fire-monitor` 节点及 4 个子项；`df-monitor` 增加 `df-monitor-fire-water` / `df-monitor-fire-gas` / `df-monitor-fire-smoke`；`ROUTE_TO_NAV_KEY` 补 3 条新路径、删 3 条 `/fire/*` 旧路径、保留 `/fire/pipeline/topology`；`NAV_KEY_TO_ROUTE` 补 3 条、删 4 条 `unit-fire-*` |
+| `src/router/index.ts` | `/device-facility` 下新增 3 条子路由（复用 `src/views/subsystem/` 组件）；`/fire/pipeline`、`/fire/gas`、`/fire/smoke` 改为重定向到新路径，`/fire/pipeline/topology` 保留为真实路由（无菜单入口） |
+| 可见范围 | 三项不设 `visibleTo`，跟随「设备设施管理」分组对所有使用群体可见 |
+
+旧链接兼容：`/fire/pipeline`、`/fire/gas`、`/fire/smoke` 301 到新路径；`/fire/pipeline/topology` URL 仍可达，侧栏高亮落在「消防水系统监测」。
+
 ---
 
 ## 七、交付批次
@@ -223,9 +242,9 @@
 
 ## 八、验收标准
 
-1. 侧栏出现「设备设施管理」一级分组，展开后 7 个二级项 + 15 个三级项，名称与 §2.2 逐项一致（首页、使用手册除外）。
-2. 16 条路由全部可访问，控制台无「未登记到 ROUTE_TO_NAV_KEY」告警。
-3. 「设备台账」「保养计划」渲染真实页组件，其余 14 项渲染占位页。
+1. 侧栏出现「设备设施管理」一级分组，展开后 7 个二级项 + 19 个三级项，名称与 §2.2 逐项一致（首页、使用手册除外；运行监控下 3 个消防三系统监测项为本仓库新增，平台无对应项）。
+2. 22 条路由全部可访问，控制台无「未登记到 ROUTE_TO_NAV_KEY」告警。
+3. 「设备台账」「保养计划」「组态配置」及 3 个消防三系统监测项渲染真实页，其余 14 项渲染占位页。
 4. 「巡查检查」一级分组及其 8 条路由行为不变。
 5. 现有 10 处重名条目均未被删除或改路径。
 6. `vue-tsc --noEmit` 通过。
