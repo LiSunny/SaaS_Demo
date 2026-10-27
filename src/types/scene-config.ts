@@ -31,16 +31,26 @@ export interface SceneNode {
   state?: Record<string, boolean>
 }
 
+/** 连线路径方式：auto=拐点自动落在连线中点 / align=拐点对齐目标节点 / manual=手动折点 */
+export type EdgeRouteMode = 'auto' | 'align' | 'manual'
+
+/** 连线流动方向：none=不流动 / forward=源→目标 / reverse=目标→源 */
+export type EdgeFlow = 'none' | 'forward' | 'reverse'
+
 /** 连线 —— 两个节点端口之间的连接 */
 export interface SceneEdge {
   id: string
   /** kind=control 的电气连线不经过端口，port 可省略 */
   from: { node: string; port?: number }
   to: { node: string; port?: number }
-  /** 折点坐标数组（正交路径拐点） */
+  /** 折点坐标数组（正交路径拐点），routeMode=manual 时生效 */
   via?: [number, number][]
   /** pipe 管道连线 / control 电气虚线 */
   kind?: 'pipe' | 'control'
+  /** 路径方式，缺省 auto */
+  routeMode?: EdgeRouteMode
+  /** 流动方向，缺省 none */
+  flow?: EdgeFlow
 }
 
 /** 组态画面 */

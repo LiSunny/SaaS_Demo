@@ -131,13 +131,44 @@
         </div>
 
         <div class="prop-panel__block">
+          <label class="prop-panel__label">路径方式</label>
+          <el-select
+            :model-value="routeMode"
+            size="small"
+            class="prop-panel__select"
+            @update:model-value="(v: string) => patchEdge({ routeMode: v as EdgeRouteMode })"
+          >
+            <el-option label="自动中点" value="auto" />
+            <el-option label="对齐目标" value="align" />
+            <el-option label="手动折点" value="manual" />
+          </el-select>
+          <div class="prop-panel__hint">{{ routeHint }}</div>
+        </div>
+
+        <div class="prop-panel__block">
           <label class="prop-panel__label">折点</label>
           <el-input
             :model-value="viaText"
             size="small"
+            :disabled="routeMode !== 'manual'"
             placeholder="例：700,300 | 700,500"
             @update:model-value="onViaInput"
           />
+        </div>
+
+        <div class="prop-panel__block">
+          <label class="prop-panel__label">流动方向</label>
+          <el-select
+            :model-value="edge.flow || 'none'"
+            size="small"
+            class="prop-panel__select"
+            @update:model-value="(v: string) => patchEdge({ flow: v as EdgeFlow })"
+          >
+            <el-option label="不流动" value="none" />
+            <el-option label="正向" value="forward" />
+            <el-option label="反向" value="reverse" />
+          </el-select>
+          <div class="prop-panel__hint">{{ flowHint }}</div>
         </div>
 
         <button class="prop-panel__danger" @click="emit('delete-edge', edge.id)">删除该连线</button>
@@ -173,8 +204,14 @@
  * 选中连线 → 改类型与折点；未选中 → 画面统计与操作提示。
  */
 import { computed } from 'vue'
-import { SYMBOLS, SYMBOL_POINTS, symbolDef } from '@/symbols'
-import type { SceneEdge, SceneNode, SceneSelection } from '@/types/scene-config'
+import { SYMBOLS, SYMBOL_POINTS, edgeRouteMode, symbolDef } from '@/symbols'
+import type {
+  EdgeFlow,
+  EdgeRouteMode,
+  SceneEdge,
+  SceneNode,
+  SceneSelection,
+} from '@/types/scene-config'
 
 const props = defineProps<{
   selection: SceneSelection
@@ -228,6 +265,27 @@ const stateText = computed(() => {
 })
 
 const viaText = computed(() => (edge.value?.via || []).map((v) => v.join(',')).join(' | '))
+
+/** 路径方式：有折点按手动折行，无折点按自动中点 */
+const routeMode = computed<EdgeRouteMode>(() =>
+  edge.value ? edgeRouteMode(edge.value) : 'auto',
+)
+
+const routeHint = computed(() => {
+  if (routeMode.value === 'manual') return '按文本框坐标逐个折行；留空则对齐目标节点'
+  if (routeMode.value === 'align') return '拐点落在目标节点所在列/行'
+  return '拐点自动落在两个端口连线的中点'
+})
+
+/** 流动方向说明：标出正向的实际走向 */
+const flowHint = computed(() => {
+  if (!edge.value) return ''
+  const a = props.nodes.find((n) => n.id === edge.value!.from.node)
+  const b = props.nodes.find((n) => n.id === edge.value!.to.node)
+  const an = a?.label || a?.symbol || '起点'
+  const bn = b?.label || b?.symbol || '终点'
+  return `正向 ${an} → ${bn}；反向 ${bn} → ${an}`
+})
 
 function patchNode(patch: Partial<SceneNode>) {
   if (node.value) emit('update-node', node.value.id, patch)

@@ -49,6 +49,11 @@
         网格吸附
       </label>
 
+      <label class="scene-editor__chk">
+        <input v-model="animateOn" type="checkbox" />
+        连线动画
+      </label>
+
       <span class="scene-editor__spacer" />
 
       <button class="btn-default scene-editor__zoom" @click="canvasRef?.zoomOut()">－</button>
@@ -69,6 +74,7 @@
         :width="scene.width"
         :height="scene.height"
         :place-symbol="placeSymbol"
+        :animate="animateOn"
         @select="onSelect"
         @create-node="onCreateNode"
         @update-node="onUpdateNode"
@@ -145,6 +151,7 @@ const sceneName = ref('')
 const selection = ref<SceneSelection>(null)
 const placeSymbol = ref('')
 const snapOn = ref(true)
+const animateOn = ref(true)
 const loadTarget = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const canvasRef = ref<InstanceType<typeof SceneCanvas> | null>(null)

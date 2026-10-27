@@ -9,6 +9,34 @@
       @mousedown="onCanvasDown"
       @mousemove="onCanvasMove"
     >
+      <!-- 流动箭头 -->
+      <defs>
+        <marker
+          :id="markerId"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="9"
+          markerHeight="9"
+          markerUnits="userSpaceOnUse"
+          orient="auto"
+        >
+          <path d="M0,0 L10,5 L0,10 Z" class="scene-edge__arrow scene-edge__arrow--pipe" />
+        </marker>
+        <marker
+          :id="markerIdCtl"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="9"
+          markerHeight="9"
+          markerUnits="userSpaceOnUse"
+          orient="auto"
+        >
+          <path d="M0,0 L10,5 L0,10 Z" class="scene-edge__arrow scene-edge__arrow--control" />
+        </marker>
+      </defs>
+
       <!-- 网格 -->
       <g class="scene-grid">
         <line
@@ -26,18 +54,26 @@
       </g>
 
       <!-- 连线 -->
-      <g class="scene-edges">
-        <path
-          v-for="e in edges"
-          :key="e.id"
-          :d="edgePath(e)"
-          class="scene-edge"
-          :class="[
-            e.kind === 'control' ? 'scene-edge--control' : '',
-            selection?.type === 'edge' && selection.id === e.id ? 'is-selected' : '',
-          ]"
-          @mousedown.stop="emit('select', { type: 'edge', id: e.id })"
-        />
+      <g class="scene-edges" :class="{ 'scene-edges--paused': !animate }">
+        <template v-for="e in edges" :key="e.id">
+          <path
+            :d="edgePath(e)"
+            class="scene-edge"
+            :class="[
+              e.kind === 'control' ? 'scene-edge--control' : '',
+              selection?.type === 'edge' && selection.id === e.id ? 'is-selected' : '',
+            ]"
+            @mousedown.stop="emit('select', { type: 'edge', id: e.id })"
+          />
+          <!-- 流动光带：与基础线重合；反向时点序倒置，箭头自动落在流动方向末端 -->
+          <path
+            v-if="flowOf(e) !== 'none'"
+            :d="flowPath(e)"
+            class="scene-edge__flow"
+            :class="e.kind === 'control' ? 'is-control' : 'is-pipe'"
+            :marker-end="`url(#${e.kind === 'control' ? markerIdCtl : markerId})`"
+          />
+        </template>
       </g>
 
       <!-- 连线预览 -->
@@ -102,10 +138,17 @@
  * 交互全部照搬图元库编辑器：放置 / 拖动 / 端口连线 / 选中 / Delete 删除 / 网格吸附。
  * 画布只负责交互与渲染，数据的读写由 SceneEditor 负责。
  */
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useId } from 'vue'
 import SceneSymbolNode from '@/components/device-facility/SceneSymbolNode.vue'
-import { SYMBOL_GRID, edgePath as calcEdgePath, linkPath as calcLinkPath, portPos, symbolDef } from '@/symbols'
-import type { SceneEdge, SceneNode, SceneSelection, SceneStyle } from '@/types/scene-config'
+import {
+  SYMBOL_GRID,
+  edgePath as calcEdgePath,
+  edgePathReversed as calcEdgePathReversed,
+  linkPath as calcLinkPath,
+  portPos,
+  symbolDef,
+} from '@/symbols'
+import type { EdgeFlow, SceneEdge, SceneNode, SceneSelection, SceneStyle } from '@/types/scene-config'
 
 const props = withDefaults(
   defineProps<{
@@ -119,8 +162,10 @@ const props = withDefaults(
     placeSymbol?: string
     /** 只读（预览） */
     readonly?: boolean
+    /** 是否播放连线流动动画 */
+    animate?: boolean
   }>(),
-  { placeSymbol: '', readonly: false },
+  { placeSymbol: '', readonly: false, animate: true },
 )
 
 const emit = defineEmits<{
@@ -135,6 +180,10 @@ const emit = defineEmits<{
 
 const wrapRef = ref<HTMLElement | null>(null)
 const svgRef = ref<SVGSVGElement | null>(null)
+
+/** 箭头 marker id（多画布实例不冲突） */
+const markerId = `scene-flow-arrow-${useId()}`
+const markerIdCtl = `${markerId}-ctl`
 
 /** 缩放倍数 */
 const zoom = ref(1)
@@ -182,6 +231,18 @@ function portsOf(n: SceneNode) {
 
 function edgePath(e: SceneEdge): string {
   return calcEdgePath(e, props.nodes)
+}
+
+/** 连线流动方向，缺省不流动 */
+function flowOf(e: SceneEdge): EdgeFlow {
+  return e.flow ?? 'none'
+}
+
+/** 流动光带路径：反向时点序倒置，绘制方向即流动方向 */
+function flowPath(e: SceneEdge): string {
+  return e.flow === 'reverse'
+    ? calcEdgePathReversed(e, props.nodes)
+    : calcEdgePath(e, props.nodes)
 }
 
 /** 屏幕坐标 → 画布坐标 */
@@ -397,6 +458,24 @@ onBeforeUnmount(() => {
   stroke-width: 2;
   stroke-dasharray: 4 3;
 }
+/* 流动光带：与基础线重合，虚线沿路径行进 */
+.scene-edge__flow {
+  fill: none;
+  stroke-width: 3;
+  stroke-dasharray: 10 8;
+  stroke-linecap: round;
+  pointer-events: none;
+  animation: scene-edge-flow 1s linear infinite;
+}
+.scene-edge__flow.is-pipe { stroke: var(--accent-primary); }
+.scene-edge__flow.is-control { stroke: var(--text-muted); }
+.scene-edges--paused .scene-edge__flow { animation: none; }
+@keyframes scene-edge-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -18; }
+}
+.scene-edge__arrow--pipe { fill: var(--accent-primary); }
+.scene-edge__arrow--control { fill: var(--text-muted); }
 .scene-node { cursor: move; }
 .scene-node__sel {
   fill: none;

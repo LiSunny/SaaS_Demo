@@ -209,7 +209,7 @@
 | `src/config/navigation.ts` | `df-rule` 增加三级项「组态配置」；`ROUTE_TO_NAV_KEY` 补 2 条并置于 `'/device'` 之前（否则 `/device` 前缀会抢命中）；`NAV_KEY_TO_ROUTE` 补 1 条 |
 | `src/router/index.ts` | 新增 3 条路由（列表、编辑器、图元管理） |
 | `vite.config.ts` | alias 增加 `@symbols` → `symbol-library/dist` |
-| `e2e/specs/scene-config.spec.ts` | 新增组态配置 e2e 用例 3 条 |
+| `e2e/specs/scene-config.spec.ts` | 新增组态配置 e2e 用例 4 条 |
 
 ### 6.5 第 3 批：消防三系统监测迁入运行监控（2026-10-27）
 
@@ -222,6 +222,20 @@
 | 可见范围 | 三项不设 `visibleTo`，跟随「设备设施管理」分组对所有使用群体可见 |
 
 旧链接兼容：`/fire/pipeline`、`/fire/gas`、`/fire/smoke` 301 到新路径；`/fire/pipeline/topology` URL 仍可达，侧栏高亮落在「消防水系统监测」。
+
+### 6.6 组态连线：自动中点拐点 + 流动动画（2026-10-27）
+
+连线拐点不再依赖手工拖拽：默认路径经过两个端口连线的中点（正交，中间长边取两端偏移较大者）；连线可设流动方向，正向 = 源→目标、反向 = 目标→源，虚线沿方向行进，方向末端带箭头。
+
+| 文件 | 改动 |
+|------|------|
+| `src/types/scene-config.ts` | `SceneEdge` 增 `routeMode`（auto/align/manual）、`flow`（none/forward/reverse） |
+| `src/symbols/index.ts` | 抽出 `edgePoints()`；`edgeRouteMode()` 判有效模式（显式 `routeMode` 优先，否则有折点按手动、无折点按自动中点）；`edgePathReversed()` 出反向路径 |
+| `src/components/device-facility/SceneCanvas.vue` | 连线叠加流动光带 path（`stroke-dashoffset` 关键帧）+ 方向箭头 marker；新增 `animate` 属性 |
+| `src/components/device-facility/ScenePropertyPanel.vue` | 连线属性增「路径方式」「流动方向」；折点输入仅手动模式可用 |
+| `src/views/device-facility/SceneEditor.vue` | 顶栏增「连线动画」开关 |
+
+兼容性：`via` 折点与 `kind` 语义不变；带折点的历史画面走线与改前逐点一致；导入校验不拦截新字段，导出 JSON 自动携带。
 
 ---
 
