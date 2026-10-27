@@ -100,6 +100,7 @@ npm run build     # 生成 dist/；校验不通过时退出码 1
 ```bash
 npm run symbols:build   # 构建图元库 + 同步位图到 public/symbols/img
 npm run symbols:sync    # 只同步位图
+npm run symbols:verify  # 校验产物、点表、布局与文档声明是否互相自洽
 ```
 
 平台侧接入（vite alias `@symbols` → `symbol-library/dist`）：
