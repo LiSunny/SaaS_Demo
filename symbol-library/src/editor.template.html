@@ -143,7 +143,7 @@ const GEOMETRY = __GEOMETRY__;
 const GEOMETRY_IMAGE = __GEOMETRY_IMAGE__;
 const SAMPLES = __SAMPLES__;
 const SAMPLE = SAMPLES.find(s => s.key === 'demo-firewater.json')?.layout
-  || { version: 1, name: '空画面', nodes: [], edges: [] };
+  || { version: 1, name: '空画面', width: 1200, height: 700, nodes: [], edges: [] };
 __RUNTIME__
 
 const rt = createRuntime(MANIFEST, GEOMETRY, GEOMETRY_IMAGE);
@@ -160,8 +160,27 @@ let zoom = 1;
 let snapOn = true;
 let drag = null;          // {type:'move'|'link', ...}
 let linkFrom = null;
+let CW = 1200;            // 画布逻辑宽（随画面 width）
+let CH = 700;             // 画布逻辑高（随画面 height）
 
-function blank() { return { version: 1, name: '未命名画面', nodes: [], edges: [] }; }
+function blank() { return { version: 1, name: '未命名画面', width: 1200, height: 700, nodes: [], edges: [] }; }
+
+/** 画布尺寸：跟随画面 width/height，缺省 1200×700；回写 layout 使导出 JSON 携带尺寸 */
+function syncCanvasSize() {
+  CW = Number(layout.width) > 0 ? Math.round(Number(layout.width)) : 1200;
+  CH = Number(layout.height) > 0 ? Math.round(Number(layout.height)) : 700;
+  layout.width = CW;
+  layout.height = CH;
+  canvas.setAttribute('viewBox', `0 0 ${CW} ${CH}`);
+}
+
+/** 载入画面：同步画布尺寸 → 重绘 → 落草稿 */
+function applyLayout(next) {
+  layout = next;
+  syncCanvasSize();
+  sel = null;
+  render(); renderProp(); saveDraft();
+}
 const uid = (p) => p + Math.random().toString(36).slice(2, 8);
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -307,8 +326,8 @@ function render() {
 
   // 网格
   const grid = el('g');
-  for (let x = 0; x <= 1200; x += 40) grid.appendChild(el('line', { x1: x, y1: 0, x2: x, y2: 700 }, 'grid-line'));
-  for (let y = 0; y <= 700; y += 40) grid.appendChild(el('line', { x1: 0, y1: y, x2: 1200, y2: y }, 'grid-line'));
+  for (let x = 0; x <= CW; x += 40) grid.appendChild(el('line', { x1: x, y1: 0, x2: x, y2: CH }, 'grid-line'));
+  for (let y = 0; y <= CH; y += 40) grid.appendChild(el('line', { x1: 0, y1: y, x2: CW, y2: y }, 'grid-line'));
   g.appendChild(grid);
 
   // 连线
@@ -364,7 +383,7 @@ function render() {
 let tempPath = null;
 function evPos() {
   const r = canvas.getBoundingClientRect();
-  const sc = 1200 / r.width;
+  const sc = r.width ? CW / r.width : 1;
   return { x: (ev_clientX - r.left) * sc, y: (ev_clientY - r.top) * sc };
 }
 let ev_clientX = 0, ev_clientY = 0;
@@ -383,7 +402,9 @@ function linkPath(mouse) {
 canvas.addEventListener('mousemove', ev => {
   ev_clientX = ev.clientX; ev_clientY = ev.clientY;
   const r = canvas.getBoundingClientRect();
-  $('st-pos').textContent = Math.round((ev.clientX - r.left) * 1200 / r.width) + ', ' + Math.round((ev.clientY - r.top) * 700 / r.height);
+  if (r.width && r.height) {
+    $('st-pos').textContent = Math.round((ev.clientX - r.left) * CW / r.width) + ', ' + Math.round((ev.clientY - r.top) * CH / r.height);
+  }
   if (drag && drag.type === 'move') {
     const n = nodeById(drag.node);
     let x = ev.clientX + drag.dx, y = ev.clientY + drag.dy;
@@ -415,7 +436,8 @@ canvas.addEventListener('mousedown', ev => {
   if (ev.target === canvas) {
     if (placeSymbol) {
       const r = canvas.getBoundingClientRect();
-      let x = (ev.clientX - r.left) * 1200 / r.width, y = (ev.clientY - r.top) * 700 / r.height;
+      if (!r.width || !r.height) return;
+      let x = (ev.clientX - r.left) * CW / r.width, y = (ev.clientY - r.top) * CH / r.height;
       if (snapOn) { x = Math.round(x / 8) * 8; y = Math.round(y / 8) * 8; }
       const n = { id: uid('n'), symbol: placeSymbol, x, y, size: 60, label: defs.get(placeSymbol).name, point: '', value: '', state: {} };
       layout.nodes.push(n);
@@ -554,9 +576,9 @@ $('b-save').onclick = () => {
 $('b-load').onchange = () => {
   const k = $('b-load').value; if (!k) return;
   let all = {}; try { all = JSON.parse(localStorage.getItem(KEY_SET) || '{}'); } catch (e) { }
-  if (all[k]) { layout = clone(all[k]); $('lay-name').value = layout.name; sel = null; render(); renderProp(); saveDraft(); $('st-hint').textContent = '已读取：' + k; }
+  if (all[k]) { applyLayout(clone(all[k])); $('lay-name').value = layout.name; fitZoom(); $('st-hint').textContent = '已读取：' + k; }
 };
-$('b-new').onclick = () => { layout = blank(); $('lay-name').value = layout.name; sel = null; render(); renderProp(); saveDraft(); $('st-hint').textContent = '已新建空白画面'; };
+$('b-new').onclick = () => { applyLayout(blank()); $('lay-name').value = layout.name; fitZoom(); $('st-hint').textContent = '已新建空白画面'; };
 $('b-export').onclick = () => {
   const blob = new Blob([JSON.stringify(layout, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -570,9 +592,9 @@ $('file').onchange = ev => {
   const r = new FileReader();
   r.onload = () => {
     try {
-      layout = JSON.parse(r.result);
+      applyLayout(JSON.parse(r.result));
       $('lay-name').value = layout.name || '';
-      sel = null; render(); renderProp(); saveDraft();
+      fitZoom();
       $('st-hint').textContent = '已导入：' + (layout.name || f.name);
     } catch (e) { $('st-hint').textContent = 'JSON 解析失败'; }
   };
@@ -583,10 +605,9 @@ $('b-sample').innerHTML = '<option value="">载入示例…</option>'
 $('b-sample').onchange = (e) => {
   const s = SAMPLES.find(x => x.key === e.target.value);
   if (!s) return;
-  layout = clone(s.layout);
+  applyLayout(clone(s.layout));
   $('lay-name').value = layout.name;
-  sel = null;
-  render(); renderProp(); saveDraft();
+  fitZoom();
   $('st-hint').textContent = '已载入示例画面：' + s.name;
   e.target.value = '';
 };
@@ -597,11 +618,14 @@ $('b-zoom-out').onclick = () => { zoom = Math.max(0.4, zoom - 0.15); applyZoom()
 $('b-zoom-fit').onclick = fitZoom;
 function fitZoom() {
   const w = $('stagewrap').clientWidth - 18;
-  zoom = Math.min(1, w / 1200); applyZoom();
+  const h = $('stagewrap').clientHeight - 18;
+  const ratio = h > 0 ? Math.min(w / CW, h / CH) : w / CW;
+  zoom = Math.min(1, Math.max(0.4, ratio));
+  applyZoom();
 }
 function applyZoom() {
-  canvas.setAttribute('width', Math.round(1200 * zoom));
-  canvas.setAttribute('height', Math.round(700 * zoom));
+  canvas.setAttribute('width', Math.round(CW * zoom));
+  canvas.setAttribute('height', Math.round(CH * zoom));
 }
 $('lay-name').onchange = ev => { layout.name = ev.target.value; saveDraft(); };
 
@@ -615,6 +639,7 @@ buildLib();
 $('lib-search').addEventListener('input', (e) => { libKeyword = e.target.value; buildLib(); });
 listSaved();
 if (!loadDraft()) layout = clone(SAMPLE);
+syncCanvasSize();
 $('lay-name').value = layout.name;
 render();
 renderProp();

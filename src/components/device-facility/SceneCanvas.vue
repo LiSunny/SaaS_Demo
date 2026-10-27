@@ -323,14 +323,16 @@ function zoomOut() {
   zoom.value = Math.max(0.4, Number((zoom.value - 0.15).toFixed(2)))
 }
 
-/** 适配：按容器宽度缩放到 1:1 以内 */
+/** 适配：按容器宽高缩放到 1:1 以内 */
 function fit() {
   const el = wrapRef.value
   if (!el) return
   const w = el.clientWidth - 24
-  // 容器未布局（弹窗隐藏、隐藏的 tab）时宽度为 0，不能算出负缩放
+  const h = el.clientHeight - 24
+  // 容器未布局（弹窗隐藏、隐藏的 tab）时宽高为 0，不能算出负缩放
   if (w <= 0) return
-  zoom.value = Math.min(1, Math.max(0.4, Number((w / props.width).toFixed(3))))
+  const ratio = h > 0 ? Math.min(w / props.width, h / props.height) : w / props.width
+  zoom.value = Math.min(1, Math.max(0.4, Number(ratio.toFixed(3))))
 }
 
 defineExpose({ zoomIn, zoomOut, fit })

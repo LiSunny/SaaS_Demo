@@ -319,6 +319,8 @@ function onExport() {
   const payload = {
     version: 1,
     name: sceneName.value,
+    width: scene.width,
+    height: scene.height,
     nodes: nodes.value,
     edges: edges.value,
   }
@@ -331,9 +333,9 @@ function onExport() {
 }
 
 /** 导入校验：图元必须存在、端口序号合法、坐标为有限数 */
-function validateLayout(data: unknown): { nodes: SceneNode[]; edges: SceneEdge[]; name: string } | null {
+function validateLayout(data: unknown): { nodes: SceneNode[]; edges: SceneEdge[]; name: string; width?: number; height?: number } | null {
   if (!data || typeof data !== 'object') return null
-  const raw = data as { name?: unknown; nodes?: unknown; edges?: unknown }
+  const raw = data as { name?: unknown; nodes?: unknown; edges?: unknown; width?: unknown; height?: unknown }
   if (!Array.isArray(raw.nodes) || !Array.isArray(raw.edges)) return null
 
   const nodeIds = new Set<string>()
@@ -356,10 +358,13 @@ function validateLayout(data: unknown): { nodes: SceneNode[]; edges: SceneEdge[]
       if ((e.to.port ?? 0) >= (b.ports?.length || 0)) return null
     }
   }
+  const size = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.round(v) : undefined)
   return {
     nodes: raw.nodes as SceneNode[],
     edges: raw.edges as SceneEdge[],
     name: typeof raw.name === 'string' ? raw.name : '',
+    width: size(raw.width),
+    height: size(raw.height),
   }
 }
 
@@ -376,6 +381,8 @@ async function onImport(ev: Event) {
     }
     nodes.value = valid.nodes
     edges.value = valid.edges
+    if (valid.width) scene.width = valid.width
+    if (valid.height) scene.height = valid.height
     if (valid.name) sceneName.value = valid.name
     selection.value = null
     ElMessage.success(`已导入：${valid.name || file.name}`)
@@ -396,6 +403,8 @@ function onLoadSample() {
     }
     nodes.value = valid.nodes
     edges.value = valid.edges
+    if (valid.width) scene.width = valid.width
+    if (valid.height) scene.height = valid.height
     selection.value = null
     ElMessage.success('已载入示例画面')
   } catch {

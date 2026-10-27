@@ -88,6 +88,9 @@ export type SceneSelection =
 export interface SceneLayoutFile {
   version: number
   name: string
+  /** 画布宽高；缺省按 1200×700 处理 */
+  width?: number
+  height?: number
   nodes: SceneNode[]
   edges: SceneEdge[]
 }
