@@ -7,14 +7,20 @@
  *   3. 提供画布需要的几何计算（端口坐标、连线正交路径、状态类）
  *
  * 位图走 public/symbols/img（服务路径 /symbols/img/），由 scripts/sync-symbol-assets.mjs 同步。
+ *
+ * 平台内新增的自定义图元（Prisma + OSS）不重建图元库，而是在运行时叠加：
+ * 注册时把图元写进 SYMBOLS / SYMBOL_POINTS / DEF_MAP / GEOMETRY / GEOMETRY_IMAGE /
+ * symbolRuntime.defs，渲染链路与内置图元完全一致。
  */
+import { reactive, ref } from 'vue'
 import '@symbols/symbols.css'
 import './theme.css'
 
-import { MANIFEST, GEOMETRY, GEOMETRY_IMAGE } from '@symbols/symbols.js'
+import { MANIFEST, GEOMETRY, GEOMETRY_IMAGE, BADGES } from '@symbols/symbols.js'
 import { createRuntime } from '@symbols/runtime.js'
 import pointsCsv from '@symbols/points.sample.csv?raw'
 import type { SymbolDef, SymbolSystemMeta, SymbolCategoryMeta } from '@symbols/symbols.js'
+import type { CustomSymbolItem } from '@/types/symbol'
 
 export type { SymbolDef, SymbolBinding, SymbolPort, SymbolSystemMeta, SymbolCategoryMeta } from '@symbols/symbols.js'
 
@@ -30,8 +36,27 @@ export const IMAGE_BASE = '/symbols/img'
 /** 画布网格（px），与图元库 SPEC.grid 一致 */
 export const SYMBOL_GRID = MANIFEST.spec.grid
 
-/** 全部图元 */
-export const SYMBOLS = MANIFEST.symbols
+/**
+ * 安全渲染图元
+ *
+ * 图元库 runtime 对未知图元直接抛错。自定义图元是异步注册进渲染链路的，
+ * 页面首帧可能先于注册完成 —— 抛错会中断 Vue 的挂载队列，
+ * 导致同批次的其他缩略图 / 画布节点一起不渲染。
+ * 这里改为返回 null，由调用方在图元注册完成后重绘。
+ */
+export function renderSymbolSafe(
+  id: string,
+  opts?: Parameters<typeof symbolRuntime.renderSymbol>[1],
+): SVGSVGElement | null {
+  try {
+    return symbolRuntime.renderSymbol(id, opts)
+  } catch {
+    return null
+  }
+}
+
+/** 全部图元（内置 + 平台内新增的自定义图元） */
+export const SYMBOLS = reactive([...MANIFEST.symbols]) as SymbolDef[]
 
 /** 一级分类：系统归属，与平台 systemKey 同源（pipeline / gas / smoke / common） */
 export const SYMBOL_SYSTEMS: SymbolSystemMeta[] = MANIFEST.systems ?? []
@@ -315,22 +340,184 @@ const CSV_COLUMNS = [
   'min', 'max', 'unit', 'alarmLo', 'alarmHi', 'deadband', 'delay', 'screen', 'note',
 ] as const
 
-/** 点表（图元库生成，示例限值须按现场整定） */
-export const SYMBOL_POINTS: SymbolPoint[] = pointsCsv
-  .replace(/^\uFEFF/, '')
-  .split(/\r?\n/)
-  .filter((line) => line.trim() !== '')
-  .slice(1)
-  .map((line) => {
-    const cells = line.split(',')
-    const row: Record<string, string> = {}
-    CSV_COLUMNS.forEach((col, i) => {
-      row[col] = cells[i] ?? ''
+/** 解析点表 CSV（跳过表头，空行忽略） */
+function parsePoints(csv: string): SymbolPoint[] {
+  return csv
+    .replace(/^\uFEFF/, '')
+    .split(/\r?\n/)
+    .filter((line) => line.trim() !== '')
+    .slice(1)
+    .map((line) => {
+      const cells = line.split(',')
+      const row: Record<string, string> = {}
+      CSV_COLUMNS.forEach((col, i) => {
+        row[col] = cells[i] ?? ''
+      })
+      return row as unknown as SymbolPoint
     })
-    return row as unknown as SymbolPoint
-  })
+}
+
+/** 点表（图元库生成，示例限值须按现场整定；平台内新增的自定义图元在注册时追加） */
+export const SYMBOL_POINTS = reactive(parsePoints(pointsCsv)) as SymbolPoint[]
 
 /** 按图元 ID 取该图元的可绑定点名 */
 export function pointsOfSymbol(symbolId: string): SymbolPoint[] {
   return SYMBOL_POINTS.filter((p) => p.symbolId === symbolId)
+}
+
+// ============================================================
+// 自定义图元（平台内新增）—— 运行时注册
+//
+// 不重建图元库：注册时把图元写进 SYMBOLS / SYMBOL_POINTS / DEF_MAP /
+// GEOMETRY / GEOMETRY_IMAGE / symbolRuntime.defs，渲染链路与内置图元完全一致。
+// ============================================================
+
+/** 自定义图元 ID 前缀（与内置图元 ID 段区分） */
+export const CUSTOM_SYMBOL_PREFIX = 'CUS-'
+
+/** 平台内新增的图元 ID 集合 */
+const CUSTOM_SYMBOL_IDS = new Set<string>()
+
+/**
+ * 图元注册版本号
+ *
+ * 自定义图元是异步拉取后注册进渲染链路的，页面首帧可能先于注册完成。
+ * 缩略图与画布节点监听此版本号，注册完成后重绘。
+ */
+export const SYMBOL_REGISTRY_VERSION = ref(0)
+
+/** 该图元是否为平台内新增的自定义图元 */
+export function isCustomSymbol(id: string): boolean {
+  return CUSTOM_SYMBOL_IDS.has(id)
+}
+
+/** 数值保留两位 */
+function r2(n: number): number {
+  return Number(n.toFixed(2))
+}
+
+/** XML 文本转义 */
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+/**
+ * 图片版几何：位图本体 + 状态光晕 + 状态角标
+ *
+ * 与图元库 imageMarkup 同构，但 <image> 不带 data-file ——
+ * runtime.js 只在存在 data-file 时才把 href 拼成 imageBase/xxx，
+ * 省略后 href 保留产品图的公网地址。
+ */
+function customImageMarkup(bbox: number[], imageUrl: string): string {
+  const S = 64 / 512
+  const [x0, y0, x1, y1] = bbox.length === 4 ? bbox : [0, 0, 512, 512]
+  const cx = ((x0 + x1) / 2) * S
+  const cy = ((y0 + y1) / 2) * S
+  const rx = ((x1 - x0) / 2) * S * 0.82
+  const ry = ((y1 - y0) / 2) * S * 0.82
+  return [
+    `<ellipse class="sym-halo" cx="${r2(cx)}" cy="${r2(cy)}" rx="${r2(rx)}" ry="${r2(ry)}"/>`,
+    `<image class="sym-img" href="${imageUrl}" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid meet"/>`,
+    BADGES,
+  ].join('')
+}
+
+/** 线框版占位：自定义图元只有产品图，线框版画方框 + 名称 */
+function customLineMarkup(name: string): string {
+  return [
+    '<rect class="sym-outline" x="8" y="8" width="48" height="48" rx="4"/>',
+    `<text class="sym-label" x="32" y="36">${escapeXml(name)}</text>`,
+  ].join('')
+}
+
+/** 自定义图元 → 图元库定义（与内置 SymbolDef 同构） */
+function toCustomDef(item: CustomSymbolItem): SymbolDef {
+  let textIndex = 0
+  const bindings = item.bindings.map((b) => {
+    const o: Record<string, unknown> = { ...b }
+    if (b.kind === 'text') o.textIndex = textIndex++
+    return o as unknown as SymbolDef['bindings'][number]
+  })
+
+  return {
+    id: item.symbolId,
+    name: item.name,
+    category: item.category,
+    system: item.system,
+    screen: null,
+    desc: item.desc,
+    size: { w: 64, h: 64 },
+    anchor: [32, 32],
+    ports: item.ports.map((p) => ({ x: p.x, y: p.y, dir: p.dir })),
+    pivots: {},
+    image: item.imageUrl,
+    styles: ['image'],
+    bindings,
+  }
+}
+
+/** 自定义图元 → 点表行 */
+function toCustomPoints(item: CustomSymbolItem): SymbolPoint[] {
+  return item.bindings.map((b) => ({
+    point: b.point,
+    symbolId: item.symbolId,
+    symbolName: item.name,
+    system: item.system,
+    category: item.category,
+    binding: b.name,
+    dataType: b.kind,
+    register: '',
+    rw: 'R',
+    min: b.min === undefined ? '' : String(b.min),
+    max: b.max === undefined ? '' : String(b.max),
+    unit: b.unit ?? '',
+    alarmLo: b.alarmLo === undefined ? '' : String(b.alarmLo),
+    alarmHi: b.alarmHi === undefined ? '' : String(b.alarmHi),
+    deadband: '',
+    delay: '',
+    screen: '',
+    note: '',
+  }))
+}
+
+/**
+ * 注册一个自定义图元到渲染链路
+ * 同 ID 重复注册视为更新（先注销再注册）
+ */
+export function registerCustomSymbol(item: CustomSymbolItem): void {
+  if (CUSTOM_SYMBOL_IDS.has(item.symbolId)) unregisterCustomSymbol(item.symbolId)
+
+  const def = toCustomDef(item)
+  GEOMETRY_IMAGE[item.symbolId] = customImageMarkup(item.bbox, item.imageUrl)
+  GEOMETRY[item.symbolId] = customLineMarkup(item.name)
+  DEF_MAP.set(item.symbolId, def)
+  symbolRuntime.defs.set(item.symbolId, def)
+  SYMBOLS.push(def)
+  SYMBOL_POINTS.push(...toCustomPoints(item))
+  CUSTOM_SYMBOL_IDS.add(item.symbolId)
+  SYMBOL_REGISTRY_VERSION.value++
+}
+
+/**
+ * 注销一个自定义图元
+ * 只清平台内新增的图元，内置图元不受影响
+ */
+export function unregisterCustomSymbol(symbolId: string): void {
+  if (!CUSTOM_SYMBOL_IDS.has(symbolId)) return
+
+  const idx = SYMBOLS.findIndex((s) => s.id === symbolId)
+  if (idx >= 0) SYMBOLS.splice(idx, 1)
+  for (let i = SYMBOL_POINTS.length - 1; i >= 0; i--) {
+    if (SYMBOL_POINTS[i].symbolId === symbolId) SYMBOL_POINTS.splice(i, 1)
+  }
+  DEF_MAP.delete(symbolId)
+  symbolRuntime.defs.delete(symbolId)
+  delete GEOMETRY_IMAGE[symbolId]
+  delete GEOMETRY[symbolId]
+  CUSTOM_SYMBOL_IDS.delete(symbolId)
+  SYMBOL_REGISTRY_VERSION.value++
 }

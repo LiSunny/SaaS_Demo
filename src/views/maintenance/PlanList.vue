@@ -316,23 +316,7 @@ onMounted(() => { store.fetchList() })
   gap: var(--spacing-xxl, 24px);
 }
 
-/* -- 新增按钮（PlanList 特有） -- */
-.btn-add {
-  height: var(--btn-height, 37px);
-  background: var(--accent-primary10);
-  color: var(--accent-primary);
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-md, 8px);
-  padding: var(--spacing-md, 8px) var(--spacing-lg, 12px);
-  font-size: var(--font-small, 14px);
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg, 12px);
-  white-space: nowrap;
-}
-.btn-add:hover { filter: brightness(0.95); }
+/* -- 新增按钮 .btn-add 见 src/style.css 全局按钮区 -- */
 
 .col-count { width: 120px; }
 .col-items { width: 120px; }

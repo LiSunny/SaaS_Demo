@@ -12,7 +12,7 @@
  * 两种风格共用同一份几何与绑定定义，只是载体不同。
  */
 import { onMounted, ref, watch } from 'vue'
-import { IMAGE_BASE, stateClasses, symbolRuntime } from '@/symbols'
+import { IMAGE_BASE, SYMBOL_REGISTRY_VERSION, renderSymbolSafe, stateClasses } from '@/symbols'
 import type { SceneStyle } from '@/types/scene-config'
 
 const props = withDefaults(
@@ -35,17 +35,21 @@ function draw() {
   const el = host.value
   if (!el) return
   el.innerHTML = ''
-  const svg = symbolRuntime.renderSymbol(props.symbol, {
+  // 图元尚未注册（自定义图元异步拉取中）时留空，注册完成后重绘
+  const svg = renderSymbolSafe(props.symbol, {
     style: props.variant,
     size: props.size,
     imageBase: IMAGE_BASE,
   })
+  if (!svg) return
   stateClasses(props.state).forEach((c) => svg.classList.add(c))
   el.appendChild(svg)
 }
 
 onMounted(draw)
 watch(() => [props.symbol, props.size, props.variant, JSON.stringify(props.state)], draw)
+// 自定义图元注册完成后重绘
+watch(SYMBOL_REGISTRY_VERSION, draw)
 </script>
 
 <style scoped>

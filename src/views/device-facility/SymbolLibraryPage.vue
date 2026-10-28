@@ -13,6 +13,9 @@
         <button class="btn-default" @click="variant = variant === 'image' ? 'line' : 'image'">
           {{ variant === 'image' ? '图片版' : '线框版' }}
         </button>
+        <button class="btn-add" @click="openCreate">
+          <AppIcon name="plus" class="btn-add-icon" />新增图元
+        </button>
         <button class="btn-primary" @click="goBack">{{ backLabel }}</button>
       </div>
     </header>
@@ -69,19 +72,25 @@
       <!-- 图元网格 -->
       <section class="symbol-page__grid-wrap">
         <div class="symbol-page__grid">
-          <button
-            v-for="s in shownSymbols"
-            :key="s.id"
-            class="symbol-page__card"
-            @click="openDetail(s.id)"
-          >
-            <SymbolThumb :symbol="s.id" :size="56" :variant="variant" />
-            <span class="symbol-page__card-name">{{ s.name }}</span>
-            <span class="symbol-page__card-id">{{ s.id }}</span>
-            <span class="symbol-page__card-meta">
-              {{ systemName(s.system) }} · {{ s.category }} · {{ s.bindings.length }} 绑定点
-            </span>
-          </button>
+          <div v-for="s in shownSymbols" :key="s.id" class="symbol-page__card-wrap">
+            <button class="symbol-page__card" @click="openDetail(s.id)">
+              <SymbolThumb :symbol="s.id" :size="56" :variant="variant" />
+              <span class="symbol-page__card-name">{{ s.name }}</span>
+              <span class="symbol-page__card-id">{{ s.id }}</span>
+              <span class="symbol-page__card-meta">
+                {{ systemName(s.system) }} · {{ s.category }} · {{ s.bindings.length }} 绑定点
+              </span>
+              <span v-if="isCustom(s.id)" class="symbol-page__card-tag">自定义</span>
+            </button>
+            <button
+              v-if="isCustom(s.id)"
+              class="symbol-page__card-del"
+              title="删除图元"
+              @click.stop="askDelete(s.id, s.name)"
+            >
+              <AppIcon name="delete" class="act-icon" />
+            </button>
+          </div>
           <p v-if="!shownSymbols.length" class="symbol-page__empty">没有匹配的图元</p>
         </div>
       </section>
@@ -92,6 +101,30 @@
       <div v-if="detail" class="symbol-detail">
         <div class="symbol-detail__preview">
           <SymbolThumb :symbol="detail.id" :size="180" :variant="variant" />
+        </div>
+
+        <div class="symbol-detail__bar">
+          <span class="symbol-detail__tag" :class="{ 'is-custom': isCustom(detail.id) }">
+            {{ isCustom(detail.id) ? '自定义图元' : '内置图元' }}
+          </span>
+          <div class="symbol-detail__actions">
+            <button
+              v-if="isCustom(detail.id)"
+              class="act-btn act-edit"
+              title="编辑图元"
+              @click="openEdit(detail.id)"
+            >
+              <AppIcon name="edit" class="act-icon" />
+            </button>
+            <button
+              v-if="isCustom(detail.id)"
+              class="act-btn act-delete"
+              title="删除图元"
+              @click="askDelete(detail.id, detail.name)"
+            >
+              <AppIcon name="delete" class="act-icon" />
+            </button>
+          </div>
         </div>
 
         <div class="symbol-detail__desc">{{ detail.desc }}</div>
@@ -152,25 +185,35 @@
         </div>
       </div>
     </el-drawer>
+
+    <!-- 新增/编辑自定义图元 -->
+    <SymbolFormDrawer v-model:visible="formVisible" :item="formItem" />
   </div>
 </template>
 
 <script setup lang="ts">
 /**
- * 图元管理（只读）
+ * 图元管理
  *
- * 数据源为图元库产物：manifest.json（几何与绑定）+ points.sample.csv（点表）。
- * 页面不放上传/新建入口 —— 图元入库走图元库构建流程，不在平台上制图。
+ * 内置图元：图元库产物（manifest.json 几何与绑定 + points.sample.csv 点表），只读不可删。
+ * 自定义图元：平台内新增，元数据在服务端（Prisma）、产品图在 OSS，
+ * 拉取后注册进渲染链路（src/symbols/index.ts），与内置图元同页浏览、同图编辑。
  */
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import AppIcon from '@/components/base/AppIcon.vue'
 import SymbolThumb from '@/components/device-facility/SymbolThumb.vue'
-import { SYMBOL_CATEGORIES, SYMBOL_POINTS, SYMBOLS, SYMBOL_SYSTEMS, symbolDef } from '@/symbols'
-import type { SceneStyle } from '@/types/scene-config'
+import SymbolFormDrawer from '@/components/device-facility/SymbolFormDrawer.vue'
+import { SYMBOL_CATEGORIES, SYMBOL_POINTS, SYMBOLS, SYMBOL_SYSTEMS, isCustomSymbol } from '@/symbols'
+import { useSceneConfigStore } from '@/stores/scene-config'
+import { useSymbolStore } from '@/stores/symbols'
+import type { SceneEdge, SceneNode, SceneStyle } from '@/types/scene-config'
+import type { CustomSymbolItem } from '@/types/symbol'
 
 const router = useRouter()
 const route = useRoute()
+const store = useSymbolStore()
 
 const variant = ref<SceneStyle>('image')
 const keyword = ref('')
@@ -178,6 +221,13 @@ const activeCat = ref('')
 const activeSys = ref('')
 const detailVisible = ref(false)
 const detailId = ref('')
+const formVisible = ref(false)
+const formItem = ref<CustomSymbolItem | null>(null)
+
+/** 该图元是否为平台内新增的自定义图元 */
+function isCustom(id: string): boolean {
+  return isCustomSymbol(id)
+}
 
 const PREVIEW_STATES = [
   { key: 'run', label: '运行' },
@@ -224,7 +274,8 @@ const filteredSymbols = computed(() => {
 
 const shownSymbols = computed(() => filteredSymbols.value)
 
-const detail = computed(() => (detailId.value ? symbolDef(detailId.value) : undefined))
+/** 当前详情的图元（走 SYMBOLS 响应式数组，自定义图元增删后能自动刷新） */
+const detail = computed(() => SYMBOLS.find((s) => s.id === detailId.value))
 const detailPoints = computed(() => SYMBOL_POINTS.filter((p) => p.symbolId === detailId.value))
 
 function countOf(cat: string) {
@@ -244,6 +295,135 @@ function openDetail(id: string) {
   detailId.value = id
   detailVisible.value = true
 }
+
+/** 打开新增图元抽屉 */
+function openCreate() {
+  formItem.value = null
+  formVisible.value = true
+}
+
+/** 打开编辑图元抽屉（仅自定义图元可编辑） */
+function openEdit(symbolId: string) {
+  const item = store.customSymbols.find((s) => s.symbolId === symbolId)
+  if (!item) {
+    ElMessage.warning('内置图元不可编辑')
+    return
+  }
+  formItem.value = item
+  formVisible.value = true
+}
+
+/**
+ * 清理引用该图元的画面节点
+ * 画面存浏览器本地（db:scene-config + 草稿键），图元删除后残留节点会导致渲染报错
+ */
+function purgeSceneReferences(symbolId: string): number {
+  const sceneStore = useSceneConfigStore()
+  let scenes: Array<{ id: string; nodes?: SceneNode[]; edges?: SceneEdge[] }> = []
+  try {
+    const raw = localStorage.getItem('db:scene-config')
+    if (raw) scenes = JSON.parse(raw)
+  } catch {
+    return 0
+  }
+  if (!Array.isArray(scenes)) return 0
+
+  let purged = 0
+  for (const s of scenes) {
+    const nodes = s.nodes ?? []
+    const kept = nodes.filter((n) => n.symbol !== symbolId)
+    if (kept.length === nodes.length) continue
+    purged += nodes.length - kept.length
+    const ids = new Set(kept.map((n) => n.id))
+    const edges = (s.edges ?? []).filter((e) => ids.has(e.from?.node) && ids.has(e.to?.node))
+    sceneStore.saveLayout(s.id, kept, edges)
+    purgeDraftNodes(s.id, symbolId)
+  }
+  return purged
+}
+
+/** 草稿里的同名节点一并清理 */
+function purgeDraftNodes(sceneId: string, symbolId: string) {
+  const key = `scene-config:draft:${sceneId}`
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return
+    const data = JSON.parse(raw)
+    if (!data || !Array.isArray(data.nodes)) return
+    const nodes = data.nodes.filter((n: { symbol?: string }) => n.symbol !== symbolId)
+    if (nodes.length === data.nodes.length) return
+    const ids = new Set(nodes.map((n: { id: string }) => n.id))
+    const edges = (Array.isArray(data.edges) ? data.edges : []).filter(
+      (e: { from?: { node?: string }; to?: { node?: string } }) =>
+        ids.has(e.from?.node) && ids.has(e.to?.node),
+    )
+    localStorage.setItem(key, JSON.stringify({ ...data, nodes, edges }))
+  } catch {
+    // 草稿清理失败不阻断删除
+  }
+}
+
+/**
+ * 引用检查：组态画面存在浏览器本地（db:scene-config），后端不知道谁引用了该图元，
+ * 删除前的引用统计只能在前端做。
+ */
+function findReferences(symbolId: string): Array<{ id: string; name: string; count: number }> {
+  let scenes: Array<{ id: string; name: string; nodes?: Array<{ symbol?: string }> }> = []
+  try {
+    const raw = localStorage.getItem('db:scene-config')
+    if (raw) scenes = JSON.parse(raw)
+  } catch {
+    return []
+  }
+  if (!Array.isArray(scenes)) return []
+
+  const out: Array<{ id: string; name: string; count: number }> = []
+  for (const s of scenes) {
+    const count = (s.nodes ?? []).filter((n) => n.symbol === symbolId).length
+    if (count > 0) out.push({ id: s.id, name: s.name, count })
+  }
+  return out
+}
+
+/** 删除自定义图元 */
+async function askDelete(symbolId: string, name: string) {
+  const target = store.customSymbols.find((s) => s.symbolId === symbolId)
+  if (!target) {
+    ElMessage.warning('内置图元不可删除，只能删除平台内新增的图元')
+    return
+  }
+
+  const refs = findReferences(symbolId)
+  const nodeCount = refs.reduce((n, r) => n + r.count, 0)
+  const tip = refs.length
+    ? `图元「${name}」被 ${refs.length} 个组态画面引用（共 ${nodeCount} 处），删除后这些画面中的该图元将一并移除。确认删除？`
+    : `确认删除图元「${name}」？产品图会一并从服务器删除。`
+
+  try {
+    await ElMessageBox.confirm(tip, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+    })
+  } catch {
+    return
+  }
+
+  await store.remove(target.id)
+  purgeSceneReferences(symbolId)
+  if (detailId.value === symbolId) {
+    detailVisible.value = false
+    detailId.value = ''
+  }
+  ElMessage.success('图元已删除')
+}
+
+onMounted(() => {
+  // 拉取平台内新增的图元并注册进渲染链路
+  store.load().catch(() => {
+    ElMessage.warning('自定义图元加载失败')
+  })
+})
 
 function goBack() {
   // 从编辑器进入（带 scene 参数）→ 回到该画面的编辑器；否则回组态配置列表
@@ -404,11 +584,16 @@ function goBack() {
   grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
   gap: var(--spacing-lg);
 }
+.symbol-page__card-wrap {
+  position: relative;
+  display: flex;
+}
 .symbol-page__card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
+  width: 100%;
   padding: var(--spacing-lg) var(--spacing-md);
   background: var(--bg-sub-card);
   border: 1px solid var(--border-default);
@@ -419,6 +604,40 @@ function goBack() {
 .symbol-page__card:hover {
   border-color: var(--accent-primary);
   background: var(--accent-primary10);
+}
+.symbol-page__card-tag {
+  margin-top: 2px;
+  padding: 0 6px;
+  font-size: 10px;
+  color: var(--accent-primary);
+  background: var(--accent-primary10);
+  border: 1px solid var(--accent-primary);
+  border-radius: 999px;
+}
+.symbol-page__card-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.symbol-page__card-wrap:hover .symbol-page__card-del {
+  opacity: 1;
+}
+.symbol-page__card-del:hover {
+  color: var(--danger);
+  border-color: var(--danger);
 }
 .symbol-page__card-name {
   font-size: var(--font-small);
@@ -459,6 +678,30 @@ function goBack() {
 .symbol-detail__desc {
   font-size: var(--font-small);
   color: var(--text-secondary);
+}
+.symbol-detail__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+.symbol-detail__tag {
+  padding: 2px 10px;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  background: var(--bg-sub-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+}
+.symbol-detail__tag.is-custom {
+  color: var(--accent-primary);
+  background: var(--accent-primary10);
+  border-color: var(--accent-primary);
+}
+.symbol-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 .symbol-detail__meta {
   display: grid;

@@ -205,7 +205,7 @@
 | `src/types/scene-config.ts`、`src/stores/scene-config.ts` | 组态画面类型与 store（画面列表走 `src/utils/db-adapter.ts`，草稿键 `scene-config:draft:<id>`） |
 | `src/views/device-facility/SceneConfigList.vue` | 组态配置列表页（范式对齐 `src/views/maintenance/PlanList.vue`）：筛选、新增/编辑弹窗、预览弹窗、启停、删除 |
 | `src/views/device-facility/SceneEditor.vue` | 组态编辑器：顶栏 + 画布 + 右侧图元选择组件 + 属性面板；改动自动存草稿，保存写回画面记录，导入导出 JSON |
-| `src/views/device-facility/SymbolLibraryPage.vue` | 图元管理（只读）：分类浏览、缩略图、状态预览、绑定点表 |
+| `src/views/device-facility/SymbolLibraryPage.vue` | 图元管理：分类浏览、缩略图、状态预览、绑定点表；新增/删除自定义图元（内置图元只读不可删） |
 | `src/components/device-facility/` | `SceneCanvas.vue`、`SymbolPicker.vue`（含「图元管理」入口）、`ScenePropertyPanel.vue`、`SymbolThumb.vue`、`SceneSymbolNode.vue` |
 | `src/config/navigation.ts` | `df-rule` 增加三级项「组态配置」；`ROUTE_TO_NAV_KEY` 补 2 条并置于 `'/device'` 之前（否则 `/device` 前缀会抢命中）；`NAV_KEY_TO_ROUTE` 补 1 条 |
 | `src/router/index.ts` | 新增 3 条路由（列表、编辑器、图元管理） |
@@ -282,6 +282,36 @@
 **核心数据取值**（`computeFireWaterCards`）：供水压力 = 114 个压力测点最小值；供水流量 = 6 个流量测点算术平均；水池水位 = 4 个液位测点最小值（按量程上限折算 %）；系统状态 = 1156 个点位状态计数派生。正常范围文案取自指标定义的 `normalRange`，卡片副行标明分母（测点数）。
 
 **规模说明口径**：页头「共 1 处主机、8 台分机、N 个采集点位」取 `points` 全量长度（N = 1156 = 1147 个采集设备 + 1 主机 + 8 分机），与「系统状态」卡同口径。`scale.devices` 之和是设备数而非点位数，不可直接用作 N。`scripts/verify-fire-pages.mjs` 断言页头 N 与卡片 N 相等。
+
+### 6.8 图元管理：新增/删除自定义图元（2026-10-28）
+
+图元管理页从只读改为可维护。内置 47 个图元仍是图元库构建产物、只读不可删；新增走**运行时图层**：服务端存元数据与产品图，运行时注册进渲染链路，不重建图元库。
+
+| 文件 | 改动 |
+|------|------|
+| `server/prisma/schema.prisma` | 新增 `CustomSymbol`（symbolId 唯一、imageUrl/imageKey、bboxJson、portsJson、bindingsJson、enterpriseId 可空=平台级） |
+| `server/src/services/custom-symbol.service.ts` | CRUD + 校验（ID 命名规范、连接点越界/方向、绑定点名全局唯一、状态类已声明、至少一个绑定点）+ 删除时清理 OSS 对象 |
+| `server/src/controllers/custom-symbol.controller.ts`、`server/src/routes/custom-symbol.routes.ts` | `/api/symbols/custom` 五个接口，需登录 |
+| `server/src/services/upload.service.ts` | 新增 `deleteFile(key)` |
+| `src/symbols/index.ts` | `SYMBOLS` / `SYMBOL_POINTS` 改 `reactive`；新增 `registerCustomSymbol` / `unregisterCustomSymbol` / `isCustomSymbol`；自定义图元图片 markup 不写 `data-file`，产品图 href 不被 imageBase 覆盖 |
+| `symbol-library/src/build.mjs` | 导出 `BADGES`（状态角标 markup），平台侧复用不复制 |
+| `src/stores/symbols.ts`、`src/api/symbols.ts`、`src/api/adapters/symbol-http.ts` | 自定义图元拉取与 CRUD，拉取后注册进渲染链路 |
+| `src/utils/symbol-image.ts` | 产品图处理：抠背景 → 512×512 → 内容框 bbox（供状态光晕计算） |
+| `src/components/device-facility/SymbolFormDrawer.vue` | 新增/编辑抽屉：产品图上传、连接点网格编辑器、绑定点录入 |
+| `src/views/device-facility/SymbolLibraryPage.vue` | 增「新增图元」入口；自定义图元带标记与删除按钮；详情抽屉区分内置/自定义 |
+| `src/components/business/OssUpload.vue` | 新增可选 `transform` 钩子，供上传前加工图片 |
+| `e2e/specs/symbol-library.spec.ts` | 新增自定义图元增删用例 2 条 |
+| `src/components/device-facility/SymbolPicker.vue` | 组件自持 `store.load()`，组态编辑器直接刷新进入也能拿到自定义图元 |
+| `src/symbols/index.ts` | 新增 `renderSymbolSafe()`（未知图元返回 null 不抛错）与 `SYMBOL_REGISTRY_VERSION`（注册/注销自增） |
+| `src/components/device-facility/SymbolThumb.vue`、`src/components/device-facility/SceneSymbolNode.vue` | 改用 `renderSymbolSafe()`；监听 `SYMBOL_REGISTRY_VERSION`，图元就位后重绘 |
+
+**删除语义**：内置图元不可删（真源在 `symbols.source.js`，运行时删了下次构建会回来）。组态画面存在浏览器本地（`db:scene-config`），服务端不知道引用关系，删除前的引用统计在前端做，命中则二次确认并列出画面名，确认后把命中的节点与相关连线从画面记录和草稿中一并移除。
+
+**导出**：画面导出 JSON 增 `symbols` 字段，携带所用到的自定义图元定义（内置图元由图元库提供，不携带）。
+
+**异步注册**：自定义图元拉取后才注册进渲染链路，页面首帧可能先于注册完成。图元库 runtime 对未知图元抛错，而 Vue 挂载钩子抛错会中断整条 post-flush 队列，导致同批次其他缩略图 / 画布节点一起不渲染 —— 故在平台层用 `renderSymbolSafe()` 兜底，并用 `SYMBOL_REGISTRY_VERSION` 触发注册后重绘。
+
+**已知限制**：自定义图元只有图片版，线框版为占位；绑定类型限 bool / level / text（无指针几何，不开放 angle）；绑定点暂不接实时点位数据源。
 
 ---
 

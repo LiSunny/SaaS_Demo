@@ -106,4 +106,38 @@ export interface SceneLayoutFile {
   height?: number
   nodes: SceneNode[]
   edges: SceneEdge[]
+  /** 画面用到的自定义图元定义；内置图元由图元库提供，无需携带 */
+  symbols?: SceneCustomSymbolRef[]
+}
+
+/** 自定义图元定义（随画面导出，供外部系统识别 CUS- 前缀图元） */
+export interface SceneCustomSymbolRef {
+  id: string
+  name: string
+  category: string
+  system: string
+  /** 产品图地址 */
+  image?: string
+  ports: SymbolPortLike[]
+  bindings: SymbolBindingLike[]
+}
+
+/** 导出的连接点 */
+export interface SymbolPortLike {
+  x: number
+  y: number
+  dir: string
+}
+
+/** 导出的绑定点 */
+export interface SymbolBindingLike {
+  name: string
+  kind: string
+  point: string
+  onClass?: string[]
+  unit?: string
+  min?: number
+  max?: number
+  alarmLo?: number
+  alarmHi?: number
 }

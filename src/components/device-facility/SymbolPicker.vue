@@ -72,10 +72,11 @@
  * 通用件在每个系统下都可见并带「通用」标记。
  * 右上角是图元管理入口。
  */
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import SymbolThumb from '@/components/device-facility/SymbolThumb.vue'
 import { SYMBOL_CATEGORIES, SYMBOL_SYSTEMS, SYMBOLS } from '@/symbols'
+import { useSymbolStore } from '@/stores/symbols'
 import type { SceneStyle } from '@/types/scene-config'
 
 const props = withDefaults(
@@ -97,6 +98,7 @@ const emit = defineEmits<{
 
 const keyword = ref('')
 const activeSystem = ref('')
+const symbolStore = useSymbolStore()
 const expanded = reactive<Record<string, boolean>>(
   Object.fromEntries(SYMBOL_CATEGORIES.map((c) => [c.key, true])),
 )
@@ -150,6 +152,14 @@ watch(activeSystem, () => {
 function pick(symbolId: string) {
   emit('pick', symbolId)
 }
+
+// 拉取平台内新增的自定义图元并注册进渲染链路
+// 组件自持加载：组态编辑器直接刷新进入时也能拿到自定义图元
+onMounted(() => {
+  symbolStore.load().catch(() => {
+    // 加载失败不阻断图元库面板，内置图元仍可用
+  })
+})
 </script>
 
 <style scoped>

@@ -50,3 +50,13 @@ export async function uploadFile(
     key,
   }
 }
+
+/**
+ * 删除 OSS 对象
+ * @param key OSS Object Key
+ */
+export async function deleteFile(key: string): Promise<void> {
+  if (!key) return
+  const client = getClient()
+  await client.delete(key)
+}

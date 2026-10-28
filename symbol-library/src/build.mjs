@@ -298,7 +298,7 @@ const GEOMETRY_IMAGE = Object.fromEntries(
 );
 
 writeFileSync(join(dist, 'symbols.js'),
-  `// 自动生成，勿手改。改 src/symbols.source.js 后运行 npm run build\nexport const MANIFEST = ${JSON.stringify(manifest, null, 2)};\nexport const GEOMETRY = ${JSON.stringify(GEOMETRY, null, 2)};\nexport const GEOMETRY_IMAGE = ${JSON.stringify(GEOMETRY_IMAGE, null, 2)};\n`);
+  `// 自动生成，勿手改。改 src/symbols.source.js 后运行 npm run build\nexport const MANIFEST = ${JSON.stringify(manifest, null, 2)};\nexport const GEOMETRY = ${JSON.stringify(GEOMETRY, null, 2)};\nexport const GEOMETRY_IMAGE = ${JSON.stringify(GEOMETRY_IMAGE, null, 2)};\nexport const BADGES = ${JSON.stringify(BADGES)};\n`);
 
 const runtimeSrc = readFileSync(join(here, 'runtime.js'), 'utf8');
 writeFileSync(join(dist, 'runtime.js'),

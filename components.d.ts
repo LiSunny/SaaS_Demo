@@ -100,6 +100,7 @@ declare module 'vue' {
     StatusTag: typeof import('./src/components/business/StatusTag.vue')['default']
     SubsystemMonitorPage: typeof import('./src/components/subsystem/SubsystemMonitorPage.vue')['default']
     SubsystemSummaryBar: typeof import('./src/components/subsystem/SubsystemSummaryBar.vue')['default']
+    SymbolFormDrawer: typeof import('./src/components/device-facility/SymbolFormDrawer.vue')['default']
     SymbolPicker: typeof import('./src/components/device-facility/SymbolPicker.vue')['default']
     SymbolThumb: typeof import('./src/components/device-facility/SymbolThumb.vue')['default']
     TableFilterPopover: typeof import('./src/components/base/TableFilterPopover.vue')['default']

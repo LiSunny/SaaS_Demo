@@ -403,6 +403,73 @@ npm run build
 - **只要线框**：在 `src/symbols.source.js` 加 `shapes` 即可，构建后直接可用
 - **要图片版**：还需在 `tools/generate.py` 加提示词并出图，`python3 tools/process.py` 抠图后再构建；缺图时该图元自动退化为线框版
 
+## 平台内新增图元（自定义图元）
+
+上一节的「新增图元」是构建期入库，产物即内置图元，只读、不可删。平台侧另有一条运行时通道：
+图元管理页（`/device-facility/rule/symbol-library`）可新增自定义图元，不重建图元库。
+
+| 项 | 位置 |
+|---|---|
+| 元数据 | 服务端 Prisma `CustomSymbol` 表 |
+| 产品图 | OSS（`POST /api/upload/image`，folder `symbols`） |
+| 图片加工 | 浏览器端 `src/utils/symbol-image.ts`（抠背景 → 512×512 → 内容框 bbox） |
+| 接口 | `GET/POST/PUT/DELETE /api/symbols/custom` |
+| 渲染接入 | `src/symbols/index.ts` 的 `registerCustomSymbol` / `unregisterCustomSymbol` |
+
+### 运行时叠加机制
+
+注册一个自定义图元时，同时写进六处，渲染链路与内置图元完全一致：
+
+```ts
+GEOMETRY_IMAGE[id] = 图片版 markup   // 光晕 + <image> + 状态角标
+GEOMETRY[id]      = 线框版占位       // 自定义图元只有产品图
+DEF_MAP.set(id, def)                 // symbolDef(id) 查询
+symbolRuntime.defs.set(id, def)      // 运行时按 ID 取定义
+SYMBOLS.push(def)                    // 响应式数组，图元管理页 / 选择器据此渲染
+SYMBOL_POINTS.push(...点表行)         // 属性面板可选点名
+```
+
+两个约定：
+
+- **图片 markup 不写 `data-file`**。`runtime.js` 只在存在 `data-file` 时才把 `href` 拼成
+  `imageBase/xxx`，省略后 `href` 保留产品图公网地址，不受静态目录 `/symbols/img` 约束。
+- **状态角标复用 `BADGES`**。角标 markup 由 `build.mjs` 导出为常量，平台侧不复制第二份。
+
+### 异步注册与重绘
+
+自定义图元是**拉取后**才注册进渲染链路，页面首帧可能先于注册完成。图元库 runtime 对未知图元
+直接抛错，而 Vue 挂载钩子抛错会中断整条 post-flush 队列，导致同批次的其他缩略图 / 画布节点
+一起不渲染。平台侧因此加了两层保护：
+
+- `src/symbols/index.ts` 的 `renderSymbolSafe()` 取代直接调用 `symbolRuntime.renderSymbol()`，
+  未知图元返回 `null` 而不是抛错。
+- `SYMBOL_REGISTRY_VERSION` 在每次注册 / 注销时自增，`SymbolThumb` 与 `SceneSymbolNode`
+  监听它，图元就位后重绘。
+
+图元库选择器（`SymbolPicker`）自持 `store.load()`，组态编辑器直接刷新进入时也能拿到自定义图元，
+不必先经过图元管理页。
+
+### 与内置图元的差异
+
+| | 内置图元 | 自定义图元 |
+|---|---|---|
+| 真源 | `src/symbols.source.js` | 服务端 Prisma |
+| 可用风格 | 线框 + 图片 | 仅图片（线框版为占位） |
+| 绑定类型 | bool / level / angle / text | bool / level / text（无指针几何，不开放 angle） |
+| 删除 | 不可删 | 可删，删除前查引用 |
+
+### 删除前的引用检查
+
+组态画面存在浏览器本地（localStorage 键 `db:scene-config`），服务端不知道谁引用了图元，
+引用统计必须在前端做：删除时扫全部画面的 `nodes[].symbol`，命中则二次确认并列出画面名；
+确认后把命中的节点与相关连线从画面记录和草稿中一并移除，避免残留节点渲染报错。
+
+### 导出画面时的自定义图元
+
+内置图元由图元库提供，外部系统按 ID 即可解析；自定义图元是平台内新增的，
+导出画面时随 `symbols` 字段携带所用到的自定义图元定义（id / name / category / system /
+image / ports / bindings），外部系统据此渲染。
+
 ## 校验规则
 
 构建时自动检查，不通过则退出码 1：
@@ -418,6 +485,26 @@ npm run build
 - 每个图元至少有一个绑定
 
 无图元的分类或系统给出警告（不阻断构建）。
+
+### 已入库的自定义图元
+
+2026-10-28 导入 10 个产品图版图元（平台级，`enterpriseId = null`）：
+
+| 图元 ID | 名称 | 系统 / 分类 | 连接点 | 绑定点 |
+|---|---|---|---|---|
+| `CUS-LEV-01` | 液位 | 通用件 / 仪表 | 1 | 液位、故障 |
+| `CUS-WIM-01` | 水浸 | 通用件 / 仪表 | 0 | 水浸报警、故障 |
+| `CUS-THS-01` | 温湿度探测器 | 通用件 / 仪表 | 0 | 温度、湿度、故障 |
+| `CUS-EFD-01` | 电气火灾探测器 | 通用件 / 电气 | 0 | 剩余电流、报警、故障 |
+| `CUS-IOM-01` | 输入输出模块 | 气体灭火 / 控制 | 0 | 运行、故障 |
+| `CUS-MTS-01` | 手动末端试水 | 消防给水 / 末端设施 | 2 | 末端压力、流量、状态 |
+| `CUS-ATS-01` | 自动末端试水 | 消防给水 / 末端设施 | 2 | 末端压力、流量、喷放 |
+| `CUS-FTM-01` | 流量计 | 通用件 / 仪表 | 2 | 瞬时流量、累计流量、故障 |
+| `CUS-INM-01` | 输入模块 | 通用件 / 电气 | 0 | 运行、输入动作、故障 |
+| `CUS-PSW-01` | 压力开关 | 通用件 / 仪表 | 2 | 压力、报警 |
+
+连接点按产品图上的实际接口位置定位（64×64 画布坐标）；绑定类型用 `bool`（驱动状态光晕与角标）
+与 `text`（显示数值），不使用 `level` / `angle`。
 
 ## 已知限制
 

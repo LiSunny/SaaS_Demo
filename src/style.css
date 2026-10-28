@@ -319,6 +319,12 @@ html.dark .el-checkbox__label { color: var(--text-primary) !important; }
 html.dark .el-dialog { background: var(--bg-card) !important; }
 html.dark .el-dialog__header { border-bottom-color: var(--border-low) !important; }
 html.dark .el-dialog__title { color: var(--text-primary) !important; }
+/* el-drawer：抽屉面板默认白底，暗色主题下与 --text-primary（白字）撞色不可读 */
+html.dark .el-drawer { background: var(--bg-card) !important; }
+html.dark .el-drawer__header { background: var(--bg-card) !important; border-bottom-color: var(--border-low) !important; }
+html.dark .el-drawer__title { color: var(--text-primary) !important; }
+html.dark .el-drawer__body { color: var(--text-primary) !important; }
+html.dark .el-drawer__footer { border-top-color: var(--border-low) !important; }
 html.dark .el-form-item__label { color: var(--text-secondary) !important; }
 html.dark .el-textarea__inner { background: var(--bg-card) !important; border-color: var(--border-input) !important; color: var(--text-primary) !important; }
 html.dark .el-textarea__inner::placeholder { color: var(--text-muted) !important; }
@@ -525,6 +531,24 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
   color: var(--btn-default-hover-color);
   border-color: var(--btn-default-hover-border);
 }
+
+/* add 新增/添加强调按钮（浅底 + 主色描边） */
+.btn-add {
+  height: var(--btn-height, 37px);
+  background: var(--accent-primary10);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--spacing-md, 8px) var(--spacing-lg, 12px);
+  font-size: var(--font-small, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg, 12px);
+  white-space: nowrap;
+}
+.btn-add:hover { filter: brightness(0.95); }
 
 /* 种子操作 */
 .btn-seed {

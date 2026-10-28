@@ -54,6 +54,8 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   /** OSS 存储目录分类 */
   folder?: string
+  /** 上传前的图片加工（如抠底、归一化），返回加工后的文件 */
+  transform?: (file: File) => Promise<File>
 }>(), {
   modelValue: '',
   accept: 'image/jpeg,image/png,image/gif,image/webp,image/svg+xml',
@@ -119,7 +121,9 @@ async function handleFileChange(e: Event): Promise<void> {
   emit('start')
 
   try {
-    const result = await uploadFile(file, props.folder, (pct) => {
+    // 上传前加工（可选）：如产品图抠底 + 512 归一化
+    const target = props.transform ? await props.transform(file) : file
+    const result = await uploadFile(target, props.folder, (pct) => {
       progress.value = pct
     })
     emit('update:modelValue', result.url)

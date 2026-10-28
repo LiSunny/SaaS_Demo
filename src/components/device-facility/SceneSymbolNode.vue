@@ -11,7 +11,7 @@
  * 状态用 is-* 类名驱动（运行 / 故障 / 手动 / 阀开 / 阀关）。
  */
 import { onMounted, ref, watch } from 'vue'
-import { IMAGE_BASE, stateClasses, symbolRuntime } from '@/symbols'
+import { IMAGE_BASE, SYMBOL_REGISTRY_VERSION, renderSymbolSafe, stateClasses } from '@/symbols'
 import type { SceneStyle } from '@/types/scene-config'
 
 const props = withDefaults(
@@ -36,11 +36,13 @@ function draw() {
   const el = host.value
   if (!el) return
 
-  const src = symbolRuntime.renderSymbol(props.symbol, {
+  // 图元尚未注册（自定义图元异步拉取中）时留空，注册完成后重绘
+  const src = renderSymbolSafe(props.symbol, {
     style: props.variant,
     size: props.size,
     imageBase: IMAGE_BASE,
   })
+  if (!src) return
 
   el.setAttribute('viewBox', src.getAttribute('viewBox') || '0 0 64 64')
   el.setAttribute('width', src.getAttribute('width') || '')
@@ -59,6 +61,8 @@ function draw() {
 
 onMounted(draw)
 watch(() => [props.symbol, props.size, props.variant, props.value, JSON.stringify(props.state)], draw)
+// 自定义图元注册完成后重绘
+watch(SYMBOL_REGISTRY_VERSION, draw)
 </script>
 
 <style scoped>

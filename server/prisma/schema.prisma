@@ -389,6 +389,34 @@ model Alarm {
 // ============================================================
 // 隐患台账
 // ============================================================
+// ============================================================
+// 自定义图元（组态图元管理）
+//
+// 内置图元是图元库构建产物，真源 symbol-library/src/symbols.source.js，
+// 平台内只读、不可删。本表存用户在图元管理页新增的图元：元数据入 Prisma，
+// 产品图入 OSS（imageUrl 为公网地址，imageKey 用于删除时清理对象）。
+// ============================================================
+model CustomSymbol {
+  id           Int      @id @default(autoincrement())
+  symbolId     String   @unique                     // 图元 ID，如 CUS-PUMP-01
+  name         String                              // 图元名称
+  system       String                              // 所属系统：pipeline | gas | smoke | common
+  category     String                              // 二级分类，归入图元库已有分类
+  desc         String   @default("")               // 描述
+  imageUrl     String                              // 产品图公网地址（OSS）
+  imageKey     String   @default("")               // 产品图 OSS object key，删除时清理
+  bboxJson     String   @default("[]")             // JSON: [x0,y0,x1,y1]，512 空间，与图元库 img/index.json 同格式
+  portsJson    String   @default("[]")             // JSON: [{x,y,dir}]，64×64 画布坐标
+  bindingsJson String   @default("[]")             // JSON: [{name,kind,point,onClass,unit,min,max}]
+  enterpriseId Int?                                // null=平台级共享；否则企业私有
+  createdBy    Int                                 // 创建人 userId
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([enterpriseId])
+  @@index([system, category])
+}
+
 model Hazard {
   id           Int      @id @default(autoincrement())
   location     String                      // 隐患位置

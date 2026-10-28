@@ -33,6 +33,8 @@ declare module '@symbols/symbols.js' {
     maxH?: number
     minAngle?: number
     maxAngle?: number
+    alarmLo?: number
+    alarmHi?: number
     textIndex?: number
     onClass?: string[]
     offClass?: string[]
@@ -103,6 +105,8 @@ declare module '@symbols/symbols.js' {
   export const GEOMETRY: Record<string, string>
   /** 图片版几何：图元 ID → SVG 片段（含 <image>） */
   export const GEOMETRY_IMAGE: Record<string, string>
+  /** 图片版状态角标 markup（运行/故障/手动/报警/喷放），平台侧新增自定义图元复用 */
+  export const BADGES: string
 }
 
 declare module '@symbols/runtime.js' {

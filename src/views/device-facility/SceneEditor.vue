@@ -121,7 +121,7 @@ import AppIcon from '@/components/base/AppIcon.vue'
 import SceneCanvas from '@/components/device-facility/SceneCanvas.vue'
 import ScenePropertyPanel from '@/components/device-facility/ScenePropertyPanel.vue'
 import SymbolPicker from '@/components/device-facility/SymbolPicker.vue'
-import { symbolDef } from '@/symbols'
+import { SYMBOLS, isCustomSymbol, symbolDef } from '@/symbols'
 import { useSceneConfigStore } from '@/stores/scene-config'
 import type { SceneConfig, SceneEdge, SceneNode, SceneSelection } from '@/types/scene-config'
 import sampleLayoutRaw from '@symbols/layouts/demo-firewater.json?raw'
@@ -321,8 +321,18 @@ function toggleVariant() {
   scheduleDraft()
 }
 
-/** 导出：与图元库同款信封 */
+/** 导出：与图元库同款信封；画面用到的自定义图元附带定义，外部系统才认得 CUS- 前缀 */
 function onExport() {
+  const used = new Set(nodes.value.map((n) => n.symbol))
+  const custom = SYMBOLS.filter((s) => used.has(s.id) && isCustomSymbol(s.id)).map((s) => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+    system: s.system,
+    image: s.image,
+    ports: s.ports,
+    bindings: s.bindings,
+  }))
   const payload = {
     version: 1,
     name: sceneName.value,
@@ -330,6 +340,7 @@ function onExport() {
     height: scene.height,
     nodes: nodes.value,
     edges: edges.value,
+    ...(custom.length ? { symbols: custom } : {}),
   }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
   const a = document.createElement('a')
