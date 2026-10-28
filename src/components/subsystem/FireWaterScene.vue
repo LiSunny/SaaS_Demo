@@ -62,17 +62,17 @@
         >
           <title>{{ tipOf(n) }}</title>
 
-          <text class="fw-scene__label" :x="n.x" :y="n.y + n.size / 2 + 16">{{ n.label }}</text>
-          <text v-if="n.value" class="fw-scene__value" :x="n.x" :y="n.y + n.size / 2 + 31">{{ n.value }}</text>
-          <text v-if="n.subValue" class="fw-scene__sub" :x="n.x" :y="n.y + n.size / 2 + 45">{{ n.subValue }}</text>
+          <text class="fw-scene__label" :x="n.x" :y="n.labelY">{{ n.label }}</text>
+          <text v-if="n.value" class="fw-scene__value" :x="n.x" :y="n.valueY">{{ n.value }}</text>
+          <text v-if="n.subValue" class="fw-scene__sub" :x="n.x" :y="n.subY">{{ n.subValue }}</text>
 
           <!-- 命中区：图元与文字之间的空白处也要能点中，否则只有像素处可点 -->
           <rect
             class="fw-scene__hit"
             :x="n.x - n.size / 2"
-            :y="n.y - n.size / 2"
+            :y="n.hitY"
             :width="n.size"
-            :height="n.size + 48"
+            :height="n.hitH"
             fill="none"
             pointer-events="all"
           />
@@ -139,18 +139,26 @@
  * 监控页只保留"画面 + 实时值 + 状态"，所以这里自绘 SVG，
  * 但图元几何、端口坐标、正交连线路径全部复用 @/symbols 的同一套实现。
  */
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import SceneSymbolNode from '@/components/device-facility/SceneSymbolNode.vue'
-import { edgePath, edgePathReversed } from '@/symbols'
+import {
+  edgePath,
+  edgePathReversed,
+  registerInlineSymbols,
+  symbolDef,
+  SYMBOL_REGISTRY_VERSION,
+} from '@/symbols'
 import { useSubsystemStore } from '@/stores/subsystem'
+import { useSymbolStore } from '@/stores/symbols'
 import {
   FIREWATER_EDGES,
-  FIREWATER_NODE_BINDINGS,
   FIREWATER_NODES,
   FIREWATER_SCENE_NAME,
+  FIREWATER_SCENE_SYMBOLS,
   FIREWATER_VIEWBOX,
   aggregateNode,
+  bindingOf,
 } from '@/config/firewater-scene'
 import type { SceneEdge } from '@/types/scene-config'
 import type { FireWaterPointGroup } from '@/types/firewater'
@@ -176,12 +184,39 @@ const sceneName = computed(() => props.sceneName ?? FIREWATER_SCENE_NAME)
 /** 只有管道连线有流动动画 */
 const flowingEdges = computed(() => edges.filter(e => e.flow && e.flow !== 'none'))
 
+/**
+ * 标签画在节点上方还是下方
+ *
+ * 节点下方有管线伸出时（连线挂在朝下的端口上），标签画在下面会被管线压住，
+ * 这类节点把标签翻到节点上方。
+ */
+const labelAboveIds = computed(() => {
+  // 自定义图元注册完成后才有端口信息 → 依赖注册版本号重新判定
+  void SYMBOL_REGISTRY_VERSION.value
+  const ids = new Set<string>()
+  for (const e of edges) {
+    for (const end of [e.from, e.to]) {
+      const node = FIREWATER_NODES.find(n => n.id === end.node)
+      if (!node) continue
+      const dir = symbolDef(node.symbol)?.ports?.[end.port ?? 0]?.dir
+      if (dir === 'down') ids.add(node.id)
+    }
+  }
+  return ids
+})
+
 /** 节点视图：位置标签取自布局，实时值与状态按绑定表聚合 */
 const nodeViews = computed(() => {
-  const bindingMap = new Map(FIREWATER_NODE_BINDINGS.map(b => [b.nodeId, b]))
+  // 同一图元符号可能在画面里出现多次 → 按出现次序区分（第几个实例）
+  const seen = new Map<string, number>()
   return FIREWATER_NODES.map(n => {
-    const binding = bindingMap.get(n.id)
+    const nth = (seen.get(n.symbol) ?? 0) + 1
+    seen.set(n.symbol, nth)
+    const binding = bindingOf(n.symbol, nth)
     const agg = binding ? aggregateNode(binding, points.value, getRuntime) : null
+    const below = n.y + (n.size ?? 60) / 2
+    const above = n.y - (n.size ?? 60) / 2
+    const flip = labelAboveIds.value.has(n.id)
     return {
       id: n.id,
       symbol: n.symbol,
@@ -195,15 +230,25 @@ const nodeViews = computed(() => {
       abnormal: agg?.abnormal ?? 0,
       total: agg?.points.length ?? 0,
       schematic: binding?.schematic ?? false,
+      binding,
+      labelY: flip ? above - 16 : below + 16,
+      valueY: flip ? above - 31 : below + 31,
+      subY: flip ? above - 45 : below + 45,
+      // 命中区跟着标签走：标签翻到上方时，热区也要覆盖上方
+      hitY: flip ? above - 48 : n.y - (n.size ?? 60) / 2,
+      hitH: flip ? (n.size ?? 60) + 96 : (n.size ?? 60) + 48,
     }
   })
 })
 
 function pathOf(e: SceneEdge): string {
+  // 端口坐标来自图元定义，自定义图元注册完成后才有值 → 依赖注册版本号触发重算
+  void SYMBOL_REGISTRY_VERSION.value
   return edgePath(e, FIREWATER_NODES)
 }
 
 function flowPathOf(e: SceneEdge): string {
+  void SYMBOL_REGISTRY_VERSION.value
   return e.flow === 'reverse' ? edgePathReversed(e, FIREWATER_NODES) : edgePath(e, FIREWATER_NODES)
 }
 
@@ -214,7 +259,7 @@ function tipOf(n: (typeof nodeViews.value)[number]): string {
 
 function onSelect(n: (typeof nodeViews.value)[number]): void {
   if (n.schematic) return
-  const binding = FIREWATER_NODE_BINDINGS.find(b => b.nodeId === n.id)
+  const binding = n.binding
   if (!binding) return
   const members = aggregateNode(binding, points.value, getRuntime).points
   emit('select', {
@@ -224,6 +269,23 @@ function onSelect(n: (typeof nodeViews.value)[number]): void {
     points: members,
   })
 }
+
+/**
+ * 自定义图元注册
+ *
+ * 画面用的是平台内新增的图元（CUS-* 段位图），渲染链路必须先知道它们：
+ *   1. 服务端已收录 → 以服务端为准（产品图最新、包围盒更准）
+ *   2. 服务端未收录或接口不可用 → 用画面文件内联的定义兜底
+ * 注册完成后 SYMBOL_REGISTRY_VERSION 自增，图元与连线各自重绘。
+ */
+onMounted(async () => {
+  try {
+    await useSymbolStore().load()
+  } catch {
+    // 未登录或接口不可用：画面文件内联的定义足够渲染
+  }
+  registerInlineSymbols(FIREWATER_SCENE_SYMBOLS)
+})
 </script>
 
 <style scoped>
@@ -369,4 +431,49 @@ function onSelect(n: (typeof nodeViews.value)[number]): void {
 }
 .fw-scene :deep(.sym-root.is-fault .sym-halo) { stroke: var(--warning); }
 .fw-scene :deep(.sym-badge-fault .sym-badge-bg) { fill: var(--warning); }
+
+/* ===== 角标：正常不显示，只有异常提示 ===== */
+/* 正常（is-run）的绿色 ▶ 角标在组态里是噪声：满屏图元全带角标时，
+   角标不再传递"这里有异常"的信息，反而淹没真正要看的故障 / 预警角标。 */
+.fw-scene :deep(.sym-root.is-run .sym-badge-run) { display: none; }
+
+/* 超限 / 预警：图元库没有单独的角标图形，复用报警角标（⚠ 三角），
+   配色按本页图例口径取红色 —— 预警=红、故障=橙。 */
+.fw-scene :deep(.sym-root.is-over .sym-badge-alarm) { display: block; }
+.fw-scene :deep(.sym-root.is-over .sym-badge-alarm .sym-badge-bg) { fill: var(--danger); }
+.fw-scene :deep(.sym-root.is-over .sym-badge-alarm .sym-badge-mark) { stroke: var(--bg-card); }
+
+/* ===== 图标后面的光晕圈去掉 ===== */
+/* 状态只由角标表达，画面里不再有套在图标外圈的圆环。 */
+.fw-scene :deep(.sym-halo) { display: none; }
+
+/* ===== 异常角标闪烁 ===== */
+/* 角标是画面里唯一的异常提示，必须自己跳起来 —— 不闪的角标在余光里扫不到。
+   节奏按两点定：
+     1. 别太快。1s 硬切在 60Hz 屏上是每秒 60 帧全亮全灭，刺眼且像卡顿；
+        改成 2s（故障）/ 2.5s（预警）周期。
+     2. 别和刷新撞节奏。页面每 3s 刷一轮，1s 的角标周期会被刷新切成一段段，
+        看起来像画面周期性顿住。2s / 2.5s 与 3s 错开。
+   亮灭边缘各留 8% 的渐变过渡，避免硬切的刺眼感。
+   will-change: opacity 把角标提升为合成层，闪烁由合成器处理，
+   不再每帧重绘底图层（那里有 11 张 512×512 位图，重绘代价高）。 */
+@keyframes fw-badge-blink {
+  0% { opacity: 1; }
+  46% { opacity: 1; }
+  50% { opacity: .2; }
+  96% { opacity: .2; }
+  100% { opacity: 1; }
+}
+.fw-scene :deep(.sym-root.is-fault .sym-badge-fault) {
+  animation: fw-badge-blink 2s linear infinite;
+  will-change: opacity;
+}
+.fw-scene :deep(.sym-root.is-over .sym-badge-alarm) {
+  animation: fw-badge-blink 2.5s linear infinite;
+  will-change: opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fw-scene :deep(.sym-root.is-fault .sym-badge-fault),
+  .fw-scene :deep(.sym-root.is-over .sym-badge-alarm) { animation: none; }
+}
 </style>

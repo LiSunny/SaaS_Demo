@@ -1,121 +1,126 @@
 {
   "version": 1,
-  "name": "消防给水系统总貌",
+  "name": "消防水系统设备状态监控",
   "width": 1200,
   "height": 700,
   "nodes": [
     {
-      "id": "n1",
-      "symbol": "TNK-FIRE-01",
-      "x": 112,
-      "y": 520,
+      "id": "nmvrgb5bpapoz",
+      "symbol": "FWMS-MH-01",
+      "x": 576,
+      "y": 136,
       "size": 96,
-      "label": "消防水池",
-      "point": "TNK_FIRE_01_LV"
-    },
-    {
-      "id": "n2",
-      "symbol": "RES-TANK-01",
-      "x": 104,
-      "y": 160,
-      "size": 96,
-      "label": "消防水箱",
-      "point": "RES_TANK_01_LV"
-    },
-    {
-      "id": "n3",
-      "symbol": "PMP-SET-01",
-      "x": 328,
-      "y": 160,
-      "size": 72,
-      "label": "消防泵组",
-      "point": "PMP_SET_01_RUN"
-    },
-    {
-      "id": "n5",
-      "symbol": "CAB-PMP-01",
-      "x": 504,
-      "y": 64,
-      "size": 60,
-      "label": "稳压控制制柜",
-      "point": "CAB_PMP_01_FAULT"
-    },
-    {
-      "id": "n9",
-      "symbol": "HYD-IND-01",
-      "x": 840,
-      "y": 88,
-      "size": 60,
-      "label": "室内消火栓",
-      "point": "HYD_IND_01_PRESS"
-    },
-    {
-      "id": "n10",
-      "symbol": "VLV-BUTT-01",
-      "x": 648,
-      "y": 160,
-      "size": 48,
-      "label": "阀门",
-      "point": "VLV_BUTT_01_OPEN"
-    },
-    {
-      "id": "n11",
-      "symbol": "HYD-HOSE-01",
-      "x": 832,
-      "y": 232,
-      "size": 60,
-      "label": "消火栓箱",
-      "point": "HYD_HOSE_01_PRESS"
-    },
-    {
-      "id": "n15",
-      "symbol": "TST-TEST-01",
-      "x": 832,
-      "y": 432,
-      "size": 60,
-      "label": "末端试水装置",
-      "point": "TST_TEST_01_P"
-    },
-    {
-      "id": "nmvq2pm3bw7kl",
-      "symbol": "PMP-SET-01",
-      "x": 328,
-      "y": 520,
-      "size": 72,
-      "label": "消防泵组",
+      "label": "消防用水监测主机",
       "point": "",
       "value": "",
       "state": {}
     },
     {
-      "id": "nmvq2q06li0ev",
-      "symbol": "CAB-PMP-01",
-      "x": 232,
-      "y": 384,
+      "id": "nmvrhseddewtx",
+      "symbol": "CUS-ATS-01",
+      "x": 248,
+      "y": 392,
       "size": 60,
-      "label": "消防泵控制柜",
+      "label": "自动末端试水",
       "point": "",
       "value": "",
       "state": {}
     },
     {
-      "id": "nmvq7w5er8tog",
-      "symbol": "SPK-SPR-01",
-      "x": 832,
-      "y": 608,
+      "id": "nmvrhsfqap1rk",
+      "symbol": "CUS-MTS-01",
+      "x": 368,
+      "y": 392,
       "size": 60,
-      "label": "喷淋喷头",
+      "label": "手动末端试水",
       "point": "",
       "value": "",
       "state": {}
     },
     {
-      "id": "nmvqajja98rbz",
-      "symbol": "ALV-GRP-01",
-      "x": 648,
-      "y": 520,
+      "id": "nmvrhsudcmtma",
+      "symbol": "CUS-IOM-01",
+      "x": 576,
+      "y": 392,
       "size": 60,
-      "label": "报警阀组",
+      "label": "输入输出模块",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrhsyep5lbx",
+      "symbol": "CUS-PSW-01",
+      "x": 680,
+      "y": 392,
+      "size": 60,
+      "label": "压力开关",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrhszf5rysv",
+      "symbol": "CUS-FTM-01",
+      "x": 1080,
+      "y": 392,
+      "size": 60,
+      "label": "流量计",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrht09nkfq8",
+      "symbol": "CUS-THS-01",
+      "x": 968,
+      "y": 392,
+      "size": 60,
+      "label": "温湿度探测器",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrht17frcbg",
+      "symbol": "CUS-WIM-01",
+      "x": 872,
+      "y": 392,
+      "size": 60,
+      "label": "水浸",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrht23891a4",
+      "symbol": "CUS-LEV-01",
+      "x": 776,
+      "y": 392,
+      "size": 60,
+      "label": "液位",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrht78wdil3",
+      "symbol": "CUS-INM-01",
+      "x": 472,
+      "y": 392,
+      "size": 60,
+      "label": "输入模块",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrht8roy1ms",
+      "symbol": "CUS-EFD-01",
+      "x": 128,
+      "y": 392,
+      "size": 60,
+      "label": "电气火灾探测器",
       "point": "",
       "value": "",
       "state": {}
@@ -123,146 +128,699 @@
   ],
   "edges": [
     {
-      "id": "e2",
+      "id": "emvri6h399epi",
       "from": {
-        "node": "n2",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "n3",
+        "node": "nmvrht8roy1ms",
         "port": 0
       },
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "e9",
+      "id": "emvri6jkt09fn",
       "from": {
-        "node": "n10",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "n11",
+        "node": "nmvrhseddewtx",
+        "port": 2
+      },
+      "routeMode": "align",
+      "flow": "reverse"
+    },
+    {
+      "id": "emvri6lqt5gs7",
+      "from": {
+        "node": "nmvrgb5bpapoz",
+        "port": 2
+      },
+      "to": {
+        "node": "nmvrhsfqap1rk",
         "port": 0
       },
-      "routeMode": "manual",
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "e12",
+      "id": "emvri6ndyodm3",
       "from": {
-        "node": "n5"
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "n3"
-      },
-      "kind": "control"
-    },
-    {
-      "id": "emvq2puxpbxtd",
-      "from": {
-        "node": "n1",
-        "port": 1
-      },
-      "to": {
-        "node": "nmvq2pm3bw7kl",
+        "node": "nmvrht78wdil3",
         "port": 0
       },
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "emvq2qb2v10e9",
+      "id": "emvri6pk9w0lu",
       "from": {
-        "node": "nmvq2q06li0ev",
-        "port": 0
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "nmvq2pm3bw7kl",
-        "port": 1
+        "node": "nmvrhsudcmtma",
+        "port": 0
       },
-      "kind": "control"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "emvq5q9on21zi",
+      "id": "emvri6riwkom1",
       "from": {
-        "node": "n10",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "n9",
+        "node": "nmvrhsyep5lbx",
         "port": 0
       },
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "emvqadmdoq0ru",
+      "id": "emvri6u2ma4nl",
       "from": {
-        "node": "nmvq2pm3bw7kl",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "n10",
+        "node": "nmvrht23891a4",
         "port": 0
-      }
+      },
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "emvqae5z0mwc7",
+      "id": "emvri6w9mapjw",
       "from": {
-        "node": "n3",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "n10",
+        "node": "nmvrht17frcbg",
         "port": 0
       },
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "emvqajsxsipni",
+      "id": "emvri6ymihbh5",
       "from": {
-        "node": "n3",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "nmvqajja98rbz",
+        "node": "nmvrht09nkfq8",
         "port": 0
       },
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
     },
     {
-      "id": "emvqajuyws7uc",
+      "id": "emvri718g8mdl",
       "from": {
-        "node": "nmvq2pm3bw7kl",
-        "port": 1
+        "node": "nmvrgb5bpapoz",
+        "port": 2
       },
       "to": {
-        "node": "nmvqajja98rbz",
-        "port": 0
+        "node": "nmvrhszf5rysv",
+        "port": 2
       },
-      "flow": "forward"
+      "routeMode": "align",
+      "flow": "reverse"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "CUS-PSW-01",
+      "name": "压力开关",
+      "category": "仪表",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908617-1aceaa6f.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "压力",
+          "kind": "text",
+          "point": "CUS_PSW_01_P",
+          "unit": "MPa",
+          "min": 0,
+          "max": 1.6,
+          "alarmLo": 0.15,
+          "alarmHi": 1.2,
+          "textIndex": 0
+        },
+        {
+          "name": "报警",
+          "kind": "bool",
+          "point": "CUS_PSW_01_ALM",
+          "onClass": [
+            "is-alarm"
+          ]
+        }
+      ]
     },
     {
-      "id": "emvqajwt6am9l",
-      "from": {
-        "node": "nmvqajja98rbz",
-        "port": 1
-      },
-      "to": {
-        "node": "n15",
-        "port": 0
-      },
-      "flow": "forward"
+      "id": "CUS-INM-01",
+      "name": "输入模块",
+      "category": "电气",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908564-b1a61105.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "运行",
+          "kind": "bool",
+          "point": "CUS_INM_01_RUN",
+          "onClass": [
+            "is-run"
+          ]
+        },
+        {
+          "name": "输入动作",
+          "kind": "bool",
+          "point": "CUS_INM_01_ACT",
+          "onClass": [
+            "is-alarm"
+          ]
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_INM_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
     },
     {
-      "id": "emvqajytf3zhp",
-      "from": {
-        "node": "nmvqajja98rbz",
-        "port": 1
-      },
-      "to": {
-        "node": "nmvq7w5er8tog",
-        "port": 0
-      },
-      "flow": "forward"
+      "id": "CUS-FTM-01",
+      "name": "流量计",
+      "category": "仪表",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908512-2d06f656.png",
+      "ports": [
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "瞬时流量",
+          "kind": "text",
+          "point": "CUS_FTM_01_Q",
+          "unit": "m³/h",
+          "textIndex": 0
+        },
+        {
+          "name": "累计流量",
+          "kind": "text",
+          "point": "CUS_FTM_01_QT",
+          "unit": "m³",
+          "textIndex": 1
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_FTM_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-ATS-01",
+      "name": "自动末端试水",
+      "category": "末端设施",
+      "system": "pipeline",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908449-67ff95fe.png",
+      "ports": [
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "末端压力",
+          "kind": "text",
+          "point": "CUS_ATS_01_P",
+          "unit": "MPa",
+          "min": 0,
+          "max": 1.6,
+          "alarmLo": 0.15,
+          "alarmHi": 1.2,
+          "textIndex": 0
+        },
+        {
+          "name": "流量",
+          "kind": "text",
+          "point": "CUS_ATS_01_Q",
+          "unit": "L/s",
+          "textIndex": 1
+        },
+        {
+          "name": "喷放",
+          "kind": "bool",
+          "point": "CUS_ATS_01_DIS",
+          "onClass": [
+            "is-discharge"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-MTS-01",
+      "name": "手动末端试水",
+      "category": "末端设施",
+      "system": "pipeline",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908396-a4265b8d.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "末端压力",
+          "kind": "text",
+          "point": "CUS_MTS_01_P",
+          "unit": "MPa",
+          "min": 0,
+          "max": 1.6,
+          "alarmLo": 0.15,
+          "alarmHi": 1.2,
+          "textIndex": 0
+        },
+        {
+          "name": "流量",
+          "kind": "text",
+          "point": "CUS_MTS_01_Q",
+          "unit": "L/s",
+          "textIndex": 1
+        },
+        {
+          "name": "状态",
+          "kind": "bool",
+          "point": "CUS_MTS_01_STATE",
+          "onClass": [
+            "is-open"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-IOM-01",
+      "name": "输入输出模块",
+      "category": "控制",
+      "system": "gas",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908342-c0f2c94f.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "运行",
+          "kind": "bool",
+          "point": "CUS_IOM_01_RUN",
+          "onClass": [
+            "is-run"
+          ]
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_IOM_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-EFD-01",
+      "name": "电气火灾探测器",
+      "category": "电气",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908281-3c8c47ef.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "剩余电流",
+          "kind": "text",
+          "point": "CUS_EFD_01_LEAK",
+          "unit": "mA",
+          "min": 0,
+          "max": 1000,
+          "textIndex": 0
+        },
+        {
+          "name": "报警",
+          "kind": "bool",
+          "point": "CUS_EFD_01_ALM",
+          "onClass": [
+            "is-alarm"
+          ]
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_EFD_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-THS-01",
+      "name": "温湿度探测器",
+      "category": "仪表",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908226-1cd7d33d.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "温度",
+          "kind": "text",
+          "point": "CUS_THS_01_TEMP",
+          "unit": "℃",
+          "min": -40,
+          "max": 85,
+          "textIndex": 0
+        },
+        {
+          "name": "湿度",
+          "kind": "text",
+          "point": "CUS_THS_01_HUMI",
+          "unit": "%RH",
+          "min": 0,
+          "max": 100,
+          "textIndex": 1
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_THS_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-WIM-01",
+      "name": "水浸",
+      "category": "仪表",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153908147-890b326d.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "水浸报警",
+          "kind": "bool",
+          "point": "CUS_WIM_01_ALM",
+          "onClass": [
+            "is-alarm"
+          ]
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_WIM_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CUS-LEV-01",
+      "name": "液位",
+      "category": "仪表",
+      "system": "common",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793153907887-53e59794.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "液位",
+          "kind": "text",
+          "point": "CUS_LEV_01_LV",
+          "unit": "%",
+          "min": 0,
+          "max": 100,
+          "alarmLo": 15,
+          "alarmHi": 90,
+          "textIndex": 0
+        },
+        {
+          "name": "故障",
+          "kind": "bool",
+          "point": "CUS_LEV_01_FAULT",
+          "onClass": [
+            "is-fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FWMS-MH-01",
+      "name": "消防用水监测主机",
+      "category": "电气",
+      "system": "pipeline",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793151573248-85fe826e.png",
+      "ports": [
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "运行",
+          "kind": "bool",
+          "point": "FWMS-MH-01-RUN",
+          "onClass": [
+            "is-run"
+          ]
+        }
+      ]
     }
   ]
 }

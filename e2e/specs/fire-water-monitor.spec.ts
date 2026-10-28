@@ -6,7 +6,7 @@
  * - 页面不出垂直滚动条
  * - 统计卡 4 张：设备总数 / 设备在线率 / 设备故障率 / 预警设备，分项可复算
  * - 三个视图：系统总览（组态）/ 报警记录 / 设备台帐
- * - 组态：12 个位图图元 + 12 条连线；位图全部加载成功（0 个解码失败）
+ * - 组态：11 个位图图元 + 10 条连线；位图全部加载成功（0 个解码失败）
  * - 下钻：点图元 → 点位组抽屉 → 点行 → 单点详情抽屉
  *
  * 计数断言一律用「页面自己声明的数字」互相校验，不写死总数。
@@ -150,15 +150,15 @@ test.describe('消防水系统监测', () => {
     expect(warnNum).toBe(warn)
   })
 
-  test('系统总览：组态 12 图元 / 12 连线 + 位图加载成功 + 悬浮图例', async ({ page }) => {
+  test('系统总览：组态 11 图元 / 10 连线 + 位图加载成功 + 悬浮图例', async ({ page }) => {
     // 三层结构：底图层（连线 + 图元位图）/ 文本层（数值 + 交互）/ 动画层（流动光带）
     await expect(page.locator('.fw-scene__svg--base')).toHaveCount(1)
     await expect(page.locator('.fw-scene__svg--text')).toHaveCount(1)
     await expect(page.locator('.fw-scene__svg--flow')).toHaveCount(1)
-    await expect(page.locator('.fw-scene__svg--base .fw-scene__node')).toHaveCount(12)
-    await expect(page.locator('.fw-scene__svg--text .fw-scene__node')).toHaveCount(12)
-    await expect(page.locator('.fw-scene__svg--base .fw-edge')).toHaveCount(12)
-    // 12 条边里 2 条是电气控制线（不流动）→ 动画层 10 条
+    await expect(page.locator('.fw-scene__svg--base .fw-scene__node')).toHaveCount(11)
+    await expect(page.locator('.fw-scene__svg--text .fw-scene__node')).toHaveCount(11)
+    await expect(page.locator('.fw-scene__svg--base .fw-edge')).toHaveCount(10)
+    // 10 条边全是管道线（flow=reverse）→ 动画层 10 条
     await expect(page.locator('.fw-scene__svg--flow .fw-edge__flow')).toHaveCount(10)
     // 位图只在底图层：文本层与动画层含位图会让每次刷新重栅格化整张 SVG
     expect(await page.locator('.fw-scene__svg--text image').count()).toBe(0)
@@ -170,9 +170,37 @@ test.describe('消防水系统监测', () => {
         loaded: (im as SVGImageElement).getBBox !== undefined && im.getBoundingClientRect().width > 0,
       })),
     )
-    expect(imgs.length).toBe(12)
+    expect(imgs.length).toBe(11)
     expect(imgs.every(i => i.loaded)).toBe(true)
-    expect(imgs.every(i => i.href.includes('/symbols/img/'))).toBe(true)
+    // 画面用的是平台内新增的图元，产品图在 OSS 公网地址上
+    expect(imgs.every(i => i.href.startsWith('http'))).toBe(true)
+
+    // 角标：正常不显示，只有异常显示；异常角标闪烁；图标后面的光晕圈不画
+    const badgeState = await page.evaluate(() =>
+      [...document.querySelectorAll('.fw-scene__svg--base .fw-scene__node')].map(n => {
+        const cls = n.querySelector('svg.sym-root')?.getAttribute('class') ?? ''
+        const visible = [...n.querySelectorAll('.sym-badge')].filter(
+          b => getComputedStyle(b).display !== 'none',
+        )
+        const halo = n.querySelector('.sym-halo')
+        return {
+          isRun: cls.includes('is-run'),
+          isAbnormal: /is-(fault|alarm|over|discharge)/.test(cls),
+          badges: visible.length,
+          blinking: visible.some(b => getComputedStyle(b).animationName !== 'none'),
+          haloHidden: !halo || getComputedStyle(halo).display === 'none',
+        }
+      }),
+    )
+    expect(badgeState).toHaveLength(11)
+    for (const s of badgeState) {
+      if (s.isRun) expect(s.badges).toBe(0)
+      if (s.isAbnormal) {
+        expect(s.badges).toBeGreaterThan(0)
+        expect(s.blinking).toBe(true)
+      }
+      expect(s.haloHidden).toBe(true)
+    }
 
     // 图例：浮在画面左上角，三色
     const legend = page.locator('.fw-scene__legend')
@@ -213,9 +241,9 @@ test.describe('消防水系统监测', () => {
   })
 
   test('组态图元下钻：点位组抽屉 → 单点详情抽屉', async ({ page }) => {
-    await page.locator('.fw-scene__svg--text .fw-scene__node', { hasText: '消防水池' }).first().click()
+    await page.locator('.fw-scene__svg--text .fw-scene__node', { hasText: '液位' }).first().click()
     await expect(page.locator('.fwd__list .pr').first()).toBeVisible()
-    await expect(page.locator('.el-drawer__title').first()).toHaveText('消防水池')
+    await expect(page.locator('.el-drawer__title').first()).toHaveText('液位')
 
     // 异常优先排序：首行应带异常标记
     await expect(page.locator('.fwd__list .pr').first()).toBeVisible()

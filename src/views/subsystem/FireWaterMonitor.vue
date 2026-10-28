@@ -101,8 +101,7 @@ import type { PointDef, PointStatus } from '@/types/subsystem'
 import type { FireWaterPointGroup, FireWaterTabKey } from '@/types/firewater'
 import {
   computeFireWaterCards,
-  FIREWATER_NODE_BINDINGS,
-  aggregateNode,
+  findOwnerNode,
   type FireWaterCardValue,
 } from '@/config/firewater-scene'
 import FireWaterCoreCards from '@/components/subsystem/FireWaterCoreCards.vue'
@@ -231,22 +230,19 @@ function openPointById(record: { pointId: string }): void {
   detailOpen.value = true
 }
 
-/** 设备台帐行 → 所属图元分组（按绑定表反查） */
+/** 设备台帐行 → 所属图元分组（按画面绑定反查） */
 function openPointGroup(p: PointDef): void {
-  const binding = FIREWATER_NODE_BINDINGS.find(b => {
-    const members = aggregateNode(b, points.value, getRuntime).points
-    return members.some(m => m.id === p.id)
-  })
-  if (!binding) {
+  const owner = findOwnerNode(p.id, points.value)
+  if (!owner) {
     ElMessage.info('该设备未绑定到组态图元')
     return
   }
-  const agg = aggregateNode(binding, points.value, getRuntime)
+  const label = owner.node.label ?? owner.node.symbol
   openGroup({
-    key: binding.nodeId,
-    title: `${binding.nodeId} 所辖点位`,
-    desc: `${agg.points.length} 个点位`,
-    points: agg.points,
+    key: owner.node.id,
+    title: `${label} 所辖点位`,
+    desc: `${owner.points.length} 个点位`,
+    points: owner.points,
   })
 }
 

@@ -42,15 +42,25 @@ export interface FireAlarmRecord {
 export type FireWaterValueKind =
   | 'levelPercent'   // 最低水位：主值 %，副值 m
   | 'pressureMin'    // 最小压力
+  | 'flowSum'        // 瞬时流量合计
   | 'runningCount'   // 运行数 / 总数
   | 'openCount'      // 开阀数 / 总数
   | 'startedCount'   // 启动装置数 / 总数
   | 'deviceState'    // 设备状态文本
 
-/** 组态图元 → 点位分组 的绑定规则 */
+/**
+ * 组态图元 → 点位分组 的绑定规则
+ *
+ * 按图元符号（symbol）匹配，不按场景节点 id：
+ * 画面由用户在组态配置里编辑，节点 id 是编辑器生成的随机串，删一个节点就换一个，
+ * 按 id 绑定会让规则随编辑失效；图元符号才是稳定契约 ——
+ * 画面里放进 VLV-BUTT-01，阀门绑定即刻生效，不用改代码。
+ */
 export interface FireWaterNodeBinding {
-  /** 场景节点 id */
-  nodeId: string
+  /** 图元符号（画面节点的 symbol 字段） */
+  symbol: string
+  /** 同一符号出现多次时取第几个（从 1 起）；缺省取第 1 个 */
+  nth?: number
   /** 点位匹配 */
   match: {
     /** 设备档案类型 key */

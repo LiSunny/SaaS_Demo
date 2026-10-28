@@ -102,6 +102,9 @@ export function stateClasses(state?: Record<string, boolean>): string[] {
   if (s.manual) out.push('is-manual')
   if (s.open) out.push('is-open')
   if (s.closed) out.push('is-closed')
+  // 超限（模拟量越限）也是一种异常：不映射就没有任何状态类，
+  // 图元既不亮光晕也不挂角标，报警设备和正常设备长得一模一样
+  if (s.over) out.push('is-over')
   if (!out.length && s.off) out.push('is-off')
   return out
 }
@@ -500,6 +503,54 @@ export function registerCustomSymbol(item: CustomSymbolItem): void {
   SYMBOL_POINTS.push(...toCustomPoints(item))
   CUSTOM_SYMBOL_IDS.add(item.symbolId)
   SYMBOL_REGISTRY_VERSION.value++
+}
+
+/** 画面文件内联的自定义图元定义（组态配置导出格式） */
+export interface InlineSymbolDef {
+  /** 图元 ID，如 CUS-PSW-01 */
+  id: string
+  name: string
+  category: string
+  system: string
+  /** 产品图公网地址 */
+  image?: string
+  ports?: Array<{ x: number; y: number; dir: string }>
+  bindings?: Array<Record<string, unknown>>
+}
+
+/**
+ * 用画面文件内联的定义补齐自定义图元
+ *
+ * 组态配置导出的画面文件自带图元定义（产品图地址 + 端口 + 绑定点），
+ * 监控页据此渲染，不依赖服务端是否已收录。
+ * 服务端已收录的以服务端为准（包围盒更准、产品图更新），这里只补缺失的。
+ *
+ * @returns 新注册的图元个数
+ */
+export function registerInlineSymbols(defs: InlineSymbolDef[]): number {
+  let added = 0
+  for (const d of defs) {
+    if (!d.id || symbolDef(d.id)) continue
+    registerCustomSymbol({
+      id: 0,
+      symbolId: d.id,
+      name: d.name,
+      system: d.system,
+      category: d.category,
+      desc: '',
+      imageUrl: d.image ?? '',
+      imageKey: '',
+      // 文件里没有包围盒：按整图铺满，光晕范围偏大但不影响识别
+      bbox: [0, 0, 512, 512],
+      ports: (d.ports ?? []) as unknown as CustomSymbolItem['ports'],
+      bindings: (d.bindings ?? []) as unknown as CustomSymbolItem['bindings'],
+      enterpriseId: null,
+      createdAt: '',
+      updatedAt: '',
+    })
+    added++
+  }
+  return added
 }
 
 /**

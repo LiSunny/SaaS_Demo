@@ -204,7 +204,7 @@ await page.waitForTimeout(600)
 
 // 组态图元下钻
 const nodeDrill = {}
-for (const nodeLabel of ['消防水池', '末端试水装置']) {
+for (const nodeLabel of ['液位', '自动末端试水']) {
   const node = page.locator('.fw-scene__svg--text .fw-scene__node', { hasText: nodeLabel }).first()
   await node.click()
   await page.waitForTimeout(700)
@@ -218,7 +218,7 @@ for (const nodeLabel of ['消防水池', '末端试水装置']) {
 }
 
 // 点行 → 单点详情抽屉（组内导航）
-await page.locator('.fw-scene__svg--text .fw-scene__node', { hasText: '消防水池' }).first().click()
+await page.locator('.fw-scene__svg--text .fw-scene__node', { hasText: '液位' }).first().click()
 await page.waitForTimeout(700)
 await page.locator('.fwd__list .pr').first().click()
 await page.waitForTimeout(1200)
@@ -254,8 +254,14 @@ const badCodes = await page.evaluate(() =>
 )
 check(badCodes.length === 0, `报警记录存在非法点位编号：${badCodes.slice(0, 3).join(', ')}`)
 
-check(imgState.length === 12, `组态位图应为 12 张，实际 ${imgState.length}`)
+check(imgState.length === 11, `组态位图应为 11 张，实际 ${imgState.length}`)
 check(imgState.every(i => i.ok), '存在未成功加载的组态位图')
+check(fwNodes === 11 && fwTextNodes === 11, `组态图元应为 11 个，实际底图 ${fwNodes} / 文本 ${fwTextNodes}`)
+check(fwEdges === 10, `组态连线应为 10 条，实际 ${fwEdges}`)
+check(
+  imgState.every(i => (i.href ?? '').startsWith('http')),
+  '组态位图应指向 OSS 公网地址（平台新增图元的产品图）',
+)
 check(hScroll === 0, `页面出现横向滚动，溢出 ${hScroll}px`)
 check(fwAlarmRows > 0, '报警记录表为空')
 
