@@ -128,6 +128,9 @@ export const useFirewaterAlarmStore = defineStore('firewater-alarm', () => {
       reason: reason || deviceReason(point, status),
       status: 'unhandled' as FireAlarmStatus,
       occurredAt,
+      pointStatus: status,
+      typeKey: point.typeKey,
+      hostId: point.hostId,
     }
   }
 
@@ -174,6 +177,9 @@ export const useFirewaterAlarmStore = defineStore('firewater-alarm', () => {
           reason,
           status: 'unhandled',
           occurredAt: now - Math.floor(r() * SEED_SPAN_MS),
+          pointStatus: level === 'general' ? 'fault' : 'alarm',
+          typeKey: p.typeKey,
+          hostId: p.hostId,
         })
       }
     }

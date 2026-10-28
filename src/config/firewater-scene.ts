@@ -12,14 +12,14 @@
  *
  * 切片校验：压力 38+38+38 = 114 ✓ 阀门 719 + 72 = 791 ✓ 液位 2+2 = 4 ✓
  *          试水 232 ✓ 主机 1 + 分机 4+2+2 = 9 ✓
- * 场景覆盖 1150 个点位，其余 6 个流量点由核心数据「供水流量」卡下钻进入 → 1156 全部可达。
+ * 场景覆盖 1150 个点位，其余 6 个流量点由顶部统计卡「设备总数」下钻进入 → 1156 全部可达。
  */
 import sceneJson from './firewater-scene.json'
 import type { SceneEdge, SceneNode } from '@/types/scene-config'
 import type { MetricDef, PointDef, PointRuntime, PointStatus } from '@/types/subsystem'
 import type {
-  FireWaterCardDef,
   FireWaterCardKind,
+  FireWaterCardLegendItem,
   FireWaterNodeAggregate,
   FireWaterNodeBinding,
   FireWaterPointGroup,
@@ -77,15 +77,31 @@ export const FIREWATER_NODE_BINDINGS: FireWaterNodeBinding[] = [
   { nodeId: 'n15', match: { typeKeys: ['hydrant_test'] }, value: 'startedCount', metricKey: 'runState', onValue: 'running' },
 ]
 
-/** 核心数据卡定义（取值规则见下方 computeFireWaterCards） */
-export const FIREWATER_CARDS: FireWaterCardDef[] = [
-  { key: 'pressure', label: '供水压力', icon: 'chart', agg: 'min', typeKey: 'pipe_pressure', metricKey: 'pressure' },
-  { key: 'flow', label: '供水流量', icon: 'activity', agg: 'avg', typeKey: 'flow_sensor', metricKey: 'flow' },
-  { key: 'level', label: '水池水位', icon: 'data-display', agg: 'min', typeKey: 'water_level', metricKey: 'level', asPercent: true },
-  { key: 'system', label: '系统状态', icon: 'check-circle' },
-]
-
 // ===== 通用工具 =====
+
+/**
+ * 成员列表缓存（按点位清单的数组引用分桶）
+ *
+ * 「这个节点管哪些点位」每轮刷新都要回答一遍：组态 12 个节点绑定 + 4 张统计卡，
+ * 直接 filter 就是 16 × 1156 ≈ 1.8 万次谓词调用，外加 16 个大数组的分配。
+ * 而成员集合只随点位清单变化（loadSubsystem 时换一份数组），
+ * 所以缓存后每轮 0 次遍历，聚合只做真正需要的那一遍。
+ */
+const memberCache = new WeakMap<PointDef[], Map<string, PointDef[]>>()
+
+function cachedMembers(points: PointDef[], key: string, build: () => PointDef[]): PointDef[] {
+  let byKey = memberCache.get(points)
+  if (!byKey) {
+    byKey = new Map()
+    memberCache.set(points, byKey)
+  }
+  let list = byKey.get(key)
+  if (!list) {
+    list = build()
+    byKey.set(key, list)
+  }
+  return list
+}
 
 function metricOf(point: PointDef | undefined, key: string): MetricDef | undefined {
   return point?.metrics.find(m => m.key === key)
@@ -131,14 +147,16 @@ export function resolveNodePoints(
   binding: FireWaterNodeBinding,
   points: PointDef[],
 ): PointDef[] {
-  const list = points.filter(p => {
-    if (!binding.match.typeKeys.includes(p.typeKey)) return false
-    if (binding.match.codePrefix) return p.code.startsWith(binding.match.codePrefix)
-    return true
+  return cachedMembers(points, `node:${binding.nodeId}`, () => {
+    const list = points.filter(p => {
+      if (!binding.match.typeKeys.includes(p.typeKey)) return false
+      if (binding.match.codePrefix) return p.code.startsWith(binding.match.codePrefix)
+      return true
+    })
+    if (!binding.match.slice) return list
+    const [start, end] = binding.match.slice
+    return list.slice(start, end)
   })
-  if (!binding.match.slice) return list
-  const [start, end] = binding.match.slice
-  return list.slice(start, end)
 }
 
 /**
@@ -236,15 +254,24 @@ export function aggregateNode(
   }
 }
 
+/**
+ * 图元状态标记
+ *
+ * 与页面图例同一套色：正常=绿(is-run)、预警=红(is-over，超限)、故障=橙(is-fault)、
+ * 离线=灰(is-off)。is-fault 的橙色由 FireWaterScene 局部改色实现，
+ * 图元库全局主题仍是红色故障态。
+ */
 function levelState(status: 'alarm' | 'fault' | 'offline' | 'normal'): Record<string, boolean> {
   if (status === 'alarm') return { over: true }
-  if (status === 'fault' || status === 'offline') return { fault: true }
+  if (status === 'fault') return { fault: true }
+  if (status === 'offline') return { off: true }
   return { run: true }
 }
 
 function pressureState(status: 'alarm' | 'fault' | 'offline' | 'normal'): Record<string, boolean> {
   if (status === 'alarm') return { over: true }
-  if (status === 'fault' || status === 'offline') return { fault: true }
+  if (status === 'fault') return { fault: true }
+  if (status === 'offline') return { off: true }
   return { run: true }
 }
 
@@ -259,146 +286,129 @@ function countState(
   return { run: true }
 }
 
-// ===== 核心数据卡 =====
+// ===== 顶部统计卡（设备维度） =====
 
-/** 一张核心数据卡的最终呈现 */
+/** 一张统计卡的最终呈现 */
 export interface FireWaterCardValue {
   key: FireWaterCardKind
+  /** 卡标题（设计稿文案） */
   label: string
+  /** 统计卡图标：设计稿导出的 SVG 路径（SVG 自带底色与配色） */
   icon: string
-  /** 主值（数字或状态词） */
+  /** 主值文本 */
   value: string
-  /** 单位 */
+  /** 单位（台 / %） */
   unit: string
-  /** 副行：口径说明 + 分母 */
-  sub: string
-  /** 正常范围文案（来自指标定义，不手写） */
-  normalRange: string
-  /** 色调 */
-  tone: 'normal' | 'alarm' | 'fault' | 'offline'
-  /** 该卡所辖点位（供下钻） */
+  /** 口径说明（title 提示，必须能自证） */
+  hint: string
+  /** 环形图与底部图例共用的分项 */
+  legend: FireWaterCardLegendItem[]
+  /** 参与计数的设备总数（环形图分母） */
+  total: number
+  /** 该卡下钻所辖点位 */
   points: PointDef[]
 }
 
+/** 设计稿给定的分项色 */
+const CARD_COLORS = {
+  host: '#6293C8',
+  device: '#417AB7',
+  offline: '#CED2D7',
+  online: '#059669',
+  fault: '#D97706',
+  warning: '#DC2626',
+} as const
+
 /**
- * 计算 4 张核心数据卡
+ * 计算顶部 4 张统计卡
  *
- * 供水压力 = 114 个压力测点的最小值（管网最不利点）
- * 供水流量 = 6 个流量测点的算术平均（管网总流量口径）
- * 水池水位 = 4 个液位测点的最小值，按量程上限折算成百分比
- * 系统状态 = 全部 1156 点位的状态计数派生
+ * 口径（全部按设备计数，不按测点）：
+ *   设备总数   = 主机 + 分机 + 采集器件
+ *   设备在线率 = 非离线设备 / 设备总数
+ *   设备故障率 = 故障设备 / 设备总数
+ *   预警设备   = 报警 + 故障设备（台数）
+ *
+ * 主机/分机的判定：采集器件带 hostId（挂在某台分机下），
+ * 主机与分机自身不带 hostId。
  */
 export function computeFireWaterCards(
   points: PointDef[],
   getRuntime: (id: string) => PointRuntime | undefined,
 ): FireWaterCardValue[] {
-  const byType = (typeKey: string) => points.filter(p => p.typeKey === typeKey)
+  const total = points.length
+  const hosts = points.filter(p => !p.hostId)
+  const devices = points.filter(p => !!p.hostId)
 
-  const out: FireWaterCardValue[] = []
+  const statusOfPoint = (p: PointDef): PointStatus => getRuntime(p.id)?.status ?? 'unknown'
+  const offline = points.filter(p => statusOfPoint(p) === 'offline')
+  const fault = points.filter(p => statusOfPoint(p) === 'fault')
+  const warning = points.filter(p => {
+    const s = statusOfPoint(p)
+    return s === 'alarm' || s === 'fault'
+  })
 
-  for (const card of FIREWATER_CARDS) {
-    if (card.key === 'system') {
-      const counts = { normal: 0, alarm: 0, fault: 0, offline: 0, other: 0 }
-      for (const p of points) {
-        const s = statusOf(p, getRuntime)
-        if (s === 'normal') counts.normal++
-        else if (s === 'alarm') counts.alarm++
-        else if (s === 'fault') counts.fault++
-        else if (s === 'offline') counts.offline++
-        else counts.other++
-      }
-      const tone: FireWaterCardValue['tone'] =
-        counts.alarm > 0 ? 'alarm' : counts.fault > 0 ? 'fault' : counts.offline > 0 ? 'offline' : 'normal'
-      const text =
-        tone === 'alarm' ? '报警' : tone === 'fault' ? '故障' : tone === 'offline' ? '部分离线' : '正常运行'
-      const detail =
-        counts.alarm || counts.fault || counts.offline
-          ? `${counts.alarm} 个报警 / ${counts.fault} 个故障 / ${counts.offline} 个离线`
-          : `无报警 · ${counts.normal} 个点位正常`
-      const abnormalPoints = points.filter(p => {
-        const s = statusOf(p, getRuntime)
-        return s === 'alarm' || s === 'fault' || s === 'offline'
-      })
-      out.push({
-        key: card.key,
-        label: card.label,
-        icon: tone === 'normal' ? card.icon : tone === 'alarm' ? 'error-circle' : 'close-circle',
-        value: text,
-        unit: '',
-        sub: detail,
-        normalRange: `正常范围：${points.length} 个点位无报警`,
-        tone,
-        points: abnormalPoints,
-      })
-      continue
-    }
+  const online = total - offline.length
+  const healthy = total - fault.length
+  const pct = (n: number): string => (total > 0 ? ((n / total) * 100).toFixed(2) : '0.00')
 
-    const members = byType(card.typeKey!)
-    const metric = metricOf(members[0], card.metricKey!)
-    const vals = members
-      .map(p => num(getRuntime(p.id)?.values?.[card.metricKey!]))
-      .filter((v): v is number => v !== undefined)
-
-    if (!members.length || !vals.length) {
-      out.push({
-        key: card.key,
-        label: card.label,
-        icon: card.icon,
-        value: '--',
-        unit: metric?.unit ?? '',
-        sub: '无测点数据',
-        normalRange: '',
-        tone: 'normal',
-        points: members,
-      })
-      continue
-    }
-
-    const aggValue = card.agg === 'avg' ? vals.reduce((a, b) => a + b, 0) / vals.length : Math.min(...vals)
-    const precision = metric?.precision ?? 2
-    const unit = metric?.unit ?? ''
-    const status = groupStatus(members, getRuntime)
-    const tone: FireWaterCardValue['tone'] =
-      status === 'alarm' ? 'alarm' : status === 'fault' ? 'fault' : status === 'offline' ? 'offline' : 'normal'
-
-    let value: string
-    let shownUnit = unit
-    let sub: string
-    let normalRange = ''
-
-    if (card.asPercent && metric?.range) {
-      const rangeMax = metric.range[1]
-      value = fmt((aggValue / rangeMax) * 100, 0)
-      shownUnit = '%'
-      sub = `${fmt(aggValue, precision)} ${unit} · ${members.length} 个测点最低值`
-      if (metric.normalRange) {
-        normalRange = `正常范围：${fmt((metric.normalRange[0] / rangeMax) * 100, 0)}% ~ ${fmt(
-          (metric.normalRange[1] / rangeMax) * 100,
-          0,
-        )}%（${metric.normalRange[0]} ~ ${metric.normalRange[1]} ${unit}）`
-      }
-    } else {
-      value = fmt(aggValue, precision)
-      sub = `${members.length} 个测点${card.agg === 'avg' ? '平均值' : '最不利值'}`
-      if (metric?.normalRange) {
-        normalRange = `正常范围：${metric.normalRange[0]} ~ ${metric.normalRange[1]} ${unit}`
-      }
-    }
-
-    out.push({
-      key: card.key,
-      label: card.label,
-      icon: card.icon,
-      value,
-      unit: shownUnit,
-      sub,
-      normalRange,
-      tone,
-      points: members,
-    })
-  }
-
-  return out
+  return [
+    {
+      key: 'deviceTotal',
+      label: '设备总数',
+      icon: '/icons/fire-water/kpi-device-total.svg',
+      value: String(total),
+      unit: '台',
+      hint: `主机 ${hosts.length} 台（监控主机 + 分机）+ 采集器件 ${devices.length} 台 = ${total} 台`,
+      legend: [
+        { label: '主机', value: hosts.length, color: CARD_COLORS.host },
+        { label: '器件', value: devices.length, color: CARD_COLORS.device },
+      ],
+      total,
+      points,
+    },
+    {
+      key: 'deviceOnline',
+      label: '设备在线率',
+      icon: '/icons/fire-water/kpi-device-online.svg',
+      value: pct(online),
+      unit: '%',
+      hint: `在线 ${online} 台 ÷ 设备总数 ${total} 台 = ${pct(online)}%`,
+      legend: [
+        { label: '离线', value: offline.length, color: CARD_COLORS.offline },
+        { label: '在线', value: online, color: CARD_COLORS.online },
+      ],
+      total,
+      points: offline,
+    },
+    {
+      key: 'deviceFault',
+      label: '设备故障率',
+      icon: '/icons/fire-water/kpi-device-fault.svg',
+      value: pct(fault.length),
+      unit: '%',
+      hint: `故障 ${fault.length} 台 ÷ 设备总数 ${total} 台 = ${pct(fault.length)}%`,
+      legend: [
+        { label: '故障', value: fault.length, color: CARD_COLORS.fault },
+        { label: '正常', value: healthy, color: CARD_COLORS.online },
+      ],
+      total,
+      points: fault,
+    },
+    {
+      key: 'deviceWarning',
+      label: '预警设备',
+      icon: '/icons/fire-water/kpi-device-warning.svg',
+      value: String(warning.length),
+      unit: '台',
+      hint: `报警 + 故障共 ${warning.length} 台（正常 ${total - warning.length} 台）`,
+      legend: [
+        { label: '预警', value: warning.length, color: CARD_COLORS.warning },
+        { label: '正常', value: total - warning.length, color: CARD_COLORS.online },
+      ],
+      total,
+      points: warning,
+    },
+  ]
 }
 
 /** 组装点位组（供下钻抽屉使用） */

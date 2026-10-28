@@ -1,64 +1,60 @@
 <template>
   <div class="fwm">
-    <!-- ============ 页头 ============ -->
-    <header class="fwm__head">
-      <div class="fwm__head-left">
-        <span class="fwm__head-icon"><AppIcon name="vehicle" /></span>
-        <div class="fwm__head-main">
-          <div class="fwm__title-row">
-            <h1 class="fwm__title">消防水系统监测</h1>
-            <span class="fwm__demo-tag" title="当前为 POC 演示数据，数据由本地引擎模拟，尚未接入真实消防设施">
-              演示数据
-            </span>
-          </div>
-          <p class="fwm__desc">
-            消防给水系统总貌实时监测——{{ scaleText }}
-          </p>
+    <!-- ============ 统计区（常驻，固定高度） ============ -->
+    <section class="fwm__stats">
+      <div class="fwm__stats-head">
+        <div class="fwm__stats-left">
+          <h1 class="fwm__title">消防水系统</h1>
+        </div>
+        <div class="fwm__stats-right">
+          <span class="fwm__live" :class="`fwm__live--${refreshState}`">
+            <span class="fwm__live-dot" />
+            {{ refreshText }}
+          </span>
+          <span class="fwm__stamp">更新 {{ stampText }}</span>
+          <button class="fwm__live-btn" @click="toggleLive">
+            <AppIcon :name="live ? 'pause' : 'play'" />
+            {{ live ? '暂停' : '恢复' }}
+          </button>
         </div>
       </div>
 
-      <div class="fwm__head-right">
-        <span class="fwm__live" :class="`fwm__live--${refreshState}`">
-          <span class="fwm__live-dot" />
-          {{ refreshText }}
-        </span>
-        <span class="fwm__stamp">更新 {{ stampText }}</span>
-        <button class="fwm__live-btn" @click="toggleLive">
-          <AppIcon :name="live ? 'pause' : 'play'" />
-          {{ live ? '暂停' : '恢复' }}
-        </button>
-      </div>
-    </header>
-
-    <!-- ============ ① 核心数据 ============ -->
-    <section class="fwm__section">
-      <div class="fwm__section-head">
-        <h2 class="fwm__section-title">核心数据</h2>
-        <span class="fwm__section-hint">供水压力取管网最不利点 · 供水流量取测点均值 · 水池水位取最低值</span>
-      </div>
       <FireWaterCoreCards :cards="cards" @select="openCard" />
     </section>
 
-    <!-- ============ ② 组态 ============ -->
-    <section class="fwm__section">
-      <div class="fwm__section-head">
-        <h2 class="fwm__section-title">消防给水系统总貌</h2>
-        <span class="fwm__section-hint">按水力流向：水池 → 水箱 → 泵组 → 各末端支路 · 点击图元查看其下点位</span>
-      </div>
-      <FireWaterScene @select="openGroup" />
-    </section>
+    <!-- ============ 视图切换 ============ -->
+    <FireWaterTabs v-model="tab" :tabs="TABS" />
 
-    <!-- ============ ③ 报警记录 ============ -->
-    <section class="fwm__section">
-      <div class="fwm__section-head">
-        <h2 class="fwm__section-title">报警记录</h2>
-        <span class="fwm__section-hint">状态跃迁实时累积 · 与组态状态同源</span>
-      </div>
-      <FireWaterAlarmTable
-        :records="alarmRecords"
-        :unhandled-count="alarmUnhandled"
-        @handle="markHandled"
-      />
+    <!-- ============ 主体区（填满剩余高度） ============ -->
+    <section class="fwm__panel">
+      <!-- 系统总览 -->
+      <template v-if="tab === 'overview'">
+        <FireWaterScene @select="openGroup" />
+      </template>
+
+      <!-- 报警记录 -->
+      <template v-else-if="tab === 'alarm'">
+        <FireWaterAlarmTable
+          :records="alarmRecords"
+          :unhandled-count="alarmUnhandled"
+          :type-name-of="typeNameOf"
+          :units="units"
+          @handle="markHandled"
+          @preview="openPointById"
+        />
+      </template>
+
+      <!-- 设备台帐 -->
+      <template v-else>
+        <FireWaterLedgerTable
+          :points="points"
+          :type-name-of="typeNameOf"
+          :status-of="statusOfPoint"
+          @preview="openPoint"
+          @group="openPointGroup"
+          @config="onConfig"
+        />
+      </template>
     </section>
 
     <!-- ============ 下钻抽屉 ============ -->
@@ -86,7 +82,13 @@
 /**
  * 消防水系统监测（设备设施管理 › 运行监控）
  *
- * 垂直三段：① 核心数据 → ② 组态 → ③ 报警记录
+ * 版式（设计稿）：
+ *   顶部统计区常驻且高度固定 → 视图切换条 → 主体区填满窗口剩余高度
+ *   主体区三视图：系统总览（管网总貌）/ 报警记录 / 设备台帐
+ *
+ * 页面整体不出现垂直滚动条：根容器 height:100% + overflow:hidden，
+ * 溢出只发生在表格体内部。
+ *
  * 数据全部来自 useSubsystemStore('pipeline')，与组态配置页、组态总览页同源。
  */
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
@@ -95,12 +97,19 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AppIcon from '@/components/base/AppIcon.vue'
 import { useSubsystemStore } from '@/stores/subsystem'
 import { useFirewaterAlarmStore } from '@/stores/firewater-alarm'
-import type { PointDef } from '@/types/subsystem'
-import type { FireWaterPointGroup } from '@/types/firewater'
-import { computeFireWaterCards, type FireWaterCardValue } from '@/config/firewater-scene'
+import type { PointDef, PointStatus } from '@/types/subsystem'
+import type { FireWaterPointGroup, FireWaterTabKey } from '@/types/firewater'
+import {
+  computeFireWaterCards,
+  FIREWATER_NODE_BINDINGS,
+  aggregateNode,
+  type FireWaterCardValue,
+} from '@/config/firewater-scene'
 import FireWaterCoreCards from '@/components/subsystem/FireWaterCoreCards.vue'
+import FireWaterTabs from '@/components/subsystem/FireWaterTabs.vue'
 import FireWaterScene from '@/components/subsystem/FireWaterScene.vue'
 import FireWaterAlarmTable from '@/components/subsystem/FireWaterAlarmTable.vue'
+import FireWaterLedgerTable from '@/components/subsystem/FireWaterLedgerTable.vue'
 import FireWaterPointDrawer from '@/components/subsystem/FireWaterPointDrawer.vue'
 import PointDetailDrawer from '@/components/subsystem/PointDetailDrawer.vue'
 
@@ -110,6 +119,14 @@ const { getRuntime, findProfile, loadSubsystem, toggleLive, stopTimer } = store
 
 const alarm = useFirewaterAlarmStore()
 const { records: alarmRecords, unhandledCount: alarmUnhandled } = storeToRefs(alarm)
+
+// ===== 视图切换 =====
+const TABS: Array<{ key: FireWaterTabKey; label: string }> = [
+  { key: 'overview', label: '系统总览' },
+  { key: 'alarm', label: '报警记录' },
+  { key: 'ledger', label: '设备台帐' },
+]
+const tab = ref<FireWaterTabKey>('overview')
 
 // ===== 抽屉 =====
 const groupOpen = ref(false)
@@ -143,20 +160,36 @@ const stampText = computed(() => {
   return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
 })
 
-/**
- * 规模说明运行时计算，避免手写数字与实际点位对不上。
- * 点位数取 points 全量（主机 + 分机 + 采集设备），
- * 与「系统状态」卡的口径一致；scale.devices 的和只是设备数，不等于点位数。
- */
-const scaleText = computed(() => {
-  const p = store.activeProfile
-  if (!p) return ''
-  return `共 ${p.scale.host} 处主机、${p.scale.slave} 台分机、${points.value.length} 个采集点位。`
-})
-
 const cards = computed<FireWaterCardValue[]>(() =>
   computeFireWaterCards(points.value, getRuntime),
 )
+
+/** 设备档案类型 key → 名称 */
+function typeNameOf(typeKey: string): string {
+  return findProfile(typeKey)?.name ?? typeKey
+}
+
+/** 点位实时状态 → 展示标签 */
+function statusOfPoint(p: PointDef): { label: string; cls: string } {
+  const s: PointStatus = getRuntime(p.id)?.status ?? 'unknown'
+  if (s === 'alarm') return { label: '报警', cls: 'danger' }
+  if (s === 'fault') return { label: '故障', cls: 'warning' }
+  if (s === 'offline') return { label: '离线', cls: 'normal' }
+  if (s === 'normal') return { label: '正常', cls: 'success' }
+  return { label: '未知', cls: 'normal' }
+}
+
+/** 管理单元（分机）下拉项 */
+const units = computed(() => {
+  const codeOf = new Map(points.value.map(p => [p.id, p.code]))
+  const seen = new Map<string, string>()
+  for (const p of points.value) {
+    if (!p.hostId) continue
+    const label = codeOf.get(p.hostId)
+    if (label) seen.set(p.hostId, label)
+  }
+  return [...seen].map(([id, label]) => ({ id, label }))
+})
 
 const siblingIndex = computed(() =>
   activePoint.value ? siblings.value.findIndex(p => p.id === activePoint.value!.id) : -1,
@@ -169,12 +202,12 @@ function openGroup(g: FireWaterPointGroup): void {
   groupOpen.value = true
 }
 
-/** 核心数据卡下钻：卡片所辖点位就是该卡数值的来源集合 */
+/** 统计卡下钻：卡片所辖点位就是该卡数值的来源集合 */
 function openCard(card: FireWaterCardValue): void {
   openGroup({
     key: card.key,
     title: card.label,
-    desc: `${card.sub}${card.normalRange ? ` · ${card.normalRange}` : ''}`,
+    desc: card.hint,
     points: card.points,
   })
 }
@@ -183,8 +216,42 @@ function openCard(card: FireWaterCardValue): void {
 function openPoint(p: PointDef): void {
   groupOpen.value = false
   activePoint.value = p
-  siblings.value = group.value?.points ?? []
+  siblings.value = group.value?.points ?? [p]
   detailOpen.value = true
+}
+
+/** 报警记录行 → 单点详情 */
+function openPointById(record: { pointId: string }): void {
+  const p = points.value.find(x => x.id === record.pointId)
+  if (!p) return
+  groupOpen.value = false
+  group.value = undefined
+  activePoint.value = p
+  siblings.value = [p]
+  detailOpen.value = true
+}
+
+/** 设备台帐行 → 所属图元分组（按绑定表反查） */
+function openPointGroup(p: PointDef): void {
+  const binding = FIREWATER_NODE_BINDINGS.find(b => {
+    const members = aggregateNode(b, points.value, getRuntime).points
+    return members.some(m => m.id === p.id)
+  })
+  if (!binding) {
+    ElMessage.info('该设备未绑定到组态图元')
+    return
+  }
+  const agg = aggregateNode(binding, points.value, getRuntime)
+  openGroup({
+    key: binding.nodeId,
+    title: `${binding.nodeId} 所辖点位`,
+    desc: `${agg.points.length} 个点位`,
+    points: agg.points,
+  })
+}
+
+function onConfig(p: PointDef): void {
+  ElMessage.info(`「${p.code}」的设备配置能力尚未接入`)
 }
 
 function gotoSibling(p: PointDef): void {
@@ -221,9 +288,10 @@ onMounted(() => {
 })
 
 /**
- * 报警记录与点位状态同源：runtime 改成 keyed reactive Map 后引用不变、内容变，
- * watch(runtime) 不再触发，改由 store 的刷新序号驱动。
- * 跃迁判定在 store 内做（正常 → 报警/故障 才记一条）。
+ * 报警记录与点位状态同源：每轮刷新后同步一次。
+ *
+ * runtime 是 keyed 的 reactive Map，内容变而引用不变，watch(runtime) 不触发，
+ * 所以用 store 的刷新序号驱动。跃迁判定在 store 内做（正常 → 报警/故障 才记一条）。
  */
 watch(refreshSeq, () => {
   alarm.sync(points.value, getRuntime)
@@ -236,52 +304,49 @@ onBeforeUnmount(() => stopTimer())
 .fwm {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-xl);
-  min-height: 100%;
-}
-
-/* 页头 */
-.fwm__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-xl);
-  flex-wrap: wrap;
-  padding: var(--spacing-xl);
+  gap: 16px;
+  height: 100%;
+  padding: 12px;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  border-left: 3px solid var(--accent-primary);
+  border-radius: 10px;
+  /* 页面不出垂直滚动条：溢出只交给内部表格体 */
+  overflow: hidden;
 }
-.fwm__head-left { display: flex; align-items: flex-start; gap: var(--spacing-lg); min-width: 0; }
-.fwm__head-icon {
-  display: inline-flex;
+
+/* ===== 统计区（常驻、固定高度） ===== */
+.fwm__stats {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fwm__stats-head {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  background: var(--accent-primary10);
-  color: var(--accent-primary);
-  font-size: 22px;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.fwm__stats-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.fwm__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.fwm__stats-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
 }
-.fwm__head-main { min-width: 0; }
-.fwm__title-row { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; }
-.fwm__title { margin: 0 0 4px; font-size: var(--font-h3); font-weight: 600; color: var(--text-primary); }
-.fwm__demo-tag {
-  margin-bottom: 4px;
-  padding: 1px 8px;
-  border-radius: 10px;
-  font-size: var(--font-xs);
-  font-weight: 500;
-  color: var(--warning-text);
-  background: var(--warning-bg);
-}
-.fwm__desc { margin: 0; font-size: var(--font-xs); color: var(--text-muted); line-height: 1.6; max-width: 760px; }
-
-.fwm__head-right { display: flex; align-items: center; gap: var(--spacing-md); flex-shrink: 0; }
 .fwm__live {
   display: inline-flex;
   align-items: center;
@@ -316,30 +381,16 @@ onBeforeUnmount(() => stopTimer())
 }
 .fwm__live-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 
-/* 分区 */
-.fwm__section { display: flex; flex-direction: column; gap: var(--spacing-lg); }
-.fwm__section-head {
+/* ===== 主体区（填满剩余高度） ===== */
+.fwm__panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-  flex-wrap: wrap;
+  flex-direction: column;
 }
-.fwm__section-title {
-  margin: 0;
-  font-size: var(--font-h4);
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.fwm__panel > * {
+  flex: 1;
+  min-height: 0;
 }
-.fwm__section-title::before {
-  content: '';
-  width: 3px;
-  height: 14px;
-  border-radius: 2px;
-  background: var(--accent-primary);
-}
-.fwm__section-hint { font-size: var(--font-xs); color: var(--text-muted); }
 </style>

@@ -1,12 +1,13 @@
 /**
  * 消防水系统监测（设备设施管理 › 运行监控 › 消防水系统监测）
  *
- * 覆盖垂直三段式页面：
- * - 三段顺序：① 核心数据 → ② 组态 → ③ 报警记录
- * - 核心数据卡：4 张；卡面声明的测点数 = 下钻抽屉实际列出的行数
+ * 覆盖新版式（设计稿）：
+ * - 结构：统计区常驻（固定高度）→ 视图切换条 → 主体区填满剩余高度
+ * - 页面不出垂直滚动条
+ * - 统计卡 4 张：设备总数 / 设备在线率 / 设备故障率 / 预警设备，分项可复算
+ * - 三个视图：系统总览（组态）/ 报警记录 / 设备台帐
  * - 组态：12 个位图图元 + 12 条连线；位图全部加载成功（0 个解码失败）
  * - 下钻：点图元 → 点位组抽屉 → 点行 → 单点详情抽屉
- * - 报警记录：表头列齐、有记录、等级筛选可用
  *
  * 计数断言一律用「页面自己声明的数字」互相校验，不写死总数。
  *
@@ -20,6 +21,9 @@ const API = process.env.E2E_API ?? 'http://localhost:3202'
 
 /** 种子企业用户（非平台角色，可访问业务域路由） */
 const USER = { phone: '13300001111', password: 'admin123!@#' }
+
+/** 设计稿目标视口：1920×1080 + 272px 侧栏 = 1648×998 内容区 */
+const VIEWPORT = { width: 1920, height: 1080 }
 
 /** 通过 API 写登录态，跳过登录页 */
 async function login(page: import('@playwright/test').Page) {
@@ -47,6 +51,8 @@ function declared(text: string | null, pattern: RegExp) {
 }
 
 test.describe('消防水系统监测', () => {
+  test.use({ viewport: VIEWPORT })
+
   test.beforeEach(async ({ page }) => {
     await login(page)
     await page.goto('/device-facility/monitor/fire-water')
@@ -56,37 +62,110 @@ test.describe('消防水系统监测', () => {
     await page.waitForTimeout(1200)
   })
 
-  test('三段垂直顺序 + 核心数据 4 卡 + 组态 12 图元 / 12 连线 + 位图加载成功', async ({ page }) => {
-    // ===== 三段顺序 =====
-    const sections = await page.locator('.fwm__section-title').allTextContents()
-    expect(sections.map(s => s.trim())).toEqual(['核心数据', '消防给水系统总貌', '报警记录'])
+  test('统计区常驻固定高度 + 页面不出垂直滚动条 + 三个视图切换', async ({ page }) => {
+    // ===== 统计区常驻 =====
+    const statsBox = await page.locator('.fwm__stats').boundingBox()
+    expect(statsBox?.height).toBeGreaterThan(0)
 
-    // 视觉顺序：三段在页面里自上而下
-    const tops: number[] = []
-    for (const s of sections) {
-      const box = await page.locator('.fwm__section', { has: page.locator('.fwm__section-title', { hasText: s }) }).first().boundingBox()
-      tops.push(box?.y ?? 0)
-    }
-    expect(tops[0]).toBeLessThan(tops[1])
-    expect(tops[1]).toBeLessThan(tops[2])
+    // ===== 三个 tab =====
+    const tabs = await page.locator('.fw-tabs__item').allTextContents()
+    expect(tabs.map(s => s.trim())).toEqual(['系统总览', '报警记录', '设备台帐'])
 
-    // ===== 核心数据 4 卡 =====
+    // 切到报警记录：统计区位置与高度不变，主体区换成表格
+    await page.locator('.fw-tabs__item', { hasText: '报警记录' }).click()
+    await expect(page.locator('.fwat .fi-th').first()).toBeVisible()
+    const statsBox2 = await page.locator('.fwm__stats').boundingBox()
+    expect(statsBox2?.y).toBeCloseTo(statsBox?.y ?? 0, 0)
+    expect(statsBox2?.height).toBeCloseTo(statsBox?.height ?? 0, 0)
+
+    // ===== 页面不出垂直滚动条 =====
+    const overflow = await page.evaluate(() => {
+      const el = document.querySelector('.main-content') as HTMLElement | null
+      if (!el) return null
+      return { scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }
+    })
+    expect(overflow).not.toBeNull()
+    // 允许 1px 的取整误差
+    expect(overflow!.scrollHeight).toBeLessThanOrEqual(overflow!.clientHeight + 1)
+
+    // ===== 切到设备台帐 =====
+    await page.locator('.fw-tabs__item', { hasText: '设备台帐' }).click()
+    await expect(page.locator('.fwlt .fi-th').first()).toBeVisible()
+    const overflow2 = await page.evaluate(() => {
+      const el = document.querySelector('.main-content') as HTMLElement | null
+      return el ? { scrollHeight: el.scrollHeight, clientHeight: el.clientHeight } : null
+    })
+    expect(overflow2!.scrollHeight).toBeLessThanOrEqual(overflow2!.clientHeight + 1)
+  })
+
+  test('统计卡 4 张 + 分项可复算（主机+器件=总数，比率与分项一致）', async ({ page }) => {
     await expect(page.locator('.fw-card')).toHaveCount(4)
     const cardLabels = await page.locator('.fw-card__label').allTextContents()
-    expect(cardLabels.map(s => s.trim())).toEqual(['供水压力', '供水流量', '水池水位', '系统状态'])
-    // 每张卡都要有主值与口径说明（数字可复算的前提）
+    expect(cardLabels.map(s => s.trim())).toEqual([
+      '设备总数',
+      '设备在线率',
+      '设备故障率',
+      '预警设备',
+    ])
+
+    // 每张卡都要有主值与图例分项
     for (const label of cardLabels) {
       const card = page.locator('.fw-card', { hasText: label }).first()
       await expect(card.locator('.fw-card__num')).not.toBeEmpty()
-      await expect(card.locator('.fw-card__sub')).not.toBeEmpty()
+      await expect(card.locator('.fw-card__legend-item')).toHaveCount(2)
     }
 
-    // ===== 组态 =====
-    await expect(page.locator('.fw-scene__node')).toHaveCount(12)
-    await expect(page.locator('.fw-edge')).toHaveCount(12)
+    // 设备总数 = 主机 + 器件
+    const totalCard = page.locator('.fw-card', { hasText: '设备总数' }).first()
+    const totalNum = Number(await totalCard.locator('.fw-card__num').textContent())
+    const legendNums = await totalCard.locator('.fw-card__legend-value').allTextContents()
+    const [host, device] = legendNums.map(n => Number(n.trim()))
+    expect(host + device).toBe(totalNum)
+
+    // 设备在线率 = 在线 / 总数
+    const onlineCard = page.locator('.fw-card', { hasText: '设备在线率' }).first()
+    const onlinePct = Number(await onlineCard.locator('.fw-card__num').textContent())
+    const [offline, online] = (
+      await onlineCard.locator('.fw-card__legend-value').allTextContents()
+    ).map(n => Number(n.trim()))
+    expect((online / totalNum) * 100).toBeCloseTo(onlinePct, 1)
+    expect(offline + online).toBe(totalNum)
+
+    // 设备故障率 = 故障 / 总数
+    const faultCard = page.locator('.fw-card', { hasText: '设备故障率' }).first()
+    const faultPct = Number(await faultCard.locator('.fw-card__num').textContent())
+    const [fault, faultNormal] = (
+      await faultCard.locator('.fw-card__legend-value').allTextContents()
+    ).map(n => Number(n.trim()))
+    expect((fault / totalNum) * 100).toBeCloseTo(faultPct, 1)
+    expect(fault + faultNormal).toBe(totalNum)
+
+    // 预警设备台数 = 预警 + 正常
+    const warnCard = page.locator('.fw-card', { hasText: '预警设备' }).first()
+    const warnNum = Number(await warnCard.locator('.fw-card__num').textContent())
+    const [warn, warnNormal] = (
+      await warnCard.locator('.fw-card__legend-value').allTextContents()
+    ).map(n => Number(n.trim()))
+    expect(warn + warnNormal).toBe(totalNum)
+    expect(warnNum).toBe(warn)
+  })
+
+  test('系统总览：组态 12 图元 / 12 连线 + 位图加载成功 + 悬浮图例', async ({ page }) => {
+    // 三层结构：底图层（连线 + 图元位图）/ 文本层（数值 + 交互）/ 动画层（流动光带）
+    await expect(page.locator('.fw-scene__svg--base')).toHaveCount(1)
+    await expect(page.locator('.fw-scene__svg--text')).toHaveCount(1)
+    await expect(page.locator('.fw-scene__svg--flow')).toHaveCount(1)
+    await expect(page.locator('.fw-scene__svg--base .fw-scene__node')).toHaveCount(12)
+    await expect(page.locator('.fw-scene__svg--text .fw-scene__node')).toHaveCount(12)
+    await expect(page.locator('.fw-scene__svg--base .fw-edge')).toHaveCount(12)
+    // 12 条边里 2 条是电气控制线（不流动）→ 动画层 10 条
+    await expect(page.locator('.fw-scene__svg--flow .fw-edge__flow')).toHaveCount(10)
+    // 位图只在底图层：文本层与动画层含位图会让每次刷新重栅格化整张 SVG
+    expect(await page.locator('.fw-scene__svg--text image').count()).toBe(0)
+    expect(await page.locator('.fw-scene__svg--flow image').count()).toBe(0)
     // 位图全部加载成功
     const imgs = await page.evaluate(() =>
-      [...document.querySelectorAll('.fw-scene__node svg image')].map(im => ({
+      [...document.querySelectorAll('.fw-scene__svg--base image')].map(im => ({
         href: im.getAttribute('href') ?? '',
         loaded: (im as SVGImageElement).getBBox !== undefined && im.getBoundingClientRect().width > 0,
       })),
@@ -95,48 +174,46 @@ test.describe('消防水系统监测', () => {
     expect(imgs.every(i => i.loaded)).toBe(true)
     expect(imgs.every(i => i.href.includes('/symbols/img/'))).toBe(true)
 
-    // ===== 报警记录 =====
-    for (const col of ['时间', '位置', '点位编号', '报警内容', '等级', '状态', '操作']) {
-      await expect(page.locator('.fwat .fi-th', { hasText: col }).first()).toBeVisible()
-    }
-    await expect(page.locator('.fwat tbody tr').first()).toBeVisible()
-
-    // ===== 规模说明与「系统状态」卡同口径 =====
-    // 页头 N 与系统状态卡 N 必须相等（1147 是设备数，1156 才是点位数）
-    const desc = await page.locator('.fwm__desc').textContent()
-    const descPoints = Number(desc?.match(/(\d+)\s*个采集点位/)?.[1])
-    const statusRange = await page
-      .locator('.fw-card', { hasText: '系统状态' })
-      .first()
-      .locator('.fw-card__range')
-      .textContent()
-    const cardPoints = Number(statusRange?.match(/(\d+)\s*个点位/)?.[1])
-    expect(descPoints).toBeGreaterThan(0)
-    expect(descPoints).toBe(cardPoints)
+    // 图例：浮在画面左上角，三色
+    const legend = page.locator('.fw-scene__legend')
+    await expect(legend).toBeVisible()
+    await expect(legend.locator('.fw-scene__legend-item')).toHaveCount(3)
+    await expect(legend).toContainText('点击图元查看其下点位')
   })
 
-  test('核心数据卡声明的测点数 = 下钻抽屉实际点位行数', async ({ page }) => {
-    for (const label of ['供水压力', '供水流量', '水池水位']) {
-      const card = page.locator('.fw-card', { hasText: label }).first()
-      const sub = await card.locator('.fw-card__sub').textContent()
-      const declaredCount = declared(sub ?? '', /(\d+)\s*个测点/)
+  test('统计卡下钻：所辖点位总数 = 卡片声明数（分页展示，总数不变）', async ({ page }) => {
+    const card = page.locator('.fw-card', { hasText: '设备总数' }).first()
+    const hint = await card.getAttribute('title')
+    const declaredCount = declared(hint ?? '', /=\s*(\d+)\s*台/)
 
-      await card.click()
-      await expect(page.locator('.fwd__list .pr').first()).toBeVisible()
-      const rows = await page.locator('.fwd__list .pr').count()
-      expect(rows).toBe(declaredCount)
+    await card.click()
+    await expect(page.locator('.fwd__list .pr').first()).toBeVisible()
 
-      // 抽屉自己声明的数量也要一致
-      const meta = await page.locator('.fwd__meta').textContent()
-      expect(declared(meta ?? '', /(\d+)\s*个点位/)).toBe(declaredCount)
+    // 抽屉自己声明的总数 = 卡片声明的设备数
+    const meta = await page.locator('.fwd__meta').textContent()
+    expect(declared(meta ?? '', /(\d+)\s*个点位/)).toBe(declaredCount)
 
-      await page.keyboard.press('Escape')
-      await page.waitForTimeout(600)
+    // 分页：单页最多 100 行，区间提示写清"显示到哪、总共多少"
+    const rows = await page.locator('.fwd__list .pr').count()
+    expect(rows).toBe(Math.min(declaredCount, 100))
+    const range = await page.locator('.fwd__range').textContent()
+    expect(declared(range ?? '', /共\s*(\d+)\s*个点位/)).toBe(declaredCount)
+
+    // 翻页后可继续看到剩下的点位
+    if (declaredCount > 100) {
+      const pageCount = Math.ceil(declaredCount / 100)
+      await page.locator('.fwd__pg-btn', { hasText: '下一页' }).click()
+      await expect(page.locator('.fwd__pg-text')).toHaveText(`2 / ${pageCount}`)
+      // 每页最多 100 行，末页才是余数
+      await expect(page.locator('.fwd__list .pr')).toHaveCount(Math.min(declaredCount - 100, 100))
     }
+
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(600)
   })
 
   test('组态图元下钻：点位组抽屉 → 单点详情抽屉', async ({ page }) => {
-    await page.locator('.fw-scene__node', { hasText: '消防水池' }).first().click()
+    await page.locator('.fw-scene__svg--text .fw-scene__node', { hasText: '消防水池' }).first().click()
     await expect(page.locator('.fwd__list .pr').first()).toBeVisible()
     await expect(page.locator('.el-drawer__title').first()).toHaveText('消防水池')
 
@@ -150,27 +227,52 @@ test.describe('消防水系统监测', () => {
     await expect(page.locator('.el-drawer__title').last()).toHaveText(/^[A-Z]+-\d{4}$/)
   })
 
-  test('报警记录：等级筛选切换 + 标记已处理', async ({ page }) => {
+  test('报警记录：设计稿列齐 + 筛选 + 标记已处理', async ({ page }) => {
+    await page.locator('.fw-tabs__item', { hasText: '报警记录' }).click()
+    await expect(page.locator('.fwat .fi-th').first()).toBeVisible()
+
+    for (const col of ['事件类型', '事件内容', '设备类型', '设备编码', '安装位置', '上报时间', '操作']) {
+      await expect(page.locator('.fwat .fi-th', { hasText: col }).first()).toBeVisible()
+    }
     const rows = page.locator('.fwat tbody tr')
     const before = await rows.count()
     expect(before).toBeGreaterThan(0)
 
-    // 等级筛选：点「一般」后仍应有行，且条数不多于全部
-    await page.locator('.fwat__filter', { hasText: '一般' }).click()
+    // 筛选：按事件类型关键词过滤后条数不多于全部
+    await page.locator('.fwat__search input').fill('FM-0001')
+    await page.locator('.fwat__btn--primary').click()
     await page.waitForTimeout(400)
     const filtered = await rows.count()
     expect(filtered).toBeLessThanOrEqual(before)
-    expect(filtered).toBeGreaterThan(0)
 
-    // 切回全部
-    await page.locator('.fwat__filter', { hasText: '全部' }).click()
+    // 清空筛选后恢复
+    await page.locator('.fwat__search input').fill('')
+    await page.locator('.fwat__btn--primary').click()
     await page.waitForTimeout(400)
-    await expect(rows).toHaveCount(before)
+    expect(await rows.count()).toBe(before)
 
-    // 标记已处理：首行状态从「未处理」变「已处理」
-    const firstRow = rows.first()
-    await firstRow.locator('.act-btn').click()
-    await page.waitForTimeout(400)
-    await expect(firstRow.locator('.fi-tag', { hasText: '已处理' })).toBeVisible()
+    // 标记已处理
+    await page.locator('.fwat tbody tr').first().locator('.act-btn', { hasText: '处理' }).click()
+    await page.waitForTimeout(300)
+    await expect(page.locator('.fwat tbody tr').first()).toContainText('已处理')
+  })
+
+  test('设备台帐：设计稿列齐 + 行数与分页', async ({ page }) => {
+    await page.locator('.fw-tabs__item', { hasText: '设备台帐' }).click()
+    await expect(page.locator('.fwlt .fi-th').first()).toBeVisible()
+
+    for (const col of ['运行状态', '设备名称', '设备类型', '设备编码', '安装位置', '添加时间', '操作']) {
+      await expect(page.locator('.fwlt .fi-th', { hasText: col }).first()).toBeVisible()
+    }
+    const rows = page.locator('.fwlt tbody tr')
+    expect(await rows.count()).toBeGreaterThan(0)
+
+    // 分页文案自证：共 N 条记录 第 1/M 页
+    const pager = await page.locator('.fwlt__pager-text').textContent()
+    const total = declared(pager ?? '', /共\s*(\d+)\s*条记录/)
+    expect(total).toBeGreaterThan(0)
+
+    // 操作列 5 个图标
+    await expect(rows.first().locator('.act-btn--icon')).toHaveCount(5)
   })
 })

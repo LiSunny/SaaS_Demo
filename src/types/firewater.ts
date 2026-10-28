@@ -5,7 +5,7 @@
  *   subsystem.ts  描述「一个设备监测子系统需要什么」（通用，不含消防语义）
  *   firewater.ts  描述「消防水系统监控页特有什么」（报警记录、组态点位绑定）
  */
-import type { PointDef } from '@/types/subsystem'
+import type { PointDef, PointStatus } from '@/types/subsystem'
 
 /** 报警等级：三档，与后端 `model Alarm.level`（紧急 / 重要 / 一般）一致 */
 export type FireAlarmLevel = 'critical' | 'important' | 'general'
@@ -30,6 +30,12 @@ export interface FireAlarmRecord {
   status: FireAlarmStatus
   /** 发生时间戳 */
   occurredAt: number
+  /** 触发时的点位状态（alarm=火警 / fault=故障 / offline=离线），列表「事件类型」列取值 */
+  pointStatus: PointStatus
+  /** 设备档案类型 key，列表「设备类型」列取值 */
+  typeKey: string
+  /** 所属主机/分机（管理单元）id，列表按管理单元筛选用 */
+  hostId?: string
 }
 
 /** 组态图元的取值口径 */
@@ -90,21 +96,18 @@ export interface FireWaterPointGroup {
   points: PointDef[]
 }
 
-/** 核心数据卡的取值口径 */
-export type FireWaterCardKind = 'pressure' | 'flow' | 'level' | 'system'
+/** 顶部统计卡口径（按设计稿：设备维度） */
+export type FireWaterCardKind = 'deviceTotal' | 'deviceOnline' | 'deviceFault' | 'deviceWarning'
 
-/** 核心数据卡定义 */
-export interface FireWaterCardDef {
-  key: FireWaterCardKind
+/** 视图切换键 */
+export type FireWaterTabKey = 'overview' | 'alarm' | 'ledger'
+
+/** 统计卡图例分项（环形图分段 + 底部图例行共用同一份数据） */
+export interface FireWaterCardLegendItem {
+  /** 分项名 */
   label: string
-  /** 图标名（AppIcon → TDesign 图标） */
-  icon: string
-  /** 取值口径：min 最不利点 / avg 平均值；system 卡不取值 */
-  agg?: 'min' | 'avg'
-  /** 设备档案类型 key */
-  typeKey?: string
-  /** 指标 key */
-  metricKey?: string
-  /** 主值按量程上限折算成百分比 */
-  asPercent?: boolean
+  /** 分项计数 */
+  value: number
+  /** 分项色（设计稿给定） */
+  color: string
 }
