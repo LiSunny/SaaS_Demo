@@ -29,6 +29,9 @@
 .sym-root.is-fault  { --sym-fill: var(--danger); --sym-stroke: var(--danger); }
 .sym-root.is-over   { --sym-liquid: var(--danger); }
 .sym-root.is-flow   { --sym-flow: var(--info); }
+/* 报警 / 排放：图元库原本写死橙色与深红，这里一并令牌化 */
+.sym-root.is-alarm     { --sym-fill: var(--warning); --sym-stroke: var(--warning); }
+.sym-root.is-discharge { --sym-fill: var(--danger); --sym-stroke: var(--danger); }
 
 /* 图片版：状态用外圈光晕 + 右上角角标表达 */
 .sym-root.is-run .sym-halo     { stroke: var(--success); }
@@ -39,6 +42,11 @@
 .sym-root.is-over .sym-halo    { stroke: var(--danger); }
 .sym-root.is-flow .sym-halo    { stroke: var(--info); }
 .sym-root.is-off .sym-halo     { stroke: var(--text-muted); }
+/* 报警 / 排放：图片版光晕与角标同步令牌化 */
+.sym-root.is-alarm .sym-halo     { stroke: var(--warning); opacity: .55; }
+.sym-root.is-discharge .sym-halo { stroke: var(--danger); opacity: .75; }
+.sym-root.is-alarm .sym-badge-alarm .sym-badge-bg { fill: var(--warning); }
+.sym-root.is-discharge .sym-badge-discharge .sym-badge-bg { fill: var(--danger); }
 
 .sym-badge-bg { stroke: var(--bg-card); }
 .sym-badge-run .sym-badge-bg { fill: var(--success); }

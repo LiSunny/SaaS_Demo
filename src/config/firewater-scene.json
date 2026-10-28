@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "name": "消防给水系统总貌",
+  "width": 1200,
+  "height": 700,
+  "nodes": [
+    {
+      "id": "n1",
+      "symbol": "TNK-FIRE-01",
+      "x": 112,
+      "y": 520,
+      "size": 96,
+      "label": "消防水池",
+      "point": "TNK_FIRE_01_LV"
+    },
+    {
+      "id": "n2",
+      "symbol": "RES-TANK-01",
+      "x": 104,
+      "y": 160,
+      "size": 96,
+      "label": "消防水箱",
+      "point": "RES_TANK_01_LV"
+    },
+    {
+      "id": "n3",
+      "symbol": "PMP-SET-01",
+      "x": 328,
+      "y": 160,
+      "size": 72,
+      "label": "消防泵组",
+      "point": "PMP_SET_01_RUN"
+    },
+    {
+      "id": "n5",
+      "symbol": "CAB-PMP-01",
+      "x": 504,
+      "y": 64,
+      "size": 60,
+      "label": "稳压控制制柜",
+      "point": "CAB_PMP_01_FAULT"
+    },
+    {
+      "id": "n9",
+      "symbol": "HYD-IND-01",
+      "x": 840,
+      "y": 88,
+      "size": 60,
+      "label": "室内消火栓",
+      "point": "HYD_IND_01_PRESS"
+    },
+    {
+      "id": "n10",
+      "symbol": "VLV-BUTT-01",
+      "x": 648,
+      "y": 160,
+      "size": 48,
+      "label": "阀门",
+      "point": "VLV_BUTT_01_OPEN"
+    },
+    {
+      "id": "n11",
+      "symbol": "HYD-HOSE-01",
+      "x": 832,
+      "y": 232,
+      "size": 60,
+      "label": "消火栓箱",
+      "point": "HYD_HOSE_01_PRESS"
+    },
+    {
+      "id": "n15",
+      "symbol": "TST-TEST-01",
+      "x": 832,
+      "y": 432,
+      "size": 60,
+      "label": "末端试水装置",
+      "point": "TST_TEST_01_P"
+    },
+    {
+      "id": "nmvq2pm3bw7kl",
+      "symbol": "PMP-SET-01",
+      "x": 328,
+      "y": 520,
+      "size": 72,
+      "label": "消防泵组",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvq2q06li0ev",
+      "symbol": "CAB-PMP-01",
+      "x": 232,
+      "y": 384,
+      "size": 60,
+      "label": "消防泵控制柜",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvq7w5er8tog",
+      "symbol": "SPK-SPR-01",
+      "x": 832,
+      "y": 608,
+      "size": 60,
+      "label": "喷淋喷头",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvqajja98rbz",
+      "symbol": "ALV-GRP-01",
+      "x": 648,
+      "y": 520,
+      "size": 60,
+      "label": "报警阀组",
+      "point": "",
+      "value": "",
+      "state": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "e2",
+      "from": {
+        "node": "n2",
+        "port": 1
+      },
+      "to": {
+        "node": "n3",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "e9",
+      "from": {
+        "node": "n10",
+        "port": 1
+      },
+      "to": {
+        "node": "n11",
+        "port": 0
+      },
+      "routeMode": "manual",
+      "flow": "forward"
+    },
+    {
+      "id": "e12",
+      "from": {
+        "node": "n5"
+      },
+      "to": {
+        "node": "n3"
+      },
+      "kind": "control"
+    },
+    {
+      "id": "emvq2puxpbxtd",
+      "from": {
+        "node": "n1",
+        "port": 1
+      },
+      "to": {
+        "node": "nmvq2pm3bw7kl",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "emvq2qb2v10e9",
+      "from": {
+        "node": "nmvq2q06li0ev",
+        "port": 0
+      },
+      "to": {
+        "node": "nmvq2pm3bw7kl",
+        "port": 1
+      },
+      "kind": "control"
+    },
+    {
+      "id": "emvq5q9on21zi",
+      "from": {
+        "node": "n10",
+        "port": 1
+      },
+      "to": {
+        "node": "n9",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "emvqadmdoq0ru",
+      "from": {
+        "node": "nmvq2pm3bw7kl",
+        "port": 1
+      },
+      "to": {
+        "node": "n10",
+        "port": 0
+      }
+    },
+    {
+      "id": "emvqae5z0mwc7",
+      "from": {
+        "node": "n3",
+        "port": 1
+      },
+      "to": {
+        "node": "n10",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "emvqajsxsipni",
+      "from": {
+        "node": "n3",
+        "port": 1
+      },
+      "to": {
+        "node": "nmvqajja98rbz",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "emvqajuyws7uc",
+      "from": {
+        "node": "nmvq2pm3bw7kl",
+        "port": 1
+      },
+      "to": {
+        "node": "nmvqajja98rbz",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "emvqajwt6am9l",
+      "from": {
+        "node": "nmvqajja98rbz",
+        "port": 1
+      },
+      "to": {
+        "node": "n15",
+        "port": 0
+      },
+      "flow": "forward"
+    },
+    {
+      "id": "emvqajytf3zhp",
+      "from": {
+        "node": "nmvqajja98rbz",
+        "port": 1
+      },
+      "to": {
+        "node": "nmvq7w5er8tog",
+        "port": 0
+      },
+      "flow": "forward"
+    }
+  ]
+}

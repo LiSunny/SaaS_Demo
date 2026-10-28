@@ -210,8 +210,8 @@ const router = createRouter({
         { path: 'maintenance/records', name: 'DeviceFacilityMaintenanceRecords', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'monitor/status', name: 'DeviceFacilityMonitorStatus', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
         { path: 'monitor/scene', name: 'DeviceFacilityMonitorScene', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },
-        // 真实页：复用消防三系统实时监测页（原「值守与应急 › 消防监控」，2026-10-27 迁入运行监控）
-        { path: 'monitor/fire-water', name: 'DeviceFacilityMonitorFireWater', component: () => import('@/views/subsystem/PipelineMonitor.vue') },
+        // 真实页：消防水系统监测（垂直三段：核心数据 / 组态 / 报警记录）
+        { path: 'monitor/fire-water', name: 'DeviceFacilityMonitorFireWater', component: () => import('@/views/subsystem/FireWaterMonitor.vue') },
         { path: 'monitor/fire-gas', name: 'DeviceFacilityMonitorFireGas', component: () => import('@/views/subsystem/GasExtinguishMonitor.vue') },
         { path: 'monitor/fire-smoke', name: 'DeviceFacilityMonitorFireSmoke', component: () => import('@/views/subsystem/SmokeExhaustMonitor.vue') },
         { path: 'report/alarm', name: 'DeviceFacilityReportAlarm', component: () => import('@/views/device-facility/DeviceFacilityPlaceholder.vue') },

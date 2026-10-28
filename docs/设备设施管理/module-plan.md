@@ -3,7 +3,7 @@
 > 调研日期：2026-10-26
 > 对标平台：智慧消防云平台 `beijingrenxing.com:9443`（租户：港南二中，账号 李文学）
 > 状态：方案待实施（第 1 批菜单骨架 / 第 2~4 批真实页面）
-> 后续补充：组态配置 + 图元库接入（第 2 批）；消防三系统监测迁入运行监控（2026-10-27，见 §6.5）
+> 后续补充：组态配置 + 图元库接入（第 2 批）；消防三系统监测迁入运行监控（2026-10-27，见 §6.5）；消防水系统监测页重构为垂直三段（2026-10-27，见 §6.7）
 
 ---
 
@@ -16,6 +16,7 @@
 5. 可复用的真实页面 2 个（设备台账、保养计划），其余 14 个叶子先做占位页。
 6. 新增路由 16 条，前缀 `/device-facility`，不复用旧路径，避免与 `安全管理›设备管理›设备台账` 抢占同一路由的选中态。
 7. 2026-10-27：「运行监控」新增 3 项消防三系统监测（消防水 / 气体灭火 / 防排烟），页面复用 `src/views/subsystem/` 既有真实页；平台「运行监控」只有状态监控、场景监控 2 项，这 3 项为本仓库新增。
+8. 2026-10-27：消防水系统监测页重构为垂直三段（核心数据 → 组态 → 报警记录），路由与菜单 key 不变，详见 §6.7。
 
 ---
 
@@ -236,6 +237,51 @@
 | `src/views/device-facility/SceneEditor.vue` | 顶栏增「连线动画」开关 |
 
 兼容性：`via` 折点与 `kind` 语义不变；带折点的历史画面走线与改前逐点一致；导入校验不拦截新字段，导出 JSON 自动携带。
+
+### 6.7 第 4 批：消防水系统监测页重构为垂直三段（2026-10-27）
+
+`/device-facility/monitor/fire-water` 由「点位长列表」改为**垂直三段**：① 核心数据 → ② 组态 → ③ 报警记录。路由路径与菜单 key 均不变，导航树无改动。
+
+| 文件 | 改动 |
+|------|------|
+| `src/views/subsystem/FireWaterMonitor.vue` | 新页面：页头（演示数据标识 / 刷新三档状态 / 更新时间）+ 三段垂直布局 + 两级下钻抽屉 |
+| `src/views/subsystem/PipelineMonitor.vue` | **删除**（`src/` 内仅 router 一处引用，已改指新页） |
+| `src/components/subsystem/FireWaterCoreCards.vue` | ① 核心数据 4 卡（供水压力 / 供水流量 / 水池水位 / 系统状态），卡可下钻 |
+| `src/components/subsystem/FireWaterScene.vue` | ② 只读位图组态：复用 `SceneSymbolNode` + `@/symbols` 的 `edgePath`/`edgePathReversed`，实线底管 + 流动光带 |
+| `src/components/subsystem/FireWaterPointDrawer.vue` | 点位组抽屉：列出图元所辖点位（异常优先 + 关键字过滤），点行转单点详情 |
+| `src/components/subsystem/FireWaterAlarmTable.vue` | ③ 报警记录表：`fi-table`，等级筛选 + 标记已处理 |
+| `src/config/firewater-scene.json` | **组态画面真源**：组态编辑器导出的「消防给水系统总貌」（1200×700 / 12 节点 / 12 连线），改画面后整份替换此文件 |
+| `src/config/firewater-scene.ts` | 读画面 JSON + 节点↔点位绑定表 + 核心数据卡取值规则 |
+| `src/stores/firewater-alarm.ts` | 报警记录 store：当前异常点位实时累积（正常→报警/故障才记一条）+ 首次加载补 12 条确定性历史，上限 200 条 |
+| `src/types/firewater.ts` | 报警记录 / 点位组 / 节点绑定 / 核心数据卡类型 |
+| `src/router/index.ts` | `monitor/fire-water` 组件改指 `FireWaterMonitor.vue`（路径与 name 不变） |
+| `src/components/business/StatusTag.vue` | `MAP` 增 `critical`/`important`/`general`/`unhandled`/`handled` |
+| `src/symbols/theme.css` | 补 `.is-alarm`/`.is-discharge` 的令牌覆盖（图元库原本写死橙色与深红） |
+| `scripts/verify-fire-pages.mjs` | 断言改新结构（三段顺序 / 4 卡 / 16 图元 / 13 连线 / 卡面声明数与抽屉实到数互校）；外壳 401 单独归类 |
+| `e2e/specs/fire-water-monitor.spec.ts` | 新增 e2e 用例 4 条 |
+
+**点位绑定口径**（`FIREWATER_NODE_BINDINGS`）：typeKey + 编号前缀圈定设备档案类，再按类内序号切片。压力 38+38+38 = 114 ✓ 阀门 719 + 72 = 791 ✓ 液位 2+2 = 4 ✓ 试水 232 ✓ 主机 1 + 分机 4+2+2 = 9 ✓。组态覆盖 1150 个点位，其余 6 个流量点由「供水流量」卡下钻进入 → 1156 个点位全部可达。
+
+组态画面分上下两条支路，阀门节点 (n10) 为两条支路共用：
+
+| 节点 | 图元 | 标签 | 点位分组 | 显示值 |
+|---|---|---|---|---|
+| n1 | TNK-FIRE-01 | 消防水池 | `water_level` [0,2) | 最低水位 % |
+| n2 | RES-TANK-01 | 消防水箱 | `water_level` [2,4) | 最低水位 % |
+| n3 | PMP-SET-01 | 消防泵组 | `pipe_slave` [4,6) | 运行 N/2 |
+| n5 | CAB-PMP-01 | 稳压控制柜 | `pipe_host` | 设备状态 |
+| n9 | HYD-IND-01 | 室内消火栓 | `pipe_pressure` [0,38) | 最小压力 |
+| n10 | VLV-BUTT-01 | 阀门 | `valve_switch` FM | 开 N/719 |
+| n11 | HYD-HOSE-01 | 消火栓箱 | `pipe_pressure` [38,76) | 最小压力 |
+| n15 | TST-TEST-01 | 末端试水装置 | `hydrant_test` | 启动 N/232 |
+| nmvq2pm3bw7kl | PMP-SET-01 | 消防泵组 | `pipe_slave` [6,8) | 运行 N/2 |
+| nmvq2q06li0ev | CAB-PMP-01 | 消防泵控制柜 | `pipe_slave` [0,4) | 运行 N/4 |
+| nmvq7w5er8tog | SPK-SPR-01 | 喷淋喷头 | `pipe_pressure` [76,114) | 最小压力 |
+| nmvqajja98rbz | ALV-GRP-01 | 报警阀组 | `valve_switch` BZ | 开 N/72 |
+
+**核心数据取值**（`computeFireWaterCards`）：供水压力 = 114 个压力测点最小值；供水流量 = 6 个流量测点算术平均；水池水位 = 4 个液位测点最小值（按量程上限折算 %）；系统状态 = 1156 个点位状态计数派生。正常范围文案取自指标定义的 `normalRange`，卡片副行标明分母（测点数）。
+
+**规模说明口径**：页头「共 1 处主机、8 台分机、N 个采集点位」取 `points` 全量长度（N = 1156 = 1147 个采集设备 + 1 主机 + 8 分机），与「系统状态」卡同口径。`scale.devices` 之和是设备数而非点位数，不可直接用作 N。`scripts/verify-fire-pages.mjs` 断言页头 N 与卡片 N 相等。
 
 ---
 

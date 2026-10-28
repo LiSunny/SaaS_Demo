@@ -3,6 +3,9 @@
  *
  * 画面布局的 nodes/edges 结构与图元库 `symbol-library/src/layouts/demo-firewater.json`
  * 保持一致，导出 JSON 可被外部系统直接消费。
+ *
+ * 平台侧的画面实例见 `src/config/firewater-scene.json`（组态编辑器导出格式），
+ * 消防水系统监控页的组态渲染即读取该文件。
  */
 
 /** 图形风格：图片版（扁平拟物实物图）/ 线框版（工程符号） */

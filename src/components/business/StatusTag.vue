@@ -59,6 +59,13 @@ const MAP: Record<string, { label: string; cls: string }> = {
   step_done: { label: '已完成', cls: 'success' },
   step_in_progress: { label: '执行中', cls: 'warning' },
   step_pending: { label: '待执行', cls: 'normal' },
+  // 消防报警等级（与后端 model Alarm.level 三档一致）
+  critical: { label: '紧急', cls: 'danger' },
+  important: { label: '重要', cls: 'warning' },
+  general: { label: '一般', cls: 'normal' },
+  // 报警处置状态
+  unhandled: { label: '未处理', cls: 'danger' },
+  handled: { label: '已处理', cls: 'normal' },
 }
 
 const entry = computed(() => MAP[String(props.status)] || { label: props.status, cls: '' })
