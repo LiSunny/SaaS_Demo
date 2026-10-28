@@ -47,7 +47,20 @@ function draw() {
 }
 
 onMounted(draw)
-watch(() => [props.symbol, props.size, props.variant, JSON.stringify(props.state)], draw)
+/**
+ * 多源 watch：逐项按值比较。
+ * 不能写成 `watch(() => [props.symbol, ...], draw)`——getter 每次返回新数组，
+ * 引用永远不同，watch 判定为"变化"，于是每次父组件重渲染都会重建缩略图里的位图。
+ */
+watch(
+  [
+    () => props.symbol,
+    () => props.size,
+    () => props.variant,
+    () => JSON.stringify(props.state),
+  ],
+  draw,
+)
 // 自定义图元注册完成后重绘
 watch(SYMBOL_REGISTRY_VERSION, draw)
 </script>

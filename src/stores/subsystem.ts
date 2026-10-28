@@ -8,7 +8,7 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref, computed, shallowRef } from 'vue'
+import { ref, computed, shallowRef, reactive, markRaw, nextTick } from 'vue'
 import type {
   PointDef,
   PointRuntime,
@@ -30,6 +30,9 @@ const ZONES = [
  */
 const DEMO_ANOMALY_RATE = 0.06 // 约 6% 的点位处于报警/故障，用于验证告警链路与视觉层次
 
+/** 刷新周期（毫秒） */
+const REFRESH_INTERVAL_MS = 3000
+
 function pseudoRandom(seed: number): () => number {
   let s = seed % 2147483647
   if (s <= 0) s += 2147483646
@@ -39,8 +42,37 @@ function pseudoRandom(seed: number): () => number {
 export const useSubsystemStore = defineStore('subsystem', () => {
   /** 点位清单（按档案生成） */
   const points = shallowRef<PointDef[]>([])
-  /** 运行时数据 pointId → PointRuntime */
-  const runtime = ref<Record<string, PointRuntime>>({})
+  /**
+   * 运行时数据 pointId → PointRuntime
+   *
+   * 用 keyed 的 reactive Map 而不是 `ref<Record<...>>`：
+   * 整体替换 Record 会让所有订阅者一次性失效（组态 12 节点、4 张卡片、719 行下钻抽屉
+   * 每次刷新全部重渲染）。Map.set 只触发该点位的依赖，
+   * 未变化的点位（791 个阀门是开关量，值几乎不动）不再参与刷新。
+   */
+  const runtime = reactive(new Map<string, PointRuntime>())
+  /**
+   * 运行时点位对象必须是 raw（markRaw），不能是响应式代理。
+   *
+   * 代理对象有两个代价，都落在每轮刷新上：
+   *   1. 每读一个字段都要过一次 proxy handler —— 一轮要对 1156 个点位读
+   *      状态 + 数值 + 趋势，上万次代理读是每轮 JS 的主要开销；
+   *   2. 在 computed 里读代理字段，会给每个字段各建一条依赖，
+   *      一条 computed 就能攒出上万条依赖，失效时的依赖清理随之变贵。
+   *
+   * 改成 raw 之后：
+   *   - 字段读变回普通属性读；
+   *   - 响应式粒度落在 reactive Map 的「键」上：点位值变了就整体替换该键，
+   *     订阅这个键的组件（抽屉行、详情抽屉、组态节点）照常拿到新值，
+   *     没变化的点位不会被重渲染。
+   *
+   * ⚠️ 别改回代理：症状是"开刷新几秒后整页假死"，不是"数据不更新"。
+   */
+  /**
+   * 刷新序号：每轮 tick 自增。
+   * runtime 的 Map 引用不变、内容变，watch(runtime) 不会触发，报警同步靠它驱动。
+   */
+  const refreshSeq = ref(0)
   /** 当前激活子系统 */
   const activeKey = ref('')
   /** 最后更新时间戳 */
@@ -129,8 +161,8 @@ export const useSubsystemStore = defineStore('subsystem', () => {
     return list
   }
 
-  function initialRuntime(points: PointDef[]): Record<string, PointRuntime> {
-    const map: Record<string, PointRuntime> = {}
+  function initialRuntime(points: PointDef[]): Map<string, PointRuntime> {
+    const map = new Map<string, PointRuntime>()
     const p = activeProfile.value
     if (!p) return map
 
@@ -205,87 +237,153 @@ export const useSubsystemStore = defineStore('subsystem', () => {
         }
       }
 
-      map[pt.id] = {
-        pointId: pt.id,
-        status,
-        values,
-        trend,
-        updatedAt: Date.now(),
-      }
+      map.set(
+        pt.id,
+        markRaw({
+          pointId: pt.id,
+          status,
+          values,
+          trend,
+          updatedAt: Date.now(),
+        }),
+      )
     }
     return map
   }
 
   // ===== 实时刷新 =====
 
+  /**
+   * 一轮刷新
+   *
+   * 只写回真正变化的点位：
+   *   - 阀门 / 末端试水 / 主机分机是开关量与状态量，值几乎不动 → 不写回 → 不重渲染
+   *   - 压力 / 流量 / 水位是模拟量，每轮都漂移 → 写回
+   * 未变化的点位保持对象引用不变，updatedAt 也不更新（数据没变，时间戳就不该变）。
+   */
   function tick() {
     const p = activeProfile.value
     if (!p) return
-    const next = { ...runtime.value }
 
     for (const pt of points.value) {
-      const cur = next[pt.id]
+      const cur = runtime.get(pt.id)
       if (!cur) continue
 
-      const changed: PointRuntime = {
-        ...cur,
-        values: { ...cur.values },
-        trend: cur.trend ? { ...cur.trend } : undefined,
-        updatedAt: Date.now(),
+      /**
+       * values 惰性拷贝：开关量与状态量几乎不变，先不拷贝，
+       * 确认要改值时再复制一份。1156 个点位每轮都拷贝一遍是纯浪费。
+       */
+      let values: Record<string, number | string> | null = null
+      const ensureValues = (): Record<string, number | string> => {
+        if (!values) values = { ...cur.values }
+        return values
+      }
+      const trend = cur.trend
+      let status = cur.status
+      let dirty = false
+
+      const setStatus = (s: PointStatus) => {
+        if (s !== status) {
+          status = s
+          dirty = true
+        }
       }
 
       for (const m of pt.metrics) {
         if (m.kind === 'status') {
           // 极小概率故障
-          if (Math.random() < 0.0004) changed.status = 'fault'
-          else if (changed.status === 'fault' && Math.random() < 0.35) changed.status = 'normal'
+          if (Math.random() < 0.0004) setStatus('fault')
+          else if (status === 'fault' && Math.random() < 0.35) setStatus('normal')
         } else if (m.kind === 'switch') {
           // 开关量轻微抖动：故障态概率出现
           if (Math.random() < 0.0006) {
-            changed.status = 'fault'
-            changed.values[m.key] = m.states?.find(s => s.tone === 'fault')?.value ?? 'fault'
-          } else if (changed.status === 'fault' && Math.random() < 0.4) {
-            changed.status = 'normal'
+            setStatus('fault')
+            const v = m.states?.find(s => s.tone === 'fault')?.value ?? 'fault'
+            if (cur.values[m.key] !== v) {
+              ensureValues()[m.key] = v
+              dirty = true
+            }
+          } else if (status === 'fault' && Math.random() < 0.4) {
+            setStatus('normal')
           }
         } else {
           const [min, max] = m.range ?? [0, 100]
           const [nMin, nMax] = m.normalRange ?? [min, max]
-          const prev = Number(changed.values[m.key] ?? nMin)
+          const prev = Number(cur.values[m.key] ?? nMin)
           // 以工作区间宽度为步长小幅漂移，避免大幅跳变失真
           let v = prev + (Math.random() - 0.5) * (nMax - nMin) * 0.08
           v = Math.max(min, Math.min(max, v))
           const nv = Number(v.toFixed(m.precision ?? 2))
-          changed.values[m.key] = nv
-          if (changed.trend?.[m.key]) {
-            const s = changed.trend[m.key]
+          if (cur.values[m.key] !== nv) {
+            ensureValues()[m.key] = nv
+            dirty = true
+          }
+          if (trend?.[m.key]) {
+            const s = trend[m.key]
             s.push(nv)
             if (s.length > 24) s.shift()
           }
           // 阈值判定
-          if (m.highLimit != null && nv >= m.highLimit) changed.status = 'alarm'
-          else if (m.lowLimit != null && nv <= m.lowLimit) changed.status = 'alarm'
-          else if (changed.status === 'alarm') changed.status = 'normal'
+          if (m.highLimit != null && nv >= m.highLimit) setStatus('alarm')
+          else if (m.lowLimit != null && nv <= m.lowLimit) setStatus('alarm')
+          else if (status === 'alarm') setStatus('normal')
         }
       }
 
-      next[pt.id] = changed
+      if (!dirty) continue
+
+      runtime.set(
+        pt.id,
+        markRaw({
+          pointId: pt.id,
+          status,
+          values: values ?? cur.values,
+          trend,
+          updatedAt: Date.now(),
+        }),
+      )
     }
 
-    runtime.value = next
     lastUpdate.value = Date.now()
+    refreshSeq.value++
   }
 
+  /**
+   * 刷新定时器：自调度链，不是 setInterval
+   *
+   * 为什么不用 setInterval：
+   *   setInterval 按固定节奏无条件触发，回调排队不会自我收敛。
+   *   一旦「一轮刷新」的总耗时（tick + Vue 渲染 + 布局）超过刷新周期，
+   *   待执行的回调就会越攒越多 —— 页面不是在变慢，是在持续假死，
+   *   表现就是"开启刷新几秒后组态动画卡住、菜单也点不动"。
+   *
+   * 自调度链保证任何时刻最多只有一轮在飞：
+   *   tick() → 等 Vue 把本轮渲染刷完（nextTick）→ 再排下一轮。
+   * 单轮再慢也只是刷新变慢，不会堆积。
+   *
+   * 这里不用 requestAnimationFrame 收尾：后台标签页里 rAF 不触发，
+   * 链会断掉，页面回到前台后数据也不再刷新。nextTick 与标签页可见性无关。
+   */
   function startTimer() {
     stopTimer()
     if (!live.value) return
-    timer.value = window.setInterval(() => {
-      if (live.value) tick()
-    }, 3000)
+
+    const schedule = () => {
+      timer.value = window.setTimeout(async () => {
+        if (!live.value) return
+        tick()
+        // 等本轮渲染刷完，再排下一轮
+        await nextTick()
+        if (live.value) schedule()
+      }, REFRESH_INTERVAL_MS)
+    }
+
+    schedule()
   }
 
   function stopTimer() {
     if (timer.value != null) {
-      clearInterval(timer.value)
+      clearTimeout(timer.value)
       timer.value = null
     }
   }
@@ -314,7 +412,8 @@ export const useSubsystemStore = defineStore('subsystem', () => {
     activeKey.value = key
     const list = generatePoints(p)
     points.value = list
-    runtime.value = initialRuntime(list)
+    runtime.clear()
+    for (const [id, r] of initialRuntime(list)) runtime.set(id, r)
 
     hostStatus.value = {}
     hostStatus.value[`${key}-host-1`] = 'normal'
@@ -334,7 +433,7 @@ export const useSubsystemStore = defineStore('subsystem', () => {
       normal: 0, alarm: 0, fault: 0, offline: 0, shielded: 0, unknown: 0,
     }
     for (const pt of points.value) {
-      const r = runtime.value[pt.id]
+      const r = runtime.get(pt.id)
       if (!r) { c.unknown++; continue }
       c[r.status] = (c[r.status] ?? 0) + 1
     }
@@ -371,7 +470,7 @@ export const useSubsystemStore = defineStore('subsystem', () => {
 
   /** 单点位运行时数据 */
   function getRuntime(pointId: string): PointRuntime | undefined {
-    return runtime.value[pointId]
+    return runtime.get(pointId)
   }
 
   return {
@@ -380,6 +479,7 @@ export const useSubsystemStore = defineStore('subsystem', () => {
     activeProfile,
     points,
     runtime,
+    refreshSeq,
     lastUpdate,
     live,
     timerRunning,

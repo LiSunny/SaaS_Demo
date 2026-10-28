@@ -105,7 +105,7 @@ import FireWaterPointDrawer from '@/components/subsystem/FireWaterPointDrawer.vu
 import PointDetailDrawer from '@/components/subsystem/PointDetailDrawer.vue'
 
 const store = useSubsystemStore()
-const { points, runtime, live, lastUpdate, timerRunning } = storeToRefs(store)
+const { points, live, lastUpdate, timerRunning, refreshSeq } = storeToRefs(store)
 const { getRuntime, findProfile, loadSubsystem, toggleLive, stopTimer } = store
 
 const alarm = useFirewaterAlarmStore()
@@ -221,10 +221,11 @@ onMounted(() => {
 })
 
 /**
- * 报警记录与点位状态同源：runtime 每次被整体替换即触发一次同步。
+ * 报警记录与点位状态同源：runtime 改成 keyed reactive Map 后引用不变、内容变，
+ * watch(runtime) 不再触发，改由 store 的刷新序号驱动。
  * 跃迁判定在 store 内做（正常 → 报警/故障 才记一条）。
  */
-watch(runtime, () => {
+watch(refreshSeq, () => {
   alarm.sync(points.value, getRuntime)
 })
 
