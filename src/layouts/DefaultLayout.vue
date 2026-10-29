@@ -1024,7 +1024,7 @@ if (typeof window !== 'undefined') {
   width: 100%; padding: 8px 10px;
   border: none; background: none; cursor: pointer;
   font-family: inherit;
-  font-size: 15px; font-weight: 700; color: #1f2329;
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
   letter-spacing: 0.5px;
   text-align: left; border-radius: var(--radius-sm, 6px);
   transition: background .15s; flex-shrink: 0;
