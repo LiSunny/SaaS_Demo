@@ -524,6 +524,10 @@ onMounted(async () => { await store.fetchList() })
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* 行高必须按内容撑开：容器是 flex:1 的确定高度，auto 行会被均分剩余空间，
+     行高小于卡片实际高度时卡片溢出轨道、压到下一行造成重叠 */
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: var(--spacing-lg, 16px);
   padding: 4px 0;
   flex: 1;
