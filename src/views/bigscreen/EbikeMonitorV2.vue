@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import './components/ebike-v2/ebike-v2-fonts.css'
 import EbikeV2Header from './components/ebike-v2/EbikeV2Header.vue'
 import EbikeV2Card from './components/ebike-v2/EbikeV2Card.vue'
 import EbikeV2CampusModel from './components/ebike-v2/EbikeV2CampusModel.vue'

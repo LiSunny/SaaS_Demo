@@ -1,0 +1,33 @@
+/**
+ * 应急局电动车监控大屏 v2 字体声明
+ *
+ * 字体文件放在 public/fonts/ 目录下。
+ *
+ * 导航（/landing/ebike-v2）用到设计稿的两款字体，Figma 51:1800：
+ *   · 选中项文字 Source-KeynoteartHans 900（思源演示斜黑体）
+ *   · 未选中项文字 Alibaba PuHuiTi（阿里普惠体）
+ *
+ * 两款字体都只在导航里用，因此以独立字体族名声明，
+ * 避免影响页面其它位置的 font-family 栈（页面根节点也请求了 Alibaba PuHuiTi，
+ * 若直接声明该族名且只提供单个字重，全站其它字重会被合成）。
+ *
+ * 未选中项用 Medium(500) 而非设计稿的 Bold(700)：
+ * 选中项是细笔画的斜黑体，未选中用 Bold 时墨量反而更大，
+ * 实测两态平均亮度只差 1.11 倍、层级发灰，降字重后才能拉开。
+ */
+
+@font-face {
+  font-family: 'NavKeynote';
+  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NavPuHuiTiMedium';
+  src: url('/fonts/Alibaba-PuHuiTi-Medium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

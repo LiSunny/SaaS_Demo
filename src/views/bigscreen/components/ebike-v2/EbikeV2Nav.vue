@@ -8,10 +8,10 @@
       :class="{ 'v2-nav__item--active': idx === current }"
       @click="handleSelect(item, idx)"
     >
-      <!-- 选中态：斜切平行四边形底（径向辉光 + 描边 + 线性填充） -->
+      <!-- 选中态：斜切平行四边形底（线性填充 + 径向辉光与描边），Figma 51:1802 / 51:1808 -->
       <template v-if="idx === current">
-        <img class="v2-nav__glow" src="@/assets/bigscreen/ebike-v2/nav-active-1.svg" alt="" />
-        <img class="v2-nav__fill" src="@/assets/bigscreen/ebike-v2/nav-active-2.svg" alt="" />
+        <img class="v2-nav__glow" src="@/assets/bigscreen/ebike-v2/nav-v2-active-glow.svg" alt="" />
+        <img class="v2-nav__fill" src="@/assets/bigscreen/ebike-v2/nav-v2-active-base.svg" alt="" />
       </template>
       <span class="v2-nav__text">{{ item.label }}</span>
     </button>
@@ -80,19 +80,33 @@ function handleSelect(item: NavItem, idx: number) {
   display: block; pointer-events: none;
 }
 
-/* Figma: TEXT 142×19 at y=11, Source-KeynoteartHans 900 16px, white→#89B5FF */
+/* Figma 51:1811：选中项文字，x=41 y=13 w=68 h=20，行高 20px */
 .v2-nav__text {
   position: absolute; left: 0; top: 50%;
   transform: translateY(-50%);
   width: 100%;
-  font-family: 'Source-KeynoteartHans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
   font-size: clamp(12px, calc(17 * var(--min-scale)), 17px);
-  font-weight: 400; line-height: vh(20);
+  line-height: vh(20);
   text-align: center;
-  background: linear-gradient(to bottom, #ffffff 0%, #89b5ff 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
   white-space: nowrap;
   pointer-events: none;
+}
+
+/* 选中态文字：纯白 + 辉光，从深蓝底上"点亮"。
+   不用 background-clip 垂直渐变 —— 17px 小字上渐变几乎看不出，
+   且渐变裁剪会把 text-shadow 一起裁掉、显示异常。 */
+.v2-nav__item--active .v2-nav__text {
+  font-family: 'NavKeynote', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(120, 200, 255, 0.5);
+}
+
+/* 未选中态文字：压暗 + 降字重，退到背景里，让选中项跳出来。
+   原来用设计稿的 Bold + #A8C8FF，实测未选中项比选中项还亮、层级是反的。 */
+.v2-nav__item:not(.v2-nav__item--active) .v2-nav__text {
+  font-family: 'NavPuHuiTiMedium', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  color: #6e93c4;
 }
 </style>
