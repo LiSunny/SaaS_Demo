@@ -1,23 +1,23 @@
 <template>
-  <div class="fwat">
+  <div class="sm-at">
     <!-- ===== 筛选行 ===== -->
-    <div class="fwat__filters">
+    <div class="sm-at__filters">
       <el-input
         v-model="draft.keyword"
-        class="fwat__search"
+        class="sm-at__search"
         placeholder="安装位置/设备编码"
         clearable
       >
         <template #prefix><AppIcon name="search" /></template>
       </el-input>
 
-      <el-select v-model="draft.unit" class="fwat__select" placeholder="管理单元" clearable>
+      <el-select v-model="draft.unit" class="sm-at__select" placeholder="管理单元" clearable>
         <el-option v-for="u in units" :key="u.id" :label="u.label" :value="u.id" />
       </el-select>
 
       <el-date-picker
         v-model="draft.range"
-        class="fwat__date"
+        class="sm-at__date"
         style="width: 280px"
         type="daterange"
         range-separator="至"
@@ -26,23 +26,23 @@
         value-format="YYYY-MM-DD"
       />
 
-      <button type="button" class="fwat__btn fwat__btn--primary" @click="query">查询</button>
+      <button type="button" class="sm-at__btn sm-at__btn--primary" @click="query">查询</button>
 
-      <button type="button" class="fwat__btn fwat__btn--ghost" @click="exportCsv">
+      <button type="button" class="sm-at__btn sm-at__btn--ghost" @click="exportCsv">
         <AppIcon name="download" />
         批量导出
       </button>
 
-      <span class="fwat__count">
+      <span class="sm-at__count">
         共 <b>{{ filtered.length }}</b> 条
         <template v-if="unhandledCount > 0">
-          · <b class="fwat__count--bad">{{ unhandledCount }}</b> 条未处理
+          · <b class="sm-at__count--bad">{{ unhandledCount }}</b> 条未处理
         </template>
       </span>
     </div>
 
     <!-- ===== 表格 ===== -->
-    <div class="fwat__wrap">
+    <div class="sm-at__wrap">
       <table class="fi-table">
         <thead>
           <tr class="fi-thead-tr">
@@ -58,8 +58,12 @@
         <tbody>
           <tr v-for="r in pageRows" :key="r.id" class="fi-tbody-tr">
             <td class="fi-td col-type">
-              <span class="fw-tag" :class="`fw-tag--${eventType(r).cls}`">
-                <i class="fw-tag__dot" />
+              <span
+                class="sm-tag"
+                :class="`sm-tag--${eventType(r).cls}`"
+                :title="`报警等级：${levelText(r.level)}`"
+              >
+                <i class="sm-tag__dot" />
                 {{ eventType(r).label }}
               </span>
             </td>
@@ -69,7 +73,7 @@
             <td class="fi-td col-loc" :title="r.location">{{ r.location }}</td>
             <td class="fi-td col-time">{{ timeText(r.occurredAt) }}</td>
             <td class="fi-td col-actions">
-              <span class="fwat__actions">
+              <span class="sm-at__actions">
                 <button
                   type="button"
                   class="act-btn act-btn--icon"
@@ -81,13 +85,13 @@
                 <button
                   v-if="r.status === 'unhandled'"
                   type="button"
-                  class="act-btn fwat__handle"
+                  class="act-btn sm-at__handle"
                   title="标记为已处理"
                   @click="emit('handle', r.id)"
                 >
                   处理
                 </button>
-                <span v-else class="fwat__done">已处理</span>
+                <span v-else class="sm-at__done">已处理</span>
               </span>
             </td>
           </tr>
@@ -101,16 +105,16 @@
     </div>
 
     <!-- ===== 分页 ===== -->
-    <div class="fwat__pager">
-      <span class="fwat__pager-text">
+    <div class="pagination-wrap">
+      <span class="pagi-total">
         共 {{ filtered.length }} 条记录 第 {{ pageCount ? page : 1 }}/{{ pageCount }} 页
       </span>
       <el-pagination
         v-model:current-page="page"
         v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50]"
+        :page-sizes="[10, 20, 50, 100]"
         :total="filtered.length"
-        layout="sizes, prev, pager, next"
+        layout="sizes, prev, pager, next, jumper"
         background
       />
     </div>
@@ -122,28 +126,35 @@
  * 报警记录表（设计稿「报警记录」页）
  *
  * 列：事件类型 / 事件内容 / 设备类型 / 设备编码 / 安装位置 / 上报时间 / 操作
- * 记录来源见 stores/firewater-alarm.ts：当前异常点位实时累积 + 首次加载补的历史。
+ * 记录来源见 stores/subsystem-alarm.ts：当前异常点位实时累积 + 首次加载补的历史。
  *
  * 表格用项目标准 fi-table（表头 sticky，仅表体滚动），分页常驻底部。
  */
 import { computed, reactive, ref, watch } from 'vue'
 import AppIcon from '@/components/base/AppIcon.vue'
-import type { FireAlarmRecord } from '@/types/firewater'
+import type { SubsystemAlarmRecord } from '@/types/subsystem-scene'
 
-const props = defineProps<{
-  records: FireAlarmRecord[]
-  unhandledCount: number
-  /** 设备档案类型 key → 名称 */
-  typeNameOf: (typeKey: string) => string
-  /** 管理单元（分机）下拉项 */
-  units: Array<{ id: string; label: string }>
-}>()
+const props = withDefaults(
+  defineProps<{
+    records: SubsystemAlarmRecord[]
+    unhandledCount: number
+    /** 设备档案类型 key → 名称 */
+    typeNameOf: (typeKey: string) => string
+    /** 管理单元（分机）下拉项 */
+    units: Array<{ id: string; label: string }>
+    /** 越限事件在「事件类型」列的叫法（火系统叫火警，气体灭火叫报警） */
+    alarmLabel?: string
+    /** 导出文件名（不含日期后缀） */
+    exportName?: string
+  }>(),
+  { alarmLabel: '报警', exportName: '报警记录' },
+)
 
 const emit = defineEmits<{
   /** 标记已处理 */
   handle: [id: string]
   /** 查看点位详情 */
-  preview: [record: FireAlarmRecord]
+  preview: [record: SubsystemAlarmRecord]
 }>()
 
 /** 筛选草稿（点「查询」才生效） */
@@ -191,11 +202,18 @@ watch([filtered, pageSize], () => {
   if (page.value > pageCount.value) page.value = 1
 })
 
-/** 事件类型：由触发时的点位状态推导（alarm=火警 / fault=故障 / offline=离线） */
-function eventType(r: FireAlarmRecord): { label: string; cls: string } {
-  if (r.pointStatus === 'alarm') return { label: '火警', cls: 'danger' }
+/** 事件类型：由触发时的点位状态推导（alarm=越限 / fault=故障 / offline=离线） */
+function eventType(r: SubsystemAlarmRecord): { label: string; cls: string } {
+  if (r.pointStatus === 'alarm') return { label: props.alarmLabel, cls: 'danger' }
   if (r.pointStatus === 'offline') return { label: '离线', cls: 'normal' }
   return { label: '故障', cls: 'warning' }
+}
+
+/** 报警等级文案（消防水：水源不足=紧急；气体灭火：钢瓶压力不足=紧急） */
+function levelText(level: SubsystemAlarmRecord['level']): string {
+  if (level === 'critical') return '紧急'
+  if (level === 'important') return '重要'
+  return '一般'
 }
 
 function timeText(ts: number): string {
@@ -206,9 +224,10 @@ function timeText(ts: number): string {
 
 /** 批量导出：导出当前筛选结果 */
 function exportCsv(): void {
-  const head = ['事件类型', '事件内容', '设备类型', '设备编码', '安装位置', '上报时间', '处置状态']
+  const head = ['事件类型', '报警等级', '事件内容', '设备类型', '设备编码', '安装位置', '上报时间', '处置状态']
   const rows = filtered.value.map(r => [
     eventType(r).label,
+    levelText(r.level),
     r.reason,
     props.typeNameOf(r.typeKey),
     r.code,
@@ -223,14 +242,14 @@ function exportCsv(): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `消防水系统报警记录_${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `${props.exportName}_${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
 </script>
 
 <style scoped>
-.fwat {
+.sm-at {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -239,16 +258,16 @@ function exportCsv(): void {
 }
 
 /* ===== 筛选行 ===== */
-.fwat__filters {
+.sm-at__filters {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
   flex-shrink: 0;
 }
-.fwat__search { width: 193px; }
-.fwat__select { width: 212px; }
-.fwat__btn {
+.sm-at__search { width: 193px; }
+.sm-at__select { width: 212px; }
+.sm-at__btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -261,43 +280,43 @@ function exportCsv(): void {
   cursor: pointer;
   transition: background .2s ease, border-color .2s ease, color .2s ease;
 }
-.fwat__btn--primary {
+.sm-at__btn--primary {
   color: #fff;
   background: var(--accent-primary);
   border: 1px solid var(--accent-primary);
 }
-.fwat__btn--primary:hover { background: #2c66c7; }
-.fwat__btn--ghost {
+.sm-at__btn--primary:hover { background: #2c66c7; }
+.sm-at__btn--ghost {
   color: var(--accent-primary);
   background: rgba(54, 120, 227, .1);
   border: 1px solid var(--accent-primary);
 }
-.fwat__btn--ghost:hover { background: rgba(54, 120, 227, .18); }
-.fwat__count {
+.sm-at__btn--ghost:hover { background: rgba(54, 120, 227, .18); }
+.sm-at__count {
   margin-left: auto;
   font-size: 12px;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
-.fwat__count b { color: var(--text-primary); }
-.fwat__count--bad { color: var(--danger-text) !important; }
+.sm-at__count b { color: var(--text-primary); }
+.sm-at__count--bad { color: var(--danger-text) !important; }
 
 /* ===== 表格 ===== */
-.fwat__wrap {
+.sm-at__wrap {
   flex: 1;
   min-height: 0;
   overflow: auto;
   border: 1px solid var(--border-default);
   border-radius: 8px;
 }
-.fwat__wrap .fi-table thead {
+.sm-at__wrap .fi-table thead {
   position: sticky;
   top: 0;
   z-index: 1;
 }
 /* 表头与正文统一 16px（全局 fi-table 默认表头 14px） */
-.fwat__wrap .fi-th,
-.fwat__wrap .fi-td {
+.sm-at__wrap .fi-th,
+.sm-at__wrap .fi-td {
   font-size: 16px;
 }
 
@@ -310,23 +329,23 @@ function exportCsv(): void {
 .col-actions { width: 140px; }
 
 /* 操作列：图标按钮横排（.act-btn 本身是 flex 块级，需要外层横排容器） */
-.fwat__actions {
+.sm-at__actions {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
 }
-.fwat__handle {
+.sm-at__handle {
   width: auto;
   padding: 0 6px;
   font: inherit;
   font-size: 12px;
   color: var(--accent-primary);
 }
-.fwat__done { color: var(--text-muted); }
+.sm-at__done { color: var(--text-muted); }
 
 /* 事件类型标签：圆点 + 文字 */
-.fw-tag {
+.sm-tag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -336,38 +355,28 @@ function exportCsv(): void {
   line-height: 20px;
   white-space: nowrap;
 }
-.fw-tag__dot {
+.sm-tag__dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
-.fw-tag--danger { color: var(--danger); background: rgba(220, 38, 38, .1); }
-.fw-tag--warning { color: var(--warning); background: rgba(217, 119, 6, .1); }
-.fw-tag--normal { color: var(--text-tertiary); background: var(--normal-bg); }
+.sm-tag--danger { color: var(--danger); background: rgba(220, 38, 38, .1); }
+.sm-tag--warning { color: var(--warning); background: rgba(217, 119, 6, .1); }
+.sm-tag--normal { color: var(--text-tertiary); background: var(--normal-bg); }
 
 /* ===== 分页 ===== */
-.fwat__pager {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-shrink: 0;
-}
-.fwat__pager-text {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-}
+/* 分页容器与文案用全局 .pagination-wrap / .pagi-total，
+   el-pagination 的主题覆盖在 src/style.css 里统一给（各业务页不再各抄一份）。 */
 </style>
 
 <style>
 /*
  * el-date-picker 的根元素不吃 scoped 作用域标记，也不转发 style 属性，
- * 组件内 .fwat__date 规则匹配不上，只能用全局选择器压住 Element Plus 的
+ * 组件内 .sm-at__date 规则匹配不上，只能用全局选择器压住 Element Plus 的
  * .el-date-editor--daterange 宽度。
  */
-.fwat__date {
+.sm-at__date {
   flex: 0 0 280px !important;
   width: 280px !important;
 }

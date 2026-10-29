@@ -15,6 +15,9 @@
  * 再在该类内部按序号切片。store 里同类同前缀的点位编号升序（generatePoints 顺序推进），
  * 所以切片稳定可复算。
  *
+ * 公共内核（成员解析缓存、状态汇总、统计卡口径）见 `config/subsystem-scene-core.ts`
+ * 与 `config/subsystem-cards.ts`，气体灭火页共用同一份实现。
+ *
  * 覆盖校验（消防水系统共 1156 个点位）：
  *   主机 1 + 分机 8 + 液位 4 + 压力 114 + 流量 6 + 末端试水 232 = 365 个有图元归属
  *   阀门 791 个当前画面未放置阀门图元 → 组态视图无下钻入口（设备台帐仍可查）
@@ -22,14 +25,25 @@
  */
 import sceneJson from './firewater-scene.json'
 import type { SceneEdge, SceneNode } from '@/types/scene-config'
-import type { MetricDef, PointDef, PointRuntime, PointStatus } from '@/types/subsystem'
+import type { PointDef, PointRuntime } from '@/types/subsystem'
 import type {
-  FireWaterCardKind,
-  FireWaterCardLegendItem,
-  FireWaterNodeAggregate,
-  FireWaterNodeBinding,
-  FireWaterPointGroup,
-} from '@/types/firewater'
+  SubsystemCardValue,
+  SubsystemNodeAggregate,
+  SubsystemNodeBinding,
+  SubsystemPointGroup,
+  SubsystemSceneAdapter,
+} from '@/types/subsystem-scene'
+import {
+  analogState,
+  countState,
+  fmt,
+  groupStatus,
+  metricOf,
+  num,
+  resolveNodePoints,
+  statusOf,
+} from './subsystem-scene-core'
+import { computeSubsystemCards } from './subsystem-cards'
 
 interface RawLayout {
   version: number
@@ -87,7 +101,7 @@ export const FIREWATER_SCENE_SYMBOLS: RawSceneSymbol[] = layout.symbols ?? []
  * 阀门规则当前画面没有对应图元，先行预置：
  * 往画面里放进 VLV-BUTT-01 / VLV-GATE-01 图元即自动生效，无需改代码。
  */
-export const FIREWATER_NODE_BINDINGS: FireWaterNodeBinding[] = [
+export const FIREWATER_NODE_BINDINGS: SubsystemNodeBinding[] = [
   // ===== 主机 =====
   { symbol: 'FWMS-MH-01', match: { typeKeys: ['pipe_host'] }, value: 'deviceState', metricKey: 'runStatus' },
 
@@ -121,91 +135,11 @@ export const FIREWATER_NODE_BINDINGS: FireWaterNodeBinding[] = [
  * @param symbol 节点图元符号
  * @param nth 该符号在画面中的第几个实例（从 1 起）
  */
-export function bindingOf(symbol: string, nth: number): FireWaterNodeBinding | undefined {
+export function bindingOf(symbol: string, nth: number): SubsystemNodeBinding | undefined {
   return FIREWATER_NODE_BINDINGS.find(b => b.symbol === symbol && (b.nth ?? 1) === nth)
 }
 
-// ===== 通用工具 =====
-
-/**
- * 成员列表缓存（按点位清单的数组引用分桶）
- *
- * 「这个节点管哪些点位」每轮刷新都要回答一遍：组态 11 个节点绑定 + 4 张统计卡，
- * 直接 filter 就是 15 × 1156 ≈ 1.7 万次谓词调用，外加 15 个大数组的分配。
- * 而成员集合只随点位清单变化（loadSubsystem 时换一份数组），
- * 所以缓存后每轮 0 次遍历，聚合只做真正需要的那一遍。
- */
-const memberCache = new WeakMap<PointDef[], Map<string, PointDef[]>>()
-
-function cachedMembers(points: PointDef[], key: string, build: () => PointDef[]): PointDef[] {
-  let byKey = memberCache.get(points)
-  if (!byKey) {
-    byKey = new Map()
-    memberCache.set(points, byKey)
-  }
-  let list = byKey.get(key)
-  if (!list) {
-    list = build()
-    byKey.set(key, list)
-  }
-  return list
-}
-
-function metricOf(point: PointDef | undefined, key: string): MetricDef | undefined {
-  return point?.metrics.find(m => m.key === key)
-}
-
-function statusOf(point: PointDef, getRuntime: (id: string) => PointRuntime | undefined): PointStatus {
-  return getRuntime(point.id)?.status ?? 'unknown'
-}
-
-function num(v: unknown): number | undefined {
-  const n = Number(v)
-  return Number.isFinite(n) ? n : undefined
-}
-
-function fmt(v: number, precision = 2): string {
-  return v.toFixed(precision)
-}
-
-/** 组内点位状态汇总：报警 > 故障 > 离线 > 正常 */
-function groupStatus(
-  members: PointDef[],
-  getRuntime: (id: string) => PointRuntime | undefined,
-): 'alarm' | 'fault' | 'offline' | 'normal' {
-  let alarm = 0
-  let fault = 0
-  let offline = 0
-  for (const p of members) {
-    const s = statusOf(p, getRuntime)
-    if (s === 'alarm') alarm++
-    else if (s === 'fault') fault++
-    else if (s === 'offline') offline++
-  }
-  if (alarm > 0) return 'alarm'
-  if (fault > 0) return 'fault'
-  if (offline > 0) return 'offline'
-  return 'normal'
-}
-
 // ===== 节点 ↔ 点位 =====
-
-/** 按绑定规则取出该节点所辖点位 */
-export function resolveNodePoints(
-  binding: FireWaterNodeBinding,
-  points: PointDef[],
-): PointDef[] {
-  return cachedMembers(points, `node:${binding.symbol}#${binding.nth ?? 1}`, () => {
-    const list = points.filter(p => {
-      if (!binding.match.typeKeys.includes(p.typeKey)) return false
-      if (binding.match.codePrefix && !p.code.startsWith(binding.match.codePrefix)) return false
-      return true
-    })
-    if (!binding.match.slice) return list
-    const [start, end] = binding.match.slice
-    return list.slice(start, end)
-  })
-}
 
 /**
  * 聚合节点状态与显示值
@@ -214,10 +148,10 @@ export function resolveNodePoints(
  * 数值口径与图元库状态类（is-run / is-fault / is-open / is-closed / is-off / is-over）对应。
  */
 export function aggregateNode(
-  binding: FireWaterNodeBinding,
+  binding: SubsystemNodeBinding,
   points: PointDef[],
   getRuntime: (id: string) => PointRuntime | undefined,
-): FireWaterNodeAggregate {
+): SubsystemNodeAggregate {
   const members = resolveNodePoints(binding, points)
   const abnormal = members.filter(p => statusOf(p, getRuntime) !== 'normal').length
 
@@ -317,31 +251,6 @@ export function aggregateNode(
 }
 
 /**
- * 图元状态标记
- *
- * 与页面图例同一套色：正常=绿(is-run)、预警=红(is-over，超限)、故障=橙(is-fault)、
- * 离线=灰(is-off)。is-fault 的橙色由 FireWaterScene 局部改色实现，
- * 图元库全局主题仍是红色故障态。
- */
-function analogState(status: 'alarm' | 'fault' | 'offline' | 'normal'): Record<string, boolean> {
-  if (status === 'alarm') return { over: true }
-  if (status === 'fault') return { fault: true }
-  if (status === 'offline') return { off: true }
-  return { run: true }
-}
-
-function countState(
-  kind: FireWaterNodeBinding['value'],
-  status: 'alarm' | 'fault' | 'offline' | 'normal',
-  on: number,
-): Record<string, boolean> {
-  if (status === 'alarm' || status === 'fault' || status === 'offline') return { fault: true }
-  if (kind === 'openCount') return on > 0 ? { open: true } : { closed: true }
-  if (kind === 'startedCount') return on > 0 ? { run: true } : { off: true }
-  return { run: true }
-}
-
-/**
  * 点位 → 画面上负责它的图元
  *
  * 设备台帐行点「所属图元」时用：反查该点位落在哪个图元的绑定组里。
@@ -364,127 +273,34 @@ export function findOwnerNode(
 
 // ===== 顶部统计卡（设备维度） =====
 
-/** 一张统计卡的最终呈现 */
-export interface FireWaterCardValue {
-  key: FireWaterCardKind
-  /** 卡标题（设计稿文案） */
-  label: string
-  /** 统计卡图标：设计稿导出的 SVG 路径（SVG 自带底色与配色） */
-  icon: string
-  /** 主值文本 */
-  value: string
-  /** 单位（台 / %） */
-  unit: string
-  /** 口径说明（title 提示，必须能自证） */
-  hint: string
-  /** 环形图与底部图例共用的分项 */
-  legend: FireWaterCardLegendItem[]
-  /** 参与计数的设备总数（环形图分母） */
-  total: number
-  /** 该卡下钻所辖点位 */
-  points: PointDef[]
-}
-
-/** 设计稿给定的分项色 */
-const CARD_COLORS = {
-  host: '#6293C8',
-  device: '#417AB7',
-  offline: '#CED2D7',
-  online: '#059669',
-  fault: '#D97706',
-  warning: '#DC2626',
+/** 统计卡主题：图标地址 + 分项配色 */
+const CARD_THEME = {
+  icons: {
+    deviceTotal: '/icons/fire-water/kpi-device-total.svg',
+    deviceOnline: '/icons/fire-water/kpi-device-online.svg',
+    deviceFault: '/icons/fire-water/kpi-device-fault.svg',
+    deviceWarning: '/icons/fire-water/kpi-device-warning.svg',
+  },
+  colors: {
+    host: '#6293C8',
+    device: '#417AB7',
+    offline: '#CED2D7',
+    online: '#059669',
+    fault: '#D97706',
+    warning: '#DC2626',
+  },
 } as const
 
 /**
  * 计算顶部 4 张统计卡
  *
- * 口径（全部按设备计数，不按测点）：
- *   设备总数   = 主机 + 分机 + 采集器件
- *   设备在线率 = 非离线设备 / 设备总数
- *   设备故障率 = 故障设备 / 设备总数
- *   预警设备   = 报警 + 故障设备（台数）
- *
- * 主机/分机的判定：采集器件带 hostId（挂在某台分机下），
- * 主机与分机自身不带 hostId。
+ * 口径写在 `config/subsystem-cards.ts`（三系统共用），这里只给消防水的主题。
  */
 export function computeFireWaterCards(
   points: PointDef[],
   getRuntime: (id: string) => PointRuntime | undefined,
-): FireWaterCardValue[] {
-  const total = points.length
-  const hosts = points.filter(p => !p.hostId)
-  const devices = points.filter(p => !!p.hostId)
-
-  const statusOfPoint = (p: PointDef): PointStatus => getRuntime(p.id)?.status ?? 'unknown'
-  const offline = points.filter(p => statusOfPoint(p) === 'offline')
-  const fault = points.filter(p => statusOfPoint(p) === 'fault')
-  const warning = points.filter(p => {
-    const s = statusOfPoint(p)
-    return s === 'alarm' || s === 'fault'
-  })
-
-  const online = total - offline.length
-  const healthy = total - fault.length
-  const pct = (n: number): string => (total > 0 ? ((n / total) * 100).toFixed(2) : '0.00')
-
-  return [
-    {
-      key: 'deviceTotal',
-      label: '设备总数',
-      icon: '/icons/fire-water/kpi-device-total.svg',
-      value: String(total),
-      unit: '台',
-      hint: `主机 ${hosts.length} 台（监控主机 + 分机）+ 采集器件 ${devices.length} 台 = ${total} 台`,
-      legend: [
-        { label: '主机', value: hosts.length, color: CARD_COLORS.host },
-        { label: '器件', value: devices.length, color: CARD_COLORS.device },
-      ],
-      total,
-      points,
-    },
-    {
-      key: 'deviceOnline',
-      label: '设备在线率',
-      icon: '/icons/fire-water/kpi-device-online.svg',
-      value: pct(online),
-      unit: '%',
-      hint: `在线 ${online} 台 ÷ 设备总数 ${total} 台 = ${pct(online)}%`,
-      legend: [
-        { label: '离线', value: offline.length, color: CARD_COLORS.offline },
-        { label: '在线', value: online, color: CARD_COLORS.online },
-      ],
-      total,
-      points: offline,
-    },
-    {
-      key: 'deviceFault',
-      label: '设备故障率',
-      icon: '/icons/fire-water/kpi-device-fault.svg',
-      value: pct(fault.length),
-      unit: '%',
-      hint: `故障 ${fault.length} 台 ÷ 设备总数 ${total} 台 = ${pct(fault.length)}%`,
-      legend: [
-        { label: '故障', value: fault.length, color: CARD_COLORS.fault },
-        { label: '正常', value: healthy, color: CARD_COLORS.online },
-      ],
-      total,
-      points: fault,
-    },
-    {
-      key: 'deviceWarning',
-      label: '预警设备',
-      icon: '/icons/fire-water/kpi-device-warning.svg',
-      value: String(warning.length),
-      unit: '台',
-      hint: `报警 + 故障共 ${warning.length} 台（正常 ${total - warning.length} 台）`,
-      legend: [
-        { label: '预警', value: warning.length, color: CARD_COLORS.warning },
-        { label: '正常', value: total - warning.length, color: CARD_COLORS.online },
-      ],
-      total,
-      points: warning,
-    },
-  ]
+): SubsystemCardValue[] {
+  return computeSubsystemCards(points, getRuntime, CARD_THEME)
 }
 
 /** 组装点位组（供下钻抽屉使用） */
@@ -493,6 +309,18 @@ export function buildPointGroup(
   title: string,
   desc: string,
   members: PointDef[],
-): FireWaterPointGroup {
+): SubsystemPointGroup {
   return { key, title, desc, points: members }
+}
+
+/** 消防水组态场景适配器（公共场景渲染组件只认这个接口） */
+export const FIREWATER_SCENE: SubsystemSceneAdapter = {
+  name: FIREWATER_SCENE_NAME,
+  viewbox: FIREWATER_VIEWBOX,
+  nodes: FIREWATER_NODES,
+  edges: FIREWATER_EDGES,
+  symbols: FIREWATER_SCENE_SYMBOLS,
+  bindingOf,
+  aggregate: aggregateNode,
+  findOwnerNode,
 }

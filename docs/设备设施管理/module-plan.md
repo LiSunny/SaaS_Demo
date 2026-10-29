@@ -3,7 +3,7 @@
 > 调研日期：2026-10-26
 > 对标平台：智慧消防云平台 `beijingrenxing.com:9443`（租户：港南二中，账号 李文学）
 > 状态：方案待实施（第 1 批菜单骨架 / 第 2~4 批真实页面）
-> 后续补充：组态配置 + 图元库接入（第 2 批）；消防三系统监测迁入运行监控（2026-10-27，见 §6.5）；消防水系统监测页重构为垂直三段（2026-10-27，见 §6.7）
+> 后续补充：组态配置 + 图元库接入（第 2 批）；消防三系统监测迁入运行监控（2026-10-27，见 §6.5）；消防水系统监测页重构为垂直三段（2026-10-27，见 §6.7）；气体灭火系统监测页重构 + 监测页公共组件层（2026-10-28，见 §6.9）
 
 ---
 
@@ -312,6 +312,39 @@
 **异步注册**：自定义图元拉取后才注册进渲染链路，页面首帧可能先于注册完成。图元库 runtime 对未知图元抛错，而 Vue 挂载钩子抛错会中断整条 post-flush 队列，导致同批次其他缩略图 / 画布节点一起不渲染 —— 故在平台层用 `renderSymbolSafe()` 兜底，并用 `SYMBOL_REGISTRY_VERSION` 触发注册后重绘。
 
 **已知限制**：自定义图元只有图片版，线框版为占位；绑定类型限 bool / level / text（无指针几何，不开放 angle）；绑定点暂不接实时点位数据源。
+
+### 6.9 气体灭火系统监测页重构 + 监测页公共组件层（2026-10-28）
+
+`/device-facility/monitor/fire-gas` 由通用点位长列表页（`SubsystemMonitorPage`）改为与消防水页同版式：统计区常驻 → 视图切换条 → 主体区三视图 + 两级下钻抽屉。路由路径与菜单 key 均不变。
+
+同时把两页共用的版式与组件抽成公共层，消防水页同步改造为调用公共组件（版式、取值口径、路由均不变）。
+
+| 文件 | 改动 |
+|------|------|
+| `src/components/subsystem/SubsystemMonitorLayout.vue` | **新增**：监测页骨架（统计区 + 视图切换 + 三视图 + 两级下钻抽屉 + 刷新三档状态），两系统共用 |
+| `src/components/subsystem/SubsystemScene.vue` | **新增**：只读组态渲染器（三层 SVG：底图位图 / 文本数值 / 流动动画），画面内容由适配器传入 |
+| `src/components/subsystem/SubsystemCoreCards.vue`、`SubsystemKpiRing.vue`、`SubsystemTabs.vue`、`SubsystemAlarmTable.vue`、`SubsystemLedgerTable.vue`、`SubsystemPointDrawer.vue` | **新增**：统计卡 / 环形图 / 视图切换 / 报警记录表 / 设备台帐 / 点位组抽屉 |
+| `src/components/subsystem/FireWater*.vue`（7 个） | **删除**：并入公共组件 |
+| `src/types/subsystem-scene.ts` | **新增**：公共类型（报警记录 / 图元绑定 / 统计卡 / 视图切换 / 场景适配器 `SubsystemSceneAdapter`） |
+| `src/config/subsystem-scene-core.ts` | **新增**：绑定公共内核（成员解析缓存、组内状态汇总、图元状态类映射） |
+| `src/config/subsystem-cards.ts` | **新增**：4 张统计卡公共口径（按设备计数），图标与配色由各系统传主题 |
+| `src/stores/subsystem-alarm.ts` | **新增**：报警记录 store 工厂（状态跃迁累积 + 首次加载补 12 条确定性历史），各系统只传类型名与等级口径 |
+| `src/config/gas-scene.json` | **新增**：气体灭火组态画面真源（1200×700 / 2 节点 / 1 连线 / 2 个自定义图元定义），导出自组态配置 |
+| `src/config/gas-scene.ts` | **新增**：气体场景绑定表 + 场景适配器 + 统计卡主题 |
+| `src/stores/gas-alarm.ts` | **新增**：气体报警 store（钢瓶压力不足 = 紧急） |
+| `src/views/subsystem/GasExtinguishMonitor.vue` | 重写：改用公共骨架，只保留气体自己的数据与口径 |
+| `src/views/subsystem/FireWaterMonitor.vue` | 改造：改用公共骨架，版式与取值口径不变 |
+| `src/types/firewater.ts`、`src/types/gas.ts` | **删除**：类型并入 `src/types/subsystem-scene.ts` |
+| `public/icons/fire-gas/kpi-*.svg` | **删除**：气体统计卡图标沿用消防水那套（`public/icons/fire-water/kpi-*.svg`），不再另做一套 |
+| `src/style.css` | `el-pagination` 主题覆盖提到全局：此前每个列表页各抄一份 `:deep(.el-pagination …)`，没抄的页面就是 Element Plus 默认样式；公共组件的分页改用全局 `.pagination-wrap` + `.pagi-total` + `layout="sizes, prev, pager, next, jumper"`（与设备台账页一致） |
+| `e2e/specs/fire-water-monitor.spec.ts` | 类名随公共组件改名（`.fwm__*` → `.sm__*` 等），断言逻辑不变 |
+| `e2e/specs/gas-extinguish-monitor.spec.ts` | **新增**：气体页 e2e 用例 8 条 |
+
+**气体组态绑定口径**（`GAS_NODE_BINDINGS`）：`GFES-MH-01` → `gas_host`（设备状态）；`GFES-PD-01` → `cylinder_pressure` 98 台（最低压力 + 压力正常 N/98）。共 101 个点位 = 主机 1 + 分机 2 + 探测器 98；分机 2 台当前画面无图元 → 组态视图无下钻入口（设备台帐仍可查）。
+
+**报警等级**：钢瓶压力低于下限 1.2 MPa（灭火剂储备不足）= 紧急；高于上限 1.4 MPa = 重要；设备故障 / 离线 = 一般。等级体现在报警表「事件类型」角标的悬浮提示与 CSV 导出的「报警等级」列。
+
+**顺带修复**：两页进页后立即播种一次报警记录，不再等首轮刷新（3s）——此前切到「报警记录」的前 3 秒是空表。
 
 ---
 

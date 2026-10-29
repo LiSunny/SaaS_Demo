@@ -5,14 +5,14 @@
     size="480px"
     @update:model-value="(v: boolean) => !v && emit('update:modelValue', false)"
   >
-    <div v-if="group" class="fwd">
+    <div v-if="group" class="sm-drawer">
       <!-- 组信息：数量口径必须写清，避免把"显示了几条"当成"总共几条" -->
-      <div class="fwd__meta">
-        <span class="fwd__count">{{ group.points.length }} 个点位</span>
-        <span class="fwd__count" :class="{ 'fwd__count--bad': abnormalCount > 0 }">
+      <div class="sm-drawer__meta">
+        <span class="sm-drawer__count">{{ group.points.length }} 个点位</span>
+        <span class="sm-drawer__count" :class="{ 'sm-drawer__count--bad': abnormalCount > 0 }">
           {{ abnormalCount }} 个异常
         </span>
-        <span class="fwd__desc">{{ group.desc }}</span>
+        <span class="sm-drawer__desc">{{ group.desc }}</span>
       </div>
 
       <el-input
@@ -20,12 +20,12 @@
         size="small"
         placeholder="搜索编号 / 位置"
         clearable
-        class="fwd__search"
+        class="sm-drawer__search"
       >
         <template #prefix><AppIcon name="search" /></template>
       </el-input>
 
-      <div class="fwd__list">
+      <div class="sm-drawer__list">
         <PointRow
           v-for="p in pageItems"
           :key="p.id"
@@ -40,22 +40,22 @@
         />
       </div>
 
-      <!-- 分页：阀门组 719 个点位一次性铺满会把抽屉渲染撑爆 -->
-      <div class="fwd__pager">
-        <span class="fwd__range">{{ rangeText }}</span>
-        <div class="fwd__pager-actions">
+      <!-- 分页：几百个点位一次性铺满会把抽屉渲染撑爆 -->
+      <div class="sm-drawer__pager">
+        <span class="sm-drawer__range">{{ rangeText }}</span>
+        <div class="sm-drawer__pager-actions">
           <button
             type="button"
-            class="fwd__pg-btn"
+            class="sm-drawer__pg-btn"
             :disabled="page <= 1"
             @click="page -= 1"
           >
             上一页
           </button>
-          <span class="fwd__pg-text">{{ page }} / {{ pageCount }}</span>
+          <span class="sm-drawer__pg-text">{{ page }} / {{ pageCount }}</span>
           <button
             type="button"
-            class="fwd__pg-btn"
+            class="sm-drawer__pg-btn"
             :disabled="page >= pageCount"
             @click="page += 1"
           >
@@ -80,11 +80,11 @@ import PointRow from './PointRow.vue'
 import { useSubsystemStore } from '@/stores/subsystem'
 import { STATUS_ORDER } from './status-labels'
 import type { PointDef } from '@/types/subsystem'
-import type { FireWaterPointGroup } from '@/types/firewater'
+import type { SubsystemPointGroup } from '@/types/subsystem-scene'
 
 const props = defineProps<{
   modelValue: boolean
-  group?: FireWaterPointGroup
+  group?: SubsystemPointGroup
 }>()
 
 const emit = defineEmits<{
@@ -99,7 +99,7 @@ const { getRuntime } = store
 const keyword = ref('')
 const page = ref(1)
 
-/** 每页行数：阀门组 719 个点位，一次性渲染会把抽屉 DOM 撑到上万个节点 */
+/** 每页行数：几百个点位一次性渲染会把抽屉 DOM 撑到上万个节点 */
 const PAGE_SIZE = 100
 
 watch(
@@ -157,7 +157,7 @@ const rangeText = computed(() => {
 </script>
 
 <style scoped>
-.fwd {
+.sm-drawer {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
@@ -165,21 +165,21 @@ const rangeText = computed(() => {
   min-height: 0;
 }
 
-.fwd__meta {
+.sm-drawer__meta {
   display: flex;
   align-items: baseline;
   gap: var(--spacing-md);
   flex-wrap: wrap;
 }
-.fwd__count {
+.sm-drawer__count {
   font-size: var(--font-xs);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
-.fwd__count--bad { color: var(--danger-text); font-weight: 600; }
-.fwd__desc { font-size: var(--font-xs); color: var(--text-muted); }
+.sm-drawer__count--bad { color: var(--danger-text); font-weight: 600; }
+.sm-drawer__desc { font-size: var(--font-xs); color: var(--text-muted); }
 
-.fwd__list {
+.sm-drawer__list {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -190,7 +190,7 @@ const rangeText = computed(() => {
 }
 
 /* 分页 */
-.fwd__pager {
+.sm-drawer__pager {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -199,24 +199,24 @@ const rangeText = computed(() => {
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--border-low);
 }
-.fwd__range {
+.sm-drawer__range {
   font-size: var(--font-xs);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-.fwd__pager-actions {
+.sm-drawer__pager-actions {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
 }
-.fwd__pg-text {
+.sm-drawer__pg-text {
   font-size: var(--font-xs);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   min-width: 48px;
   text-align: center;
 }
-.fwd__pg-btn {
+.sm-drawer__pg-btn {
   padding: 3px 10px;
   font: inherit;
   font-size: var(--font-xs);
@@ -227,6 +227,6 @@ const rangeText = computed(() => {
   cursor: pointer;
   transition: border-color .2s ease, color .2s ease;
 }
-.fwd__pg-btn:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-primary); }
-.fwd__pg-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sm-drawer__pg-btn:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-primary); }
+.sm-drawer__pg-btn:disabled { opacity: .45; cursor: not-allowed; }
 </style>

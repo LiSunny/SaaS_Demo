@@ -1,17 +1,17 @@
 <template>
   <svg
-    class="fw-ring"
+    class="sm-ring"
     :width="size"
     :height="size"
     viewBox="0 0 56 56"
     role="img"
     :aria-label="ariaLabel"
   >
-    <circle class="fw-ring__track" cx="28" cy="28" :r="radius" />
+    <circle class="sm-ring__track" cx="28" cy="28" :r="radius" />
     <circle
       v-for="a in arcs"
       :key="a.key"
-      class="fw-ring__seg"
+      class="sm-ring__seg"
       cx="28"
       cy="28"
       :r="radius"
@@ -33,12 +33,12 @@
  * 比这个几十行的 SVG 贵得多。
  */
 import { computed } from 'vue'
-import type { FireWaterCardLegendItem } from '@/types/firewater'
+import type { SubsystemCardLegendItem } from '@/types/subsystem-scene'
 
 const props = withDefaults(
   defineProps<{
     /** 分项（计数 + 颜色） */
-    segments: FireWaterCardLegendItem[]
+    segments: SubsystemCardLegendItem[]
     /** 分母（设备总数） */
     total: number
     /** 直径（px） */
@@ -75,17 +75,17 @@ const ariaLabel = computed(() =>
 </script>
 
 <style scoped>
-.fw-ring {
+.sm-ring {
   display: block;
   flex-shrink: 0;
   transform: rotate(-90deg);
 }
-.fw-ring__track {
+.sm-ring__track {
   fill: none;
   stroke: var(--border-low);
   stroke-width: 8;
 }
-.fw-ring__seg {
+.sm-ring__seg {
   fill: none;
   stroke-width: 8;
   stroke-linecap: butt;

@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "name": "气体灭火设备状态监测",
+  "width": 1200,
+  "height": 700,
+  "nodes": [
+    {
+      "id": "nmvrtifq5l637",
+      "symbol": "GFES-MH-01",
+      "x": 576,
+      "y": 176,
+      "size": 96,
+      "label": "气体灭火控制主机",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrtit2ywctg",
+      "symbol": "GFES-PD-01",
+      "x": 576,
+      "y": 400,
+      "size": 72,
+      "label": "钢瓶压力探测器",
+      "point": "",
+      "value": "",
+      "state": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "emvrtjdqx4it5",
+      "from": {
+        "node": "nmvrtifq5l637",
+        "port": 3
+      },
+      "to": {
+        "node": "nmvrtit2ywctg",
+        "port": 0
+      },
+      "flow": "reverse"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "GFES-PD-01",
+      "name": "钢瓶压力探测器",
+      "category": "探测报警",
+      "system": "gas",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793173803359-c1ce5653.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "压力",
+          "kind": "text",
+          "point": "GFES-PD-01-YL",
+          "textIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "GFES-MH-01",
+      "name": "气体灭火控制主机",
+      "category": "电气",
+      "system": "gas",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793173932479-94d4c626.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 48,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "运行",
+          "kind": "bool",
+          "point": "GFES-MH-01-RUN",
+          "onClass": [
+            "is-run"
+          ]
+        }
+      ]
+    }
+  ]
+}

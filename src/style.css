@@ -415,6 +415,57 @@ html.dark .el-input__count { color: var(--text-muted) !important; }
 .pagination-wrap { display: flex; align-items: center; justify-content: space-between; }
 .pagi-total { color: var(--pagi-text); font-size: var(--font-small, 14px); }
 
+/*
+ * el-pagination 主题适配（提到全局）
+ *
+ * 此前每个列表页各自抄一份 :deep(.el-pagination …) 覆盖，
+ * 没抄到的页面就是 Element Plus 默认样式（蓝框方块、默认下拉），
+ * 与全站其它列表不一致。统一放这里，新增页面不用再抄。
+ *
+ * 选择器要带 .is-background：Element Plus 的底色规则是
+ * `.el-pagination.is-background .el-pager li`（特异性 0,3,1），
+ * 写成 `.el-pagination .el-pager li` 会被它压掉。
+ * 本文件在 element-plus/dist/index.css 之后加载，同特异性时本文件生效。
+ */
+.el-pagination.is-background .el-pager li {
+  background-color: var(--pagi-bg) !important;
+  color: var(--pagi-text) !important;
+  border: 1px solid var(--border-default);
+}
+.el-pagination.is-background .el-pager li.is-active {
+  background-color: var(--accent-primary) !important;
+  color: #fff !important;
+  border-color: var(--accent-primary);
+}
+.el-pagination.is-background .btn-prev,
+.el-pagination.is-background .btn-next {
+  background-color: var(--pagi-bg) !important;
+  color: var(--pagi-text) !important;
+  border: 1px solid var(--border-default);
+}
+.el-pagination.is-background .btn-prev.is-disabled,
+.el-pagination.is-background .btn-next.is-disabled {
+  color: var(--text-muted) !important;
+  background-color: var(--pagi-bg) !important;
+}
+.el-pagination .el-select .el-select__wrapper {
+  background-color: var(--bg-card) !important;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-high) !important;
+  box-shadow: none !important;
+}
+.el-pagination .el-pagination__jump .el-input__wrapper {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-high) !important;
+  box-shadow: none !important;
+}
+.el-pagination .el-pagination__jump .el-input__inner {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-card);
+}
+.el-pagination .el-pagination__total,
+.el-pagination .el-pagination__jump { color: var(--pagi-text); }
+
 /* ========== 操作列 ========== */
 .action-cell { display: flex; align-items: center; justify-content: center; gap: var(--spacing-lg, 12px); }
 .btn-add-icon { width: 20px; height: 20px; }
