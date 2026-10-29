@@ -1,0 +1,17 @@
+<svg width="1932" height="4" viewBox="0 0 1932 4" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Figma 44:891 底部装饰线：线性渐变亮线 + 两处 #0086E4 蓝块。
+     拆成独立图层，由代码按 bottom:0 + 固定高度定位，保证任何视口比例下都贴住标题条底边，
+     并与流动辉光共用同一条基准带（同一 bottom/height）。 -->
+<rect x="6" y="0" width="1919" height="4" fill="url(#paint2_linear_44_891)"/>
+<rect x="918.5" y="0" width="13" height="4" fill="#0086E4"/>
+<rect x="987.5" y="0" width="27" height="4" fill="#0086E4"/>
+<defs>
+<linearGradient id="paint2_linear_44_891" x1="6" y1="2" x2="1925" y2="2" gradientUnits="userSpaceOnUse">
+<stop stop-color="#01447B"/>
+<stop offset="0.17419" stop-color="#438ECC"/>
+<stop offset="0.250986" stop-color="#418BC9"/>
+<stop offset="0.495192" stop-color="#68BAFD"/>
+<stop offset="1" stop-color="#01447B"/>
+</linearGradient>
+</defs>
+</svg>

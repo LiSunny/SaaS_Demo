@@ -1,0 +1,3626 @@
+{
+  "version": "3.0.0",
+  "generatedAt": "2026-10-26T10:01:32.060Z",
+  "items": [
+    {
+      "id": "CAMPUS_TEACH_01",
+      "name": "第一教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -526.5,
+        15.6,
+        366
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -562.85,
+          0,
+          335.95
+        ],
+        "max": [
+          -490.15,
+          32.31,
+          392.35
+        ]
+      },
+      "summary": "公共课教学主楼，八层板式围合内庭院，设阶梯教室与智慧教室",
+      "tags": [
+        "教学",
+        "公共教室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "courtyard",
+        "form": "courtyard",
+        "floors": 8,
+        "floorHeight": 3.9,
+        "height": 31.2,
+        "actualHeight": 32.31,
+        "footprint": 3744,
+        "plotArea": 4364,
+        "grossFloorArea": 29952,
+        "windowCount": 901,
+        "triangles": 3940,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_03",
+      "name": "外国语学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -446.5,
+        9.75,
+        359
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -483.15,
+          0,
+          335.95
+        ],
+        "max": [
+          -409.85,
+          20.71,
+          378.65
+        ]
+      },
+      "summary": "外语教学与同声传译实训中心",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 5,
+        "floorHeight": 3.9,
+        "height": 19.5,
+        "actualHeight": 20.71,
+        "footprint": 2736,
+        "plotArea": 3286,
+        "grossFloorArea": 13680,
+        "windowCount": 331,
+        "triangles": 1672,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_05",
+      "name": "新闻传播学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -526.5,
+        9.75,
+        450
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -563.15,
+          0,
+          426.95
+        ],
+        "max": [
+          -489.85,
+          20.71,
+          469.65
+        ]
+      },
+      "summary": "新闻传播与数字媒体实验教学中心",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 5,
+        "floorHeight": 3.9,
+        "height": 19.5,
+        "actualHeight": 20.71,
+        "footprint": 2736,
+        "plotArea": 3286,
+        "grossFloorArea": 13680,
+        "windowCount": 331,
+        "triangles": 1672,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_06",
+      "name": "艺术设计学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -446.5,
+        8.4,
+        451
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -482.8,
+          0,
+          428.95
+        ],
+        "max": [
+          -410.2,
+          17.86,
+          469.3
+        ]
+      },
+      "summary": "艺术与设计学院，展陈工坊与退台展廊",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "terrace",
+        "form": "terrace",
+        "floors": 4,
+        "floorHeight": 4.2,
+        "height": 16.8,
+        "actualHeight": 17.86,
+        "footprint": 2592,
+        "plotArea": 3132,
+        "grossFloorArea": 10368,
+        "windowCount": 149,
+        "triangles": 824,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_03",
+      "name": "第三教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -526.5,
+        11.7,
+        156
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -563.15,
+          0,
+          125.95
+        ],
+        "max": [
+          -489.85,
+          24.61,
+          182.65
+        ]
+      },
+      "summary": "专业教学楼，设专业实验室与研讨室",
+      "tags": [
+        "教学",
+        "实验室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 6,
+        "floorHeight": 3.9,
+        "height": 23.4,
+        "actualHeight": 24.61,
+        "footprint": 3744,
+        "plotArea": 4364,
+        "grossFloorArea": 22464,
+        "windowCount": 457,
+        "triangles": 2176,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_01",
+      "name": "计算机学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -446.5,
+        13.65,
+        150
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -483.15,
+          0,
+          125.95
+        ],
+        "max": [
+          -409.85,
+          28.51,
+          170.65
+        ]
+      },
+      "summary": "计算机与人工智能学院教学楼",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 7,
+        "floorHeight": 3.9,
+        "height": 27.3,
+        "actualHeight": 28.51,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 20160,
+        "windowCount": 477,
+        "triangles": 2352,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_05",
+      "name": "第五教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -538,
+        9.75,
+        300
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -574.3,
+          0,
+          275.95
+        ],
+        "max": [
+          -501.7,
+          20.56,
+          320.3
+        ]
+      },
+      "summary": "退台式教学楼，层层退台形成景观台阶与屋顶花园",
+      "tags": [
+        "教学",
+        "公共教室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "terrace",
+        "form": "terrace",
+        "floors": 5,
+        "floorHeight": 3.9,
+        "height": 19.5,
+        "actualHeight": 20.56,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 14400,
+        "windowCount": 175,
+        "triangles": 952,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_02",
+      "name": "经济管理学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -526.5,
+        11.7,
+        -90
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -562.85,
+          0,
+          -110.35
+        ],
+        "max": [
+          -490.15,
+          24.51,
+          -65.95
+        ]
+      },
+      "summary": "经济管理学院教学楼，含案例教学中心",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "courtyard",
+        "form": "courtyard",
+        "floors": 6,
+        "floorHeight": 3.9,
+        "height": 23.4,
+        "actualHeight": 24.51,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 17280,
+        "windowCount": 601,
+        "triangles": 2788,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_04",
+      "name": "马克思主义学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -446.5,
+        7.8,
+        -93
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -483,
+          0,
+          -110.5
+        ],
+        "max": [
+          -410,
+          16.76,
+          -71.95
+        ]
+      },
+      "summary": "人文社科教学与教师研修空间",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 4,
+        "floorHeight": 3.9,
+        "height": 15.6,
+        "actualHeight": 16.76,
+        "footprint": 2448,
+        "plotArea": 2978,
+        "grossFloorArea": 9792,
+        "windowCount": 217,
+        "triangles": 1504,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_06",
+      "name": "第六教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -538,
+        9.75,
+        90
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -574.3,
+          0,
+          65.95
+        ],
+        "max": [
+          -501.7,
+          20.56,
+          110.3
+        ]
+      },
+      "summary": "退台式教学楼，共享中庭与室外连廊",
+      "tags": [
+        "教学",
+        "公共教室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "terrace",
+        "form": "terrace",
+        "floors": 5,
+        "floorHeight": 3.9,
+        "height": 19.5,
+        "actualHeight": 20.56,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 14400,
+        "windowCount": 175,
+        "triangles": 952,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_02",
+      "name": "第二教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -325,
+        15.6,
+        366
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -361.35,
+          0,
+          335.95
+        ],
+        "max": [
+          -288.65,
+          32.31,
+          392.35
+        ]
+      },
+      "summary": "公共课教学主楼，玻璃幕墙立面，内设通高中庭",
+      "tags": [
+        "教学",
+        "公共教室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "courtyard",
+        "form": "courtyard",
+        "floors": 8,
+        "floorHeight": 3.9,
+        "height": 31.2,
+        "actualHeight": 32.31,
+        "footprint": 3744,
+        "plotArea": 4364,
+        "grossFloorArea": 29952,
+        "windowCount": 545,
+        "triangles": 2516,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_04",
+      "name": "第四教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -245,
+        11.7,
+        362
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -281.65,
+          0,
+          335.95
+        ],
+        "max": [
+          -208.35,
+          24.61,
+          384.65
+        ]
+      },
+      "summary": "专业教学楼，设专业实验室与研讨室",
+      "tags": [
+        "教学",
+        "实验室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 6,
+        "floorHeight": 3.9,
+        "height": 23.4,
+        "actualHeight": 24.61,
+        "footprint": 3168,
+        "plotArea": 3748,
+        "grossFloorArea": 19008,
+        "windowCount": 421,
+        "triangles": 2032,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_07",
+      "name": "第七教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -345,
+        11.7,
+        447
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -381.65,
+          0,
+          420.95
+        ],
+        "max": [
+          -308.35,
+          24.61,
+          469.65
+        ]
+      },
+      "summary": "西校区专业教学楼，设共享实验平台",
+      "tags": [
+        "教学",
+        "实验室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 6,
+        "floorHeight": 3.9,
+        "height": 23.4,
+        "actualHeight": 24.61,
+        "footprint": 3168,
+        "plotArea": 3748,
+        "grossFloorArea": 19008,
+        "windowCount": 421,
+        "triangles": 2032,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_TEACH_08",
+      "name": "第八教学楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -345,
+        9.75,
+        150
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -381.3,
+          0,
+          125.95
+        ],
+        "max": [
+          -308.7,
+          20.56,
+          170.3
+        ]
+      },
+      "summary": "退台式教学楼，层层退台朝向中轴绿楔",
+      "tags": [
+        "教学",
+        "公共教室"
+      ],
+      "meta": {
+        "buildingType": "teaching",
+        "buildingForm": "terrace",
+        "form": "terrace",
+        "floors": 5,
+        "floorHeight": 3.9,
+        "height": 19.5,
+        "actualHeight": 20.56,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 14400,
+        "windowCount": 175,
+        "triangles": 952,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_07",
+      "name": "数学与统计学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -345,
+        8.4,
+        302
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -381.5,
+          0,
+          279.95
+        ],
+        "max": [
+          -308.5,
+          17.96,
+          320.5
+        ]
+      },
+      "summary": "数学与统计学科教学中心，含计算实验教室",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 4,
+        "floorHeight": 4.2,
+        "height": 16.8,
+        "actualHeight": 17.96,
+        "footprint": 2592,
+        "plotArea": 3132,
+        "grossFloorArea": 10368,
+        "windowCount": 225,
+        "triangles": 1536,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_COLLEGE_08",
+      "name": "电子信息学院楼",
+      "category": "教学",
+      "zone": "Z1",
+      "type": "building",
+      "position": [
+        -345,
+        12,
+        -90
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -381.65,
+          0,
+          -110.65
+        ],
+        "max": [
+          -308.35,
+          25.21,
+          -65.95
+        ]
+      },
+      "summary": "电子信息与通信工程学科教学中心",
+      "tags": [
+        "教学",
+        "学院楼"
+      ],
+      "meta": {
+        "buildingType": "college",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 6,
+        "floorHeight": 4,
+        "height": 24,
+        "actualHeight": 25.21,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 17280,
+        "windowCount": 409,
+        "triangles": 2032,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_LAB_01",
+      "name": "材料实验中心",
+      "category": "科研",
+      "zone": "Z6",
+      "type": "building",
+      "position": [
+        -134,
+        13.200000000000001,
+        147
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -170.5,
+          0,
+          125.35
+        ],
+        "max": [
+          -97.5,
+          30.12,
+          164.5
+        ]
+      },
+      "summary": "大型仪器实验平台，含屋顶设备层",
+      "tags": [
+        "科研",
+        "实验室"
+      ],
+      "meta": {
+        "buildingType": "lab",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 6,
+        "floorHeight": 4.4,
+        "height": 26.400000000000002,
+        "actualHeight": 30.12,
+        "footprint": 2448,
+        "plotArea": 2978,
+        "grossFloorArea": 14688,
+        "windowCount": 193,
+        "triangles": 1600,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_LAB_02",
+      "name": "生命科学实验楼",
+      "category": "科研",
+      "zone": "Z6",
+      "type": "building",
+      "position": [
+        -54,
+        13.200000000000001,
+        146
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -90.5,
+          0,
+          125.35
+        ],
+        "max": [
+          -17.5,
+          29.8,
+          162.5
+        ]
+      },
+      "summary": "生命科学与生物工程实验平台",
+      "tags": [
+        "科研",
+        "实验室"
+      ],
+      "meta": {
+        "buildingType": "lab",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 6,
+        "floorHeight": 4.4,
+        "height": 26.400000000000002,
+        "actualHeight": 29.8,
+        "footprint": 2304,
+        "plotArea": 2824,
+        "grossFloorArea": 13824,
+        "windowCount": 193,
+        "triangles": 1576,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_LAB_03",
+      "name": "环境科学实验楼",
+      "category": "科研",
+      "zone": "Z6",
+      "type": "building",
+      "position": [
+        -134,
+        11,
+        305
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -170.3,
+          0,
+          285.35
+        ],
+        "max": [
+          -97.7,
+          23.06,
+          320.3
+        ]
+      },
+      "summary": "环境与土木实验平台，退台布置采光实验舱",
+      "tags": [
+        "科研",
+        "实验室"
+      ],
+      "meta": {
+        "buildingType": "lab",
+        "buildingForm": "terrace",
+        "form": "terrace",
+        "floors": 5,
+        "floorHeight": 4.4,
+        "height": 22,
+        "actualHeight": 23.06,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 10800,
+        "windowCount": 127,
+        "triangles": 760,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_TRAIN_01",
+      "name": "工程训练中心",
+      "category": "科研",
+      "zone": "Z6",
+      "type": "building",
+      "position": [
+        -54,
+        7,
+        304
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -90.1,
+          0,
+          283.35
+        ],
+        "max": [
+          -17.9,
+          14.07,
+          320.11
+        ]
+      },
+      "summary": "工程实训车间与综合加工中心",
+      "tags": [
+        "科研",
+        "实训"
+      ],
+      "meta": {
+        "buildingType": "lab",
+        "buildingForm": "arch",
+        "form": "arch",
+        "floors": 2,
+        "floorHeight": 7,
+        "height": 14,
+        "actualHeight": 14.07,
+        "footprint": 2304,
+        "plotArea": 2824,
+        "grossFloorArea": 4608,
+        "windowCount": 33,
+        "triangles": 1788,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_TRAIN_02",
+      "name": "智能制造实训楼",
+      "category": "科研",
+      "zone": "Z6",
+      "type": "building",
+      "position": [
+        -134,
+        13.200000000000001,
+        355
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -170.5,
+          0,
+          335.35
+        ],
+        "max": [
+          -97.5,
+          27.56,
+          370.5
+        ]
+      },
+      "summary": "智能制造与机器人实训平台",
+      "tags": [
+        "科研",
+        "实训"
+      ],
+      "meta": {
+        "buildingType": "lab",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 6,
+        "floorHeight": 4.4,
+        "height": 26.400000000000002,
+        "actualHeight": 27.56,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 12960,
+        "windowCount": 181,
+        "triangles": 1288,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_TRAIN_03",
+      "name": "创新创业中心",
+      "category": "科研",
+      "zone": "Z6",
+      "type": "building",
+      "position": [
+        -54,
+        8.4,
+        355
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -92,
+          0,
+          335.35
+        ],
+        "max": [
+          -16,
+          17.32,
+          372
+        ]
+      },
+      "summary": "学生创新创业与孵化空间，含路演与共享工位",
+      "tags": [
+        "科研",
+        "创新"
+      ],
+      "meta": {
+        "buildingType": "lab",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 4,
+        "floorHeight": 4.2,
+        "height": 16.8,
+        "actualHeight": 17.32,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 8640,
+        "windowCount": 147,
+        "triangles": 1052,
+        "meshCount": 9
+      }
+    },
+    {
+      "id": "CAMPUS_LIB_01",
+      "name": "中心图书馆",
+      "category": "图书",
+      "zone": "Z2",
+      "type": "building",
+      "position": [
+        60,
+        20.25,
+        446
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          15,
+          0,
+          417.45
+        ],
+        "max": [
+          105,
+          45.3,
+          471
+        ]
+      },
+      "summary": "校园中心地标，阅览翼与书库塔楼组合，主入口正对主轴大道",
+      "tags": [
+        "地标",
+        "中心轴",
+        "自习"
+      ],
+      "meta": {
+        "buildingType": "library",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 9,
+        "floorHeight": 4.5,
+        "height": 40.5,
+        "actualHeight": 45.3,
+        "footprint": 3956,
+        "plotArea": 4616,
+        "grossFloorArea": 35604,
+        "windowCount": 331,
+        "triangles": 3820,
+        "meshCount": 11
+      }
+    },
+    {
+      "id": "CAMPUS_AUDIT_01",
+      "name": "学术报告厅",
+      "category": "教学",
+      "zone": "Z2",
+      "type": "building",
+      "position": [
+        54,
+        7,
+        150
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          18,
+          0,
+          125.75
+        ],
+        "max": [
+          90,
+          14,
+          169.6
+        ]
+      },
+      "summary": "千座级学术报告厅，扇形观众席与环幕",
+      "tags": [
+        "会议",
+        "报告"
+      ],
+      "meta": {
+        "buildingType": "auditorium",
+        "buildingForm": "fan",
+        "form": "fan",
+        "floors": 2,
+        "floorHeight": 7,
+        "height": 14,
+        "actualHeight": 14,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 5760,
+        "windowCount": 77,
+        "triangles": 608,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_AUDIT_02",
+      "name": "学术交流中心",
+      "category": "教学",
+      "zone": "Z2",
+      "type": "building",
+      "position": [
+        134,
+        6.5,
+        148
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          97.5,
+          0,
+          125.75
+        ],
+        "max": [
+          170.5,
+          14.16,
+          166.5
+        ]
+      },
+      "summary": "专家工作室与学术沙龙，含路演厅",
+      "tags": [
+        "会议",
+        "交流"
+      ],
+      "meta": {
+        "buildingType": "auditorium",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 2,
+        "floorHeight": 6.5,
+        "height": 13,
+        "actualHeight": 14.16,
+        "footprint": 2592,
+        "plotArea": 3132,
+        "grossFloorArea": 5184,
+        "windowCount": 65,
+        "triangles": 848,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_ADMIN_01",
+      "name": "行政主楼",
+      "category": "行政",
+      "zone": "Z3",
+      "type": "building",
+      "position": [
+        54,
+        10,
+        -275
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          17.5,
+          0,
+          -290.5
+        ],
+        "max": [
+          90.5,
+          21.16,
+          -256.15
+        ]
+      },
+      "summary": "学校主楼与行政办公中心，含校史厅",
+      "tags": [
+        "办公",
+        "会议"
+      ],
+      "meta": {
+        "buildingType": "office",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 5,
+        "floorHeight": 4,
+        "height": 20,
+        "actualHeight": 21.16,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 10800,
+        "windowCount": 241,
+        "triangles": 1564,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_ADMIN_02",
+      "name": "机关办公楼",
+      "category": "行政",
+      "zone": "Z3",
+      "type": "building",
+      "position": [
+        134,
+        10,
+        -277
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          97.35,
+          0,
+          -290.65
+        ],
+        "max": [
+          170.65,
+          21.21,
+          -260.15
+        ]
+      },
+      "summary": "各职能部门与院系办公室",
+      "tags": [
+        "办公"
+      ],
+      "meta": {
+        "buildingType": "office",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 5,
+        "floorHeight": 4,
+        "height": 20,
+        "actualHeight": 21.21,
+        "footprint": 1872,
+        "plotArea": 2362,
+        "grossFloorArea": 9360,
+        "windowCount": 231,
+        "triangles": 1548,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_ADMIN_03",
+      "name": "会议中心",
+      "category": "行政",
+      "zone": "Z3",
+      "type": "building",
+      "position": [
+        53,
+        6,
+        -424
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          15,
+          0,
+          -441
+        ],
+        "max": [
+          91,
+          12.52,
+          -405.15
+        ]
+      },
+      "summary": "多功能会议厅与报告厅，含会见与接待空间",
+      "tags": [
+        "会议",
+        "接待"
+      ],
+      "meta": {
+        "buildingType": "office",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 2,
+        "floorHeight": 6,
+        "height": 12,
+        "actualHeight": 12.52,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 4320,
+        "windowCount": 111,
+        "triangles": 1232,
+        "meshCount": 9
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T01",
+      "name": "1号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -333,
+        24,
+        -422
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -350.6,
+          0,
+          -440.81
+        ],
+        "max": [
+          -315.4,
+          48,
+          -401.35
+        ]
+      },
+      "summary": "高层学生公寓，16 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 16,
+        "floorHeight": 3,
+        "height": 48,
+        "actualHeight": 48,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 18496,
+        "windowCount": 498,
+        "triangles": 3240,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T02",
+      "name": "2号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -237,
+        24,
+        -422
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -254.6,
+          0,
+          -440.81
+        ],
+        "max": [
+          -219.4,
+          48,
+          -401.35
+        ]
+      },
+      "summary": "高层学生公寓，16 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 16,
+        "floorHeight": 3,
+        "height": 48,
+        "actualHeight": 48,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 18496,
+        "windowCount": 498,
+        "triangles": 3240,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T03",
+      "name": "3号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -333,
+        27,
+        -327
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -350.6,
+          0,
+          -345.81
+        ],
+        "max": [
+          -315.4,
+          54,
+          -306.35
+        ]
+      },
+      "summary": "高层学生公寓，18 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 18,
+        "floorHeight": 3,
+        "height": 54,
+        "actualHeight": 54,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 20808,
+        "windowCount": 562,
+        "triangles": 3592,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T04",
+      "name": "4号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -237,
+        27,
+        -327
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -254.6,
+          0,
+          -345.81
+        ],
+        "max": [
+          -219.4,
+          54,
+          -306.35
+        ]
+      },
+      "summary": "高层学生公寓，18 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 18,
+        "floorHeight": 3,
+        "height": 54,
+        "actualHeight": 54,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 20808,
+        "windowCount": 562,
+        "triangles": 3592,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T05",
+      "name": "5号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -132.5,
+        24,
+        -147
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -150.1,
+          0,
+          -165.81
+        ],
+        "max": [
+          -114.9,
+          48,
+          -126.35
+        ]
+      },
+      "summary": "高层学生公寓，16 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 16,
+        "floorHeight": 3,
+        "height": 48,
+        "actualHeight": 48,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 18496,
+        "windowCount": 498,
+        "triangles": 3240,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T06",
+      "name": "6号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -55.5,
+        24,
+        -147
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -73.1,
+          0,
+          -165.81
+        ],
+        "max": [
+          -37.9,
+          48,
+          -126.35
+        ]
+      },
+      "summary": "高层学生公寓，16 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 16,
+        "floorHeight": 3,
+        "height": 48,
+        "actualHeight": 48,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 18496,
+        "windowCount": 498,
+        "triangles": 3240,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T07",
+      "name": "7号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -132.5,
+        24,
+        -327
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -150.1,
+          0,
+          -345.81
+        ],
+        "max": [
+          -114.9,
+          48,
+          -306.35
+        ]
+      },
+      "summary": "高层学生公寓，16 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 16,
+        "floorHeight": 3,
+        "height": 48,
+        "actualHeight": 48,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 18496,
+        "windowCount": 498,
+        "triangles": 3240,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_T08",
+      "name": "8号高层公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -55.5,
+        27,
+        -327
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -73.1,
+          0,
+          -345.81
+        ],
+        "max": [
+          -37.9,
+          54,
+          -306.35
+        ]
+      },
+      "summary": "高层学生公寓，18 层塔式，一层四户",
+      "tags": [
+        "住宿",
+        "高层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "tower",
+        "form": "tower",
+        "floors": 18,
+        "floorHeight": 3,
+        "height": 54,
+        "actualHeight": 54,
+        "footprint": 1156,
+        "plotArea": 1496,
+        "grossFloorArea": 20808,
+        "windowCount": 562,
+        "triangles": 3592,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_01",
+      "name": "1号学生公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -526.5,
+        18,
+        -430.5
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -564,
+          0,
+          -440.81
+        ],
+        "max": [
+          -489,
+          37.21,
+          -418.35
+        ]
+      },
+      "summary": "板式学生公寓，十二层连续阳台带",
+      "tags": [
+        "住宿"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 12,
+        "floorHeight": 3,
+        "height": 36,
+        "actualHeight": 37.21,
+        "footprint": 1224,
+        "plotArea": 1669,
+        "grossFloorArea": 14688,
+        "windowCount": 674,
+        "triangles": 3392,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_02",
+      "name": "2号学生公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -446.5,
+        18,
+        -430.5
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -484,
+          0,
+          -440.81
+        ],
+        "max": [
+          -409,
+          37.21,
+          -418.35
+        ]
+      },
+      "summary": "板式学生公寓，十二层连续阳台带",
+      "tags": [
+        "住宿"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 12,
+        "floorHeight": 3,
+        "height": 36,
+        "actualHeight": 37.21,
+        "footprint": 1224,
+        "plotArea": 1669,
+        "grossFloorArea": 14688,
+        "windowCount": 674,
+        "triangles": 3392,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_03",
+      "name": "3号学生公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -486.5,
+        18,
+        -318.5
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -524,
+          0,
+          -328.81
+        ],
+        "max": [
+          -449,
+          37.21,
+          -306.35
+        ]
+      },
+      "summary": "板式学生公寓，十二层连续阳台带",
+      "tags": [
+        "住宿"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 12,
+        "floorHeight": 3,
+        "height": 36,
+        "actualHeight": 37.21,
+        "footprint": 1224,
+        "plotArea": 1669,
+        "grossFloorArea": 14688,
+        "windowCount": 674,
+        "triangles": 3392,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_04",
+      "name": "4号学生公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -526.5,
+        18,
+        -138.5
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -564,
+          0,
+          -148.81
+        ],
+        "max": [
+          -489,
+          37.21,
+          -126.35
+        ]
+      },
+      "summary": "板式学生公寓，十二层连续阳台带",
+      "tags": [
+        "住宿"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 12,
+        "floorHeight": 3,
+        "height": 36,
+        "actualHeight": 37.21,
+        "footprint": 1224,
+        "plotArea": 1669,
+        "grossFloorArea": 14688,
+        "windowCount": 674,
+        "triangles": 3392,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_05",
+      "name": "5号学生公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -134,
+        18,
+        -430.5
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -171.5,
+          0,
+          -440.81
+        ],
+        "max": [
+          -96.5,
+          37.21,
+          -418.35
+        ]
+      },
+      "summary": "板式学生公寓，十二层连续阳台带",
+      "tags": [
+        "住宿"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "slab",
+        "form": "slab",
+        "floors": 12,
+        "floorHeight": 3,
+        "height": 36,
+        "actualHeight": 37.21,
+        "footprint": 1224,
+        "plotArea": 1669,
+        "grossFloorArea": 14688,
+        "windowCount": 674,
+        "triangles": 3392,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_L01",
+      "name": "1号生活公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -526.5,
+        9.600000000000001,
+        -282
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -564,
+          0,
+          -291.81
+        ],
+        "max": [
+          -489,
+          24.64,
+          -270.35
+        ]
+      },
+      "summary": "低层生活公寓，六层行列式，临近生活服务中心",
+      "tags": [
+        "住宿",
+        "低层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "walkup",
+        "form": "walkup",
+        "floors": 6,
+        "floorHeight": 3.2,
+        "height": 19.200000000000003,
+        "actualHeight": 24.64,
+        "footprint": 1152,
+        "plotArea": 1592,
+        "grossFloorArea": 6912,
+        "windowCount": 326,
+        "triangles": 1756,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_L02",
+      "name": "2号生活公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -446.5,
+        9.600000000000001,
+        -282
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -484,
+          0,
+          -291.81
+        ],
+        "max": [
+          -409,
+          24.64,
+          -270.35
+        ]
+      },
+      "summary": "低层生活公寓，六层行列式，临近生活服务中心",
+      "tags": [
+        "住宿",
+        "低层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "walkup",
+        "form": "walkup",
+        "floors": 6,
+        "floorHeight": 3.2,
+        "height": 19.200000000000003,
+        "actualHeight": 24.64,
+        "footprint": 1152,
+        "plotArea": 1592,
+        "grossFloorArea": 6912,
+        "windowCount": 326,
+        "triangles": 1756,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_DORM_L03",
+      "name": "3号生活公寓",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -446.5,
+        9.600000000000001,
+        -138
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -484,
+          0,
+          -147.81
+        ],
+        "max": [
+          -409,
+          24.64,
+          -126.35
+        ]
+      },
+      "summary": "低层生活公寓，六层行列式，临近生活服务中心",
+      "tags": [
+        "住宿",
+        "低层"
+      ],
+      "meta": {
+        "buildingType": "dorm",
+        "buildingForm": "walkup",
+        "form": "walkup",
+        "floors": 6,
+        "floorHeight": 3.2,
+        "height": 19.200000000000003,
+        "actualHeight": 24.64,
+        "footprint": 1152,
+        "plotArea": 1592,
+        "grossFloorArea": 6912,
+        "windowCount": 326,
+        "triangles": 1756,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_CANTEEN_01",
+      "name": "第一食堂",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -325,
+        5.4,
+        -273
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -364,
+          0,
+          -293
+        ],
+        "max": [
+          -286,
+          14.49,
+          -251.4
+        ]
+      },
+      "summary": "大型综合餐厅，含清真窗口与风味档口",
+      "tags": [
+        "餐饮"
+      ],
+      "meta": {
+        "buildingType": "canteen",
+        "buildingForm": "hall",
+        "form": "hall",
+        "floors": 2,
+        "floorHeight": 5.4,
+        "height": 10.8,
+        "actualHeight": 14.49,
+        "footprint": 2448,
+        "plotArea": 2978,
+        "grossFloorArea": 4896,
+        "windowCount": 97,
+        "triangles": 688,
+        "meshCount": 11
+      }
+    },
+    {
+      "id": "CAMPUS_STORE_01",
+      "name": "校园超市",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -245,
+        4.2,
+        -278
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -283,
+          0,
+          -292
+        ],
+        "max": [
+          -207,
+          8.92,
+          -263.15
+        ]
+      },
+      "summary": "日用百货与生鲜超市",
+      "tags": [
+        "生活服务"
+      ],
+      "meta": {
+        "buildingType": "store",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 2,
+        "floorHeight": 4.2,
+        "height": 8.4,
+        "actualHeight": 8.92,
+        "footprint": 1728,
+        "plotArea": 2208,
+        "grossFloorArea": 3456,
+        "windowCount": 95,
+        "triangles": 868,
+        "meshCount": 11
+      }
+    },
+    {
+      "id": "CAMPUS_CANTEEN_02",
+      "name": "第二食堂",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -325,
+        5.4,
+        -146
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -364,
+          0,
+          -165
+        ],
+        "max": [
+          -286,
+          14.54,
+          -125.4
+        ]
+      },
+      "summary": "风味餐饮与夜宵广场",
+      "tags": [
+        "餐饮"
+      ],
+      "meta": {
+        "buildingType": "canteen",
+        "buildingForm": "hall",
+        "form": "hall",
+        "floors": 2,
+        "floorHeight": 5.4,
+        "height": 10.8,
+        "actualHeight": 14.54,
+        "footprint": 2304,
+        "plotArea": 2824,
+        "grossFloorArea": 4608,
+        "windowCount": 95,
+        "triangles": 680,
+        "meshCount": 10
+      }
+    },
+    {
+      "id": "CAMPUS_CLINIC_01",
+      "name": "校医院",
+      "category": "服务",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -245,
+        9.5,
+        -144
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -281.5,
+          0,
+          -158.5
+        ],
+        "max": [
+          -208.5,
+          20.16,
+          -126.95
+        ]
+      },
+      "summary": "门诊、药房、口腔与体检中心",
+      "tags": [
+        "医疗"
+      ],
+      "meta": {
+        "buildingType": "clinic",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 5,
+        "floorHeight": 3.8,
+        "height": 19,
+        "actualHeight": 20.16,
+        "footprint": 2016,
+        "plotArea": 2516,
+        "grossFloorArea": 10080,
+        "windowCount": 241,
+        "triangles": 1552,
+        "meshCount": 7
+      }
+    },
+    {
+      "id": "CAMPUS_CANTEEN_03",
+      "name": "第三食堂",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -135,
+        6.8999999999999995,
+        -276
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -171.5,
+          0,
+          -290.5
+        ],
+        "max": [
+          -98.5,
+          17.55,
+          -257.4
+        ]
+      },
+      "summary": "高层公寓配套餐厅与便利超市",
+      "tags": [
+        "餐饮"
+      ],
+      "meta": {
+        "buildingType": "canteen",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 3,
+        "floorHeight": 4.6,
+        "height": 13.799999999999999,
+        "actualHeight": 17.55,
+        "footprint": 2016,
+        "plotArea": 2516,
+        "grossFloorArea": 6048,
+        "windowCount": 97,
+        "triangles": 1144,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_STORE_02",
+      "name": "生活服务中心",
+      "category": "生活",
+      "zone": "Z4",
+      "type": "building",
+      "position": [
+        -54,
+        4.2,
+        -427
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -92,
+          0,
+          -441
+        ],
+        "max": [
+          -16,
+          8.92,
+          -412.15
+        ]
+      },
+      "summary": "快递、理发、打印与学生事务一站式服务",
+      "tags": [
+        "生活服务"
+      ],
+      "meta": {
+        "buildingType": "store",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 2,
+        "floorHeight": 4.2,
+        "height": 8.4,
+        "actualHeight": 8.92,
+        "footprint": 1728,
+        "plotArea": 2208,
+        "grossFloorArea": 3456,
+        "windowCount": 95,
+        "triangles": 868,
+        "meshCount": 11
+      }
+    },
+    {
+      "id": "CAMPUS_GYM_01",
+      "name": "综合体育馆",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "building",
+      "position": [
+        225,
+        7,
+        152
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          188.9,
+          0,
+          125.1
+        ],
+        "max": [
+          261.1,
+          14.04,
+          174.11
+        ]
+      },
+      "summary": "综合体育馆，筒壳屋面，含 6000 座看台与室内球场",
+      "tags": [
+        "体育",
+        "场馆"
+      ],
+      "meta": {
+        "buildingType": "gym",
+        "buildingForm": "barrel",
+        "form": "barrel",
+        "floors": 1,
+        "floorHeight": 14,
+        "height": 14,
+        "actualHeight": 14.04,
+        "footprint": 3168,
+        "plotArea": 3748,
+        "grossFloorArea": 3168,
+        "windowCount": 33,
+        "triangles": 1664,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_SPORTHALL_01",
+      "name": "风雨操场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "building",
+      "position": [
+        225,
+        5,
+        305
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          189,
+          0,
+          285.35
+        ],
+        "max": [
+          261,
+          10,
+          320
+        ]
+      },
+      "summary": "折板屋面风雨操场，四季可用的室外球场",
+      "tags": [
+        "体育",
+        "室外"
+      ],
+      "meta": {
+        "buildingType": "gym",
+        "buildingForm": "fold",
+        "form": "fold",
+        "floors": 1,
+        "floorHeight": 10,
+        "height": 10,
+        "actualHeight": 10,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 2160,
+        "windowCount": 29,
+        "triangles": 580,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_SPORTHALL_02",
+      "name": "第二风雨操场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "building",
+      "position": [
+        225,
+        5,
+        -95
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          189,
+          0,
+          -110
+        ],
+        "max": [
+          261,
+          10,
+          -75.35
+        ]
+      },
+      "summary": "折板屋面风雨操场，配看台与灯光",
+      "tags": [
+        "体育",
+        "室外"
+      ],
+      "meta": {
+        "buildingType": "gym",
+        "buildingForm": "fold",
+        "form": "fold",
+        "floors": 1,
+        "floorHeight": 10,
+        "height": 10,
+        "actualHeight": 10,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 2160,
+        "windowCount": 29,
+        "triangles": 580,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_GYM_02",
+      "name": "第二体育馆",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "building",
+      "position": [
+        225,
+        6,
+        90
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          189,
+          0,
+          65.1
+        ],
+        "max": [
+          261,
+          16.8,
+          110
+        ]
+      },
+      "summary": "马鞍形屋面体育馆，含游泳馆与训练馆",
+      "tags": [
+        "体育",
+        "场馆"
+      ],
+      "meta": {
+        "buildingType": "gym",
+        "buildingForm": "saddle",
+        "form": "saddle",
+        "floors": 1,
+        "floorHeight": 12,
+        "height": 12,
+        "actualHeight": 16.8,
+        "footprint": 2880,
+        "plotArea": 3440,
+        "grossFloorArea": 2880,
+        "windowCount": 31,
+        "triangles": 1224,
+        "meshCount": 5
+      }
+    },
+    {
+      "id": "CAMPUS_GREENHOUSE_01",
+      "name": "教学温室大棚",
+      "category": "科研",
+      "zone": "Z7",
+      "type": "building",
+      "position": [
+        225,
+        4.5,
+        -275
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          188.7,
+          0,
+          -290.3
+        ],
+        "max": [
+          261.3,
+          9.04,
+          -257.75
+        ]
+      },
+      "summary": "植物实验与教学温室",
+      "tags": [
+        "科研",
+        "农学"
+      ],
+      "meta": {
+        "buildingType": "greenhouse",
+        "buildingForm": "arch",
+        "form": "arch",
+        "floors": 1,
+        "floorHeight": 9,
+        "height": 9,
+        "actualHeight": 9.04,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 2160,
+        "windowCount": 1,
+        "triangles": 2480,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_GREENHOUSE_02",
+      "name": "智能温室基地",
+      "category": "科研",
+      "zone": "Z7",
+      "type": "building",
+      "position": [
+        435,
+        4.5,
+        -275
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          398.7,
+          0,
+          -290.3
+        ],
+        "max": [
+          471.3,
+          9.04,
+          -257.75
+        ]
+      },
+      "summary": "连栋智能温室与植物工厂",
+      "tags": [
+        "科研",
+        "农学"
+      ],
+      "meta": {
+        "buildingType": "greenhouse",
+        "buildingForm": "arch",
+        "form": "arch",
+        "floors": 1,
+        "floorHeight": 9,
+        "height": 9,
+        "actualHeight": 9.04,
+        "footprint": 2160,
+        "plotArea": 2670,
+        "grossFloorArea": 2160,
+        "windowCount": 1,
+        "triangles": 2480,
+        "meshCount": 8
+      }
+    },
+    {
+      "id": "CAMPUS_AGRI_01",
+      "name": "农学实训基地",
+      "category": "科研",
+      "zone": "Z7",
+      "type": "building",
+      "position": [
+        435,
+        4.6,
+        -143
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          398.5,
+          0,
+          -156.5
+        ],
+        "max": [
+          471.5,
+          10.36,
+          -127.15
+        ]
+      },
+      "summary": "农机具库与农产品加工实训车间",
+      "tags": [
+        "科研",
+        "农学"
+      ],
+      "meta": {
+        "buildingType": "store",
+        "buildingForm": "box",
+        "form": "box",
+        "floors": 2,
+        "floorHeight": 4.6,
+        "height": 9.2,
+        "actualHeight": 10.36,
+        "footprint": 1872,
+        "plotArea": 2362,
+        "grossFloorArea": 3744,
+        "windowCount": 77,
+        "triangles": 848,
+        "meshCount": 6
+      }
+    },
+    {
+      "id": "CAMPUS_GATEHOUSE_01",
+      "name": "南门门卫室（东）",
+      "category": "服务",
+      "zone": "Z8",
+      "type": "building",
+      "position": [
+        60,
+        1.8,
+        -490
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          51,
+          0,
+          -496.75
+        ],
+        "max": [
+          69,
+          4.4,
+          -483.5
+        ]
+      },
+      "summary": "校园门卫值班岗亭",
+      "tags": [
+        "门卫"
+      ],
+      "meta": {
+        "buildingType": "gatehouse",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 1,
+        "floorHeight": 3.6,
+        "height": 3.6,
+        "actualHeight": 4.4,
+        "footprint": 126,
+        "plotArea": 241,
+        "grossFloorArea": 126,
+        "windowCount": 15,
+        "triangles": 396,
+        "meshCount": 9
+      }
+    },
+    {
+      "id": "CAMPUS_GATEHOUSE_02",
+      "name": "南门门卫室（西）",
+      "category": "服务",
+      "zone": "Z8",
+      "type": "building",
+      "position": [
+        -60,
+        1.8,
+        -490
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          -69,
+          0,
+          -496.75
+        ],
+        "max": [
+          -51,
+          4.4,
+          -483.5
+        ]
+      },
+      "summary": "校园门卫值班岗亭",
+      "tags": [
+        "门卫"
+      ],
+      "meta": {
+        "buildingType": "gatehouse",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 1,
+        "floorHeight": 3.6,
+        "height": 3.6,
+        "actualHeight": 4.4,
+        "footprint": 126,
+        "plotArea": 241,
+        "grossFloorArea": 126,
+        "windowCount": 15,
+        "triangles": 396,
+        "meshCount": 9
+      }
+    },
+    {
+      "id": "CAMPUS_GATEHOUSE_03",
+      "name": "北门门卫室",
+      "category": "服务",
+      "zone": "Z2",
+      "type": "building",
+      "position": [
+        34,
+        1.8,
+        500
+      ],
+      "anchor": "entrance",
+      "bbox": {
+        "min": [
+          25,
+          0,
+          493.25
+        ],
+        "max": [
+          43,
+          4.4,
+          506.5
+        ]
+      },
+      "summary": "校园门卫值班岗亭",
+      "tags": [
+        "门卫"
+      ],
+      "meta": {
+        "buildingType": "gatehouse",
+        "buildingForm": "pavilion",
+        "form": "pavilion",
+        "floors": 1,
+        "floorHeight": 3.6,
+        "height": 3.6,
+        "actualHeight": 4.4,
+        "footprint": 126,
+        "plotArea": 241,
+        "grossFloorArea": 126,
+        "windowCount": 15,
+        "triangles": 396,
+        "meshCount": 9
+      }
+    },
+    {
+      "id": "CAMPUS_LAKE_01",
+      "name": "明理湖",
+      "category": "景观",
+      "zone": "Z9",
+      "type": "area",
+      "position": [
+        100,
+        0,
+        20
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          35,
+          -0.45,
+          -20
+        ],
+        "max": [
+          165,
+          0,
+          60
+        ]
+      },
+      "summary": "校园主水域，湖岸设浅滩护岸与环湖步道，湖心桥横跨水面",
+      "tags": [
+        "景观",
+        "水体",
+        "滨水",
+        "主景"
+      ],
+      "meta": {
+        "area": 8168,
+        "rx": 65,
+        "rz": 40,
+        "depth": 2.6,
+        "level": -0.45
+      }
+    },
+    {
+      "id": "CAMPUS_POND_02",
+      "name": "荷塘",
+      "category": "景观",
+      "zone": "Z7",
+      "type": "area",
+      "position": [
+        490,
+        0,
+        -375
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          464,
+          -0.35,
+          -393
+        ],
+        "max": [
+          516,
+          0,
+          -357
+        ]
+      },
+      "summary": "校园小型水塘，配植荷灌木与亲水矮墙，兼作雨水调蓄景观",
+      "tags": [
+        "景观",
+        "水体",
+        "荷塘"
+      ],
+      "meta": {
+        "area": 1470,
+        "rx": 26,
+        "rz": 18,
+        "depth": 1.6,
+        "level": -0.35
+      }
+    },
+    {
+      "id": "CAMPUS_POND_03",
+      "name": "映月池",
+      "category": "景观",
+      "zone": "Z6",
+      "type": "area",
+      "position": [
+        -94,
+        0,
+        235
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          -124,
+          -0.3,
+          215
+        ],
+        "max": [
+          -64,
+          0,
+          255
+        ]
+      },
+      "summary": "校园小型水塘，配植荷灌木与亲水矮墙，兼作雨水调蓄景观",
+      "tags": [
+        "景观",
+        "水体",
+        "荷塘"
+      ],
+      "meta": {
+        "area": 1885,
+        "rx": 30,
+        "rz": 20,
+        "depth": 1.4,
+        "level": -0.3
+      }
+    },
+    {
+      "id": "CAMPUS_PLAZA_MAIN",
+      "name": "中心广场",
+      "category": "景观",
+      "zone": "Z9",
+      "type": "area",
+      "position": [
+        -94,
+        0,
+        20
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          -154,
+          0,
+          -18
+        ],
+        "max": [
+          -34,
+          0.2,
+          58
+        ]
+      },
+      "summary": "校园核心集散广场，正对图书馆与主轴大道，铺装石材并设台阶边界",
+      "tags": [
+        "景观",
+        "广场",
+        "核心",
+        "集散"
+      ],
+      "meta": {
+        "area": 9120,
+        "w": 120,
+        "d": 76
+      }
+    },
+    {
+      "id": "CAMPUS_PLAZA_NORTH",
+      "name": "图书馆前广场",
+      "category": "景观",
+      "zone": "Z2",
+      "type": "area",
+      "position": [
+        94,
+        0,
+        363
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          29,
+          0,
+          337
+        ],
+        "max": [
+          159,
+          0.2,
+          389
+        ]
+      },
+      "summary": "体育馆前集散广场，连接场馆入口与东侧停车区",
+      "tags": [
+        "景观",
+        "广场",
+        "集散"
+      ],
+      "meta": {
+        "area": 6760,
+        "w": 130,
+        "d": 52
+      }
+    },
+    {
+      "id": "CAMPUS_PLAZA_GATE",
+      "name": "校门广场",
+      "category": "景观",
+      "zone": "Z8",
+      "type": "area",
+      "position": [
+        0,
+        0,
+        -478
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          -40,
+          0,
+          -495
+        ],
+        "max": [
+          40,
+          0.2,
+          -461
+        ]
+      },
+      "summary": "校门前集散广场，衔接主轴景观大道与门卫值班区",
+      "tags": [
+        "景观",
+        "广场",
+        "集散"
+      ],
+      "meta": {
+        "area": 2720,
+        "w": 80,
+        "d": 34
+      }
+    },
+    {
+      "id": "CAMPUS_PLAZA_SPORT",
+      "name": "体育馆前广场",
+      "category": "景观",
+      "zone": "Z5",
+      "type": "area",
+      "position": [
+        323,
+        0,
+        152
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          288,
+          0,
+          130
+        ],
+        "max": [
+          358,
+          0.2,
+          174
+        ]
+      },
+      "summary": "体育馆前集散广场，连接场馆入口与东侧停车区",
+      "tags": [
+        "景观",
+        "广场",
+        "集散"
+      ],
+      "meta": {
+        "area": 3080,
+        "w": 70,
+        "d": 44
+      }
+    },
+    {
+      "id": "CAMPUS_PLAZA_LIFE",
+      "name": "生活区广场",
+      "category": "景观",
+      "zone": "Z4",
+      "type": "area",
+      "position": [
+        -94,
+        0,
+        -235
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          -124,
+          0,
+          -255
+        ],
+        "max": [
+          -64,
+          0.2,
+          -215
+        ]
+      },
+      "summary": "体育馆前集散广场，连接场馆入口与东侧停车区",
+      "tags": [
+        "景观",
+        "广场",
+        "集散"
+      ],
+      "meta": {
+        "area": 2400,
+        "w": 60,
+        "d": 40
+      }
+    },
+    {
+      "id": "CAMPUS_TRACK_01",
+      "name": "田径场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "area",
+      "position": [
+        285,
+        0,
+        230
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          196.54500000000002,
+          0,
+          183.74
+        ],
+        "max": [
+          373.455,
+          0.2,
+          276.26
+        ]
+      },
+      "summary": "标准田径场，含红色环形跑道与内场足球草坪",
+      "tags": [
+        "运动",
+        "田径",
+        "足球"
+      ],
+      "meta": {
+        "area": 16368,
+        "w": 176.91,
+        "d": 92.52,
+        "courtType": "track",
+        "inner": [
+          105,
+          68
+        ],
+        "courts": 1
+      }
+    },
+    {
+      "id": "CAMPUS_TRACK_02",
+      "name": "第二田径场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "area",
+      "position": [
+        285,
+        0,
+        0
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          196.54500000000002,
+          0,
+          -46.26
+        ],
+        "max": [
+          373.455,
+          0.2,
+          46.26
+        ]
+      },
+      "summary": "标准田径场，含红色环形跑道与内场足球草坪",
+      "tags": [
+        "运动",
+        "田径",
+        "足球"
+      ],
+      "meta": {
+        "area": 16368,
+        "w": 176.91,
+        "d": 92.52,
+        "courtType": "track",
+        "inner": [
+          105,
+          68
+        ],
+        "courts": 1
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_BASKET_01",
+      "name": "篮球场群",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "facility",
+      "position": [
+        460,
+        0,
+        200
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          432,
+          0,
+          182
+        ],
+        "max": [
+          488,
+          0.2,
+          218
+        ]
+      },
+      "summary": "沥青篮球场，含边线、中线与限制区标线",
+      "tags": [
+        "运动",
+        "篮球"
+      ],
+      "meta": {
+        "area": 2016,
+        "w": 56,
+        "d": 36,
+        "courtType": "court",
+        "inner": null,
+        "courts": 2
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_BASKET_02",
+      "name": "生活区篮球场",
+      "category": "运动",
+      "zone": "Z4",
+      "type": "facility",
+      "position": [
+        -94,
+        0,
+        -190
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          -122,
+          0,
+          -208
+        ],
+        "max": [
+          -66,
+          0.2,
+          -172
+        ]
+      },
+      "summary": "沥青篮球场，含边线、中线与限制区标线",
+      "tags": [
+        "运动",
+        "篮球"
+      ],
+      "meta": {
+        "area": 2016,
+        "w": 56,
+        "d": 36,
+        "courtType": "court",
+        "inner": null,
+        "courts": 2
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_BASKET_03",
+      "name": "农学区篮球场",
+      "category": "运动",
+      "zone": "Z7",
+      "type": "facility",
+      "position": [
+        520,
+        0,
+        -210
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          492,
+          0,
+          -228
+        ],
+        "max": [
+          548,
+          0.2,
+          -192
+        ]
+      },
+      "summary": "沥青篮球场，含边线、中线与限制区标线",
+      "tags": [
+        "运动",
+        "篮球"
+      ],
+      "meta": {
+        "area": 2016,
+        "w": 56,
+        "d": 36,
+        "courtType": "court",
+        "inner": null,
+        "courts": 2
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_TENNIS_01",
+      "name": "网球场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "facility",
+      "position": [
+        460,
+        0,
+        400
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          443,
+          0,
+          389
+        ],
+        "max": [
+          477,
+          0.2,
+          411
+        ]
+      },
+      "summary": "硬地网球场，含边线与发球区标线",
+      "tags": [
+        "运动",
+        "网球"
+      ],
+      "meta": {
+        "area": 748,
+        "w": 34,
+        "d": 22,
+        "courtType": "tennis",
+        "inner": null,
+        "courts": 1
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_TENNIS_02",
+      "name": "第二网球场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "facility",
+      "position": [
+        460,
+        0,
+        0
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          443,
+          0,
+          -11
+        ],
+        "max": [
+          477,
+          0.2,
+          11
+        ]
+      },
+      "summary": "硬地网球场，含边线与发球区标线",
+      "tags": [
+        "运动",
+        "网球"
+      ],
+      "meta": {
+        "area": 748,
+        "w": 34,
+        "d": 22,
+        "courtType": "tennis",
+        "inner": null,
+        "courts": 1
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_TENNIS_03",
+      "name": "第三网球场",
+      "category": "运动",
+      "zone": "Z5",
+      "type": "facility",
+      "position": [
+        230,
+        0,
+        400
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          213,
+          0,
+          389
+        ],
+        "max": [
+          247,
+          0.2,
+          411
+        ]
+      },
+      "summary": "硬地网球场，含边线与发球区标线",
+      "tags": [
+        "运动",
+        "网球"
+      ],
+      "meta": {
+        "area": 748,
+        "w": 34,
+        "d": 22,
+        "courtType": "tennis",
+        "inner": null,
+        "courts": 1
+      }
+    },
+    {
+      "id": "CAMPUS_COURT_TENNIS_04",
+      "name": "行政区网球场",
+      "category": "运动",
+      "zone": "Z3",
+      "type": "facility",
+      "position": [
+        60,
+        0,
+        -340
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          43,
+          0,
+          -351
+        ],
+        "max": [
+          77,
+          0.2,
+          -329
+        ]
+      },
+      "summary": "硬地网球场，含边线与发球区标线",
+      "tags": [
+        "运动",
+        "网球"
+      ],
+      "meta": {
+        "area": 748,
+        "w": 34,
+        "d": 22,
+        "courtType": "tennis",
+        "inner": null,
+        "courts": 1
+      }
+    },
+    {
+      "id": "CAMPUS_PARK_01",
+      "name": "东区停车场",
+      "category": "交通",
+      "zone": "Z7",
+      "type": "facility",
+      "position": [
+        285,
+        0,
+        -375
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          240,
+          0,
+          -399
+        ],
+        "max": [
+          330,
+          0.1,
+          -351
+        ]
+      },
+      "summary": "地面停车场，共 64 个车位",
+      "tags": [
+        "交通",
+        "停车"
+      ],
+      "meta": {
+        "area": 4320,
+        "rows": 4,
+        "cols": 16,
+        "stalls": 64
+      }
+    },
+    {
+      "id": "CAMPUS_PARK_02",
+      "name": "生活区停车场",
+      "category": "交通",
+      "zone": "Z4",
+      "type": "facility",
+      "position": [
+        -94,
+        0,
+        -375
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          -134,
+          0,
+          -399
+        ],
+        "max": [
+          -54,
+          0.1,
+          -351
+        ]
+      },
+      "summary": "地面停车场，共 56 个车位",
+      "tags": [
+        "交通",
+        "停车"
+      ],
+      "meta": {
+        "area": 3840,
+        "rows": 4,
+        "cols": 14,
+        "stalls": 56
+      }
+    },
+    {
+      "id": "CAMPUS_PARK_03",
+      "name": "运动区停车场",
+      "category": "交通",
+      "zone": "Z5",
+      "type": "facility",
+      "position": [
+        312,
+        0,
+        400
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          274,
+          0,
+          382
+        ],
+        "max": [
+          350,
+          0.1,
+          418
+        ]
+      },
+      "summary": "地面停车场，共 28 个车位",
+      "tags": [
+        "交通",
+        "停车"
+      ],
+      "meta": {
+        "area": 2736,
+        "rows": 2,
+        "cols": 14,
+        "stalls": 28
+      }
+    },
+    {
+      "id": "CAMPUS_PARK_04",
+      "name": "行政区停车场",
+      "category": "交通",
+      "zone": "Z3",
+      "type": "facility",
+      "position": [
+        94,
+        0,
+        -180
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          66,
+          0,
+          -200
+        ],
+        "max": [
+          122,
+          0.1,
+          -160
+        ]
+      },
+      "summary": "地面停车场，共 30 个车位",
+      "tags": [
+        "交通",
+        "停车"
+      ],
+      "meta": {
+        "area": 2240,
+        "rows": 3,
+        "cols": 10,
+        "stalls": 30
+      }
+    },
+    {
+      "id": "CAMPUS_PARK_05",
+      "name": "教学区停车场",
+      "category": "交通",
+      "zone": "Z1",
+      "type": "facility",
+      "position": [
+        -486,
+        0,
+        230
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          -521,
+          0,
+          210
+        ],
+        "max": [
+          -451,
+          0.1,
+          250
+        ]
+      },
+      "summary": "地面停车场，共 36 个车位",
+      "tags": [
+        "交通",
+        "停车"
+      ],
+      "meta": {
+        "area": 2800,
+        "rows": 3,
+        "cols": 12,
+        "stalls": 36
+      }
+    },
+    {
+      "id": "CAMPUS_PARK_06",
+      "name": "图书馆停车场",
+      "category": "交通",
+      "zone": "Z2",
+      "type": "facility",
+      "position": [
+        94,
+        0,
+        290
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          56,
+          0,
+          275
+        ],
+        "max": [
+          132,
+          0.1,
+          305
+        ]
+      },
+      "summary": "地面停车场，共 28 个车位",
+      "tags": [
+        "交通",
+        "停车"
+      ],
+      "meta": {
+        "area": 2280,
+        "rows": 2,
+        "cols": 14,
+        "stalls": 28
+      }
+    },
+    {
+      "id": "RD_AXIS_MAIN",
+      "name": "主轴景观大道",
+      "category": "交通",
+      "type": "facility",
+      "position": [
+        0,
+        0,
+        15
+      ],
+      "anchor": "ground",
+      "bbox": {
+        "min": [
+          -13,
+          0,
+          -463
+        ],
+        "max": [
+          13,
+          0.2,
+          493
+        ]
+      },
+      "summary": "贯穿南北的校园主轴道路，联系南门、中心广场与教学区",
+      "tags": [
+        "交通",
+        "主轴",
+        "道路"
+      ],
+      "meta": {
+        "length": 930,
+        "width": 26,
+        "roadType": "main"
+      }
+    },
+    {
+      "id": "GREEN_AGRI",
+      "name": "农学实训基地田垄",
+      "category": "景观",
+      "zone": "Z7",
+      "type": "area",
+      "position": [
+        340,
+        0,
+        -200
+      ],
+      "anchor": "center",
+      "bbox": {
+        "min": [
+          300,
+          0,
+          -250
+        ],
+        "max": [
+          380,
+          0,
+          -150
+        ]
+      },
+      "summary": "农学实训基地田垄，绿地面积约 8000 ㎡，本模块种植树木 22 棵",
+      "tags": [
+        "绿地",
+        "景观",
+        "生态"
+      ],
+      "meta": {
+        "greenAreaId": "GREEN_AGRI",
+        "area": 8000,
+        "density": 0.9,
+        "treeCount": 22
+      }
+    }
+  ]
+}

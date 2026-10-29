@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="通用大学校园示例模型 — 离线三维校园展示与 POI 交互验证">
+  <title>通用大学校园示例模型</title>
+  <link rel="stylesheet" href="./styles.css">
+
+  <!-- 嵌入模式（?embed=1）：作为业务大屏的背景层时隐藏自身 UI，并向父窗口回报就绪 -->
+  <script>
+    (function () {
+      if (new URLSearchParams(location.search).get('embed') !== '1') return;
+      document.documentElement.classList.add('is-embed');
+
+      // 大屏语境下，POI 面板承担「建筑导航」职责，标题改为业务叫法
+      function renamePoiPanel() {
+        var poiHead = document.querySelector('#poi-panel .panel-head h2');
+        if (poiHead) poiHead.textContent = '建筑导航';
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renamePoiPanel);
+      } else {
+        renamePoiPanel();
+      }
+
+      // app.js 构建完成后会移除 #loading，据此判定场景就绪
+      function reportReady() {
+        if (document.getElementById('loading')) {
+          setTimeout(reportReady, 120);
+          return;
+        }
+        try {
+          parent.postMessage({ type: 'campus-model:ready' }, '*');
+        } catch (e) { /* 跨域时忽略 */ }
+      }
+      setTimeout(reportReady, 120);
+    })();
+  </script>
+
+  <!-- three.js 本地化：仅使用本地 vendor，禁止任何 CDN 依赖 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- ① 全屏渲染容器 -->
+  <div id="viewport" class="viewport"></div>
+
+  <!-- ② 顶部标题条 -->
+  <header id="titlebar" class="titlebar">
+    <div class="titlebar-main">
+      <h1 class="app-title">通用大学校园示例模型</h1>
+      <p class="app-sub" id="app-subtitle">CAMPUS_GENERIC_001 · 单位：米 · Y 轴向上</p>
+    </div>
+    <div class="titlebar-actions">
+      <button type="button" class="ghost-btn panel-toggle" id="btn-toggle-poi" aria-label="展开或收起 POI 面板">POI 列表</button>
+      <button type="button" class="ghost-btn panel-toggle" id="btn-toggle-side" aria-label="展开或收起控制面板">控制台</button>
+    </div>
+  </header>
+
+  <!-- ③ 左侧 POI 面板 -->
+  <aside id="poi-panel" class="panel panel-left" aria-label="兴趣点列表">
+    <div class="panel-head">
+      <h2>兴趣点 POI</h2>
+      <span class="count-badge" id="poi-count">0</span>
+    </div>
+    <div class="search-row">
+      <input id="poi-search" type="search" placeholder="搜索名称 / 标签 / 摘要…" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="chip-row" id="poi-categories"></div>
+    <div class="panel-body" id="poi-list"></div>
+  </aside>
+
+  <!-- ④ 右侧信息 / 控制面板 -->
+  <aside id="side-panel" class="panel panel-right" aria-label="信息与控制">
+    <section class="side-section">
+      <div class="panel-head">
+        <h2>信息</h2>
+      </div>
+      <div class="panel-body info-body" id="poi-info">
+        <p class="empty-hint">在场景中点击建筑或地标，或从左侧列表选择。</p>
+      </div>
+    </section>
+
+    <section class="side-section">
+      <div class="panel-head"><h2>昼夜</h2></div>
+      <div class="btn-row" id="time-presets">
+        <button type="button" class="seg-btn is-active" data-time="day">白天</button>
+        <button type="button" class="seg-btn" data-time="dusk">黄昏</button>
+        <button type="button" class="seg-btn" data-time="night">夜晚</button>
+      </div>
+    </section>
+
+    <section class="side-section">
+      <div class="panel-head"><h2>季节</h2></div>
+      <div class="btn-row" id="season-presets">
+        <button type="button" class="seg-btn" data-season="spring">春</button>
+        <button type="button" class="seg-btn is-active" data-season="summer">夏</button>
+        <button type="button" class="seg-btn" data-season="autumn">秋</button>
+        <button type="button" class="seg-btn" data-season="winter">冬</button>
+      </div>
+    </section>
+
+    <section class="side-section">
+      <div class="panel-head"><h2>画质</h2></div>
+      <div class="btn-row" id="quality-presets">
+        <button type="button" class="seg-btn is-active" data-quality="high">高</button>
+        <button type="button" class="seg-btn" data-quality="medium">中</button>
+        <button type="button" class="seg-btn" data-quality="low">低</button>
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="chk-trees" checked>
+        <span>显示植被</span>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" id="chk-wireframe">
+        <span>线框模式（<kbd>W</kbd>）</span>
+      </label>
+    </section>
+
+    <section class="side-section">
+      <div class="panel-head"><h2>区域剖切</h2></div>
+      <div class="btn-row wrap" id="clip-presets">
+        <button type="button" class="seg-btn is-active" data-clip="all">全显示</button>
+        <button type="button" class="seg-btn" data-clip="only-teaching">仅教学区</button>
+        <button type="button" class="seg-btn" data-clip="only-sport">仅运动区</button>
+        <button type="button" class="seg-btn" data-clip="only-life">仅生活区</button>
+        <button type="button" class="seg-btn" data-clip="hide-life">隐藏生活区</button>
+        <button type="button" class="seg-btn" data-clip="hide-sport">隐藏运动区</button>
+      </div>
+    </section>
+
+    <section class="side-section">
+      <div class="panel-head"><h2>清单导出</h2></div>
+      <button type="button" class="primary-btn" id="btn-export">导出 assets/manifest.json</button>
+      <p class="hint" id="export-hint">导出内容：version、generatedAt（真实时间戳）、items（POI 数组）。</p>
+    </section>
+
+    <section class="side-section">
+      <div class="panel-head"><h2>快捷键</h2></div>
+      <ul class="kbd-list">
+        <li><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 白天 / 黄昏 / 夜晚</li>
+        <li><kbd>W</kbd> 线框开关</li>
+        <li><kbd>F</kbd> 聚焦当前选中</li>
+        <li><kbd>Esc</kbd> 取消选中</li>
+      </ul>
+    </section>
+  </aside>
+
+  <!-- ⑤ 底部性能 HUD -->
+  <div id="hud" class="hud" role="status" aria-live="off">
+    <span class="hud-item"><i>FPS</i><b id="hud-fps">–</b></span>
+    <span class="hud-item"><i>Draw</i><b id="hud-draw">–</b></span>
+    <span class="hud-item"><i>三角面</i><b id="hud-tris">–</b></span>
+    <span class="hud-item"><i>对象</i><b id="hud-objects">–</b></span>
+    <span class="hud-item"><i>POI</i><b id="hud-poi">–</b></span>
+  </div>
+
+  <!-- ⑥ 轻提示 -->
+  <div id="toast" class="toast" role="status"></div>
+
+  <!-- ⑦ 构建期遮罩 -->
+  <div id="loading" class="loading">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p class="loading-text">正在构建校园场景…</p>
+      <p class="loading-sub" id="loading-sub">初始化渲染器</p>
+    </div>
+  </div>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

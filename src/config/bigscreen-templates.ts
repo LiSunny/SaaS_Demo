@@ -14,6 +14,7 @@ const TYPE_ROUTES: Record<BigscreenType, string> = {
   campus: '/landing/campus',
   'campus-monitor': '/landing/campus-monitor',
   ebike: '/landing/ebike',
+  'ebike-v2': '/landing/ebike-v2',
   linking: '/landing/linking',
 }
 

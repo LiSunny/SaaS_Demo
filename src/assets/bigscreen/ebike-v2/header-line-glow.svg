@@ -1,0 +1,14 @@
+<svg width="144" height="4" viewBox="0 0 144 4" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Figma 44:891 底部装饰线上的辉光块（原本静止在 x=463.7~607.7）。
+     改成沿线循环滑动的流动体：外形与配色沿用设计稿，
+     仅把径向渐变外圈改为透明 —— 两端淡出，接缝处不可见，才能无缝循环。
+     preserveAspectRatio="none" + 与装饰线同一 bottom/height 基准带，保证与线严格重合。 -->
+<path d="M139.826 0C142.48 0.7823 143.925 1.6229 143.925 2.5C143.925 3.0139 143.429 3.5152 142.485 4H1.441C0.496 3.5152 0 3.0138 0 2.5C0 1.6229 1.445 0.7823 4.1 0H139.826Z" fill="url(#paint_glow)"/>
+<defs>
+<radialGradient id="paint_glow" cx="0" cy="0" r="1" gradientTransform="matrix(71.9624 -0.159575 0.0845147 3.8861 71.963 2.5)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#C6E9FF" stop-opacity="0.38"/>
+<stop offset="0.653846" stop-color="#4F9EDC" stop-opacity="0.34"/>
+<stop offset="1" stop-color="#418BC9" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
