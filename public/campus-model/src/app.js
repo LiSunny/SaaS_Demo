@@ -989,6 +989,36 @@ export function createApp(container, options = {}) {
     controls.enabled = false;
   }
 
+  /**
+   * 飞向指定机位（外部驱动，如大屏入场轨迹）。
+   *
+   * @param {object} opts
+   * @param {[number,number,number]} opts.position 目标相机位置（世界坐标）
+   * @param {[number,number,number]} opts.target   目标注视点（世界坐标）
+   * @param {number} [opts.duration] 飞行时长（毫秒），默认 1500
+   * @param {number} [opts.arc]      轨迹抬升量（米），默认按水平距离的 8%
+   * @returns {boolean} 是否成功起飞
+   */
+  function flyToCamera(opts = {}) {
+    const p = opts.position || INITIAL_CAMERA_POS.toArray();
+    const t = opts.target || INITIAL_TARGET.toArray();
+    const endPos = new THREE.Vector3(p[0], p[1], p[2]);
+    const endTarget = new THREE.Vector3(t[0], t[1], t[2]);
+    const duration = Math.max(200, opts.duration || FLIGHT_MS);
+    const flat = Math.hypot(endPos.x - camera.position.x, endPos.z - camera.position.z);
+    flight = {
+      startPos: camera.position.clone(),
+      startTarget: controls.target.clone(),
+      endPos,
+      endTarget,
+      start: performance.now(),
+      duration,
+      arc: opts.arc !== undefined ? opts.arc : Math.max(30, flat * 0.08),
+    };
+    controls.enabled = false;
+    return true;
+  }
+
   function updateFlight(now) {
     if (!flight) return;
     const raw = clamp((now - flight.start) / flight.duration, 0, 1);
@@ -1886,6 +1916,7 @@ export function createApp(container, options = {}) {
     selectPOI,
     clearSelection,
     pickPOI,
+    flyToCamera,
     rebuildPickIndex,
     refreshPoiList,
     resetView,

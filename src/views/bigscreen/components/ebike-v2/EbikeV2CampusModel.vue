@@ -6,10 +6,12 @@
       :src="frameSrc"
       title="校园三维模型"
     />
-    <div v-if="!ready" class="campus-layer__loading">
-      <span class="campus-layer__spinner" />
-      <span class="campus-layer__text">正在构建校园场景…</span>
-    </div>
+    <Transition name="campus-fade" @after-leave="onOverlayGone">
+      <div v-if="!ready" class="campus-layer__loading">
+        <span class="campus-layer__spinner" />
+        <span class="campus-layer__text">正在构建校园场景…</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -18,6 +20,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   BIGSCREEN_CAMPUS_CAMERA,
   BIGSCREEN_CAMPUS_DEFAULT_TIME,
+  BIGSCREEN_CAMPUS_ENTRY_CAMERA,
+  BIGSCREEN_CAMPUS_ENTRY_DURATION,
   BIGSCREEN_CAMPUS_THEMES,
   type CampusCamera,
   type CampusTheme,
@@ -139,24 +143,76 @@ function applyNightGlow(app: any, target: number) {
   })
 }
 
-/** 初始机位：正南俯视，校园地块与屏幕中轴对齐 */
-function applyCamera(app: any) {
+/** 按机位参数换算相机位置与注视点 */
+function resolveCamera(cam: CampusCamera) {
+  const rad = (deg: number) => (deg * Math.PI) / 180
+  const horiz = cam.distance * Math.cos(rad(cam.elevation))
+  const target = {
+    x: cam.targetX ?? 0,
+    y: cam.targetY,
+    z: cam.targetZ ?? 0,
+  }
+  const position = {
+    x: target.x + horiz * Math.sin(rad(cam.azimuth)),
+    y: target.y + cam.distance * Math.sin(rad(cam.elevation)),
+    z: target.z - horiz * Math.cos(rad(cam.azimuth)),
+  }
+  return { target, position }
+}
+
+/** 直接把模型摆到指定机位（无动画） */
+function applyCamera(app: any, cam: CampusCamera = props.camera) {
   const THREE = app.ctx?.THREE
   if (!THREE || !app.camera || !app.controls) return
-  const c = props.camera
-  const rad = (deg: number) => (deg * Math.PI) / 180
-  const horiz = c.distance * Math.cos(rad(c.elevation))
-  const target = new THREE.Vector3(0, c.targetY, 0)
+  const { target: t, position: p } = resolveCamera(cam)
+  const target = new THREE.Vector3(t.x, t.y, t.z)
   app.controls.target.copy(target)
-  app.camera.position.set(
-    target.x + horiz * Math.sin(rad(c.azimuth)),
-    target.y + c.distance * Math.sin(rad(c.elevation)),
-    target.z - horiz * Math.cos(rad(c.azimuth)),
-  )
+  app.camera.position.set(p.x, p.y, p.z)
   app.camera.lookAt(target)
   // 大屏背景层：只允许旋转 / 缩放。平移会把目标点拖到地面以下、模型跑出画面。
   app.controls.enablePan = true
   app.controls.update()
+}
+
+/** 入场轨迹：从模型内置的园区全景俯视飞到落位机位 */
+function playEntryFlight(app: any) {
+  const { target: t, position: p } = resolveCamera(props.camera)
+  app.flyToCamera?.({
+    position: [p.x, p.y, p.z],
+    target: [t.x, t.y, t.z],
+    duration: BIGSCREEN_CAMPUS_ENTRY_DURATION,
+  })
+}
+
+let entryStarted = false
+let entryTimer: number | undefined
+let entryFallbackTimer: number | undefined
+
+/** 起飞（幂等） */
+function startEntryFlight() {
+  if (entryStarted) return
+  entryStarted = true
+  clearEntryTimers()
+  const app = getModel()
+  if (!app) return
+  playEntryFlight(app)
+}
+
+/** 遮罩淡出完成：留 0.3s 无遮挡俯视再起飞 */
+function onOverlayGone() {
+  if (entryStarted) return
+  entryTimer = window.setTimeout(startEntryFlight, 300)
+}
+
+function clearEntryTimers() {
+  if (entryTimer !== undefined) {
+    window.clearTimeout(entryTimer)
+    entryTimer = undefined
+  }
+  if (entryFallbackTimer !== undefined) {
+    window.clearTimeout(entryFallbackTimer)
+    entryFallbackTimer = undefined
+  }
 }
 
 /** 就绪后把预设与视觉方案套用到模型上 */
@@ -167,22 +223,58 @@ function configure() {
   app.setQuality?.(props.quality)
   app.setTimePreset?.(currentTime.value, true)
   applySceneStyle()
-  applyCamera(app)
+  // 相机先摆到园区全景俯视，作为入场轨迹的起飞点
+  applyCamera(app, BIGSCREEN_CAMPUS_ENTRY_CAMERA)
   ready.value = true
+  // 兜底：遮罩淡出回调未触发时，最迟 1.5s 起飞
+  entryFallbackTimer = window.setTimeout(startEntryFlight, 1500)
+}
+
+let configured = false
+let pollTimer: number | undefined
+
+/** 模型是否就绪：app 对象存在，且场景装配完成（iframe 的 #loading 已移除） */
+function isModelReady(): boolean {
+  if (!getModel()) return false
+  const doc = frameRef.value?.contentDocument
+  if (doc?.getElementById('loading')) return false
+  return true
+}
+
+/**
+ * 等模型就绪后配置一次（幂等）。
+ * ready 消息可能在父页监听器注册之前就已发出（父页挂载慢于 iframe 建模），
+ * 那样整套机位与主题会静默失效 —— 故用轮询兜底。
+ */
+function ensureConfigured() {
+  if (configured || !isModelReady()) return
+  configured = true
+  configure()
+  stopPolling()
+}
+
+function stopPolling() {
+  if (pollTimer === undefined) return
+  window.clearInterval(pollTimer)
+  pollTimer = undefined
 }
 
 function handleMessage(e: MessageEvent) {
   if (e?.data?.type !== 'campus-model:ready') return
   if (frameRef.value && e.source !== frameRef.value.contentWindow) return
-  configure()
+  ensureConfigured()
 }
 
 onMounted(() => {
   window.addEventListener('message', handleMessage)
+  pollTimer = window.setInterval(() => ensureConfigured(), 150)
+  window.setTimeout(stopPolling, 60000)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('message', handleMessage)
+  stopPolling()
+  clearEntryTimers()
   try {
     model.value?.stop?.()
   } catch { /* 模型可能未初始化 */ }
@@ -271,6 +363,15 @@ defineExpose({
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
   letter-spacing: 1px;
+}
+
+/* 遮罩淡出，露出俯视园区 → 落位的入场轨迹 */
+.campus-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+
+.campus-fade-leave-to {
+  opacity: 0;
 }
 
 .campus-layer__spinner {

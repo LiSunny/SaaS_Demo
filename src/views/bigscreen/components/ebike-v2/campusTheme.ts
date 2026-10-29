@@ -50,6 +50,10 @@ export interface CampusCamera {
   distance: number
   /** 目标点高度（米） */
   targetY: number
+  /** 目标点 X（米），缺省 0 = 校园中轴 */
+  targetX?: number
+  /** 目标点 Z（米），缺省 0 = 校园中轴 */
+  targetZ?: number
 }
 
 /** 白天：亮蓝天空 + 明亮地块 */
@@ -113,9 +117,36 @@ export const BIGSCREEN_CAMPUS_THEMES: Record<CampusTimePreset, CampusTheme> = {
 /** 默认预设（进入大屏时的场景） */
 export const BIGSCREEN_CAMPUS_DEFAULT_TIME: CampusTimePreset = 'dusk'
 
+/**
+ * 落位机位：学生公寓区低机位斜视。
+ *
+ * 由参考图反解（楼顶铭牌为基准点）：相机 (-574, 90, -552)，朝向东北，
+ * 俯角 17°，画面中心落在 1/2 号学生公寓之间的空地 (-404, 0, -310)。
+ * 1 号学生公寓在右下近景并被下边缘裁切，3 号在右上远景。
+ */
 export const BIGSCREEN_CAMPUS_CAMERA: CampusCamera = {
-  azimuth: 0,
-  elevation: 44,
-  distance: 1120,
-  targetY: 40,
+  azimuth: -35,
+  elevation: 17,
+  distance: 309,
+  targetY: 0,
+  targetX: -404,
+  targetZ: -310,
 }
+
+/**
+ * 入场轨迹起点：园区全景俯视（斜俯全园区）。
+ *
+ * 取值与模型内置初始机位一致（方位 33°、俯角 24°、距离 = 场地长边 × 1.16、
+ * 注视点 (0, 0, 15)），显式写出来是为了起飞点不随模型内部默认值漂移。
+ */
+export const BIGSCREEN_CAMPUS_ENTRY_CAMERA: CampusCamera = {
+  azimuth: 33,
+  elevation: 24,
+  distance: 1438,
+  targetY: 0,
+  targetX: 0,
+  targetZ: 15,
+}
+
+/** 入场轨迹时长（毫秒）：俯视园区 → 落位 */
+export const BIGSCREEN_CAMPUS_ENTRY_DURATION = 4000
