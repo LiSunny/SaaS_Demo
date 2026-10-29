@@ -32,7 +32,7 @@ await page.evaluate(
     localStorage.setItem('auth_token', token)
     localStorage.setItem('auth_user', JSON.stringify(user))
   },
-  { data },
+  { token: data.token, user: data.user },
 )
 
 // 在任何页面脚本之前挂监听，记录模型就绪信号
@@ -94,9 +94,9 @@ const info = await page.evaluate(() => {
     rightCards: document.querySelectorAll('.col--right .v2-card').length,
     navItems: document.querySelectorAll('.v2-nav__item').length,
     sectionTitles: document.querySelectorAll('.section-title').length,
-    // 顶栏控件
-    timeButtons: document.querySelectorAll('.v2-time__btn').length,
-    activeTime: document.querySelector('.v2-time__btn--active')?.textContent?.trim() ?? null,
+    // 模型区控件
+    timeSwitch: !!document.querySelector('.v2-time__switch'),
+    activeTime: document.querySelector('.v2-time__switch')?.getAttribute('aria-checked') === 'true' ? '黄昏' : '白天',
     poiToggle: !!document.querySelector('.v2-poi-toggle'),
     poiPanelExists: !!poiPanel,
     poiPanelOpen: poiPanel?.classList.contains('is-open') ?? null,
@@ -106,19 +106,20 @@ const info = await page.evaluate(() => {
 })
 console.log(JSON.stringify(info, null, 2))
 
-// 昼夜切换：切到夜晚，场景底色应跟随大屏夜景配色
+// 场景光线开关：默认黄昏，点一下切到白天，场景底色应跟随大屏白天配色
 const switched = await page.evaluate(async () => {
-  const btn = [...document.querySelectorAll('.v2-time__btn')].find((b) => b.textContent.includes('夜晚'))
-  btn?.click()
+  const sw = document.querySelector('.v2-time__switch')
+  sw?.click()
   await new Promise((r) => setTimeout(r, 1200))
   const app = document.querySelector('.campus-layer__frame')?.contentWindow?.campusApp
   return {
-    active: document.querySelector('.v2-time__btn--active')?.textContent?.trim(),
+    state: sw?.getAttribute('aria-checked') === 'true' ? '黄昏' : '白天',
+    ariaChecked: sw?.getAttribute('aria-checked'),
     sceneBg: app?.scene?.background?.getHexString?.(),
     exposure: app?.renderer?.toneMappingExposure,
   }
 })
-console.log('切夜晚:', JSON.stringify(switched))
+console.log('切白天:', JSON.stringify(switched))
 
 // 建筑导航：默认收起，点开后应可见
 const panel = await page.evaluate(async () => {

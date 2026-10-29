@@ -16,9 +16,6 @@
 
     <template #nav>
       <EbikeV2Nav :items="navItems" @select="handleSelect" />
-      <!-- 建筑导航开关 + 昼夜切换（顶栏导航右侧） -->
-      <EbikeV2PoiToggle />
-      <EbikeV2TimeSwitch />
     </template>
   </BigscreenTitleBar>
 </template>
@@ -27,8 +24,6 @@
 import { ref } from 'vue'
 import BigscreenTitleBar from '../common/BigscreenTitleBar.vue'
 import EbikeV2Nav from './EbikeV2Nav.vue'
-import EbikeV2PoiToggle from './EbikeV2PoiToggle.vue'
-import EbikeV2TimeSwitch from './EbikeV2TimeSwitch.vue'
 
 /** 导航：消防安全管理口径（校园总览 → 应急处置）
  *  总览页只放"现在要动手的"，其余页面承接明细 */

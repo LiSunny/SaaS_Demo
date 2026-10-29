@@ -198,7 +198,7 @@ src/api/adapters/
 - [x] 路由注册：`/landing/ebike`、类型 `BigscreenType.ebike`、模板 `bigscreen-templates.ts`
 
 **应急局电动车安全管控大屏 v2（`/landing/ebike-v2`）：**
-- [x] `EbikeMonitorV2.vue` — 页面骨架：三维模型铺底（z-index 0）+ 大标题（z-index 100）+ 左右两列（z-index 10）
+- [x] `EbikeMonitorV2.vue` — 页面骨架：三维模型铺底（z-index 0）+ 大标题（z-index 100）+ 左右两列（z-index 10）+ 模型区悬浮控件组（`.ebike-v2__scene-tools`，z-index 11）
 - [x] `components/common/BigscreenTitleBar.vue` — 大标题公共底座（background / nav / avatar 三个 slot），旧大屏 `EbikeMonitorHeader` 已改为基于它
 - [x] `components/common/BigscreenSectionTitle.vue` — 小标题公共组件（由 `ebike/EbikeSectionTitle.vue` 迁入，旧大屏 7 处 import 只改路径）
 - [x] `components/ebike-v2/EbikeV2Header.vue` — 标题「智能安全管控平台」+ 5 个导航按钮
@@ -206,9 +206,9 @@ src/api/adapters/
 - [x] `components/ebike-v2/EbikeV2Card.vue` — 小标题 + 拟态玻璃内容区（透出三维模型）
 - [x] `components/ebike-v2/EbikeV2CampusModel.vue` — 校园三维模型（iframe 嵌入 + 主题/机位覆盖 + 建筑导航面板开关）
 - [x] `components/ebike-v2/campusTheme.ts` — 昼夜三档各自的大屏配色与机位参数
-- [x] `components/ebike-v2/EbikeV2PoiToggle.vue` — 顶栏「建筑导航」开关（展开模型自带 POI 面板）
-- [x] `components/ebike-v2/EbikeV2TimeSwitch.vue` — 顶栏「白天 / 黄昏 / 夜晚」切换
-- [x] `components/ebike-v2/useCampusModel.ts` — 模型实例 provide / inject（顶栏与页面层不同层级）
+- [x] `components/ebike-v2/EbikeV2PoiToggle.vue` — 模型区悬浮「建筑导航」开关（展开模型自带 POI 面板，弹窗吸附在按钮下方展开）
+- [x] `components/ebike-v2/EbikeV2TimeSwitch.vue` — 模型区悬浮「场景光线」开关（白天 / 黄昏两态，样式沿用后台 `ThemeToggle` 的药丸轨道 + 滑动圆钮 + 钮内图标；在「建筑导航」按钮上方）
+- [x] `components/ebike-v2/useCampusModel.ts` — 模型实例 provide / inject（模型区控件与页面层不同层级）
 - [x] 路由注册：`/landing/ebike-v2`、类型 `BigscreenType.ebike-v2`、模板 `bigscreen-templates.ts`、后台入库脚本 `server/scripts/register-ebike-v2-bigscreen.ts`
 - [ ] 6 个业务模块内容（当前只有小标题骨架）
 
@@ -256,7 +256,8 @@ src/api/adapters/
 
 - **三维模型走 iframe 整页嵌入**（`public/campus-model/`，`?embed=1`）：模型 `src/app.js` 1922 行、深度耦合自身 DOM，改为同源 iframe 加载，`model.js` 核心模块零改动；父页通过 `iframe.contentWindow.campusApp` 驱动（`camera` / `controls` / `scene` / `renderer` / `ctx.THREE`）
 - **嵌入模式只改 `index.html` + `styles.css`**：加 `html.is-embed` 隐藏自身 UI，加载完成后 `parent.postMessage({type:'campus-model:ready'})`；POI 面板标题在嵌入模式下改为「建筑导航」
-- **嵌入模式露出建筑导航面板**：`html.is-embed .panel-left` 默认收起，定位到中间三维区左侧（left 508 / top 92 / width 272），大屏侧按钮切 `.is-open`
+- **嵌入模式露出建筑导航面板**：`html.is-embed .panel-left` 默认收起，大屏侧按钮切 `.is-open`；定位用 vw/vh 与大屏页面同一套 1920×1080 设计基准（iframe 与页面视口 1:1），吸附在「建筑导航」按钮下方：left 61.25vw（= 按钮左缘 1176）/ top 23.5185vh（= 按钮底缘 246 + 8）/ width 12.7083vw（= 244，与上方控制组等宽）/ bottom 1.4815vh（= 1064，与两列模块底缘齐平）
+- **面板定位必须用设计单位而非写死像素**：写死 `left:508px; top:92px` 时，面板顶部 92~150 被大屏态势条（86~150 通栏，层级更高）压住，「建筑导航」标题与计数徽标整段不可见；且换视口即失效。iframe 内 `100vw/100vh` 即页面视口，`vw()/vh()` 与大屏页面完全等价
 - **视觉方案在父页覆盖**：`campusTheme.ts` 按昼夜三档各写一套天空/雾/灯光/曝光。天穹是 `renderOrder === -1000` 的 ShaderMaterial 网格（唯一带 `topColor`/`bottomColor` uniform），雾色与天穹底部同色让地块远端融进大屏底色 `#00437A`
 - **昼夜切换用立即模式**：`setTimePreset(name, true)` 后再套大屏配色，避免模型 1.2s 过渡中间态把天空刷成预设原始色
 - **窗户自发光按基准重算**：模型按 nightFactor 缩放自发光，父页记录基准强度后按「基准 × 目标浓度」重算，反复切换不累积误差
@@ -279,7 +280,7 @@ src/api/adapters/
   - 原始截图：`screenshots/ebike-compare/_nav-textonly-before.png`、`_nav-textonly-after.png`、`_figma-nav-51-1800.png`
 - **选中文字不用 `background-clip` 渐变**：17px 小字上垂直渐变几乎看不出，且渐变裁剪会把 `text-shadow` 一起裁掉、辉光显示异常
 - **导航字体用独立字体族名声明**（`ebike-v2-fonts.css` 的 `NavKeynote` / `NavPuHuiTiMedium`）：直接声明 `Alibaba PuHuiTi` 只给单个字重会让页面其它位置被合成，故换族名只作用于导航。代价是两个字体文件共 19.5MB（`Source-KeynoteartHans.otf` 10MB + `Alibaba-PuHuiTi-Medium.ttf` 9.5MB）
-- **建筑导航开关与昼夜切换不在设计稿里**，是自加控件，放在导航与用户区之间的空档（建筑导航 x=1360、昼夜 x=1472，用户区从 1767 起）；导航增到 6 项后右边界到 1334，原位置 1200 / 1330 会压住按钮
+- **建筑导航开关与昼夜切换不在设计稿里**，是自加控件。原放在顶栏导航与用户区之间的空档（建筑导航 x=1360、昼夜 x=1472），现已移到模型区：做成 `.ebike-v2__scene-tools` 悬浮控件组挂在两列容器上（`top:0` → 与两列顶边天然对齐，状态条改高度不用改数值；`right: calc(vw(468) + vw(16))` → 右缘距完好率模块 16px），昼夜切换在上、建筑导航在下
 - **顶栏底图按 68px 通栏重排**（`src/assets/bigscreen/ebike-v2/header-bg.svg`）：斜纹组 `translate(0 -6) scale(1 1.0625)` 拉到 0~68 满高
 - **`<img>` 加载的 SVG 默认会上下留白居中**：盒子的宽高比与 SVG 自身 viewBox 比例不一致时，浏览器按 `preserveAspectRatio="xMidYMid meet"` 缩放并在剩余方向留白。实测底图盒 1690.5×66.11（比例 25.57）vs SVG 1932×68（比例 28.41）→ 内容按宽缩放 0.875、高 59.5，上下各留 3.3px，装饰线实际落在 CSS 59.0~62.8 而不是贴底。**三个 SVG（底图 / 装饰线 / 辉光）全部加 `preserveAspectRatio="none"`** 消除留白
 - **装饰线拆成独立图层用代码定位**（`header-line.svg` + `.v2-header-line`）：`bottom:0` + `height: vh(4)`，与 `.v2-header-glow` 共用同一基准带，两者必然严格重合，不受视口比例影响。装饰线底边实测 CSS 62.2~66.1，正好等于标题条底边 66.11
