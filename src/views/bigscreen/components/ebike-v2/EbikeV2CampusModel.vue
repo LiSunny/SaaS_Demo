@@ -155,7 +155,7 @@ function applyCamera(app: any) {
   )
   app.camera.lookAt(target)
   // 大屏背景层：只允许旋转 / 缩放。平移会把目标点拖到地面以下、模型跑出画面。
-  app.controls.enablePan = false
+  app.controls.enablePan = true
   app.controls.update()
 }
 

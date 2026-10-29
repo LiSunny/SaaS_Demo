@@ -32,11 +32,12 @@ import EbikeV2TimeSwitch from './EbikeV2TimeSwitch.vue'
 
 /** Figma 44:915 态势概览（选中）+ 44:919/923/927/931 四个占位导航 */
 const navItems = ref([
-  { label: '态势概览', key: 'overview' },
-  { label: '导航按钮', key: 'nav-1' },
-  { label: '导航按钮', key: 'nav-2' },
-  { label: '导航按钮', key: 'nav-3' },
-  { label: '导航按钮', key: 'nav-4' },
+  { label: '校园总览', key: 'overview' },
+  { label: '警情监测', key: 'nav-1' },
+  { label: '设备监控', key: 'nav-2' },
+  { label: '消防档案', key: 'nav-3' },
+  { label: '运行报告', key: 'nav-4' },
+  { label: '小安助手', key: 'nav-5' },
 ])
 
 function handleSelect(item: { key?: string }) {

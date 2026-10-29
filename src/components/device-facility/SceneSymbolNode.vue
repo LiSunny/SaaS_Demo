@@ -10,6 +10,7 @@
  * 图元几何来自图元库产物（runtime.renderSymbol），不重画；
  * 状态用 is-* 类名驱动（运行 / 故障 / 手动 / 阀开 / 阀关）。
  */
+ 
 import { onMounted, ref, watch } from 'vue'
 import { IMAGE_BASE, SYMBOL_REGISTRY_VERSION, renderSymbolSafe, stateClasses } from '@/symbols'
 import type { SceneStyle } from '@/types/scene-config'
