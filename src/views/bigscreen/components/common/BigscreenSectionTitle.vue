@@ -75,7 +75,7 @@ defineProps<{
   position: absolute;
   left: vw(39.87); top: 50%; transform: translateY(-50%);
   font-family: 'Source-KeynoteartHans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
-  font-size: clamp(16px, calc(22 * var(--min-scale)), 22px);
+  font-size: clamp(16px, calc(20 * var(--min-scale)), 20px);
   font-weight: 400; line-height: vh(33);
   background: linear-gradient(to bottom, #ffffff 0%, #c8e4ff 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
