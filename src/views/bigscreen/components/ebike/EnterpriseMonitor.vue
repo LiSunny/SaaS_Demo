@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import EbikeSectionTitle from './EbikeSectionTitle.vue'
+import EbikeSectionTitle from '../common/BigscreenSectionTitle.vue'
 
 const timestamp = ref(formatTs())
 let timer: ReturnType<typeof setInterval> | null = null

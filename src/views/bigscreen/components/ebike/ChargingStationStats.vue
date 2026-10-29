@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import EbikeSectionTitle from './EbikeSectionTitle.vue'
+import EbikeSectionTitle from '../common/BigscreenSectionTitle.vue'
 
 const activeTab = ref('enterprise')
 const vh = (px: number) => `calc(${px} / 1080 * 100vh)`

@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import EbikeSectionTitle from './EbikeSectionTitle.vue'
+import EbikeSectionTitle from '../common/BigscreenSectionTitle.vue'
 </script>
 
 <style lang="scss" scoped>
