@@ -25,7 +25,7 @@ import type {
   SubsystemSceneAdapter,
 } from '@/types/subsystem-scene'
 import { analogState, fmt, groupStatus, metricOf, num, resolveNodePoints, statusOf } from './subsystem-scene-core'
-import { computeSubsystemCards } from './subsystem-cards'
+import { computeSubsystemCards, SUBSYSTEM_CARD_THEME } from './subsystem-cards'
 
 interface RawLayout {
   version: number
@@ -186,23 +186,8 @@ export function findOwnerNode(
 
 // ===== 顶部统计卡（设备维度） =====
 
-/** 统计卡主题：图标地址 + 分项配色 */
-const CARD_THEME = {
-  icons: {
-    deviceTotal: '/icons/fire-water/kpi-device-total.svg',
-    deviceOnline: '/icons/fire-water/kpi-device-online.svg',
-    deviceFault: '/icons/fire-water/kpi-device-fault.svg',
-    deviceWarning: '/icons/fire-water/kpi-device-warning.svg',
-  },
-  colors: {
-    host: '#6293C8',
-    device: '#417AB7',
-    offline: '#CED2D7',
-    online: '#059669',
-    fault: '#D97706',
-    warning: '#DC2626',
-  },
-} as const
+/** 统计卡主题：三系统共用（图标沿用消防水那套，配色按图例语义固定） */
+const CARD_THEME = SUBSYSTEM_CARD_THEME
 
 /**
  * 计算顶部 4 张统计卡

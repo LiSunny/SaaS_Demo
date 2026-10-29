@@ -37,6 +37,31 @@ export interface SubsystemCardTheme {
 }
 
 /**
+ * 三系统共用的统计卡主题
+ *
+ * 消防水 / 气体灭火 / 防排烟三页的卡片图标与配色口径一致：
+ * 图标沿用消防水那套（`public/icons/fire-water/kpi-*.svg`），
+ * 分项色按图例语义固定（主机蓝 / 器件深蓝 / 离线灰 / 在线绿 / 故障橙 / 预警红）。
+ * 页面之间不允许出现"这张卡颜色不一样"。
+ */
+export const SUBSYSTEM_CARD_THEME: SubsystemCardTheme = {
+  icons: {
+    deviceTotal: '/icons/fire-water/kpi-device-total.svg',
+    deviceOnline: '/icons/fire-water/kpi-device-online.svg',
+    deviceFault: '/icons/fire-water/kpi-device-fault.svg',
+    deviceWarning: '/icons/fire-water/kpi-device-warning.svg',
+  },
+  colors: {
+    host: '#6293C8',
+    device: '#417AB7',
+    offline: '#CED2D7',
+    online: '#059669',
+    fault: '#D97706',
+    warning: '#DC2626',
+  },
+}
+
+/**
  * 计算顶部 4 张统计卡
  *
  * 主机/分机的判定：采集器件带 hostId（挂在某台分机下），

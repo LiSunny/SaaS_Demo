@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "name": "防排烟系统设备监控",
+  "width": 1200,
+  "height": 700,
+  "nodes": [
+    {
+      "id": "nmvrtwrh7dzuw",
+      "symbol": "SCS-MH-01",
+      "x": 576,
+      "y": 200,
+      "size": 96,
+      "label": "防排烟监测主机",
+      "point": "",
+      "value": "",
+      "state": {}
+    },
+    {
+      "id": "nmvrtwtuts4qk",
+      "symbol": "SCS-RPD-01",
+      "x": 576,
+      "y": 440,
+      "size": 72,
+      "label": "风机压差探测器",
+      "point": "",
+      "value": "",
+      "state": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "emvrtx3b3sfc5",
+      "from": {
+        "node": "nmvrtwrh7dzuw",
+        "port": 3
+      },
+      "to": {
+        "node": "nmvrtwtuts4qk",
+        "port": 0
+      },
+      "flow": "reverse"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "SCS-MH-01",
+      "name": "防排烟监测主机",
+      "category": "电气",
+      "system": "smoke",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793174358281-c6704426.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "运行状态",
+          "kind": "bool",
+          "point": "SCS-MH-01-RUN",
+          "onClass": [
+            "is-run"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCS-RPD-01",
+      "name": "风机压差探测器",
+      "category": "仪表",
+      "system": "smoke",
+      "image": "https://gn-saas-files.oss-cn-beijing.aliyuncs.com/symbols/2026-10-28/1793174552902-080a4195.png",
+      "ports": [
+        {
+          "x": 32,
+          "y": 8,
+          "dir": "up"
+        },
+        {
+          "x": 8,
+          "y": 32,
+          "dir": "left"
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "dir": "right"
+        },
+        {
+          "x": 32,
+          "y": 56,
+          "dir": "down"
+        }
+      ],
+      "bindings": [
+        {
+          "name": "压差",
+          "kind": "text",
+          "point": "SCS-RPD-01-yacha",
+          "textIndex": 0
+        }
+      ]
+    }
+  ]
+}

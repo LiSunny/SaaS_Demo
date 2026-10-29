@@ -50,6 +50,7 @@ export type SubsystemValueKind =
   | 'levelPercent'     // 最低水位：主值 %，副值 m
   | 'pressureMin'      // 最小压力（最不利点）
   | 'cylinderPressure' // 钢瓶压力：最低压力 + 压力正常台数
+  | 'fanPressure'      // 风机压差：最低压差 + 压差正常台数
   | 'flowSum'          // 瞬时流量合计
   | 'runningCount'     // 运行数 / 总数
   | 'openCount'        // 开阀数 / 总数
