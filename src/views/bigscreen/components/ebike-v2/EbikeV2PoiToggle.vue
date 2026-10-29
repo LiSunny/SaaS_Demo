@@ -32,7 +32,9 @@ function handleToggle() {
 
 .v2-poi-toggle {
   position: absolute;
-  left: vw(1200); top: vh(17);
+  /* 设计稿 header：导航 6 项占 434~1334，用户区从 1767 起；
+     建筑导航开关放进两者之间的空档，不压导航按钮 */
+  left: vw(1360); top: vh(17);
   height: vh(34);
   padding: 0 vw(12) 0 vw(8);
   display: flex; align-items: center; gap: vw(6);

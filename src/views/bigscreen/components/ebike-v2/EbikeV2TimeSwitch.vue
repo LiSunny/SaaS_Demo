@@ -48,7 +48,8 @@ function handleSelect(value: CampusTimePreset) {
 
 .v2-time {
   position: absolute;
-  left: vw(1330); top: vh(17);
+  /* 建筑导航开关右侧、用户区（1767）左侧的空档 */
+  left: vw(1472); top: vh(17);
   display: flex;
   gap: vw(8);
 }
