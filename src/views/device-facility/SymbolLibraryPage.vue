@@ -206,9 +206,9 @@ import AppIcon from '@/components/base/AppIcon.vue'
 import SymbolThumb from '@/components/device-facility/SymbolThumb.vue'
 import SymbolFormDrawer from '@/components/device-facility/SymbolFormDrawer.vue'
 import { SYMBOL_CATEGORIES, SYMBOL_POINTS, SYMBOLS, SYMBOL_SYSTEMS, isCustomSymbol } from '@/symbols'
-import { useSceneConfigStore } from '@/stores/scene-config'
+import { fetchSymbolReferences, purgeSymbolReferences } from '@/api/scene-config'
 import { useSymbolStore } from '@/stores/symbols'
-import type { SceneEdge, SceneNode, SceneStyle } from '@/types/scene-config'
+import type { SceneStyle } from '@/types/scene-config'
 import type { CustomSymbolItem } from '@/types/symbol'
 
 const router = useRouter()
@@ -314,75 +314,16 @@ function openEdit(symbolId: string) {
 }
 
 /**
- * 清理引用该图元的画面节点
- * 画面存浏览器本地（db:scene-config + 草稿键），图元删除后残留节点会导致渲染报错
+ * 引用检查：该图元被哪些组态画面引用
+ *
+ * 画面已入库，服务端自查引用关系，不再依赖浏览器本地数据。
  */
-function purgeSceneReferences(symbolId: string): number {
-  const sceneStore = useSceneConfigStore()
-  let scenes: Array<{ id: string; nodes?: SceneNode[]; edges?: SceneEdge[] }> = []
+async function findReferences(symbolId: string): Promise<Array<{ id: string; name: string; count: number }>> {
   try {
-    const raw = localStorage.getItem('db:scene-config')
-    if (raw) scenes = JSON.parse(raw)
-  } catch {
-    return 0
-  }
-  if (!Array.isArray(scenes)) return 0
-
-  let purged = 0
-  for (const s of scenes) {
-    const nodes = s.nodes ?? []
-    const kept = nodes.filter((n) => n.symbol !== symbolId)
-    if (kept.length === nodes.length) continue
-    purged += nodes.length - kept.length
-    const ids = new Set(kept.map((n) => n.id))
-    const edges = (s.edges ?? []).filter((e) => ids.has(e.from?.node) && ids.has(e.to?.node))
-    sceneStore.saveLayout(s.id, kept, edges)
-    purgeDraftNodes(s.id, symbolId)
-  }
-  return purged
-}
-
-/** 草稿里的同名节点一并清理 */
-function purgeDraftNodes(sceneId: string, symbolId: string) {
-  const key = `scene-config:draft:${sceneId}`
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return
-    const data = JSON.parse(raw)
-    if (!data || !Array.isArray(data.nodes)) return
-    const nodes = data.nodes.filter((n: { symbol?: string }) => n.symbol !== symbolId)
-    if (nodes.length === data.nodes.length) return
-    const ids = new Set(nodes.map((n: { id: string }) => n.id))
-    const edges = (Array.isArray(data.edges) ? data.edges : []).filter(
-      (e: { from?: { node?: string }; to?: { node?: string } }) =>
-        ids.has(e.from?.node) && ids.has(e.to?.node),
-    )
-    localStorage.setItem(key, JSON.stringify({ ...data, nodes, edges }))
-  } catch {
-    // 草稿清理失败不阻断删除
-  }
-}
-
-/**
- * 引用检查：组态画面存在浏览器本地（db:scene-config），后端不知道谁引用了该图元，
- * 删除前的引用统计只能在前端做。
- */
-function findReferences(symbolId: string): Array<{ id: string; name: string; count: number }> {
-  let scenes: Array<{ id: string; name: string; nodes?: Array<{ symbol?: string }> }> = []
-  try {
-    const raw = localStorage.getItem('db:scene-config')
-    if (raw) scenes = JSON.parse(raw)
+    return await fetchSymbolReferences(symbolId)
   } catch {
     return []
   }
-  if (!Array.isArray(scenes)) return []
-
-  const out: Array<{ id: string; name: string; count: number }> = []
-  for (const s of scenes) {
-    const count = (s.nodes ?? []).filter((n) => n.symbol === symbolId).length
-    if (count > 0) out.push({ id: s.id, name: s.name, count })
-  }
-  return out
 }
 
 /** 删除自定义图元 */
@@ -393,7 +334,7 @@ async function askDelete(symbolId: string, name: string) {
     return
   }
 
-  const refs = findReferences(symbolId)
+  const refs = await findReferences(symbolId)
   const nodeCount = refs.reduce((n, r) => n + r.count, 0)
   const tip = refs.length
     ? `图元「${name}」被 ${refs.length} 个组态画面引用（共 ${nodeCount} 处），删除后这些画面中的该图元将一并移除。确认删除？`
@@ -410,12 +351,24 @@ async function askDelete(symbolId: string, name: string) {
   }
 
   await store.remove(target.id)
-  purgeSceneReferences(symbolId)
+
+  // 清理各画面中残留的该图元节点（服务端连同草稿一起处理）
+  let purged = { scenes: 0, nodes: 0 }
+  try {
+    purged = await purgeSymbolReferences(symbolId)
+  } catch {
+    // 清理失败不影响图元本身已删除
+  }
+
   if (detailId.value === symbolId) {
     detailVisible.value = false
     detailId.value = ''
   }
-  ElMessage.success('图元已删除')
+  ElMessage.success(
+    purged.nodes > 0
+      ? `图元已删除，已从 ${purged.scenes} 个组态画面清理 ${purged.nodes} 处引用`
+      : '图元已删除',
+  )
 }
 
 onMounted(() => {

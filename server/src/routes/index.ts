@@ -7,6 +7,7 @@ import { enterprisePositionRouter } from './enterprise-positions.routes.js'
 import { bigscreenAdminRouter, bigscreenUserRouter } from './bigscreen.routes.js'
 import { uploadRouter } from './upload.routes.js'
 import { customSymbolRouter } from './custom-symbol.routes.js'
+import { sceneConfigRouter } from './scene-config.routes.js'
 
 const router = Router()
 
@@ -53,6 +54,9 @@ router.use('/api/upload', uploadRouter)
 
 // ========== 自定义图元（组态图元管理） ==========
 router.use('/api/symbols', customSymbolRouter)
+
+// ========== 组态画面（组态配置） ==========
+router.use('/api/scenes', sceneConfigRouter)
 
 // ========== 大屏配置 ==========
 router.use('/api/admin/bigscreens', bigscreenAdminRouter)

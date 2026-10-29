@@ -417,6 +417,39 @@ model CustomSymbol {
   @@index([system, category])
 }
 
+// ============================================================
+// 组态画面（组态配置）
+//
+// 画面主体与布局入 Prisma。节点只存图元 ID 引用（symbol），
+// 产品图在 OSS，布局是 KB 级 JSON，无需拆表。
+// 归属口径与自定义图元一致：enterpriseId=null → 平台级共享，
+// 否则企业私有。
+// ============================================================
+model SceneConfig {
+  id           Int       @id @default(autoincrement())
+  sceneId      String    @unique                   // 画面业务 ID（scene-xxx），前端路由用
+  name         String                              // 画面名称
+  systemKey    String    @default("pipeline")      // 归属系统：pipeline | gas | smoke | custom
+  scope        String    @default("")              // 归属对象（楼栋、区域等）
+  width        Int       @default(1200)            // 画布宽
+  height       Int       @default(700)             // 画布高
+  style        String    @default("image")         // 图形风格：image | line
+  status       String    @default("draft")         // draft | published | disabled
+  nodesJson    String    @default("[]")            // JSON: SceneNode[]
+  edgesJson    String    @default("[]")            // JSON: SceneEdge[]
+  draftJson    String    @default("")              // 编辑器未保存草稿（布局级）
+  remark       String    @default("")
+  enterpriseId Int?                               // null=平台级共享；否则企业私有
+  createdBy    Int                                // 创建人 userId
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?                          // 软删除标记，非空表示已删除
+
+  @@index([enterpriseId])
+  @@index([systemKey, status])
+  @@index([deletedAt])
+}
+
 model Hazard {
   id           Int      @id @default(autoincrement())
   location     String                      // 隐患位置

@@ -74,9 +74,42 @@ export interface SceneConfig {
   status: SceneStatus
   nodes: SceneNode[]
   edges: SceneEdge[]
+  /** 编辑器未保存的草稿（后端 draftJson 字段） */
+  draft?: SceneDraft | null
   remark?: string
+  /** null=平台级共享；否则企业私有 */
+  enterpriseId?: number | null
+  createdBy?: number
   createdAt: number
   updatedAt: number
+}
+
+/** 编辑器草稿 */
+export interface SceneDraft {
+  name?: string
+  style?: string
+  width?: number
+  height?: number
+  nodes: SceneNode[]
+  edges: SceneEdge[]
+  /** 草稿时间戳（epoch ms），与画面 updatedAt 比较决定是否恢复 */
+  updatedAt: number
+}
+
+/** 列表分页返回 */
+export interface ScenePageData {
+  data: SceneConfig[]
+  total: number
+}
+
+/** 图元引用 */
+export interface SceneSymbolReference {
+  /** 画面 ID */
+  id: string
+  /** 画面名称 */
+  name: string
+  /** 引用该图元的节点数 */
+  count: number
 }
 
 /** 列表查询条件 */

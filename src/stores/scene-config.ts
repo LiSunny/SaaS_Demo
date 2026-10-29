@@ -1,182 +1,209 @@
 /**
  * 组态配置 Store
  *
- * 画面列表走项目统一的 localStorage 持久化适配层（src/utils/db-adapter.ts），
- * 编辑中的布局另存草稿键（scene-config:draft:<id>），刷新不丢。
+ * 后端（/api/scenes）为唯一真源。浏览器 localStorage 只保留一份只读存档：
+ *   - db:scene-config            接入后台前的本地画面快照（迁移后不再写）
+ *   - db:scene-config:migrated   迁移标记（时间 + 导入数量）
+ *   - scene-config:draft:<id>    接入后台前的本地草稿快照（迁移后不再写）
  *
- * 单用户 Demo：无服务端、无锁，同一画面多标签同时编辑按最后写入覆盖。
+ * 首次拉取列表前做一次性本地导入：把存档里的画面与草稿提交到后端。
+ * 后端按画面 ID 去重，重复执行安全；导入成功后本地存档原样保留，可随时回溯。
  */
 import { defineStore } from 'pinia'
-import { computed, reactive, ref } from 'vue'
-import { createPersistentStore } from '@/utils/db-adapter'
-import type { SceneConfig, SceneEdge, SceneNode, SceneQuery } from '@/types/scene-config'
+import { reactive, ref } from 'vue'
+import {
+  createScene as apiCreateScene,
+  fetchSceneDetail,
+  fetchSceneList,
+  fetchSceneOptions,
+  importLocalScenes,
+  removeScene as apiRemoveScene,
+  saveSceneDraft,
+  saveSceneDraftKeepalive,
+  saveSceneLayout,
+  toggleSceneStatus as apiToggleSceneStatus,
+  updateScene as apiUpdateScene,
+  type SceneFormPayload,
+} from '@/api/scene-config'
+import type {
+  SceneConfig,
+  SceneDraft,
+  SceneEdge,
+  SceneNode,
+  SceneQuery,
+} from '@/types/scene-config'
 
+/** 本地存档键（只读） */
+const ARCHIVE_KEY = 'db:scene-config'
+/** 迁移标记键 */
+const MIGRATED_KEY = 'db:scene-config:migrated'
+/** 本地草稿存档键前缀（只读） */
 const DRAFT_PREFIX = 'scene-config:draft:'
 
-/** 画面列表持久化（模块名 → localStorage 键 db:scene-config） */
-const persist = createPersistentStore<SceneConfig>('scene-config', [])
-
-function uid(prefix: string): string {
-  return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+/** 读取本地画面存档 */
+function readArchive(): any[] {
+  try {
+    const raw = localStorage.getItem(ARCHIVE_KEY)
+    if (!raw) return []
+    const arr = JSON.parse(raw)
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
 }
 
-/** 空画面 */
-export function blankScene(patch: Partial<SceneConfig> = {}): SceneConfig {
-  const now = Date.now()
-  return {
-    id: uid('scene-'),
-    name: '未命名画面',
-    systemKey: 'pipeline',
-    scope: '',
-    width: 1200,
-    height: 700,
-    style: 'image',
-    status: 'draft',
-    nodes: [],
-    edges: [],
-    remark: '',
-    createdAt: now,
-    updatedAt: now,
-    ...patch,
+/** 读取本地草稿存档（按画面 ID 索引） */
+function readDraftArchive(sceneIds: string[]): Record<string, SceneDraft> {
+  const out: Record<string, SceneDraft> = {}
+  for (const id of sceneIds) {
+    try {
+      const raw = localStorage.getItem(DRAFT_PREFIX + id)
+      if (!raw) continue
+      const d = JSON.parse(raw)
+      if (d && Array.isArray(d.nodes) && Array.isArray(d.edges)) out[id] = d
+    } catch {
+      // 单个草稿损坏不影响其他画面
+    }
   }
+  return out
 }
 
 export const useSceneConfigStore = defineStore('scene-config', () => {
-  /** 全部画面 */
-  const scenes = ref<SceneConfig[]>(persist.getAll())
+  /** 当前页画面 */
+  const scenes = ref<SceneConfig[]>([])
+  /** 画面总数（服务端分页） */
+  const total = ref(0)
   /** 列表查询条件 */
   const query = reactive<SceneQuery>({ page: 1, size: 20 })
+  /** 加载中 */
+  const loading = ref(false)
+  /** 编辑器「读取画面」下拉的候选（仅 id + name） */
+  const options = ref<Array<{ id: string; name: string }>>([])
+  /** 最近一次本地导入结果 */
+  const lastImport = ref<{ imported: number; skipped: number } | null>(null)
 
-  /** 过滤后的结果（不分页） */
-  const filtered = computed(() => {
-    const kw = (query.name || '').trim().toLowerCase()
-    return scenes.value.filter((s) => {
-      if (kw && !s.name.toLowerCase().includes(kw)) return false
-      if (query.status && s.status !== query.status) return false
-      if (query.systemKey && s.systemKey !== query.systemKey) return false
-      return true
-    })
-  })
+  // ===== 本地存档一次性导入 =====
 
-  const total = computed(() => filtered.value.length)
+  let migration: Promise<void> | null = null
 
-  /** 当前页数据 */
-  const list = computed(() => {
-    const start = (query.page - 1) * query.size
-    return filtered.value.slice(start, start + query.size)
-  })
+  /**
+   * 把浏览器本地存档的画面与草稿导入后端
+   *
+   * 幂等：后端按画面 ID 去重，已存在的跳过；导入标记写入后不再重试。
+   */
+  function migrateLocalArchive(): Promise<void> {
+    if (migration) return migration
+    migration = (async () => {
+      if (localStorage.getItem(MIGRATED_KEY)) return
 
-  /** 重新读取持久化数据 */
-  function fetchList() {
-    scenes.value = persist.getAll()
-    const maxPage = Math.max(1, Math.ceil(filtered.value.length / query.size))
-    if (query.page > maxPage) query.page = maxPage
+      const archive = readArchive()
+      if (!archive.length) {
+        localStorage.setItem(
+          MIGRATED_KEY,
+          JSON.stringify({ at: Date.now(), imported: 0, skipped: 0, reason: '无本地存档' }),
+        )
+        return
+      }
+
+      const ids = archive.map((s) => s?.id).filter(Boolean) as string[]
+      const drafts = readDraftArchive(ids)
+      try {
+        const res = await importLocalScenes({ scenes: archive, drafts })
+        lastImport.value = res
+        localStorage.setItem(MIGRATED_KEY, JSON.stringify({ at: Date.now(), ...res }))
+      } catch (err) {
+        // 失败不写标记，下次进入重试
+        migration = null
+        throw err
+      }
+    })()
+    return migration
   }
 
-  /** 按 ID 取画面 */
-  function getById(id: string): SceneConfig | undefined {
-    return scenes.value.find((s) => s.id === id)
+  // ===== 列表 =====
+
+  /** 拉取列表（先做本地存档导入，再取服务端数据） */
+  async function fetchList() {
+    loading.value = true
+    try {
+      // 导入失败不挡列表：存档导入是兜底动作，服务端数据照常拉取
+      try {
+        await migrateLocalArchive()
+      } catch (err) {
+        console.warn('[scene-config] 本地存档导入失败，已跳过：', err)
+      }
+      const res = await fetchSceneList({ ...query })
+      scenes.value = res.data
+      total.value = res.total
+    } finally {
+      loading.value = false
+    }
   }
+
+  /** 拉取画面候选（编辑器「读取画面」下拉） */
+  async function fetchOptions() {
+    options.value = await fetchSceneOptions()
+  }
+
+  /** 单个画面 */
+  async function fetchDetail(sceneId: string): Promise<SceneConfig> {
+    return fetchSceneDetail(sceneId)
+  }
+
+  // ===== 增删改 =====
 
   /** 新建画面 */
-  function createScene(patch: Partial<SceneConfig>): SceneConfig {
-    const scene = blankScene(patch)
-    persist.add(scene)
-    scenes.value = persist.getAll()
-    return scene
+  async function createScene(form: SceneFormPayload): Promise<SceneConfig> {
+    return apiCreateScene(form)
   }
 
   /** 更新画面字段（不含布局） */
-  function updateSceneMeta(id: string, patch: Partial<SceneConfig>) {
-    const cur = getById(id)
-    if (!cur) return
-    persist.update(id, { ...patch, updatedAt: Date.now() })
-    scenes.value = persist.getAll()
+  async function updateSceneMeta(sceneId: string, form: Partial<SceneFormPayload>) {
+    return apiUpdateScene(sceneId, form)
   }
 
-  /** 保存画面布局（编辑器「保存」） */
-  function saveLayout(id: string, nodes: SceneNode[], edges: SceneEdge[]) {
-    const cur = getById(id)
-    if (!cur) return
-    persist.update(id, { nodes, edges, updatedAt: Date.now() })
-    scenes.value = persist.getAll()
+  /** 保存画面布局（编辑器「保存」），服务端同时清空草稿 */
+  async function saveLayout(sceneId: string, nodes: SceneNode[], edges: SceneEdge[]) {
+    return saveSceneLayout(sceneId, nodes, edges)
+  }
+
+  /** 保存草稿（未保存的改动） */
+  async function saveDraft(sceneId: string, draft: SceneDraft): Promise<void> {
+    await saveSceneDraft(sceneId, draft)
+  }
+
+  /** 保存草稿（页面卸载时，走 keepalive 保证请求能发出去） */
+  async function saveDraftOnUnload(sceneId: string, draft: SceneDraft): Promise<void> {
+    await saveSceneDraftKeepalive(sceneId, draft)
   }
 
   /** 切换启停：草稿 ↔ 已停用 */
-  function toggleStatus(scene: SceneConfig) {
-    const next = scene.status === 'disabled' ? 'draft' : 'disabled'
-    persist.update(scene.id, { status: next, updatedAt: Date.now() })
-    scenes.value = persist.getAll()
+  async function toggleStatus(sceneId: string) {
+    return apiToggleSceneStatus(sceneId)
   }
 
-  /** 删除画面（连带草稿） */
-  function removeScene(id: string) {
-    persist.remove(id)
-    clearDraft(id)
-    scenes.value = persist.getAll()
-  }
-
-  // ===== 草稿 =====
-
-  /** 写草稿 */
-  function saveDraft(scene: SceneConfig): boolean {
-    try {
-      localStorage.setItem(
-        DRAFT_PREFIX + scene.id,
-        JSON.stringify({
-          name: scene.name,
-          style: scene.style,
-          width: scene.width,
-          height: scene.height,
-          nodes: scene.nodes,
-          edges: scene.edges,
-          updatedAt: Date.now(),
-        }),
-      )
-      return true
-    } catch {
-      // 配额超限等异常：内存态保留，提示由调用方给出
-      return false
-    }
-  }
-
-  /** 读草稿 */
-  function loadDraft(id: string): { nodes: SceneNode[]; edges: SceneEdge[]; updatedAt: number } | null {
-    try {
-      const raw = localStorage.getItem(DRAFT_PREFIX + id)
-      if (!raw) return null
-      const data = JSON.parse(raw)
-      if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) return null
-      return data
-    } catch {
-      return null
-    }
-  }
-
-  /** 清草稿 */
-  function clearDraft(id: string) {
-    try {
-      localStorage.removeItem(DRAFT_PREFIX + id)
-    } catch {
-      // 忽略：清草稿失败不影响主流程
-    }
+  /** 删除画面 */
+  async function removeScene(sceneId: string) {
+    await apiRemoveScene(sceneId)
   }
 
   return {
     scenes,
-    query,
-    list,
     total,
-    filtered,
+    query,
+    loading,
+    options,
+    lastImport,
+    migrateLocalArchive,
     fetchList,
-    getById,
+    fetchOptions,
+    fetchDetail,
     createScene,
     updateSceneMeta,
     saveLayout,
+    saveDraft,
+    saveDraftOnUnload,
     toggleStatus,
     removeScene,
-    saveDraft,
-    loadDraft,
-    clearDraft,
   }
 })

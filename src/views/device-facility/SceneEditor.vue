@@ -123,7 +123,7 @@ import ScenePropertyPanel from '@/components/device-facility/ScenePropertyPanel.
 import SymbolPicker from '@/components/device-facility/SymbolPicker.vue'
 import { SYMBOLS, isCustomSymbol, symbolDef } from '@/symbols'
 import { useSceneConfigStore } from '@/stores/scene-config'
-import type { SceneConfig, SceneEdge, SceneNode, SceneSelection } from '@/types/scene-config'
+import type { SceneConfig, SceneDraft, SceneEdge, SceneNode, SceneSelection } from '@/types/scene-config'
 import sampleLayoutRaw from '@symbols/layouts/demo-firewater.json?raw'
 
 const route = useRoute()
@@ -156,7 +156,7 @@ const loadTarget = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const canvasRef = ref<InstanceType<typeof SceneCanvas> | null>(null)
 
-const otherScenes = computed(() => store.scenes.filter((s) => s.id !== scene.id))
+const otherScenes = computed(() => store.options.filter((s) => s.id !== scene.id))
 
 watch(sceneName, (v) => {
   scene.name = v
@@ -165,7 +165,7 @@ watch(sceneName, (v) => {
 
 // ===== 载入 =====
 
-function applyScene(target: SceneConfig, draft?: { nodes: SceneNode[]; edges: SceneEdge[]; updatedAt: number } | null) {
+function applyScene(target: SceneConfig, draft?: SceneDraft | null) {
   scene.id = target.id
   scene.name = target.name
   scene.systemKey = target.systemKey
@@ -177,25 +177,34 @@ function applyScene(target: SceneConfig, draft?: { nodes: SceneNode[]; edges: Sc
   scene.createdAt = target.createdAt
   scene.updatedAt = target.updatedAt
   sceneName.value = target.name
-  nodes.value = draft ? draft.nodes : [...target.nodes]
-  edges.value = draft ? draft.edges : [...target.edges]
+  nodes.value = draft ? [...draft.nodes] : [...target.nodes]
+  edges.value = draft ? [...draft.edges] : [...target.edges]
   selection.value = null
   placeSymbol.value = ''
   loadTarget.value = ''
 }
 
-onMounted(() => {
+onMounted(async () => {
   const id = String(route.params.id || '')
-  const target = store.getById(id)
-  if (!target) {
+  // 本地历史画面先导入后端，再按 ID 取（编辑器可能从旧链接直接进入）
+  try {
+    await store.migrateLocalArchive()
+  } catch {
+    // 导入失败不挡打开：继续按 ID 取，取不到再提示
+  }
+  let target: SceneConfig
+  try {
+    target = await store.fetchDetail(id)
+  } catch {
     ElMessage.error('画面不存在或已删除')
     router.replace('/device-facility/rule/scene-config')
     return
   }
-  const draft = store.loadDraft(id)
+  const draft = target.draft
   const useDraft = !!draft && draft.updatedAt > target.updatedAt
   applyScene(target, useDraft ? draft : null)
   if (useDraft) ElMessage.info('已恢复未保存的草稿')
+  store.fetchOptions()
 })
 
 // ===== 草稿 =====
@@ -208,30 +217,64 @@ function scheduleDraft() {
   if (!scene.id) return
   dirty = true
   if (draftTimer) window.clearTimeout(draftTimer)
-  draftTimer = window.setTimeout(flushDraft, 500)
+  draftTimer = window.setTimeout(() => void flushDraft(), 500)
+}
+
+/** 组装草稿载荷 */
+function draftPayload(): SceneDraft {
+  return {
+    name: sceneName.value,
+    style: scene.style,
+    width: scene.width,
+    height: scene.height,
+    nodes: nodes.value,
+    edges: edges.value,
+    updatedAt: Date.now(),
+  }
 }
 
 /** 立即落盘草稿（离开页面 / 刷新前调用，避免 500ms 节流窗口内丢改动） */
-function flushDraft() {
+async function flushDraft() {
   if (draftTimer) {
     window.clearTimeout(draftTimer)
     draftTimer = null
   }
   if (!scene.id || !dirty) return
-  const ok = store.saveDraft({
-    ...scene,
-    name: sceneName.value,
-    nodes: nodes.value,
-    edges: edges.value,
-  })
-  if (!ok) ElMessage.warning('草稿保存失败：浏览器本地存储已满')
+  dirty = false
+  try {
+    await store.saveDraft(scene.id, draftPayload())
+  } catch {
+    dirty = true
+    ElMessage.warning('草稿保存失败：改动尚未写入服务器')
+  }
 }
 
-window.addEventListener('beforeunload', flushDraft)
+/**
+ * 页面隐藏 / 卸载时落盘草稿
+ *
+ * keepalive 让请求在页面关闭后继续发出，避免丢掉最后一次改动。
+ * pagehide 与 visibilitychange 比 beforeunload 触发更可靠。
+ */
+function flushDraftOnUnload() {
+  if (draftTimer) {
+    window.clearTimeout(draftTimer)
+    draftTimer = null
+  }
+  if (!scene.id || !dirty) return
+  dirty = false
+  store.saveDraftOnUnload(scene.id, draftPayload()).catch(() => {
+    /* 关闭页面的请求可能来不及送达，不打扰用户 */
+  })
+}
+
+window.addEventListener('pagehide', flushDraftOnUnload)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushDraftOnUnload()
+})
 
 onBeforeUnmount(() => {
-  flushDraft()
-  window.removeEventListener('beforeunload', flushDraft)
+  void flushDraft()
+  window.removeEventListener('pagehide', flushDraftOnUnload)
 })
 
 watch(nodes, scheduleDraft, { deep: true })
@@ -292,12 +335,16 @@ function onDeleteEdge(id: string) {
 
 // ===== 顶栏动作 =====
 
-function onSave() {
-  store.updateSceneMeta(scene.id, { name: sceneName.value, style: scene.style })
-  store.saveLayout(scene.id, nodes.value, edges.value)
-  store.clearDraft(scene.id)
-  dirty = false
-  ElMessage.success('已保存')
+async function onSave() {
+  try {
+    await store.updateSceneMeta(scene.id, { name: sceneName.value, style: scene.style })
+    // 保存布局时服务端一并清空草稿
+    await store.saveLayout(scene.id, nodes.value, edges.value)
+    dirty = false
+    ElMessage.success('已保存')
+  } catch {
+    ElMessage.error('保存失败：改动仍在草稿中，未写入服务器')
+  }
 }
 
 function onNew() {
@@ -309,11 +356,14 @@ function onNew() {
   ElMessage.success('已新建空白画面')
 }
 
-function onLoad(id: string) {
-  const target = store.getById(id)
-  if (!target) return
-  applyScene(target)
-  ElMessage.success(`已读取：${target.name}`)
+async function onLoad(id: string) {
+  try {
+    const target = await store.fetchDetail(id)
+    applyScene(target)
+    ElMessage.success(`已读取：${target.name}`)
+  } catch {
+    ElMessage.error('画面读取失败')
+  }
 }
 
 function toggleVariant() {

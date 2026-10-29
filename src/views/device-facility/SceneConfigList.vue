@@ -76,8 +76,8 @@
               <th class="fi-th col-actions"><span>操作</span></th>
             </tr>
           </thead>
-          <tbody v-loading="loading">
-            <tr v-for="row in store.list" :key="row.id" class="fi-tbody-tr">
+          <tbody v-loading="store.loading">
+            <tr v-for="row in store.scenes" :key="row.id" class="fi-tbody-tr">
               <td class="fi-td col-status" style="text-align:center">
                 <StatusTag :status="statusKey(row.status)" :label="statusLabel(row.status)" />
               </td>
@@ -107,7 +107,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="!store.list.length && !loading">
+            <tr v-if="!store.scenes.length && !store.loading">
               <td class="fi-td" colspan="8" style="text-align:center;color:var(--text-muted)">
                 暂无组态画面，点右上「新增组态」开始配置
               </td>
@@ -130,7 +130,8 @@
           :page-sizes="[10, 20, 50, 100]"
           layout="sizes, prev, pager, next, jumper"
           background
-          @change="store.fetchList()"
+          @size-change="handleSizeChange"
+          @current-change="store.fetchList()"
         />
       </div>
 
@@ -219,7 +220,6 @@ import type { SceneConfig, SceneStatus, SceneStyle } from '@/types/scene-config'
 const router = useRouter()
 const store = useSceneConfigStore()
 const { query } = store
-const loading = ref(false)
 
 const SYSTEM_OPTIONS = [
   { value: 'pipeline', label: '消防管网' },
@@ -245,6 +245,12 @@ function timeText(ts: number): string {
 }
 
 function handleSearch() {
+  query.page = 1
+  store.fetchList()
+}
+
+/** 每页条数变化：回到第一页，避免停留在越界页码 */
+function handleSizeChange() {
   query.page = 1
   store.fetchList()
 }
@@ -300,11 +306,11 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     if (isEdit.value && editId.value) {
-      store.updateSceneMeta(editId.value, { ...form })
+      await store.updateSceneMeta(editId.value, { ...form })
       ElMessage.success('编辑成功')
       dialogVisible.value = false
     } else {
-      const scene = store.createScene({ ...form })
+      const scene = await store.createScene({ ...form })
       ElMessage.success('新增成功')
       dialogVisible.value = false
       router.push(`/device-facility/rule/scene-config/${scene.id}/editor`)
@@ -330,20 +336,22 @@ const { confirmDelete } = useConfirm()
 
 const handleDelete = async (row: SceneConfig) => {
   await confirmDelete(row.name, '删除后不可恢复。')
-  store.removeScene(row.id)
+  await store.removeScene(row.id)
   store.fetchList()
   ElMessage.success('删除成功')
 }
 
-const handleToggle = (row: SceneConfig) => {
-  store.toggleStatus(row)
+const handleToggle = async (row: SceneConfig) => {
+  await store.toggleStatus(row.id)
   store.fetchList()
 }
 
-onMounted(() => {
-  loading.value = true
-  store.fetchList()
-  loading.value = false
+onMounted(async () => {
+  await store.fetchList()
+  const imported = store.lastImport?.imported ?? 0
+  if (imported > 0) {
+    ElMessage.success(`已将浏览器本地的 ${imported} 个组态画面导入服务器`)
+  }
 })
 </script>
 

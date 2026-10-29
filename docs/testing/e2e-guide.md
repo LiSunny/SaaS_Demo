@@ -133,6 +133,27 @@ npx playwright show-report e2e/reports
 
 ---
 
+## 已知存量失败（与业务改动无关）
+
+`e2e/specs/auth/login.spec.ts` 有 12 个用例**在 2026-10-29 之前就是失败的**，跑全量 e2e 时会稳定看到它们变红：
+
+| 现象 | 根因 |
+|------|------|
+| 「登录页应渲染 4 个体验账号卡片」失败 | 登录页角色文案已按四方使用群体改为 监管机构 / 社会单位 / 平台管理（`src/config/demo-accounts.ts`），用例仍断言 平台管理 / 运营管理 / 企业管理 / 普通用户 |
+| 其余 11 个用例超时 | `e2e/fixtures/auth.ts` 的 `ADMIN` 指向 `13800000001 / 3xkxr4`，但 `server/prisma/seed.ts` 已不再创建该账号（种子只创建 阳光物业 `13300001111 / admin123!@#`），登录接口返回 401 |
+
+**判定方法**：改动前后各跑一次基线对照，不要把这两类失败算到本次改动头上。
+
+```bash
+git stash push -- <本次改动的文件>
+npx playwright test --config=e2e/playwright.config.ts auth/login
+git stash pop
+```
+
+修好这两处的条件：种子补回 `13800000001 / 3xkxr4` 账号，或把 `e2e/fixtures/auth.ts` 与登录页角色文案对齐到同一套账号体系。
+
+---
+
 ## 常见问题
 
 ### Q: 测试跑到一半失败了，端口 3200 被占用
