@@ -9,15 +9,15 @@
     <!-- ===== 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
     <main class="ebike-v2__content">
       <div class="col col--left">
-        <EbikeV2Card title="经营主体日常履责" class="col__fixed--536" />
-        <EbikeV2Card title="自查隐患运维处置" class="col__fixed--260" />
+        <EbikeV2Card title="经营主体日常履责"   class="col__fill"/>
+        <EbikeV2Card title="自查隐患运维处置"  class="col__fill" />
         <EbikeV2Card title="共享电动自行车监管" class="col__fill" />
       </div>
 
       <div class="col col--right">
-        <EbikeV2Card title="火灾预警点位联动" class="col__fixed--530" />
+        <EbikeV2Card title="火灾预警点位联动"  class="col__fill" />
         <EbikeV2Card title="消控室值班离岗监控" class="col__fill" />
-        <EbikeV2Card title="电动自行车火灾预案" class="col__fixed--122" />
+        <EbikeV2Card title="电动自行车火灾预案"  class="col__fill" />
       </div>
     </main>
   </div>
