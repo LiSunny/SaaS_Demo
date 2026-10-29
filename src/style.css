@@ -1,5 +1,16 @@
 /* === 设计令牌：智能安全管控平台 === */
 
+/* ========== 品牌字体：优设标题黑 ==========
+   用于品牌标识类文字（如小安助手入口），天然厚重、有标题黑的设计感。
+   字体文件 1.3MB，浏览器按需下载并长期缓存；不要用于正文。 */
+@font-face {
+  font-family: 'YouSheBiaoTiHei';
+  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ========== Light 主题 ========== */
 :root {
   /* 主色 */

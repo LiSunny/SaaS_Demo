@@ -5,6 +5,20 @@
       <div class="logo-area">
         <img class="logo-icon" src="/favicon.svg" alt="平台logo" />
         <span class="company-name">智能安全管控平台</span>
+        <!-- 小安助手入口：独立工作台（standalone 路由），新标签页打开，保留后台当前页面 -->
+        <a
+          v-if="userStore.isLoggedIn"
+          class="agent-badge"
+          href="/agent"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="打开小安助手（新标签页）"
+        >
+          <span class="agent-badge-icon">
+            <img class="agent-badge-robot" src="@/assets/agent-robot-chat.svg" alt="" aria-hidden="true" />
+          </span>
+          <span class="agent-badge-text">小安助手</span>
+        </a>
       </div>
 
       <div class="user-area">
@@ -770,7 +784,9 @@ if (typeof window !== 'undefined') {
 }
 .logo-area {
   display: flex; align-items: center; gap: 14px;
-  padding: 8px 12px; width: 272px; flex-shrink: 0;
+  /* 宽度自适应：小安助手徽章是平台名称右侧的胶囊，宽屏下需能容纳；
+     min-width 保持与左侧栏 272px 对齐（未登录时不显示徽章） */
+  padding: 8px 12px; width: auto; min-width: 272px; flex-shrink: 0;
 }
 .logo-icon {
   width: 40px; height: 40px; border-radius: var(--radius-md, 8px);
@@ -778,6 +794,75 @@ if (typeof window !== 'undefined') {
   object-fit: contain;
 }
 .company-name { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); white-space: nowrap; }
+
+/* ===== 小安助手入口徽章（平台名称右侧） ===== */
+/* 视觉与门户页 /portal/agent-intro 入口一致：品牌蓝渐变胶囊 */
+.agent-badge {
+  position: relative;
+  overflow: hidden;
+  /* 隔离混合上下文：扫描光只与按钮自身内容混合 */
+  isolation: isolate;
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 32px; padding: 0 13px;
+  border-radius: 999px;
+  color: #fff; font-size: 12px; font-weight: 700; line-height: 1;
+  letter-spacing: 0.5px; white-space: nowrap; text-decoration: none;
+  background: linear-gradient(135deg, #6fa8ff, #3b76f6);
+  box-shadow: 0 2px 8px rgba(59, 118, 246, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.agent-badge:hover {
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 118, 246, 0.45);
+}
+.agent-badge:focus-visible { outline: 2px solid #3b76f6; outline-offset: 2px; }
+
+/* 品牌文字用优设标题黑（艺术字体，天然厚重）；
+   权重保持 400，避免合成粗体把艺术字体笔画糊掉 */
+.agent-badge-text {
+  font-family: 'YouSheBiaoTiHei', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+/* 扫描光：光带由左至右扫过整个按钮（background-position 从 150% 移到 -50%） */
+.agent-badge::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 38%, rgba(255, 255, 255, 0.5) 50%, transparent 62%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  animation: agent-badge-scan 3.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes agent-badge-scan {
+  0%   { background-position: 150% 0; }
+  70%  { background-position: -50% 0; }
+  100% { background-position: -50% 0; }
+}
+
+/* 机器人头像（完整显示，视觉中心与文字中线对齐；无背景色块） */
+.agent-badge-icon {
+  position: relative;
+  width: 24px; height: 24px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+/* 原图 1024×1024 画布内机器人实际占 x 11.3%~88.4% / y 9.3%~84.7%：
+   放大到 30px、上移 2.1px 后，头部完整落在 24px 方框内且居中，
+   方框中心与旁边文字中线同高 */
+.agent-badge-robot {
+  position: absolute; left: 50%; top: -2.1px;
+  transform: translateX(-50%);
+  width: 30px; height: 30px;
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-badge::after { animation: none; }
+}
 
 /* -- 用户区 -- */
 .user-area {
