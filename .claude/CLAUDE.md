@@ -197,6 +197,21 @@ src/api/adapters/
 - [x] `EmergencyPlan.vue` — 应急预案卡片（Figma SVG 图标 + 水印）
 - [x] 路由注册：`/landing/ebike`、类型 `BigscreenType.ebike`、模板 `bigscreen-templates.ts`
 
+**应急局电动车安全管控大屏 v2（`/landing/ebike-v2`）：**
+- [x] `EbikeMonitorV2.vue` — 页面骨架：三维模型铺底（z-index 0）+ 大标题（z-index 100）+ 左右两列（z-index 10）
+- [x] `components/common/BigscreenTitleBar.vue` — 大标题公共底座（background / nav / avatar 三个 slot），旧大屏 `EbikeMonitorHeader` 已改为基于它
+- [x] `components/common/BigscreenSectionTitle.vue` — 小标题公共组件（由 `ebike/EbikeSectionTitle.vue` 迁入，旧大屏 7 处 import 只改路径）
+- [x] `components/ebike-v2/EbikeV2Header.vue` — 标题「智能安全管控平台」+ 5 个导航按钮
+- [x] `components/ebike-v2/EbikeV2Nav.vue` — 150×46 斜切按钮，选中态叠 Figma `nav-active-1/2.svg`
+- [x] `components/ebike-v2/EbikeV2Card.vue` — 小标题 + 拟态玻璃内容区（透出三维模型）
+- [x] `components/ebike-v2/EbikeV2CampusModel.vue` — 校园三维模型（iframe 嵌入 + 主题/机位覆盖 + 建筑导航面板开关）
+- [x] `components/ebike-v2/campusTheme.ts` — 昼夜三档各自的大屏配色与机位参数
+- [x] `components/ebike-v2/EbikeV2PoiToggle.vue` — 顶栏「建筑导航」开关（展开模型自带 POI 面板）
+- [x] `components/ebike-v2/EbikeV2TimeSwitch.vue` — 顶栏「白天 / 黄昏 / 夜晚」切换
+- [x] `components/ebike-v2/useCampusModel.ts` — 模型实例 provide / inject（顶栏与页面层不同层级）
+- [x] 路由注册：`/landing/ebike-v2`、类型 `BigscreenType.ebike-v2`、模板 `bigscreen-templates.ts`、后台入库脚本 `server/scripts/register-ebike-v2-bigscreen.ts`
+- [ ] 6 个业务模块内容（当前只有小标题骨架）
+
 **Figma 素材（26 个）：**
 - [x] Header: `ebike-header-left/right/glow.svg`
 - [x] 小标题: `section-intersect.svg` / `deco-left/right.svg`
@@ -237,9 +252,29 @@ src/api/adapters/
 - **非 scoped 样式块**：滚动条 scoped 无效，最终用全局 `<style>` 块解决。
 - **模块底色统一**：尝试了 4 种方案后对齐 stat card 的 `#0063A0` 色相才收敛。
 
+### v2 大屏技术要点
+
+- **三维模型走 iframe 整页嵌入**（`public/campus-model/`，`?embed=1`）：模型 `src/app.js` 1922 行、深度耦合自身 DOM，改为同源 iframe 加载，`model.js` 核心模块零改动；父页通过 `iframe.contentWindow.campusApp` 驱动（`camera` / `controls` / `scene` / `renderer` / `ctx.THREE`）
+- **嵌入模式只改 `index.html` + `styles.css`**：加 `html.is-embed` 隐藏自身 UI，加载完成后 `parent.postMessage({type:'campus-model:ready'})`；POI 面板标题在嵌入模式下改为「建筑导航」
+- **嵌入模式露出建筑导航面板**：`html.is-embed .panel-left` 默认收起，定位到中间三维区左侧（left 508 / top 92 / width 272），大屏侧按钮切 `.is-open`
+- **视觉方案在父页覆盖**：`campusTheme.ts` 按昼夜三档各写一套天空/雾/灯光/曝光。天穹是 `renderOrder === -1000` 的 ShaderMaterial 网格（唯一带 `topColor`/`bottomColor` uniform），雾色与天穹底部同色让地块远端融进大屏底色 `#00437A`
+- **昼夜切换用立即模式**：`setTimePreset(name, true)` 后再套大屏配色，避免模型 1.2s 过渡中间态把天空刷成预设原始色
+- **窗户自发光按基准重算**：模型按 nightFactor 缩放自发光，父页记录基准强度后按「基准 × 目标浓度」重算，反复切换不累积误差
+- **禁用平移**：`controls.enablePan = false`，否则右键拖拽会把目标点拖到地面以下、模型跑出画面
+- **拟态玻璃**：标题条底衬 `rgba(0,52,106,.55)` + `blur(10px)`；模块卡片 `rgba(0,48,100,.28)` + `blur(7px)`，下层三维模型隐隐透出、模块内容仍清晰
+- **玻璃有帧率代价**：持续重绘的 WebGL 画布上，`backdrop-filter` 每帧重算，静止帧率 52→31fps（成本来自"存在 backdrop-filter"本身，不是模糊半径或图层数量）
+- **大标题字号走 prop**：`BigscreenTitleBar` 的 `titleSize` / `titleTop` 默认 36 / 10（旧大屏像素不变），v2 传 28 / 16；导航按钮 142×41 放大为 150×46
+- **顶栏底图按 68px 通栏重排**（`src/assets/bigscreen/ebike-v2/header-bg.svg`）：斜纹组 `translate(0 -6) scale(1 1.0625)` 拉到 0~68 满高
+- **`<img>` 加载的 SVG 默认会上下留白居中**：盒子的宽高比与 SVG 自身 viewBox 比例不一致时，浏览器按 `preserveAspectRatio="xMidYMid meet"` 缩放并在剩余方向留白。实测底图盒 1690.5×66.11（比例 25.57）vs SVG 1932×68（比例 28.41）→ 内容按宽缩放 0.875、高 59.5，上下各留 3.3px，装饰线实际落在 CSS 59.0~62.8 而不是贴底。**三个 SVG（底图 / 装饰线 / 辉光）全部加 `preserveAspectRatio="none"`** 消除留白
+- **装饰线拆成独立图层用代码定位**（`header-line.svg` + `.v2-header-line`）：`bottom:0` + `height: vh(4)`，与 `.v2-header-glow` 共用同一基准带，两者必然严格重合，不受视口比例影响。装饰线底边实测 CSS 62.2~66.1，正好等于标题条底边 66.11
+- **底部装饰线的"流动"用设计稿自己的辉光块，不另加色块**：设计稿在 x=463.7~607.7 有一段静态辉光，另加一条流动亮痕会与它和两处蓝块同时高亮而打架。做法是把那段辉光从底图摘出，改成 `header-line-glow.svg`（144×4，外圈径向渐变改透明，两端淡出才无缝）沿线循环滑动；蓝块保持静止，线上任意时刻只有一处高光。`transform: translateX(-100% → calc(100vw + 100%))`，8s 一轮，约 258px/s
+- **辉光亮度按"不抢眼"压过两轮**：初版峰值 `#DDFFFE` @0.78 → 实测峰值像素 (176,223,240)，对照同位置装饰线 (63,139,205) 偏亮过多，用户反馈"太亮、太明显"。现为 `#C6E9FF` @0.38 / `#4F9EDC` @0.34，实测峰值 (111,171,219)，呈柔和光带而非白闪
+- **旧大屏零影响**：`/landing/ebike` 的组件只改 import 路径与标题底座实现，回归截图差异仅为实时时间戳 OSD
+
 ### 下次建议动作
 
-1. `npm run dev` → 访问 `/landing/ebike` 查看完整效果
-2. 对接后端：用 `/design 电动车监控` + `/generate 电动车监控` 创建 API
-3. 替换监控画面为真实 RTSP 流或定期截图
+1. `npm run dev` → 访问 `/landing/ebike-v2` 查看三维背景效果
+2. 补 v2 的 6 个业务模块内容（复用旧大屏模块组件，浅色主题另做）
+3. 对接后端：用 `/design 电动车监控` + `/generate 电动车监控` 创建 API
+4. 替换监控画面为真实 RTSP 流或定期截图
 
