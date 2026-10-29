@@ -97,7 +97,7 @@ declare module 'vue' {
     SubsystemKpiRing: typeof import('./src/components/subsystem/SubsystemKpiRing.vue')['default']
     SubsystemLedgerTable: typeof import('./src/components/subsystem/SubsystemLedgerTable.vue')['default']
     SubsystemMonitorLayout: typeof import('./src/components/subsystem/SubsystemMonitorLayout.vue')['default']
-    SubsystemPointDrawer: typeof import('./src/components/subsystem/SubsystemPointDrawer.vue')['default']
+    SubsystemPointGroupDialog: typeof import('./src/components/subsystem/SubsystemPointGroupDialog.vue')['default']
     SubsystemScene: typeof import('./src/components/subsystem/SubsystemScene.vue')['default']
     SubsystemTabs: typeof import('./src/components/subsystem/SubsystemTabs.vue')['default']
     SymbolFormDrawer: typeof import('./src/components/device-facility/SymbolFormDrawer.vue')['default']

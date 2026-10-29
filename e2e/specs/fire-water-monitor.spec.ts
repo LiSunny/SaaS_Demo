@@ -215,40 +215,41 @@ test.describe('消防水系统监测', () => {
     const declaredCount = declared(hint ?? '', /=\s*(\d+)\s*台/)
 
     await card.click()
-    await expect(page.locator('.sm-drawer__list .pr').first()).toBeVisible()
+    await expect(page.locator('.smg__row').first()).toBeVisible()
 
-    // 抽屉自己声明的总数 = 卡片声明的设备数
-    const meta = await page.locator('.sm-drawer__meta').textContent()
-    expect(declared(meta ?? '', /(\d+)\s*个点位/)).toBe(declaredCount)
+    // 弹窗头部声明的设备总数 = 卡片声明的设备数
+    const count = await page.locator('.smg__num').textContent()
+    expect(Number(count ?? '')).toBe(declaredCount)
 
-    // 分页：单页最多 100 行，区间提示写清"显示到哪、总共多少"
-    const rows = await page.locator('.sm-drawer__list .pr').count()
+    // 分页：单页最多 100 行，分页栏写清"总共多少条"
+    const rows = await page.locator('.smg__row').count()
     expect(rows).toBe(Math.min(declaredCount, 100))
-    const range = await page.locator('.sm-drawer__range').textContent()
-    expect(declared(range ?? '', /共\s*(\d+)\s*个点位/)).toBe(declaredCount)
+    const range = await page.locator('.smg__pager .pagi-total').textContent()
+    expect(declared(range ?? '', /共\s*(\d+)\s*条记录/)).toBe(declaredCount)
 
     // 翻页后可继续看到剩下的点位
     if (declaredCount > 100) {
       const pageCount = Math.ceil(declaredCount / 100)
-      await page.locator('.sm-drawer__pg-btn', { hasText: '下一页' }).click()
-      await expect(page.locator('.sm-drawer__pg-text')).toHaveText(`2 / ${pageCount}`)
+      await page.locator('.smg__pager .btn-next').click()
+      await expect(page.locator('.smg__pager .el-pager li.is-active')).toHaveText('2')
+      await expect(page.locator('.smg__pages')).toHaveText(`共${pageCount}页`)
       // 每页最多 100 行，末页才是余数
-      await expect(page.locator('.sm-drawer__list .pr')).toHaveCount(Math.min(declaredCount - 100, 100))
+      await expect(page.locator('.smg__row')).toHaveCount(Math.min(declaredCount - 100, 100))
     }
 
     await page.keyboard.press('Escape')
     await page.waitForTimeout(600)
   })
 
-  test('组态图元下钻：点位组抽屉 → 单点详情抽屉', async ({ page }) => {
+  test('组态图元下钻：设备列表面板 → 单点详情抽屉', async ({ page }) => {
     await page.locator('.sm-scene__svg--text .sm-scene__node', { hasText: '液位' }).first().click()
-    await expect(page.locator('.sm-drawer__list .pr').first()).toBeVisible()
+    await expect(page.locator('.smg__row').first()).toBeVisible()
     await expect(page.locator('.el-drawer__title').first()).toHaveText('液位')
 
     // 异常优先排序：首行应带异常标记
-    await expect(page.locator('.sm-drawer__list .pr').first()).toBeVisible()
+    await expect(page.locator('.smg__row').first()).toBeVisible()
 
-    await page.locator('.sm-drawer__list .pr').first().click()
+    await page.locator('.smg__row').first().click()
     await expect(page.locator('.pdd')).toBeVisible()
     await expect(page.locator('.pdd__chart canvas')).toHaveCount(1)
     // 组内导航：点位编号（4 位采集点）

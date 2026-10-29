@@ -61,9 +61,11 @@
     </section>
 
     <!-- ============ 下钻抽屉 ============ -->
-    <SubsystemPointDrawer
+    <SubsystemPointGroupDialog
       v-model="groupOpen"
       :group="group"
+      :icon="deviceTotalIcon"
+      :alarm-records="alarmRecords"
       @open="openPoint"
     />
 
@@ -113,7 +115,7 @@ import SubsystemTabs from '@/components/subsystem/SubsystemTabs.vue'
 import SubsystemScene from '@/components/subsystem/SubsystemScene.vue'
 import SubsystemAlarmTable from '@/components/subsystem/SubsystemAlarmTable.vue'
 import SubsystemLedgerTable from '@/components/subsystem/SubsystemLedgerTable.vue'
-import SubsystemPointDrawer from '@/components/subsystem/SubsystemPointDrawer.vue'
+import SubsystemPointGroupDialog from '@/components/subsystem/SubsystemPointGroupDialog.vue'
 import PointDetailDrawer from '@/components/subsystem/PointDetailDrawer.vue'
 
 const props = withDefaults(
@@ -216,6 +218,11 @@ const siblingIndex = computed(() =>
 )
 
 // ===== 下钻 =====
+
+/** 弹窗头部图标：统计卡「设备总数」那枚（设计稿同一枚图标） */
+const deviceTotalIcon = computed(
+  () => props.cards.find(c => c.key === 'deviceTotal')?.icon ?? '',
+)
 
 function openGroup(g: SubsystemPointGroup): void {
   group.value = g
