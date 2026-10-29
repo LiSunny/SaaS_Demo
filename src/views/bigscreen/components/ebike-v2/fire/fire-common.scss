@@ -1,0 +1,106 @@
+// 消防总览页（ebike-v2）共用样式
+//
+// 颜色语义全部取自 `config/subsystem-cards.ts` 的 SUBSYSTEM_CARD_THEME，
+// 本页不另起一套色值：主机蓝 / 器件深蓝 / 在线绿 / 故障橙 / 预警红 / 离线灰。
+@use "@/styles/function.scss" as *;
+
+// ===== 状态色（与 SUBSYSTEM_CARD_THEME 一致） =====
+$fire-normal: #059669;   // 在线 / 正常
+$fire-fault: #D97706;    // 故障
+$fire-warning: #DC2626;  // 预警 / 超限
+$fire-offline: #CED2D7;  // 离线
+$fire-host: #6293C8;     // 主机
+$fire-device: #417AB7;   // 采集器件
+
+// ===== 文字色（玻璃卡片上的深蓝底） =====
+$fire-label: #bcd8ff;
+$fire-sub: #9cc6f2;
+$fire-value: #ffffff;
+
+// ===== 分隔线 / 底纹 =====
+$fire-line: rgba(120, 190, 255, 0.16);
+$fire-chip: rgba(0, 152, 230, 0.12);
+$fire-chip-border: rgba(120, 190, 255, 0.18);
+
+// ===== 字号下限 =====
+// 全大屏最小 14px：mixin 传入的字号不足 14 时统一抬到 14，
+// clamp 的下限也锁 14px，视口缩小后不再继续缩小。
+$fire-min-size: 14;
+
+@function fire-size($size) {
+  @return if($size < $fire-min-size, $fire-min-size, $size);
+}
+
+// 小标题（指标名）
+@mixin fire-label($size: 15) {
+  $s: fire-size($size);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
+  color: $fire-label;
+  line-height: 1.2;
+}
+
+// 数值
+@mixin fire-value($size: 22) {
+  $s: fire-size($size);
+  font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
+  font-weight: 700;
+  font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
+  color: $fire-value;
+  line-height: 1.1;
+}
+
+// 次级说明（阈值、单位、备注）
+@mixin fire-sub($size: 14) {
+  $s: fire-size($size);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
+  color: $fire-sub;
+  line-height: 1.2;
+}
+
+// 面板内容区：纵向排列，溢出隐藏
+@mixin fire-panel {
+  display: flex;
+  flex-direction: column;
+  gap: vh(8);
+  height: 100%;
+  min-height: 0;
+  padding: vh(10) vw(12);
+  overflow: hidden;
+}
+
+// 分区小标题（面板内的二级标题）
+@mixin fire-section-title {
+  @include fire-label(13);
+  display: flex;
+  align-items: center;
+  gap: vw(6);
+  flex-shrink: 0;
+
+  &::before {
+    content: '';
+    width: vw(3);
+    height: vh(11);
+    border-radius: 1px;
+    background: rgba(0, 152, 230, 0.65);
+  }
+}
+
+// 细分隔线
+@mixin fire-divider {
+  height: 1px;
+  flex-shrink: 0;
+  background: $fire-line;
+}
+
+// 标签小片（联动项、计数项）
+@mixin fire-chip {
+  display: flex;
+  align-items: center;
+  gap: vw(4);
+  padding: vh(4) vw(8);
+  border-radius: vw(2);
+  background: $fire-chip;
+  border: 1px solid $fire-chip-border;
+}

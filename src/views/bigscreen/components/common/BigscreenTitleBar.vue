@@ -19,7 +19,7 @@
     <!-- 用户区 -->
     <div class="bs-title-bar__user">
       <span class="bs-title-bar__user-name">{{ displayName }}</span>
-      <el-dropdown trigger="click" @command="handleCommand">
+      <el-dropdown trigger="click" popper-class="bs-title-bar__dropdown" @command="handleCommand">
         <div class="bs-title-bar__avatar">
           <slot name="avatar">
             <img :src="avatarUrl" alt="" />
@@ -113,7 +113,7 @@ function handleCommand(cmd: string) {
 
 .bs-title-bar__user-name {
   font-family: 'DingTalk JinBuTi', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(12px, calc(16 * var(--min-scale)), 16px);
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
   color: #fff; text-align: right; line-height: vh(46);
 }
 
@@ -121,5 +121,12 @@ function handleCommand(cmd: string) {
   width: calc(44 * var(--min-scale)); height: calc(44 * var(--min-scale));
   border-radius: 50%; overflow: hidden; cursor: pointer; flex-shrink: 0;
   img { width: 100%; height: 100%; display: block; }
+}
+</style>
+
+<!-- 下拉菜单被 teleport 到 body，scoped 样式够不着，用 popper-class 单独兜住字号下限 -->
+<style lang="scss">
+.bs-title-bar__dropdown .el-dropdown-menu__item {
+  font-size: 14px;
 }
 </style>

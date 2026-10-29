@@ -31,3 +31,15 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* 数字字体：抖音 Sans（Bold）。
+   消防总览的指标数值用它，与 `components/campus-monitor/campus-monitor-fonts.css`
+   声明的是同一份字体文件 / 同一字重，这里在本页补一份，
+   避免大屏页因为没引 campus-monitor 字体表而回退到系统字体。 */
+@font-face {
+  font-family: 'Douyin Sans';
+  src: url('/fonts/DouyinSansBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

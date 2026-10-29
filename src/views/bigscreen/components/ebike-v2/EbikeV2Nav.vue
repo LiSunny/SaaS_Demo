@@ -85,8 +85,8 @@ function handleSelect(item: NavItem, idx: number) {
   position: absolute; left: 0; top: 50%;
   transform: translateY(-50%);
   width: 100%;
-  font-size: clamp(12px, calc(17 * var(--min-scale)), 17px);
-  line-height: vh(20);
+  font-size: clamp(14px, calc(17 * var(--min-scale)), 17px);
+  line-height: 20px;
   text-align: center;
   white-space: nowrap;
   pointer-events: none;

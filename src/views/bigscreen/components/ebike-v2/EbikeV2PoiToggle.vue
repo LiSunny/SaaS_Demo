@@ -42,7 +42,7 @@ function handleToggle() {
   background: rgba(0, 68, 130, 0.55);
   color: rgba(200, 228, 255, 0.9);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(14 * var(--min-scale)), 14px);
+  font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;

@@ -6,18 +6,21 @@
     <!-- ===== 大标题（浮于模型之上） ===== -->
     <EbikeV2Header />
 
-    <!-- ===== 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
+    <!-- ===== 态势条 + 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
     <main class="ebike-v2__content">
-      <div class="col col--left">
-        <EbikeV2Card title="经营主体日常履责"   class="col__fill"/>
-        <EbikeV2Card title="自查隐患运维处置"  class="col__fill" />
-        <EbikeV2Card title="共享电动自行车监管" class="col__fill" />
-      </div>
+      <!-- 通栏态势条：设备规模 / 完好率 / 预警 / 故障 / 离线 / 值班在岗 -->
+      <FireOverviewStatusBar class="ebike-v2__statusbar" />
 
-      <div class="col col--right">
-        <EbikeV2Card title="火灾预警点位联动"  class="col__fill" />
-        <EbikeV2Card title="消控室值班离岗监控" class="col__fill" />
-        <EbikeV2Card title="电动自行车火灾预案"  class="col__fill" />
+      <div class="ebike-v2__cols">
+        <div class="col col--left">
+          <FireOverviewAlarmPanel class="col__item col__item--top" />
+          <FireOverviewAssurancePanel class="col__item col__item--bottom" />
+        </div>
+
+        <div class="col col--right">
+          <FireOverviewIntegrityPanel class="col__item col__item--top" />
+          <FireOverviewPassivePanel class="col__item col__item--bottom" />
+        </div>
       </div>
     </main>
   </div>
@@ -27,8 +30,12 @@
 import { ref } from 'vue'
 import './components/ebike-v2/ebike-v2-fonts.css'
 import EbikeV2Header from './components/ebike-v2/EbikeV2Header.vue'
-import EbikeV2Card from './components/ebike-v2/EbikeV2Card.vue'
 import EbikeV2CampusModel from './components/ebike-v2/EbikeV2CampusModel.vue'
+import FireOverviewStatusBar from './components/ebike-v2/fire/FireOverviewStatusBar.vue'
+import FireOverviewAlarmPanel from './components/ebike-v2/fire/FireOverviewAlarmPanel.vue'
+import FireOverviewIntegrityPanel from './components/ebike-v2/fire/FireOverviewIntegrityPanel.vue'
+import FireOverviewAssurancePanel from './components/ebike-v2/fire/FireOverviewAssurancePanel.vue'
+import FireOverviewPassivePanel from './components/ebike-v2/fire/FireOverviewPassivePanel.vue'
 import { provideCampusModel, type CampusModelApi } from './components/ebike-v2/useCampusModel'
 
 /** 模型实例：顶栏的「建筑导航」「昼夜切换」通过 provide/inject 取用 */
@@ -47,15 +54,31 @@ provideCampusModel(campusRef)
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-/* 两列悬浮在模型之上；容器整体不吃指针事件，中间留空处可交互三维模型 */
+/* 态势条 + 两列模块；容器整体不吃指针事件，中间留空处可交互三维模型 */
 .ebike-v2__content {
   position: absolute;
   top: vh(86); left: 0; right: 0; bottom: vh(16);
   z-index: 10;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 0 vw(16);
   pointer-events: none;
+}
+
+/* 通栏态势条 */
+.ebike-v2__statusbar {
+  flex-shrink: 0;
+  height: vh(64);
+  margin-bottom: vh(16);
+  pointer-events: auto;
+}
+
+/* 两列 */
+.ebike-v2__cols {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: space-between;
 }
 
 .col {
@@ -65,12 +88,8 @@ provideCampusModel(campusRef)
   pointer-events: auto;
 }
 
-/* 固定高度模块（按 Figma 设计稿像素） */
-.col__fixed--536 { height: vh(536); }
-.col__fixed--530 { height: vh(530); }
-.col__fixed--260 { height: vh(260); }
-.col__fixed--122 { height: vh(122); }
-
-/* 撑满剩余高度的模块 */
-.col__fill { flex: 1; min-height: 0; }
+/* 每列两个模块：上 52% / 下 48% */
+.col__item { min-height: 0; }
+.col__item--top { flex: 52 1 0; }
+.col__item--bottom { flex: 48 1 0; }
 </style>

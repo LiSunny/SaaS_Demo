@@ -22,11 +22,13 @@ defineProps<{
   min-height: 0;
   flex-shrink: 0;
   /* 拟态玻璃：半透明底 + 背景模糊，下层三维模型隐隐透出，
-     底色压得住模型细节，模块内容仍然清晰。 */
-  background: rgba(0, 48, 100, 0.28);
-  backdrop-filter: blur(7px) saturate(125%);
-  -webkit-backdrop-filter: blur(7px) saturate(125%);
-  border: 1px solid rgba(0, 152, 230, 0.12);
+     底色压得住模型细节，模块内容仍然清晰。
+     不透明度按"值班员远看要读得清"定：0.28 太透，模型亮部会把文字吃掉，
+     实测后提到 0.62 + blur 9px —— 模型只保留轮廓，文字可读性优先。 */
+  background: rgba(0, 44, 94, 0.62);
+  backdrop-filter: blur(9px) saturate(125%);
+  -webkit-backdrop-filter: blur(9px) saturate(125%);
+  border: 1px solid rgba(0, 152, 230, 0.16);
   border-radius: 3px;
   overflow: hidden;
 }
