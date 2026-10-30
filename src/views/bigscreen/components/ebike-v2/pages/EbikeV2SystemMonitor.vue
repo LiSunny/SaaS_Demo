@@ -38,9 +38,14 @@
       />
     </template>
 
-    <!-- 右列：健康度分析已实现，其余两模块待接入 -->
+    <!-- 右列：健康度分析、设备状态监控已实现，统计分析报表待接入 -->
     <template #side>
       <EbikeV2HealthRadar :system-name="activeSystemName" />
+      <EbikeV2DeviceStatus
+        :scene="currentScene"
+        :system-name="activeSystemName"
+        :scene-name="currentScene?.name"
+      />
       <EbikeV2PlaceholderCard
         v-for="t in SIDE_MODULES"
         :key="t"
@@ -67,12 +72,13 @@ import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
 import EbikeV2FaultRank from '../EbikeV2FaultRank.vue'
 import EbikeV2HealthRadar from '../EbikeV2HealthRadar.vue'
+import EbikeV2DeviceStatus from '../EbikeV2DeviceStatus.vue'
 import EbikeV2PlaceholderCard from '../EbikeV2PlaceholderCard.vue'
 
 /** Figma 内容区里的模块分布（底部一行的「多发故障排名」已单独实现，不在此列） */
 const BOTTOM_MODULES = ['故障发生趋势', '实时警情']
-/** 右列三模块（首位的「健康度分析」已单独实现，不在此列） */
-const SIDE_MODULES = ['设备状态监控', '统计分析报表']
+/** 右列三模块（首位的「健康度分析」「设备状态监控」已单独实现，不在此列） */
+const SIDE_MODULES = ['统计分析报表']
 
 const scenes = ref<SceneConfig[]>([])
 const loading = ref(false)
