@@ -1,5 +1,5 @@
 <template>
-  <EbikeV2PageShell :row-modules="BOTTOM_MODULES" :side-modules="SIDE_MODULES" :sub="currentSub">
+  <EbikeV2PageShell :side-modules="SIDE_MODULES" :sub="currentSub">
     <template #main>
       <section class="monitor__canvas-panel">
         <!-- 系统切换：浮在画布左上角 -->
@@ -27,16 +27,11 @@
       </section>
     </template>
 
-    <!-- 底部一行：多发故障排名、故障设备数量曲线已实现，实时警情待接入 -->
+    <!-- 底部一行：多发故障排名、故障设备数量曲线、实时警情已实现 -->
     <template #row>
       <EbikeV2FaultRank />
       <EbikeV2FaultCurve :scene="currentScene" :system-name="activeSystemName" />
-      <EbikeV2PlaceholderCard
-        v-for="t in BOTTOM_MODULES"
-        :key="t"
-        :title="t"
-        :sub="currentSub"
-      />
+      <EbikeV2AlarmFeed :scene="currentScene" :system-name="activeSystemName" />
     </template>
 
     <!-- 右列：健康度分析、设备状态监控已实现，统计分析报表待接入 -->
@@ -69,12 +64,11 @@ import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
 import EbikeV2FaultRank from '../EbikeV2FaultRank.vue'
 import EbikeV2FaultCurve from '../EbikeV2FaultCurve.vue'
+import EbikeV2AlarmFeed from '../EbikeV2AlarmFeed.vue'
 import EbikeV2HealthRadar from '../EbikeV2HealthRadar.vue'
 import EbikeV2DeviceStatus from '../EbikeV2DeviceStatus.vue'
 import EbikeV2PlaceholderCard from '../EbikeV2PlaceholderCard.vue'
 
-/** Figma 内容区里的模块分布（底部一行的「多发故障排名」「故障设备数量曲线」已单独实现，不在此列） */
-const BOTTOM_MODULES = ['实时警情']
 /** 右列三模块（首位的「健康度分析」「设备状态监控」已单独实现，不在此列） */
 const SIDE_MODULES = ['统计分析报表']
 

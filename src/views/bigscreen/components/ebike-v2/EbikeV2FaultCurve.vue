@@ -52,6 +52,7 @@ import { LineChart } from 'echarts/charts'
 import { GridComponent, MarkPointComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { SceneConfig } from '@/types/scene-config'
+import { rngOf, seedOf } from './seeded-random'
 import EbikeV2Card from './EbikeV2Card.vue'
 
 use([LineChart, GridComponent, TooltipComponent, MarkPointComponent, CanvasRenderer])
@@ -85,28 +86,6 @@ const HOUR_WEIGHT = [
   1.4, 1.12, 1.0, 0.88, 0.85, 0.88, 1.0, 1.12,
   1.35, 1.55, 1.7, 1.5, 1.22, 1.0, 0.78, 0.58,
 ]
-
-/** 字符串 → 32 位散列（用于给每个系统一个稳定的随机种子） */
-function seedOf(text: string): number {
-  let h = 2166136261
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
-}
-
-/** mulberry32：小而稳定的伪随机数发生器 */
-function rngOf(seed: number): () => number {
-  let a = seed
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0
-    let t = a
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
 
 /**
  * 生成近 24 小时的故障设备数序列
