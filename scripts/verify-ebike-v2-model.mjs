@@ -106,20 +106,67 @@ const info = await page.evaluate(() => {
 })
 console.log(JSON.stringify(info, null, 2))
 
-// 场景光线开关：默认黄昏，点一下切到白天，场景底色应跟随大屏白天配色
+// 场景光线开关：默认黄昏，点一下切到白天。
+// 白天只切模型光照，场景背景 / 雾 / 天空必须保持大屏底色不变。
+const margins = () =>
+  page.evaluate(() => {
+    const t = document.querySelector('.v2-time__track')?.getBoundingClientRect()
+    const h = document.querySelector('.v2-time__thumb')?.getBoundingClientRect()
+    if (!t || !h) return null
+    const r = (x) => Math.round(x * 10) / 10
+    return {
+      上边距: r(h.top - t.top),
+      下边距: r(t.bottom - h.bottom),
+      圆钮高: r(h.height),
+      轨道高: r(t.height),
+    }
+  })
+
+const duskMargin = await margins()
 const switched = await page.evaluate(async () => {
   const sw = document.querySelector('.v2-time__switch')
-  sw?.click()
-  await new Promise((r) => setTimeout(r, 1200))
   const app = document.querySelector('.campus-layer__frame')?.contentWindow?.campusApp
+  const before = {
+    sceneBg: app?.scene?.background?.getHexString?.(),
+    fog: app?.scene?.fog?.color?.getHexString?.(),
+  }
+  sw?.click()
+  await new Promise((r) => setTimeout(r, 1600))
+  let skyBottom = null
+  app?.scene?.traverse((o) => {
+    const u = o.material?.uniforms
+    if (o.isMesh && o.renderOrder === -1000 && u?.bottomColor && !skyBottom) {
+      skyBottom = u.bottomColor.value.getHexString()
+    }
+  })
   return {
     state: sw?.getAttribute('aria-checked') === 'true' ? '黄昏' : '白天',
     ariaChecked: sw?.getAttribute('aria-checked'),
+    背景切换前后: before.sceneBg === app?.scene?.background?.getHexString?.() ? '未变' : `变了 ${before.sceneBg}→${app?.scene?.background?.getHexString?.()}`,
     sceneBg: app?.scene?.background?.getHexString?.(),
+    fog: app?.scene?.fog?.color?.getHexString?.(),
+    skyBottom,
     exposure: app?.renderer?.toneMappingExposure,
   }
 })
 console.log('切白天:', JSON.stringify(switched))
+const dayMargin = await margins()
+
+// 断言：白天不换场景背景 + 两态圆钮都垂直居中
+let failed = 0
+const checks = [
+  ['白天场景背景未变', switched['背景切换前后'] === '未变', switched['背景切换前后']],
+  ['白天场景背景 = 大屏底色 00437a', switched.sceneBg === '00437a', switched.sceneBg],
+  ['白天雾色 = 大屏底色 00437a', switched.fog === '00437a', switched.fog],
+  ['白天天空底色 = 大屏底色 00437a', switched.skyBottom === '00437a', switched.skyBottom],
+  ['黄昏圆钮垂直居中', !!duskMargin && Math.abs(duskMargin.上边距 - duskMargin.下边距) <= 0.5, JSON.stringify(duskMargin)],
+  ['白天圆钮垂直居中', !!dayMargin && Math.abs(dayMargin.上边距 - dayMargin.下边距) <= 0.5, JSON.stringify(dayMargin)],
+]
+console.log('\n===== 场景光线开关断言 =====')
+for (const [name, ok, detail] of checks) {
+  console.log(`  ${ok ? '✓' : '✗'} ${name}：${detail}`)
+  if (!ok) failed++
+}
 
 // 建筑导航：默认收起，点开后应可见
 const panel = await page.evaluate(async () => {
@@ -143,5 +190,7 @@ await page.screenshot({
 })
 console.log('截图:', `${OUT}/_landing_ebike-v2_model.png`)
 console.log('控制台错误:', errors.length ? errors.slice(0, 8) : '无')
+console.log(failed ? `\n✗ ${failed} 项未通过` : '\n✓ 全部通过')
 
 await browser.close()
+process.exit(failed || errors.length ? 1 : 0)

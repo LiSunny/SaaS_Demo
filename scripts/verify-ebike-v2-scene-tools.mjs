@@ -43,6 +43,12 @@ for (const vp of [{ width: 1920, height: 1080 }, { width: 1443, height: 988 }, {
     .catch(() => console.log('  ! 模型加载遮罩未在 60s 内撤下'))
   await page.waitForTimeout(1500)
 
+  // 关闭态整体截图（悬浮控件组在模型区，弹窗未展开）
+  if (vp.width === 1920) {
+    await page.screenshot({ path: `${OUT}/场景开关-整体-1920.png`, clip: { x: 0, y: 0, width: vp.width, height: vp.height }, timeout: 90000 })
+    await page.screenshot({ path: `${OUT}/场景开关-局部.png`, clip: { x: 1150, y: 150, width: 300, height: 110 }, timeout: 90000 })
+  }
+
   // 打开建筑导航面板
   await page.evaluate(() => document.querySelector('.v2-poi-toggle')?.click())
   await page.waitForTimeout(800)
@@ -66,11 +72,25 @@ for (const vp of [{ width: 1920, height: 1080 }, { width: 1443, height: 988 }, {
       header: rect(document.querySelector('.bs-title-bar')),
       btn: rect(document.querySelector('.v2-poi-toggle')),
     }
+    // 开关：圆钮必须与胶囊垂直居中（上下边距相等），且不贴边
+    const track = document.querySelector('.v2-time__track')?.getBoundingClientRect()
+    const thumb = document.querySelector('.v2-time__thumb')?.getBoundingClientRect()
+    const sw = track && thumb
+      ? {
+          trackH: Math.round(track.height * 10) / 10,
+          thumbH: Math.round(thumb.height * 10) / 10,
+          marginTop: Math.round((thumb.top - track.top) * 10) / 10,
+          marginBottom: Math.round((track.bottom - thumb.bottom) * 10) / 10,
+          marginLeft: Math.round((thumb.left - track.left) * 10) / 10,
+          marginRight: Math.round((track.right - thumb.right) * 10) / 10,
+        }
+      : null
     const overlap = (a, b) => a && b && a.x < b.r && b.x < a.r && a.y < b.b && b.y < a.b
     const body = panel.querySelector('.panel-body')
     return {
       panel: P,
       boxes,
+      sw,
       overlaps: {
         statusbar: overlap(P, boxes.statusbar),
         colLeft: overlap(P, boxes.colLeft),
@@ -95,12 +115,15 @@ for (const vp of [{ width: 1920, height: 1080 }, { width: 1443, height: 988 }, {
     ['弹窗完整在视口内', r.fullyInViewport, String(r.fullyInViewport)],
     ['模型加载遮罩已撤下', !r.loadingMask, String(r.loadingMask)],
     ['建筑清单可滚动', r.listScrollable, String(r.listScrollable)],
+    ['圆钮垂直居中（上下边距差 ≤0.5px）', !!r.sw && Math.abs(r.sw.marginTop - r.sw.marginBottom) <= 0.5, r.sw ? `上${r.sw.marginTop}/下${r.sw.marginBottom}` : '未取到'],
+    ['圆钮不贴边（上下留白 ≥3px）', !!r.sw && r.sw.marginTop >= 3 && r.sw.marginBottom >= 3, r.sw ? `上${r.sw.marginTop}/下${r.sw.marginBottom}` : '未取到'],
   ]
 
   console.log(`\n===== ${vp.width}x${vp.height} =====`)
   console.log(`控件组 rect: x=${r.boxes.tools.x}..${r.boxes.tools.r} y=${r.boxes.tools.y}..${r.boxes.tools.b}`)
   console.log(`按钮   rect: x=${r.boxes.btn.x}..${r.boxes.btn.r} y=${r.boxes.btn.y}..${r.boxes.btn.b}`)
   console.log(`弹窗   rect: x=${r.panel.x}..${r.panel.r} y=${r.panel.y}..${r.panel.b} (${r.panel.w}x${r.panel.h})`)
+  console.log(`开关   轨道高${r.sw?.trackH} 圆钮高${r.sw?.thumbH} 上边距${r.sw?.marginTop} 下边距${r.sw?.marginBottom}`)
   for (const [name, ok, detail] of checks) {
     console.log(`  ${ok ? '✓' : '✗'} ${name}：${detail}`)
     if (!ok) failed++

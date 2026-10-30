@@ -94,21 +94,23 @@ function toggle() {
   height: calc(34 * var(--min-scale));
   border-radius: 999px;
   background: rgba(0, 68, 130, 0.55);
-  border: 1px solid rgba(0, 152, 230, 0.35);
-  transition: background .25s ease, border-color .25s ease;
+  /* 描边用 inset 阴影而不是 border：border 会挤进盒模型，
+     圆钮的 top/left 相对 padding box 计算，会上下左右各差 1px、看着没居中 */
+  box-shadow: inset 0 0 0 1px rgba(0, 152, 230, 0.35);
+  transition: background .25s ease, box-shadow .25s ease;
   display: inline-flex; align-items: center;
 }
 
 /* 黄昏态：轨道点亮成大屏主色 */
 .v2-time__switch.is-dusk .v2-time__track {
   background: linear-gradient(180deg, rgba(0, 134, 228, 0.9) 0%, rgba(0, 86, 168, 0.9) 100%);
-  border-color: rgba(96, 200, 255, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(96, 200, 255, 0.6);
 }
 
 .v2-time__thumb {
   position: absolute;
-  /* 圆钮与胶囊保持 5 设计像素边距，不贴边 */
-  top: calc(5 * var(--min-scale));
+  /* 上下居中：轨道高 34、圆钮 24，上下各留 5px */
+  top: 50%;
   left: calc(5 * var(--min-scale));
   width: calc(24 * var(--min-scale));
   height: calc(24 * var(--min-scale));
@@ -118,11 +120,12 @@ function toggle() {
   transition: transform .25s ease, color .25s ease;
   display: inline-flex; align-items: center; justify-content: center;
   color: #0b4a86;
+  transform: translateY(-50%);
 }
 
 /* 滑到右侧 = 黄昏 */
 .v2-time__switch.is-dusk .v2-time__thumb {
-  transform: translateX(calc(38 * var(--min-scale)));
+  transform: translate(calc(38 * var(--min-scale)), -50%);
   color: #0072c8;
 }
 

@@ -56,12 +56,20 @@ export interface CampusCamera {
   targetZ?: number
 }
 
-/** 白天：亮蓝天空 + 明亮地块 */
+/**
+ * 白天：明亮的日光照在模型上。
+ *
+ * 天空 / 雾保持大屏底色（与黄昏同值），不切成浅蓝白昼天：
+ * 背景是大屏玻璃卡片与深蓝底色的底衬，一变浅就与整屏深蓝打架，
+ * 而且大屏是固定机位远看，背景跳动会让人以为画面变了。
+ * 因此白天只换「模型本体」的光照（暖白主光 + 高强度半球光 + 关掉夜间灯），
+ * 天空、雾、场景背景一律不动。
+ */
 const DAY_THEME: CampusTheme = {
-  skyTop: '#2f86d6',
-  skyBottom: '#8ec9ef',
-  fogColor: '#7fb8e2',
-  fogDensity: 5.4e-4,
+  skyTop: '#05284f',
+  skyBottom: '#00437a',
+  fogColor: '#00437a',
+  fogDensity: 7.4e-4,
   sunColor: '#fff6e6',
   sunIntensity: 2.4,
   hemiSky: '#bcd9f5',
