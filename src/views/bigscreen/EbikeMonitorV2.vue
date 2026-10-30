@@ -54,6 +54,7 @@ provideCampusModel(campusRef)
 
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
+@use "./components/ebike-v2/fire/fire-common.scss" as fire;
 
 .ebike-v2 {
   position: relative;
@@ -61,6 +62,8 @@ provideCampusModel(campusRef)
   overflow: hidden;
   background: #00437A;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  /* 消防面板的主题变量：文字色阶 + 异常红，各面板与内联 style 共用同一份 */
+  @include fire.fire-theme;
 }
 
 /* 态势条 + 两列模块；容器整体不吃指针事件，中间留空处可交互三维模型 */

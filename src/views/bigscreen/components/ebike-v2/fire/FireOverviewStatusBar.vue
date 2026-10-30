@@ -5,7 +5,7 @@
         <span class="fsb__label">{{ m.label }}</span>
         <span v-if="m.demo" class="fsb__demo">演示</span>
       </div>
-      <div class="fsb__value" :style="{ color: TONE_COLOR[m.tone] }">
+      <div class="fsb__value" :style="{ color: dataColor(m.tone) }">
         {{ m.value }}<span v-if="m.unit" class="fsb__unit">{{ m.unit }}</span>
       </div>
     </div>
@@ -19,7 +19,7 @@
  * 一行 6 个核心指标：设备规模 / 完好率 / 预警 / 故障 / 离线 / 值班在岗。
  * 数值来自 `fire-mock.ts`，台数与可用率由各系统台数算出。
  */
-import { STATUS_BAR, TONE_COLOR } from './fire-mock'
+import { STATUS_BAR, dataColor } from './fire-mock'
 </script>
 
 <style lang="scss" scoped>
@@ -34,7 +34,7 @@ import { STATUS_BAR, TONE_COLOR } from './fire-mock'
   border-radius: 3px;
   overflow: hidden;
   /* 与模块卡片同一套玻璃底 */
-  background: rgba(0, 44, 94, 0.62);
+  background: rgba(0, 44, 94, 0.72);
   backdrop-filter: blur(9px) saturate(125%);
   -webkit-backdrop-filter: blur(9px) saturate(125%);
   border: 1px solid rgba(0, 152, 230, 0.12);
@@ -71,14 +71,13 @@ import { STATUS_BAR, TONE_COLOR } from './fire-mock'
 .fsb__label {
   @include fire-label(15);
 }
-
 /* 演示数据标记 */
 .fsb__demo {
   @include fire-sub(12);
   padding: 0 vw(4);
-  border: 1px solid rgba(207, 210, 215, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: vw(2);
-  color: #ced2d7;
+  color: var(--fire-text-dim);
   line-height: 18px;
 }
 
@@ -89,8 +88,10 @@ import { STATUS_BAR, TONE_COLOR } from './fire-mock'
   gap: vw(4);
 }
 
+/* 单位：跟着核心数值，但比数值弱一级 */
 .fsb__unit {
   @include fire-sub(14);
   font-size: 14px;
+  color: var(--fire-text-sub);
 }
 </style>

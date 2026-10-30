@@ -9,14 +9,14 @@
 
         <div class="psv__metrics">
           <div v-for="m in b.metrics" :key="m.label" class="psv__metric">
-            <span class="psv__metric-value" :style="{ color: TONE_COLOR[m.tone ?? 'normal'] }">
+            <span class="psv__metric-value" :style="{ color: dataColor(m.tone ?? 'normal') }">
               {{ m.value }}<i v-if="m.unit" class="psv__metric-unit">{{ m.unit }}</i>
             </span>
             <span class="psv__metric-label">{{ m.label }}</span>
           </div>
         </div>
 
-        <div v-if="b.top" class="psv__top" :style="{ color: TONE_COLOR[b.topTone ?? 'normal'] }">
+        <div v-if="b.top" class="psv__top" :style="{ color: dataColor(b.topTone ?? 'abnormal') }">
           <span class="psv__top-flag">最严重</span>
           <span class="psv__top-text">{{ b.top }}</span>
         </div>
@@ -34,7 +34,7 @@
  * 三个系统尚未建档案，数据为演示值，模块头部标"演示数据"。
  */
 import EbikeV2Card from '../EbikeV2Card.vue'
-import { PASSIVE_BLOCKS, TONE_COLOR } from './fire-mock'
+import { PASSIVE_BLOCKS, dataColor } from './fire-mock'
 </script>
 
 <style lang="scss" scoped>
@@ -61,7 +61,7 @@ import { PASSIVE_BLOCKS, TONE_COLOR } from './fire-mock'
 
 .psv__name {
   @include fire-label(15);
-  color: #cfe4ff;
+  color: var(--fire-text-title);
   position: relative;
   padding-left: vw(8);
 
@@ -79,11 +79,10 @@ import { PASSIVE_BLOCKS, TONE_COLOR } from './fire-mock'
 }
 
 .psv__pending {
-  @include fire-sub(12);
+  @include fire-dim(12);
   padding: 0 vw(5);
-  border: 1px solid rgba(207, 210, 215, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: vw(2);
-  color: #ced2d7;
   margin-left: auto;
 }
 
@@ -114,7 +113,7 @@ import { PASSIVE_BLOCKS, TONE_COLOR } from './fire-mock'
 }
 
 .psv__metric-label {
-  @include fire-sub(13);
+  @include fire-label(13);
   white-space: nowrap;
 }
 
@@ -141,7 +140,7 @@ import { PASSIVE_BLOCKS, TONE_COLOR } from './fire-mock'
 
 .psv__top-text {
   @include fire-sub(14);
-  color: #d8e9ff;
+  color: var(--fire-text-sub);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

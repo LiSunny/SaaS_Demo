@@ -1,21 +1,63 @@
 // 消防总览页（ebike-v2）共用样式
 //
-// 颜色语义全部取自 `config/subsystem-cards.ts` 的 SUBSYSTEM_CARD_THEME，
-// 本页不另起一套色值：主机蓝 / 器件深蓝 / 在线绿 / 故障橙 / 预警红 / 离线灰。
+// 色彩规则（两条，页面内不再有例外）：
+//
+// 1. 异常数据统一用一个红。故障 / 预警 / 火警 / 通讯异常 / 离线 /
+//    待处置 / 隐患计数，凡是异常一律同一个红，不再"绿正常、橙故障、红预警"
+//    三色并行 —— 三色并行时值班员分辨不出哪档更严重，且原来的绿(#059669)
+//    橙(#D97706)红(#DC2626)是给浅底卡片设计的，落到深蓝玻璃底上对比度只有
+//    2.85~4.27:1，核心数值读不出来。
+// 2. 非异常不占用语义色。正常数、完成率、达标率等一律走中性色阶，
+//    只靠字号与明度分层，不靠颜色表状态。
+//
+// 文字色阶按"值班员扫视优先级"排级，每级之间对比度差 ≥ 1.1 倍
+// （对比度按 1920×1080 实测：前景取声明色，背景取该文字墨迹盒内
+//   暗像素中位色 —— 卡片是半透明玻璃，底下的三维模型会透出来，
+//   局部底色并不等于卡片基色，取基色算会高估）：
+//   L0 核心数值 #ffffff  12.07:1 ~ 15.42:1
+//   L1 区块标题 #cfe4ff  11.84:1 ~ 15.58:1
+//   L2 指标标签 #a9c9ea   6.48:1 ~ 11.70:1
+//   L3 辅助说明 #8fb0d8   5.24:1 ~  8.45:1
+//   L4 最弱辅助 #7ea6d6   4.82:1 ~  6.35:1
+//   异常红     #ff8080   4.97:1 ~  6.10:1
+//
+// 异常红夹在 L3 与 L4 之间：它要同时压过"最弱的辅助"（亮度 0.3826 >
+// L4 的 0.3656）又不能亮过 L3（0.3826 < 0.4185），否则红的语义会
+// 被当成普通辅助色。原 #f87171 在模型亮区只有 4.36:1，达不到 AA。
+//
+// 色值统一在这里定义成 CSS 变量，组件内的 TS（内联 style）也引用同一份，
+// 避免文字色在 SCSS 与 TS 两处各写一遍。
 @use "@/styles/function.scss" as *;
 
-// ===== 状态色（与 SUBSYSTEM_CARD_THEME 一致） =====
-$fire-normal: #059669;   // 在线 / 正常
-$fire-fault: #D97706;    // 故障
-$fire-warning: #DC2626;  // 预警 / 超限
-$fire-offline: #CED2D7;  // 离线
-$fire-host: #6293C8;     // 主机
-$fire-device: #417AB7;   // 采集器件
+// ===== 文字色阶 =====
+$fire-text-hero: #ffffff;
+$fire-text-title: #cfe4ff;
+$fire-text-label: #a9c9ea;
+$fire-text-sub: #8fb0d8;
+$fire-text-dim: #7ea6d6;
 
-// ===== 文字色（玻璃卡片上的深蓝底） =====
-$fire-label: #bcd8ff;
-$fire-sub: #9cc6f2;
-$fire-value: #ffffff;
+// ===== 异常色 =====
+// 所有异常数据共用这一个红；不再按故障 / 预警分两档。
+$fire-anomaly: #ff8080;
+// 异常态描边（芯片边框、行块左边线）
+$fire-anomaly-soft: rgba(255, 128, 128, 0.34);
+
+// ===== 非异常中性色（图形用：色块 / 进度条 / 圆点） =====
+// 不使用绿橙红等语义色，视觉上只表达"这里没有异常"。
+// 进度条只画"正常占比"这一段，色块偏亮会盖过同区域的数值，故取中间调。
+$fire-neutral: #5f96d4;
+
+// ===== 状态分布环配色 =====
+// 三个异常若同用一个红，环上会连成一段、看不出分界；
+// 用同族红的明度阶梯，既满足"异常统一红色"，又保留报警 / 故障 / 离线三段的区分。
+//
+// "正常"段不用中性亮色：它占 96.9% 的环面积，是整个卡片最大的一块色，
+// 用 #7fa6d6 会把该区底色调亮、把弱文字（阈值、图例）压到 4.5:1 以下。
+// 改用与卡片底同族的深蓝，正常段只作底衬，三段红才成为画面的信息主体。
+$fire-dist-normal: #2b5f9e;
+$fire-dist-alarm: #ffb3b3;
+$fire-dist-fault: #ff8080;
+$fire-dist-offline: #cc5252;
 
 // ===== 分隔线 / 底纹 =====
 $fire-line: rgba(120, 190, 255, 0.16);
@@ -31,31 +73,59 @@ $fire-min-size: 14;
   @return if($size < $fire-min-size, $fire-min-size, $size);
 }
 
-// 小标题（指标名）
+/**
+ * 主题变量：挂在页面根节点上，所有面板继承。
+ * TS 侧的内联 style 用 var(--fire-*) 引用同一份色值。
+ */
+@mixin fire-theme {
+  --fire-text-hero: #{$fire-text-hero};
+  --fire-text-title: #{$fire-text-title};
+  --fire-text-label: #{$fire-text-label};
+  --fire-text-sub: #{$fire-text-sub};
+  --fire-text-dim: #{$fire-text-dim};
+  --fire-anomaly: #{$fire-anomaly};
+  --fire-anomaly-soft: #{$fire-anomaly-soft};
+  --fire-neutral: #{$fire-neutral};
+  --fire-dist-normal: #{$fire-dist-normal};
+  --fire-dist-alarm: #{$fire-dist-alarm};
+  --fire-dist-fault: #{$fire-dist-fault};
+  --fire-dist-offline: #{$fire-dist-offline};
+}
+
+// 小标题（指标名）—— L2 标签级
 @mixin fire-label($size: 15) {
   $s: fire-size($size);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
-  color: $fire-label;
+  color: var(--fire-text-label);
   line-height: 1.2;
 }
 
-// 数值
+// 数值 —— L0 核心级
 @mixin fire-value($size: 22) {
   $s: fire-size($size);
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-weight: 700;
   font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
-  color: $fire-value;
+  color: var(--fire-text-hero);
   line-height: 1.1;
 }
 
-// 次级说明（阈值、单位、备注）
+// 次级说明（阈值、单位、备注）—— L3 辅助级
 @mixin fire-sub($size: 14) {
   $s: fire-size($size);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
-  color: $fire-sub;
+  color: var(--fire-text-sub);
+  line-height: 1.2;
+}
+
+// 三级文字（系统行、图例、台数）—— L4 最弱级
+@mixin fire-dim($size: 14) {
+  $s: fire-size($size);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
+  color: var(--fire-text-dim);
   line-height: 1.2;
 }
 
@@ -70,9 +140,10 @@ $fire-min-size: 14;
   overflow: hidden;
 }
 
-// 分区小标题（面板内的二级标题）
+// 分区小标题（面板内的二级标题）—— L1 标题级
 @mixin fire-section-title {
   @include fire-label(13);
+  color: var(--fire-text-title);
   display: flex;
   align-items: center;
   gap: vw(6);

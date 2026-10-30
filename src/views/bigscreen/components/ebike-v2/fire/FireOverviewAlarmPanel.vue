@@ -4,8 +4,8 @@
       <!-- 主机信号计数 -->
       <div class="alp__counts">
         <div v-for="c in ALARM_COUNTS" :key="c.key" class="alp__count">
-          <span class="alp__count-value" :style="{ color: TONE_COLOR[c.tone] }">{{ c.count }}</span>
-          <span class="alp__count-label">{{ c.label }}</span>
+          <span class="alp__count-value" :style="{ color: dataColor(c.tone) }">{{ c.count }}</span>
+          <span class="alp__count-label" :style="{ color: dataColor(c.tone, 'label') }">{{ c.label }}</span>
         </div>
       </div>
 
@@ -18,11 +18,11 @@
           v-for="l in LINKAGE"
           :key="l.key"
           class="alp__link"
-          :style="{ borderColor: TONE_COLOR[l.tone] + '55' }"
+          :style="{ borderColor: markBorder(l.tone) }"
         >
-          <span class="alp__dot" :style="{ background: TONE_COLOR[l.tone] }" />
+          <span class="alp__dot" :style="{ background: markColor(l.tone) }" />
           <span class="alp__link-label">{{ l.label }}</span>
-          <span class="alp__link-state" :style="{ color: TONE_COLOR[l.tone] }">{{ l.state }}</span>
+          <span class="alp__link-state" :style="{ color: dataColor(l.tone, 'label') }">{{ l.state }}</span>
         </div>
       </div>
 
@@ -36,15 +36,14 @@
           :key="r.key"
           class="alp__row"
           :class="{
-            'is-fault': r.typeTone === 'fault' && r.active,
-            'is-warning': r.statusTone === 'warning' && r.active,
+            'is-abnormal': r.active && (r.typeTone === 'abnormal' || r.statusTone === 'abnormal'),
           }"
         >
-          <span class="alp__dot alp__dot--row" :style="{ background: TONE_COLOR[r.typeTone] }" />
+          <span class="alp__dot alp__dot--row" :style="{ background: markColor(r.typeTone) }" />
           <span class="alp__time">{{ r.time }}</span>
-          <span class="alp__type" :style="{ color: TONE_COLOR[r.typeTone] }">{{ r.type }}</span>
+          <span class="alp__type" :style="{ color: dataColor(r.typeTone, 'label') }">{{ r.type }}</span>
           <span class="alp__loc">{{ r.location }}</span>
-          <span class="alp__status" :style="{ color: TONE_COLOR[r.statusTone] }">{{ r.status }}</span>
+          <span class="alp__status" :style="{ color: dataColor(r.statusTone, 'label') }">{{ r.status }}</span>
           <span class="alp__elapsed">{{ r.elapsed }}</span>
         </div>
       </div>
@@ -59,11 +58,12 @@
  *
  * 三段：主机信号计数 → 联动反馈 → 最近 5 条警情。
  * 处置时效（今日警情 / 待处置 / 闭环 / 平均响应）在顶部态势条，不重复。
- * 异常行按既有口径闪烁：故障橙色 2s、预警红色 2.5s，边缘 8% 渐变不硬切；
- * 正常行不闪、不挂标。
+ *
+ * 异常行闪烁：统一一个红、2.5s 周期、边缘 8% 渐变不硬切；
+ * 正常行不闪、不挂标。异常色已统一，"故障红"与"预警红"不再分两档。
  */
 import EbikeV2Card from '../EbikeV2Card.vue'
-import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, TONE_COLOR } from './fire-mock'
+import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, dataColor, markBorder, markColor } from './fire-mock'
 </script>
 
 <style lang="scss" scoped>
@@ -102,7 +102,6 @@ import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, TONE_COLOR } from './fire-mock'
 .alp__count-label {
   @include fire-label(14);
 }
-
 .alp__divider {
   @include fire-divider;
 }
@@ -183,7 +182,7 @@ import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, TONE_COLOR } from './fire-mock'
 }
 
 .alp__time {
-  @include fire-sub(14);
+  @include fire-dim(14);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -196,10 +195,11 @@ import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, TONE_COLOR } from './fire-mock'
   white-space: nowrap;
 }
 
+/* 位置：行内的辅助信息，比状态弱一级 */
 .alp__loc {
   flex: 1;
   min-width: 0;
-  color: #d8e9ff;
+  color: var(--fire-text-sub);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -215,7 +215,7 @@ import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, TONE_COLOR } from './fire-mock'
 }
 
 .alp__elapsed {
-  @include fire-sub(13);
+  @include fire-dim(13);
   flex-shrink: 0;
   width: vw(44);
   text-align: right;
@@ -224,29 +224,16 @@ import { ALARM_COUNTS, ALARM_ROWS, LINKAGE, TONE_COLOR } from './fire-mock'
 
 
 /* ===== 异常闪烁 =====
-   故障：橙色 2s；预警：红色 2.5s。
-   亮灭边缘各留 8% 渐变，不用硬切；与页面 3s 刷新周期错开。 */
-@keyframes fire-blink-fault {
+   统一一个红、2.5s 周期；亮灭边缘各留 8% 渐变，不用硬切。 */
+@keyframes fire-blink-abnormal {
   0% { opacity: 1; }
   8% { opacity: 0.25; }
   92% { opacity: 0.25; }
   100% { opacity: 1; }
 }
 
-@keyframes fire-blink-warning {
-  0% { opacity: 1; }
-  8% { opacity: 0.25; }
-  92% { opacity: 0.25; }
-  100% { opacity: 1; }
-}
-
-.alp__row.is-fault .alp__dot--row {
-  animation: fire-blink-fault 2s ease-in-out infinite;
-  will-change: opacity;
-}
-
-.alp__row.is-warning .alp__dot--row {
-  animation: fire-blink-warning 2.5s ease-in-out infinite;
+.alp__row.is-abnormal .alp__dot--row {
+  animation: fire-blink-abnormal 2.5s ease-in-out infinite;
   will-change: opacity;
 }
 </style>

@@ -103,10 +103,12 @@ function handleSelect(item: NavItem, idx: number) {
 }
 
 /* 未选中态文字：压暗 + 降字重，退到背景里，让选中项跳出来。
-   原来用设计稿的 Bold + #A8C8FF，实测未选中项比选中项还亮、层级是反的。 */
+   原来用设计稿的 Bold + #A8C8FF，实测未选中项比选中项还亮、层级是反的。
+   #6e93c4 对标题条底色只有 3.9:1，低于 AA 正文 4.5:1；
+   提到 #7ba3d6（4.7:1）后仍明显弱于选中态的白（12.4:1），层级不变。 */
 .v2-nav__item:not(.v2-nav__item--active) .v2-nav__text {
   font-family: 'NavPuHuiTiMedium', 'PingFang SC', sans-serif;
   font-weight: 400;
-  color: #6e93c4;
+  color: #7ba3d6;
 }
 </style>

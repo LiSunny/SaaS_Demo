@@ -18,7 +18,7 @@
               </svg>
             </div>
             <div class="iip__total-value">
-              <span :style="{ color: rateColor(DEVICE_OVERALL.rate) }">
+              <span :style="{ color: dataColor(overallTone(DEVICE_OVERALL.rate)) }">
                 {{ DEVICE_OVERALL.rate.toFixed(1) }}<span class="iip__unit">%</span>
               </span>
               <span class="iip__total-count">共 {{ DEVICE_OVERALL.total }} 台</span>
@@ -26,14 +26,14 @@
           </div>
 
           <!-- 状态分布环形图 -->
-          <FireDonut :segments="donutSegments" :size="56" :thickness="8" />
+          <FireDonut :segments="donutSegments" :size="76" :thickness="10" />
         </div>
 
         <!-- 状态分布图例 -->
         <div class="iip__legend">
           <span v-for="d in OVERALL_DIST" :key="d.key" class="iip__legend-item">
             <i class="iip__legend-dot" :style="{ background: d.color }" />{{ d.label }}
-            <b>{{ d.count }}</b>
+            <b :style="{ color: dataColor(distTone(d.key)) }">{{ d.count }}</b>
             <em>{{ (d.ratio * 100).toFixed(1) }}%</em>
           </span>
         </div>
@@ -44,7 +44,7 @@
       <!-- ===== 8 个系统 ===== -->
       <div class="iip__systems">
         <div v-for="r in SYSTEM_ROWS" :key="r.key" class="iip__sys">
-          <span class="iip__sys-icon" :style="{ color: r.pending ? '#8FB4D9' : iconColor(r) }">
+          <span class="iip__sys-icon" :style="{ color: r.pending ? 'var(--fire-text-dim)' : iconColor(r) }">
             <FireSystemIcon :system="r.icon" :size="18" />
           </span>
           <span class="iip__sys-name">{{ r.name }}</span>
@@ -52,9 +52,9 @@
           <template v-else>
             <span class="iip__sys-total">{{ r.total }}</span>
             <span class="iip__sys-bar">
-              <i :style="{ width: normalWidth(r), background: TONE_COLOR.normal }" />
+              <i :style="{ width: normalWidth(r), background: 'var(--fire-neutral)' }" />
             </span>
-            <span class="iip__sys-rate" :style="{ color: rateColor(r.rate) }">{{ r.rate.toFixed(1) }}%</span>
+            <span class="iip__sys-rate" :style="{ color: dataColor(overallTone(r.rate), 'label') }">{{ r.rate.toFixed(1) }}%</span>
           </template>
         </div>
       </div>
@@ -82,9 +82,11 @@ import FireSystemIcon from './FireSystemIcon.vue'
 import {
   DEVICE_OVERALL,
   OVERALL_DIST,
+  RATE_TARGET,
   SYSTEM_ROWS,
-  TONE_COLOR,
+  dataColor,
   type SystemRow,
+  type Tone,
 } from './fire-mock'
 
 /** 有故障 / 报警 / 离线时，标题右侧挂说明角标（中性蓝，不作告警色） */
@@ -101,19 +103,20 @@ function normalWidth(r: SystemRow): string {
   return `${((r.normal / r.total) * 100).toFixed(2)}%`
 }
 
-/** 可用率分级：≥97 正常 / ≥94 关注 / 其余故障 */
-function rateColor(rate: number): string {
-  if (rate >= 97) return TONE_COLOR.normal
-  if (rate >= 94) return TONE_COLOR.fault
-  return TONE_COLOR.warning
+/** 完好率是否达标：达标为正常，低于目标即异常（同一个红） */
+function overallTone(rate: number): Tone {
+  return rate >= RATE_TARGET ? 'normal' : 'abnormal'
+}
+
+/** 图例四态 → 语义档：正常 / 报警 / 故障 / 离线中，除正常外都是异常 */
+function distTone(key: string): Tone {
+  return key === 'normal' ? 'normal' : 'abnormal'
 }
 
 /** 图标颜色跟该系统最差状态 */
 function iconColor(r: SystemRow): string {
-  if (r.fault > 0) return TONE_COLOR.fault
-  if (r.alarm > 0) return TONE_COLOR.warning
-  if (r.offline > 0) return TONE_COLOR.muted
-  return TONE_COLOR.normal
+  if (r.fault > 0 || r.alarm > 0 || r.offline > 0) return 'var(--fire-anomaly)'
+  return 'var(--fire-neutral)'
 }
 </script>
 
@@ -130,12 +133,15 @@ function iconColor(r: SystemRow): string {
 .iip__total {
   display: flex;
   flex-direction: column;
-  gap: vh(7);
+  gap: vh(8);
   flex-shrink: 0;
-  padding: vh(9) vw(10);
+  padding: vh(10) vw(12);
   border-radius: vw(8);
-  background: rgba(0, 84, 160, 0.24);
-  border: 1px solid rgba(0, 152, 230, 0.16);
+  /* 主数据区：底更实、描边更亮，与下方分系统行拉开层级。
+     底色压深而非提亮：这一块叠在玻璃卡上，若用偏亮的蓝做底，
+     图例与台数这类弱文字会被抬高的底色吃掉对比度。 */
+  background: rgba(0, 36, 82, 0.55);
+  border: 1px solid rgba(0, 152, 230, 0.32);
 }
 
 .iip__total-top {
@@ -167,18 +173,20 @@ function iconColor(r: SystemRow): string {
 
 .iip__total-title {
   @include fire-label(14);
+  color: var(--fire-text-title);
   display: flex;
   align-items: center;
   gap: vw(4);
 }
 
 .iip__note {
-  color: #9cc6f2;
+  color: var(--fire-text-sub);
   flex-shrink: 0;
 }
 
+/* 主数值：总体完好率，卡内最大最亮的一处 */
 .iip__total-value {
-  @include fire-value(26);
+  @include fire-value(36);
   display: flex;
   align-items: baseline;
   gap: vw(8);
@@ -186,7 +194,7 @@ function iconColor(r: SystemRow): string {
 
 /* 接入设备总数：紧跟总体完好率，不占标题行 */
 .iip__total-count {
-  @include fire-sub(12);
+  @include fire-dim(12);
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-variant-numeric: tabular-nums;
 }
@@ -196,7 +204,7 @@ function iconColor(r: SystemRow): string {
   font-style: normal;
 }
 
-/* 状态分布图例：两行两列，铺满卡片宽度 */
+/* 状态分布图例：两行两列，铺满卡片宽度；属主区块内的次级信息 */
 .iip__legend {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -204,7 +212,7 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__legend-item {
-  @include fire-sub(12);
+  @include fire-dim(12);
   display: flex;
   align-items: baseline;
   gap: vw(4);
@@ -213,12 +221,11 @@ function iconColor(r: SystemRow): string {
     font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
     font-weight: 700;
     font-size: 14px;
-    color: $fire-value;
   }
 
   em {
     font-style: normal;
-    color: #6fa5e0;
+    color: var(--fire-text-dim);
     font-variant-numeric: tabular-nums;
   }
 }
@@ -235,7 +242,7 @@ function iconColor(r: SystemRow): string {
   @include fire-divider;
 }
 
-/* ===== 8 个系统 ===== */
+/* ===== 8 个系统：次级信息，字号与对比都低于上方总体块 ===== */
 .iip__systems {
   display: flex;
   flex-direction: column;
@@ -261,14 +268,14 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__sys-name {
-  @include fire-label(13);
+  @include fire-dim(13);
   min-width: vw(56);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .iip__sys-total {
-  @include fire-sub(12);
+  @include fire-dim(12);
   min-width: 34px;
   text-align: right;
   white-space: nowrap;
@@ -277,20 +284,19 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__sys-pending {
-  @include fire-sub(11);
+  @include fire-dim(11);
   margin-left: auto;
   padding: 0 vw(6);
-  border: 1px solid rgba(207, 210, 215, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: vw(2);
-  color: #ced2d7;
 }
 
-/* 四态堆叠条 */
+/* 正常占比条：次级信息，条更细 */
 .iip__sys-bar {
   flex: 1;
   min-width: 0;
-  height: vh(7);
-  border-radius: vh(4);
+  height: vh(5);
+  border-radius: vh(3);
   background: rgba(0, 84, 160, 0.4);
   overflow: hidden;
   display: flex;
@@ -301,11 +307,11 @@ function iconColor(r: SystemRow): string {
   }
 }
 
+/* 系统行完好率：字号与主数值拉开（14px），颜色仍按分级保留语义 */
 .iip__sys-rate {
-  @include fire-value(15);
+  @include fire-value(14);
   min-width: 40px;
   text-align: right;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-}
-</style>
+}</style>

@@ -87,7 +87,7 @@ function sparkPoints(series: number[]): string {
 
 .asr__name {
   @include fire-label(15);
-  color: #cfe4ff;
+  color: var(--fire-text-title);
   position: relative;
   padding-left: vw(8);
 
@@ -105,11 +105,10 @@ function sparkPoints(series: number[]): string {
 }
 
 .asr__pending {
-  @include fire-sub(13);
+  @include fire-dim(13);
   padding: 0 vw(5);
-  border: 1px solid rgba(207, 210, 215, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: vw(2);
-  color: #ced2d7;
 }
 
 .asr__metric {
@@ -121,7 +120,7 @@ function sparkPoints(series: number[]): string {
 }
 
 .asr__metric-label {
-  @include fire-sub(14);
+  @include fire-label(14);
   flex-shrink: 0;
 }
 
@@ -135,11 +134,11 @@ function sparkPoints(series: number[]): string {
   margin-left: vw(2);
 }
 
+/* 阈值说明：辅助信息，最弱一级 */
 .asr__metric-th {
-  @include fire-sub(13);
+  @include fire-dim(13);
   margin-left: auto;
   flex-shrink: 0;
-  color: #6fa5e0;
 }
 
 /* ===== 趋势 ===== */
@@ -164,7 +163,7 @@ function sparkPoints(series: number[]): string {
 }
 
 .asr__trend-label {
-  @include fire-sub(12);
+  @include fire-dim(12);
   flex-shrink: 0;
   min-width: vw(120);
   line-height: 19px;

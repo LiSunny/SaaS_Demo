@@ -9,16 +9,56 @@
  */
 import { getSubsystemProfile } from '@/config/subsystem-profiles'
 
-export type Tone = 'normal' | 'fault' | 'warning' | 'muted' | 'offline' | 'accent'
+/**
+ * 语义档位。页面的两条色彩规则（见 `fire-common.scss`）：
+ *   - abnormal：异常数据，一律同一个红
+ *   - normal：非异常正常值，不占用语义色，只靠字号与明度分层
+ *   - idle：无告警的弱化状态（屏蔽 / 待机 / 待接入 / 演示标记）
+ */
+export type Tone = 'normal' | 'abnormal' | 'idle'
 
-/** 状态色：与 `config/subsystem-cards.ts` 的 SUBSYSTEM_CARD_THEME 同源 */
-export const TONE_COLOR: Record<Tone, string> = {
-  normal: '#059669',
-  fault: '#D97706',
-  warning: '#DC2626',
-  muted: '#CED2D7',
-  offline: '#CED2D7',
-  accent: '#6293C8',
+/** 完好率目标：达标为正常，低于即异常 */
+export const RATE_TARGET = 97
+
+/**
+ * 状态分布环的配色：正常走中性色，三类异常用同族红的明度阶梯。
+ *
+ * 三个异常若同用一个红，环上会连成一段、看不出分界；用明度阶梯既满足
+ * "异常统一红色"，又保留报警 / 故障 / 离线三段的区分（配合图例文字）。
+ */
+export const DIST_COLOR: Record<'normal' | 'alarm' | 'fault' | 'offline', string> = {
+  normal: 'var(--fire-dist-normal)',
+  alarm: 'var(--fire-dist-alarm)',
+  fault: 'var(--fire-dist-fault)',
+  offline: 'var(--fire-dist-offline)',
+}
+
+/**
+ * 数据色（文字级）。
+ *
+ * hero = 核心数值级（白 / 红），label = 次级数值级（淡蓝 / 红）。
+ * 非异常不取语义色：核心用白，次级用淡蓝，明度差本身就构成层级。
+ */
+export function dataColor(tone: Tone, level: 'hero' | 'label' = 'hero'): string {
+  if (tone === 'abnormal') return 'var(--fire-anomaly)'
+  if (tone === 'idle') return 'var(--fire-text-sub)'
+  return level === 'hero' ? 'var(--fire-text-hero)' : 'var(--fire-text-label)'
+}
+
+/**
+ * 标记色（图形级）：圆点、进度条、图标、描边。
+ * 与 dataColor 的差别只在非异常档用中性蓝而非文字白 —— 色块不能用白，
+ * 否则在深底上像发光点。
+ */
+export function markColor(tone: Tone): string {
+  if (tone === 'abnormal') return 'var(--fire-anomaly)'
+  if (tone === 'idle') return 'var(--fire-text-sub)'
+  return 'var(--fire-neutral)'
+}
+
+/** 异常态描边：芯片 / 行块左边线 */
+export function markBorder(tone: Tone): string {
+  return tone === 'abnormal' ? 'var(--fire-anomaly-soft)' : 'var(--fire-chip-border)'
 }
 
 /** 设备台数：主机 + 分机 + 采集器件 */
@@ -54,7 +94,7 @@ export function deviceCount(profileKey: string, typeKey: string): number {
   if (!p) return 0
   return p.scale.devices
     .filter((d) => d.typeKey === typeKey)
-    .reduce((sum, d) => sum + d.count, 0)
+    .reduce((s, d) => s + d.count, 0)
 }
 
 // ============================================================
@@ -124,10 +164,10 @@ export interface DistItem {
 export function distributionOf(total: number, normal: number, alarm: number, fault: number, offline: number): DistItem[] {
   const t = total || 1
   return [
-    { key: 'normal', label: '正常', count: normal, ratio: normal / t, color: '#059669' },
-    { key: 'alarm', label: '报警', count: alarm, ratio: alarm / t, color: '#DC2626' },
-    { key: 'fault', label: '故障', count: fault, ratio: fault / t, color: '#D97706' },
-    { key: 'offline', label: '离线', count: offline, ratio: offline / t, color: '#CED2D7' },
+    { key: 'normal', label: '正常', count: normal, ratio: normal / t, color: DIST_COLOR.normal },
+    { key: 'alarm', label: '报警', count: alarm, ratio: alarm / t, color: DIST_COLOR.alarm },
+    { key: 'fault', label: '故障', count: fault, ratio: fault / t, color: DIST_COLOR.fault },
+    { key: 'offline', label: '离线', count: offline, ratio: offline / t, color: DIST_COLOR.offline },
   ]
 }
 
@@ -145,10 +185,10 @@ const TOTAL_AVAILABLE =
  * 「消防设备完好率」卡片里，总览页不存在两处设备数据。
  */
 export const STATUS_BAR: StatusBarItem[] = [
-  { key: 'alarms', label: '今日警情', value: '6', unit: '起', tone: 'accent' },
-  { key: 'pending', label: '待处置', value: '2', unit: '起', tone: 'warning' },
+  { key: 'alarms', label: '今日警情', value: '6', unit: '起', tone: 'abnormal' },
+  { key: 'pending', label: '待处置', value: '2', unit: '起', tone: 'abnormal' },
   { key: 'closed', label: '今日闭环', value: '4', unit: '起', tone: 'normal' },
-  { key: 'response', label: '平均响应', value: '3′12″', tone: 'accent' },
+  { key: 'response', label: '平均响应', value: '3′12″', tone: 'normal' },
   { key: 'duty', label: '值班在岗', value: '2 / 2', unit: '人', tone: 'normal', demo: true },
   { key: 'patrol', label: '今日巡查完成率', value: '92', unit: '%', tone: 'normal', demo: true },
 ]
@@ -185,12 +225,16 @@ export interface AlarmCount {
   tone: Tone
 }
 
-/** 主机信号五类计数（火灾报警系统档案未建，取演示值） */
+/**
+ * 主机信号五类计数（火灾报警系统档案未建，取演示值）。
+ * tone 描述"该计数当前是否异常"，不描述类目本身：
+ * 火警当前 0 起属正常，标成异常会让一个红色的 0 站在最前面。
+ */
 export const ALARM_COUNTS: AlarmCount[] = [
-  { key: 'fire', label: '火警', count: 0, tone: 'warning' },
-  { key: 'fault', label: '故障', count: 3, tone: 'fault' },
-  { key: 'shield', label: '屏蔽', count: 1, tone: 'muted' },
-  { key: 'comm', label: '通讯异常', count: 2, tone: 'fault' },
+  { key: 'fire', label: '火警', count: 0, tone: 'normal' },
+  { key: 'fault', label: '故障', count: 3, tone: 'abnormal' },
+  { key: 'shield', label: '屏蔽', count: 1, tone: 'idle' },
+  { key: 'comm', label: '通讯异常', count: 2, tone: 'abnormal' },
 ]
 
 export interface LinkageItem {
@@ -205,7 +249,7 @@ export const LINKAGE: LinkageItem[] = [
   { key: 'sprinkler', label: '喷淋泵', state: '反馈', tone: 'normal' },
   { key: 'hydrant', label: '消火栓泵', state: '反馈', tone: 'normal' },
   { key: 'smoke', label: '排烟风机', state: '反馈', tone: 'normal' },
-  { key: 'shutter', label: '防火卷帘', state: '待机', tone: 'muted' },
+  { key: 'shutter', label: '防火卷帘', state: '待机', tone: 'idle' },
   { key: 'lift', label: '电梯迫降', state: '反馈', tone: 'normal' },
   { key: 'broadcast', label: '广播', state: '反馈', tone: 'normal' },
 ]
@@ -225,14 +269,12 @@ export interface AlarmRow {
 }
 
 export const ALARM_ROWS: AlarmRow[] = [
-  { key: 'a1', time: '15:41', type: '故障', typeTone: 'fault', location: '3 号楼 2 单元 5 层', status: '待处置', statusTone: 'warning', elapsed: '03:12', active: true },
-  { key: 'a2', time: '15:12', type: '屏蔽', typeTone: 'muted', location: '2 号楼 防火门磁', status: '已确认', statusTone: 'normal', elapsed: '01:48', active: false },
-  { key: 'a3', time: '14:55', type: '通讯异常', typeTone: 'fault', location: '1 号楼 消火栓', status: '处置中', statusTone: 'warning', elapsed: '05:33', active: true },
-  { key: 'a4', time: '14:31', type: '故障', typeTone: 'fault', location: '第一食堂 电缆温度', status: '待处置', statusTone: 'warning', elapsed: '08:06', active: true },
-  { key: 'a5', time: '13:58', type: '监管', typeTone: 'accent', location: '校医院 疏散通道', status: '已确认', statusTone: 'normal', elapsed: '02:21', active: false },
+  { key: 'a1', time: '15:41', type: '故障', typeTone: 'abnormal', location: '3 号楼 2 单元 5 层', status: '待处置', statusTone: 'abnormal', elapsed: '03:12', active: true },
+  { key: 'a2', time: '15:12', type: '屏蔽', typeTone: 'idle', location: '2 号楼 防火门磁', status: '已确认', statusTone: 'normal', elapsed: '01:48', active: false },
+  { key: 'a3', time: '14:55', type: '通讯异常', typeTone: 'abnormal', location: '1 号楼 消火栓', status: '处置中', statusTone: 'abnormal', elapsed: '05:33', active: true },
+  { key: 'a4', time: '14:31', type: '故障', typeTone: 'abnormal', location: '第一食堂 电缆温度', status: '待处置', statusTone: 'abnormal', elapsed: '08:06', active: true },
+  { key: 'a5', time: '13:58', type: '监管', typeTone: 'normal', location: '校医院 疏散通道', status: '已确认', statusTone: 'normal', elapsed: '02:21', active: false },
 ]
-
-
 
 // ============================================================
 // 消防保障系统概况
@@ -351,22 +393,22 @@ export const PASSIVE_BLOCKS: PassiveBlock[] = [
     key: 'elec',
     name: '电气火灾',
     metrics: [
-      { label: '漏电', value: '2', unit: '处', tone: 'warning' },
-      { label: '三相不平衡', value: '1', unit: '处' },
-      { label: '线缆温度超限', value: '1', unit: '处', tone: 'warning' },
-      { label: '违规充电', value: '3', unit: '处', tone: 'fault' },
+      { label: '漏电', value: '2', unit: '处', tone: 'abnormal' },
+      { label: '三相不平衡', value: '1', unit: '处', tone: 'normal' },
+      { label: '线缆温度超限', value: '1', unit: '处', tone: 'abnormal' },
+      { label: '违规充电', value: '3', unit: '处', tone: 'abnormal' },
     ],
     top: '5 号楼 3 单元竖井 · 线缆温度超限',
-    topTone: 'warning',
+    topTone: 'abnormal',
     pending: true,
   },
   {
     key: 'door',
     name: '防火门',
     metrics: [
-      { label: '常闭门被开启', value: '4', unit: '扇', tone: 'warning' },
-      { label: '闭门器失效', value: '2', unit: '扇' },
-      { label: '顺序器故障', value: '1', unit: '扇' },
+      { label: '常闭门被开启', value: '4', unit: '扇', tone: 'abnormal' },
+      { label: '闭门器失效', value: '2', unit: '扇', tone: 'abnormal' },
+      { label: '顺序器故障', value: '1', unit: '扇', tone: 'abnormal' },
       { label: '完好率', value: '96.0', unit: '%', tone: 'normal' },
     ],
     pending: true,
@@ -376,8 +418,8 @@ export const PASSIVE_BLOCKS: PassiveBlock[] = [
     name: '应急疏散',
     metrics: [
       { label: '应急照明在线率', value: '98.4', unit: '%', tone: 'normal' },
-      { label: '疏散指示故障', value: '3', unit: '处', tone: 'warning' },
-      { label: '安全出口占用', value: '2', unit: '处', tone: 'fault' },
+      { label: '疏散指示故障', value: '3', unit: '处', tone: 'abnormal' },
+      { label: '安全出口占用', value: '2', unit: '处', tone: 'abnormal' },
     ],
     pending: true,
   },
