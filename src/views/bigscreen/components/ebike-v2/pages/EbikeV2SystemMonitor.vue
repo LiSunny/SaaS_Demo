@@ -18,9 +18,8 @@
           </button>
         </div>
 
-        <!-- 当前画面名 + 设备数 -->
+        <!-- 设备数 -->
         <div class="monitor__canvas-meta">
-          <span class="monitor__canvas-name">{{ currentScene?.name || '暂无画面' }}</span>
           <span class="monitor__canvas-count">{{ nodeCount }} 台设备</span>
         </div>
 
@@ -33,6 +32,17 @@
       <EbikeV2FaultRank />
       <EbikeV2PlaceholderCard
         v-for="t in BOTTOM_MODULES"
+        :key="t"
+        :title="t"
+        :sub="currentSub"
+      />
+    </template>
+
+    <!-- 右列：健康度分析已实现，其余两模块待接入 -->
+    <template #side>
+      <EbikeV2HealthRadar :system-name="activeSystemName" />
+      <EbikeV2PlaceholderCard
+        v-for="t in SIDE_MODULES"
         :key="t"
         :title="t"
         :sub="currentSub"
@@ -56,11 +66,13 @@ import type { SceneConfig } from '@/types/scene-config'
 import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
 import EbikeV2FaultRank from '../EbikeV2FaultRank.vue'
+import EbikeV2HealthRadar from '../EbikeV2HealthRadar.vue'
 import EbikeV2PlaceholderCard from '../EbikeV2PlaceholderCard.vue'
 
 /** Figma 内容区里的模块分布（底部一行的「多发故障排名」已单独实现，不在此列） */
 const BOTTOM_MODULES = ['故障发生趋势', '实时警情']
-const SIDE_MODULES = ['健康度分析', '设备状态监控', '统计分析报表']
+/** 右列三模块（首位的「健康度分析」已单独实现，不在此列） */
+const SIDE_MODULES = ['设备状态监控', '统计分析报表']
 
 const scenes = ref<SceneConfig[]>([])
 const loading = ref(false)
@@ -95,6 +107,11 @@ const currentScene = computed(() =>
 )
 
 const nodeCount = computed(() => currentScene.value?.nodes?.length ?? 0)
+
+/** 当前选中的系统名：健康度分析等模块按系统区分 */
+const activeSystemName = computed(
+  () => systems.value.find((s) => s.key === activeSystemKey.value)?.name ?? '本系统',
+)
 
 /** 占位模块的副标题：当前系统 + 当前画面 */
 const currentSub = computed(() => {
@@ -170,7 +187,7 @@ onMounted(async () => {
   color: #fff;
 }
 
-/* 画面名与设备数：浮在画布右上角 */
+/* 设备数：浮在画布右上角 */
 .monitor__canvas-meta {
   position: absolute;
   top: vh(12);
@@ -183,7 +200,7 @@ onMounted(async () => {
   color: var(--fire-text-sub);
 }
 
-.monitor__canvas-name {
+.monitor__canvas-count {
   color: var(--fire-text-title);
   font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
 }

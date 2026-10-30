@@ -107,10 +107,10 @@ withDefaults(
   min-width: 0;
 }
 
-/* 右列三模块 */
+/* 右列三模块。宽 520（Figma 原为 456，健康度分析改上下布局后需要更宽的横向空间） */
 .page-shell__side {
   flex-shrink: 0;
-  width: vw(456);
+  width: vw(520);
   display: flex;
   flex-direction: column;
   gap: vh(16);

@@ -1,0 +1,22 @@
+<svg width="494" height="40" viewBox="0 0 494 40" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- 健康度分析「待改进」条背景：左端一点暖光 + 细斜纹，整体压得很淡，
+     只做"这里有内容"的底衬，不与文字争对比度。
+     preserveAspectRatio="none"：随建议条宽度拉伸，纹理不出缝。 -->
+<defs>
+  <linearGradient id="advice-base" x1="0" y1="0" x2="494" y2="0" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#0d4a8c" stop-opacity="0.5"/>
+    <stop offset="0.42" stop-color="#0d4a8c" stop-opacity="0.12"/>
+    <stop offset="1" stop-color="#0d4a8c" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="advice-warm" cx="30" cy="20" r="110" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#ff8080" stop-opacity="0.14"/>
+    <stop offset="1" stop-color="#ff8080" stop-opacity="0"/>
+  </radialGradient>
+  <pattern id="advice-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="12" stroke="#9ecdff" stroke-opacity="0.09" stroke-width="1"/>
+  </pattern>
+</defs>
+<rect width="494" height="40" fill="url(#advice-base)"/>
+<rect width="494" height="40" fill="url(#advice-hatch)"/>
+<rect width="494" height="40" fill="url(#advice-warm)"/>
+</svg>
