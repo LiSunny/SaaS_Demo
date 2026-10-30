@@ -1,5 +1,5 @@
 <template>
-  <EbikeV2PageShell :side-modules="SIDE_MODULES" :sub="currentSub">
+  <EbikeV2PageShell>
     <template #main>
       <section class="monitor__canvas-panel">
         <!-- 系统切换：浮在画布左上角 -->
@@ -34,16 +34,11 @@
       <EbikeV2AlarmFeed :scene="currentScene" :system-name="activeSystemName" />
     </template>
 
-    <!-- 右列：健康度分析、设备状态监控已实现，统计分析报表待接入 -->
+    <!-- 右列：健康度分析、设备状态监控、统计分析报表 -->
     <template #side>
       <EbikeV2HealthRadar :system-name="activeSystemName" />
       <EbikeV2DeviceStatus :scene="currentScene" />
-      <EbikeV2PlaceholderCard
-        v-for="t in SIDE_MODULES"
-        :key="t"
-        :title="t"
-        :sub="currentSub"
-      />
+      <EbikeV2StatReport :system-key="activeSystemKey" :system-name="activeSystemName" />
     </template>
   </EbikeV2PageShell>
 </template>
@@ -67,10 +62,7 @@ import EbikeV2FaultCurve from '../EbikeV2FaultCurve.vue'
 import EbikeV2AlarmFeed from '../EbikeV2AlarmFeed.vue'
 import EbikeV2HealthRadar from '../EbikeV2HealthRadar.vue'
 import EbikeV2DeviceStatus from '../EbikeV2DeviceStatus.vue'
-import EbikeV2PlaceholderCard from '../EbikeV2PlaceholderCard.vue'
-
-/** 右列三模块（首位的「健康度分析」「设备状态监控」已单独实现，不在此列） */
-const SIDE_MODULES = ['统计分析报表']
+import EbikeV2StatReport from '../EbikeV2StatReport.vue'
 
 const scenes = ref<SceneConfig[]>([])
 const loading = ref(false)
@@ -110,13 +102,6 @@ const nodeCount = computed(() => currentScene.value?.nodes?.length ?? 0)
 const activeSystemName = computed(
   () => systems.value.find((s) => s.key === activeSystemKey.value)?.name ?? '本系统',
 )
-
-/** 占位模块的副标题：当前系统 + 当前画面 */
-const currentSub = computed(() => {
-  const sys = systems.value.find((s) => s.key === activeSystemKey.value)
-  const scene = currentScene.value
-  return [sys?.name, scene?.name].filter(Boolean).join(' · ')
-})
 
 onMounted(async () => {
   loading.value = true

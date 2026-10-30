@@ -48,10 +48,10 @@
  * 接真接口时只替换 valueOf 的取值来源，图形部分不动。
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { symbolDef, SYMBOL_REGISTRY_VERSION } from '@/symbols'
 import { useSymbolStore } from '@/stores/symbols'
 import type { SceneConfig } from '@/types/scene-config'
 import { pickOf, rngOf, seedOf } from './seeded-random'
+import { isAbnormalPoint, pointSourcesOf, type PointSource } from './scene-points'
 import EbikeV2Card from './EbikeV2Card.vue'
 
 const props = withDefaults(
@@ -74,44 +74,12 @@ const VISIBLE = 6
 /** 演示节奏：推一条新事件的间隔（秒） */
 const FEED_INTERVAL = 10
 
-/** 事件源：画面里的设备 × 其符号的绑定点位 */
-interface EventSource {
-  /** 设备名（画面图元标签） */
-  device: string
-  /** 点位名 */
-  point: string
-  /** 点位类型：bool / text / level / angle */
-  kind: string
-  unit?: string
-  min?: number
-  max?: number
-}
-
 /**
  * 事件源池
  *
- * 自定义图元（SCS-* / GFES-* / CUS-*）是异步注册进渲染链路的，
- * 读 DEF_MAP 前先碰一下注册版本号，注册完成后本计算值会重算。
+ * 画面里的设备 × 其符号的绑定点位 —— 与「统计分析报表」同一份口径（scene-points.ts）。
  */
-const sources = computed<EventSource[]>(() => {
-  void SYMBOL_REGISTRY_VERSION.value
-  const out: EventSource[] = []
-  for (const n of props.scene?.nodes ?? []) {
-    const def = symbolDef(n.symbol)
-    if (!def) continue
-    for (const b of def.bindings ?? []) {
-      out.push({
-        device: n.label || def.name,
-        point: b.name,
-        kind: b.kind,
-        unit: b.unit,
-        min: b.min,
-        max: b.max,
-      })
-    }
-  }
-  return out
-})
+const sources = computed<PointSource[]>(() => pointSourcesOf(props.scene))
 
 /* ============================================================
  * 上报值
@@ -161,18 +129,11 @@ function boolStateOf(name: string, rnd: () => number): string {
   return '动作'
 }
 
-/** 异常点位名：这些点位的上报值用异常红 */
-const ABNORMAL_WORDS = ['故障', '报警', '失重', '欠压', '超限', '水浸']
-
-function isAbnormalPoint(point: string): boolean {
-  return ABNORMAL_WORDS.some((w) => point.includes(w))
-}
-
 /** 与数值紧贴的单位（百分号、摄氏度）：写成「86%」「32℃」 */
 const TIGHT_UNITS = new Set(['%', '℃', '%RH'])
 
 /** 上报值文本 */
-function valueOf(src: EventSource, rnd: () => number): string {
+function valueOf(src: PointSource, rnd: () => number): string {
   if (src.kind === 'bool') return boolStateOf(src.point, rnd)
 
   const named = NAME_RANGE[src.point]
