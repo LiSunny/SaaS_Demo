@@ -1,13 +1,13 @@
 <template>
   <div class="ebike-v2">
-    <!-- ===== 最低层级：校园三维模型（全屏铺底） ===== -->
-    <EbikeV2CampusModel v-if="!isMonitor" ref="campusRef" />
+    <!-- ===== 最低层级：校园三维模型（全屏铺底，仅总览页需要） ===== -->
+    <EbikeV2CampusModel v-if="!activePage" ref="campusRef" />
 
     <!-- ===== 大标题（浮于模型之上） ===== -->
     <EbikeV2Header :active-index="activeNavIndex" @select="handleNavSelect" />
 
-    <!-- ===== 系统监测页（顶栏第 3 项：组态画布 + 六个模块） ===== -->
-    <EbikeV2SystemMonitor v-if="isMonitor" />
+    <!-- ===== 导航页：实时警情 / 系统监测 / 消防档案 / 运行报告 ===== -->
+    <component :is="activePage" v-if="activePage" />
 
     <!-- ===== 态势条 + 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
     <main v-else class="ebike-v2__content">
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, type Component } from 'vue'
 import './components/ebike-v2/ebike-v2-fonts.css'
 import EbikeV2Header from './components/ebike-v2/EbikeV2Header.vue'
 import EbikeV2CampusModel from './components/ebike-v2/EbikeV2CampusModel.vue'
@@ -52,7 +52,10 @@ import FireOverviewPassivePanel from './components/ebike-v2/fire/FireOverviewPas
 import EbikeV2TimeSwitch from './components/ebike-v2/EbikeV2TimeSwitch.vue'
 import EbikeV2PoiToggle from './components/ebike-v2/EbikeV2PoiToggle.vue'
 import EbikeV2AgentPanel from './components/ebike-v2/EbikeV2AgentPanel.vue'
-import EbikeV2SystemMonitor from './components/ebike-v2/monitor/EbikeV2SystemMonitor.vue'
+import EbikeV2RealTimeAlarm from './components/ebike-v2/pages/EbikeV2RealTimeAlarm.vue'
+import EbikeV2SystemMonitor from './components/ebike-v2/pages/EbikeV2SystemMonitor.vue'
+import EbikeV2FireArchive from './components/ebike-v2/pages/EbikeV2FireArchive.vue'
+import EbikeV2OperationReport from './components/ebike-v2/pages/EbikeV2OperationReport.vue'
 import { provideCampusModel, type CampusModelApi } from './components/ebike-v2/useCampusModel'
 
 /** 模型实例：模型区悬浮控件（建筑导航 / 昼夜切换）通过 provide/inject 取用 */
@@ -63,10 +66,21 @@ provideCampusModel(campusRef)
 const activeNavIndex = ref(0)
 const agentOpen = ref(false)
 
-/** 「系统监测」在导航中的下标 */
-const MONITOR_NAV_INDEX = 2
-/** 当前是否停在系统监测页 */
-const isMonitor = computed(() => activeNavIndex.value === MONITOR_NAV_INDEX)
+/**
+ * 导航下标 → 页面组件
+ *
+ * 下标 0（校园总览）与 5（小安助手）不在此表：总览是本页默认内容，
+ * 助手是页内浮层，都不占独立页面。
+ */
+const NAV_PAGES: Record<number, Component> = {
+  1: EbikeV2RealTimeAlarm,
+  2: EbikeV2SystemMonitor,
+  3: EbikeV2FireArchive,
+  4: EbikeV2OperationReport,
+}
+
+/** 当前导航页组件；为空表示停在总览页 */
+const activePage = computed(() => NAV_PAGES[activeNavIndex.value] ?? null)
 
 /** 打开助手前的导航项：关闭助手后回退到该项，保持大屏上下文 */
 let navIndexBeforeAgent = 0

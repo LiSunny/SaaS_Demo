@@ -1,7 +1,6 @@
 <template>
-  <div class="monitor">
-    <!-- ===== 左列：组态画布（上）+ 三个模块（下） ===== -->
-    <div class="monitor__main">
+  <EbikeV2PageShell :row-modules="BOTTOM_MODULES" :side-modules="SIDE_MODULES" :sub="currentSub">
+    <template #main>
       <section class="monitor__canvas-panel">
         <!-- 系统切换：浮在画布左上角 -->
         <div class="monitor__switch" role="tablist" aria-label="系统筛选">
@@ -27,27 +26,8 @@
 
         <EbikeV2SceneCanvas :scene="currentScene" empty-text="该系统暂无组态画面" />
       </section>
-
-      <div class="monitor__row">
-        <EbikeV2MonitorCard
-          v-for="t in BOTTOM_MODULES"
-          :key="t"
-          :title="t"
-          :sub="currentSub"
-        />
-      </div>
-    </div>
-
-    <!-- ===== 右列：三个模块 ===== -->
-    <div class="monitor__side">
-      <EbikeV2MonitorCard
-        v-for="t in SIDE_MODULES"
-        :key="t"
-        :title="t"
-        :sub="currentSub"
-      />
-    </div>
-  </div>
+    </template>
+  </EbikeV2PageShell>
 </template>
 
 <script setup lang="ts">
@@ -62,8 +42,8 @@ import { computed, onMounted, ref } from 'vue'
 import { fetchSceneList } from '@/api/scene-config'
 import { SYMBOL_SYSTEMS } from '@/symbols'
 import type { SceneConfig } from '@/types/scene-config'
+import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
-import EbikeV2MonitorCard from './EbikeV2MonitorCard.vue'
 
 /** Figma 内容区里的模块分布 */
 const BOTTOM_MODULES = ['多发故障排名', '故障发生趋势', '实时警情']
@@ -129,27 +109,6 @@ onMounted(async () => {
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
 
-/* 页面容器：顶栏以下铺满；底色与总览页一致（由外层 .ebike-v2 提供） */
-.monitor {
-  position: absolute;
-  top: vh(68);
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  gap: vw(16);
-  padding: vh(18) vw(16) vh(16);
-}
-
-/* 左列：组态画布 + 底部三模块 */
-.monitor__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: vh(16);
-}
-
 /* 组态画布区 */
 .monitor__canvas-panel {
   position: relative;
@@ -214,32 +173,5 @@ onMounted(async () => {
 .monitor__canvas-name {
   color: var(--fire-text-title);
   font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
-}
-
-/* 底部三模块 */
-.monitor__row {
-  flex-shrink: 0;
-  height: vh(303);
-  display: flex;
-  gap: vw(16);
-}
-
-.monitor__row > * {
-  flex: 1;
-  min-width: 0;
-}
-
-/* 右列三模块 */
-.monitor__side {
-  flex-shrink: 0;
-  width: vw(456);
-  display: flex;
-  flex-direction: column;
-  gap: vh(16);
-}
-
-.monitor__side > * {
-  flex: 1;
-  min-height: 0;
 }
 </style>
