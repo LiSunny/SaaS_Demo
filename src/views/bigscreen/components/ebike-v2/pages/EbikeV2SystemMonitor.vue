@@ -148,9 +148,13 @@ onMounted(async () => {
   min-height: 0;
   border: 1px solid rgba(0, 152, 230, 0.16);
   border-radius: 3px;
-  background:
-    linear-gradient(180deg, rgba(0, 44, 94, 0.72), rgba(0, 30, 68, 0.72)),
-    #03254f;
+  /* 底纹：淡淡的网格底衬 + 深蓝玻璃渐变 */
+  background-image:
+    url('@/assets/bigscreen/ebike-v2/canvas-grid-bg.svg'),
+    linear-gradient(180deg, rgba(0, 44, 94, 0.72), rgba(0, 30, 68, 0.72));
+  background-size: vw(200) vw(200), auto;
+  background-repeat: repeat, no-repeat;
+  background-color: #03254f;
   overflow: hidden;
 }
 

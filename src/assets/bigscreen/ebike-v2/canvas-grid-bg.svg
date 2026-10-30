@@ -1,0 +1,9 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- 组态画布底纹：田字格样式 —— 100px 见方的格子，外框实线，内部十字线用虚线。
+     虚线周期 20px 整除 200px，横向平铺时接缝对齐，不会出现错位断口。 -->
+<g stroke="#8fc4ff" stroke-opacity="0.07" stroke-width="1" stroke-dasharray="10 10">
+  <path d="M100 0v200"/>
+  <path d="M0 100h200"/>
+</g>
+<path d="M0 0h200v200H0z" stroke="#8fc4ff" stroke-opacity="0.1" stroke-width="1"/>
+</svg>

@@ -5,7 +5,18 @@
       <span class="monitor-scene__empty-text">{{ emptyText }}</span>
     </div>
 
-    <div v-else class="monitor-scene__canvas">
+    <div
+      v-else
+      ref="canvasEl"
+      class="monitor-scene__canvas"
+      :class="{ 'monitor-scene__canvas--grab': canPan }"
+      :style="canvasStyle"
+      @wheel.prevent="onWheel"
+      @pointerdown="onPointerDown"
+      @pointermove="onPointerMove"
+      @pointerup="onPointerUp"
+      @pointercancel="onPointerUp"
+    >
       <!--
         三层叠加，同一 viewBox 与同一容器尺寸 → 渲染区域完全对齐。
         拆层的原因：SVG 内的位图与 SVG 整体一起被光栅化，动画一动整张 SVG 失效，
@@ -89,6 +100,37 @@
         </g>
       </svg>
     </div>
+
+    <!-- 缩放控件：浮在画布右下角 -->
+    <div v-if="scene" class="monitor-scene__zoom">
+      <button
+        type="button"
+        class="monitor-scene__zoom-btn"
+        title="缩小"
+        :disabled="zoom <= ZOOM_MIN"
+        @click="zoomOut"
+      >
+        −
+      </button>
+      <span class="monitor-scene__zoom-val">{{ zoomPercent }}%</span>
+      <button
+        type="button"
+        class="monitor-scene__zoom-btn"
+        title="放大"
+        :disabled="zoom >= ZOOM_MAX"
+        @click="zoomIn"
+      >
+        ＋
+      </button>
+      <button
+        type="button"
+        class="monitor-scene__zoom-btn monitor-scene__zoom-btn--wide"
+        title="适应画布"
+        @click="resetZoom"
+      >
+        适应
+      </button>
+    </div>
   </div>
 </template>
 
@@ -99,7 +141,7 @@
  * 与组态编辑器（SceneCanvas.vue）分开：编辑器带网格 / 端口 / 状态条等编辑器件，
  * 大屏只需要"画面 + 设备"。图元几何、端口坐标、正交连线路径复用 @/symbols 同一套实现。
  */
-import { computed, onMounted, useId } from 'vue'
+import { computed, onMounted, reactive, ref, useId } from 'vue'
 import SceneSymbolNode from '@/components/device-facility/SceneSymbolNode.vue'
 import {
   edgePath,
@@ -161,12 +203,118 @@ onMounted(async () => {
     // 未登录或接口不可用：内置图元仍可渲染
   }
 })
+
+/* ================= 缩放与平移 =================
+ *
+ * SVG 用 preserveAspectRatio="xMidYMid meet" 始终把画面缩放居中到容器，
+ * 缩放叠加在容器上（transform-origin: center）→ 画面放大后仍然居中，
+ * 不会出现"以左上角为基准放大、内容跑偏"的问题。
+ *
+ * 缩放倍数 1 = 适应画布（SVG 原始适配比例），可放大到 400%、缩小到 50%。
+ * 放大后可按住拖动平移，平移量按容器尺寸夹紧，不会把画面拖出视野。
+ */
+
+/** 缩放范围 */
+const ZOOM_MIN = 0.5
+const ZOOM_MAX = 4
+/** 一次滚轮 / 按钮的缩放步长 */
+const ZOOM_STEP = 1.25
+
+const canvasEl = ref<HTMLElement | null>(null)
+/** 缩放倍数：1 = 适应画布 */
+const zoom = ref(1)
+/** 平移量（px） */
+const pan = reactive({ x: 0, y: 0 })
+
+const zoomPercent = computed(() => Math.round(zoom.value * 100))
+/** 放大后才能拖动 */
+const canPan = computed(() => zoom.value > 1)
+
+/** 画布的缩放与平移 */
+const canvasStyle = computed(() => ({
+  transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom.value})`,
+}))
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v))
+}
+
+/** 平移夹紧：放大后的画面不会整体移出容器 */
+function clampPan() {
+  const el = canvasEl.value
+  if (!el || zoom.value <= 1) {
+    pan.x = 0
+    pan.y = 0
+    return
+  }
+  // clientWidth / clientHeight 是布局尺寸，不受 transform 影响
+  const maxX = (el.clientWidth * (zoom.value - 1)) / 2
+  const maxY = (el.clientHeight * (zoom.value - 1)) / 2
+  pan.x = clamp(pan.x, -maxX, maxX)
+  pan.y = clamp(pan.y, -maxY, maxY)
+}
+
+/** 设置缩放倍数（缩放基准是容器中心 → 画面始终居中） */
+function setZoom(next: number) {
+  zoom.value = clamp(next, ZOOM_MIN, ZOOM_MAX)
+  if (zoom.value <= 1) {
+    pan.x = 0
+    pan.y = 0
+    return
+  }
+  clampPan()
+}
+
+function zoomIn() {
+  setZoom(zoom.value * ZOOM_STEP)
+}
+
+function zoomOut() {
+  setZoom(zoom.value / ZOOM_STEP)
+}
+
+/** 复位：回到适应画布 */
+function resetZoom() {
+  zoom.value = 1
+  pan.x = 0
+  pan.y = 0
+}
+
+/** 滚轮缩放（以画布中心为基准） */
+function onWheel(e: WheelEvent) {
+  setZoom(zoom.value * (e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP))
+}
+
+/** 拖拽平移 */
+let dragging = false
+let dragStart = { x: 0, y: 0, px: 0, py: 0 }
+
+function onPointerDown(e: PointerEvent) {
+  if (!canPan.value) return
+  dragging = true
+  dragStart = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y }
+  ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+}
+
+function onPointerMove(e: PointerEvent) {
+  if (!dragging) return
+  pan.x = dragStart.px + (e.clientX - dragStart.x)
+  pan.y = dragStart.py + (e.clientY - dragStart.y)
+  clampPan()
+}
+
+function onPointerUp(e: PointerEvent) {
+  if (!dragging) return
+  dragging = false
+  ;(e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId)
+}
 </script>
 
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
 
 .monitor-scene {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -178,6 +326,19 @@ onMounted(async () => {
   position: relative;
   flex: 1;
   min-height: 0;
+  /* 缩放以容器中心为基准 → 画面放大后仍然居中 */
+  transform-origin: center center;
+  touch-action: none;
+  will-change: transform;
+}
+
+/* 放大后可拖动平移 */
+.monitor-scene__canvas--grab {
+  cursor: grab;
+}
+
+.monitor-scene__canvas--grab:active {
+  cursor: grabbing;
 }
 
 .monitor-scene__svg {
@@ -214,6 +375,62 @@ onMounted(async () => {
   font-size: clamp(14px, calc(15 * var(--min-scale)), 15px);
   color: rgba(143, 176, 216, 0.7);
   letter-spacing: 1px;
+}
+
+/* ===== 缩放控件（浮在画布右下角） ===== */
+.monitor-scene__zoom {
+  position: absolute;
+  right: vw(14);
+  bottom: vh(12);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: vw(6);
+  padding: vh(4) vw(6);
+  border: 1px solid rgba(120, 190, 255, 0.2);
+  border-radius: vw(2);
+  background: rgba(0, 44, 94, 0.72);
+}
+
+.monitor-scene__zoom-btn {
+  width: vw(26);
+  height: vh(26);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(120, 190, 255, 0.28);
+  border-radius: vw(2);
+  background: rgba(0, 68, 130, 0.55);
+  color: rgba(200, 228, 255, 0.9);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.monitor-scene__zoom-btn:hover:not(:disabled) {
+  background: rgba(0, 92, 168, 0.72);
+  color: #eaf6ff;
+}
+
+.monitor-scene__zoom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.monitor-scene__zoom-btn--wide {
+  width: vw(44);
+}
+
+/* 当前缩放比（100% = 适应画布） */
+.monitor-scene__zoom-val {
+  min-width: vw(38);
+  text-align: center;
+  font-family: 'Douyin Sans', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fire-text-title);
 }
 
 /* ===== 连线 ===== */
