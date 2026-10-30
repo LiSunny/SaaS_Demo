@@ -28,12 +28,12 @@ import EbikeV2Nav from './EbikeV2Nav.vue'
 /** 导航：消防安全管理口径（校园总览 → 应急处置）
  *  总览页只放"现在要动手的"，其余页面承接明细 */
 const navItems = ref([
-  { label: '消防总览', key: 'overview' },
+  { label: '校园总览', key: 'overview' },
   { label: '实时警情', key: 'nav-1' },
   { label: '系统监测', key: 'nav-2' },
-  { label: '设备档案', key: 'nav-3' },
-  { label: '值班记录', key: 'nav-4' },
-  { label: '应急处置', key: 'nav-5' },
+  { label: '消防档案', key: 'nav-3' },
+  { label: '运行报告', key: 'nav-4' },
+  { label: '小安助手', key: 'nav-5' },
 ])
 
 function handleSelect(item: { key?: string }) {
