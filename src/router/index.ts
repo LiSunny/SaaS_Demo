@@ -90,7 +90,7 @@ const router = createRouter({
     {
       path: '/agent',
       name: 'AgentWorkbench',
-      component: () => import('@/views/agent/AgentPage.vue'),
+      component: () => import('@/views/agent/AgentWorkbench.vue'),
       meta: { standalone: true },
     },
 

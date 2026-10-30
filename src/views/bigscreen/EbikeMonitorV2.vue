@@ -4,7 +4,7 @@
     <EbikeV2CampusModel ref="campusRef" />
 
     <!-- ===== 大标题（浮于模型之上） ===== -->
-    <EbikeV2Header />
+    <EbikeV2Header :active-index="activeNavIndex" @select="handleNavSelect" />
 
     <!-- ===== 态势条 + 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
     <main class="ebike-v2__content">
@@ -30,6 +30,9 @@
         </div>
       </div>
     </main>
+
+    <!-- ===== 小安助手：页内浮层（不跳转路由，深色工作台直接嵌在本页） ===== -->
+    <EbikeV2AgentPanel v-if="agentOpen" @close="closeAgent" />
   </div>
 </template>
 
@@ -45,11 +48,41 @@ import FireOverviewAssurancePanel from './components/ebike-v2/fire/FireOverviewA
 import FireOverviewPassivePanel from './components/ebike-v2/fire/FireOverviewPassivePanel.vue'
 import EbikeV2TimeSwitch from './components/ebike-v2/EbikeV2TimeSwitch.vue'
 import EbikeV2PoiToggle from './components/ebike-v2/EbikeV2PoiToggle.vue'
+import EbikeV2AgentPanel from './components/ebike-v2/EbikeV2AgentPanel.vue'
 import { provideCampusModel, type CampusModelApi } from './components/ebike-v2/useCampusModel'
 
 /** 模型实例：模型区悬浮控件（建筑导航 / 昼夜切换）通过 provide/inject 取用 */
 const campusRef = ref<CampusModelApi | null>(null)
 provideCampusModel(campusRef)
+
+/** ===== 顶栏导航 ===== */
+const activeNavIndex = ref(0)
+const agentOpen = ref(false)
+
+/** 打开助手前的导航项：关闭助手后回退到该项，保持大屏上下文 */
+let navIndexBeforeAgent = 0
+
+function handleNavSelect(item: { key?: string }, index: number) {
+  if (item.key === 'agent') {
+    // 再次点击同一项 = 收起助手浮层
+    if (agentOpen.value) {
+      closeAgent()
+      return
+    }
+    navIndexBeforeAgent = activeNavIndex.value
+    agentOpen.value = true
+    activeNavIndex.value = index
+    return
+  }
+  // 切换到其他导航项：关闭助手浮层
+  agentOpen.value = false
+  activeNavIndex.value = index
+}
+
+function closeAgent() {
+  agentOpen.value = false
+  activeNavIndex.value = navIndexBeforeAgent
+}
 </script>
 
 <style lang="scss" scoped>

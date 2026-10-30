@@ -1,5 +1,5 @@
 <template>
-  <div class="agent-workbench" :class="{ light: !isDark }">
+  <div class="agent-workbench" :class="{ light: !isDark, embedded }">
     <!-- ===== 左栏：会话列表 ===== -->
     <aside class="col col-left" :class="{ collapsed: leftCollapsed }" :style="{ width: leftCollapsed ? 0 : leftWidth + 'px' }">
       <div class="brand">
@@ -69,8 +69,8 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="14" x="4" y="5" rx="2" /><path d="M9.5 5v14" /></svg>
         </button>
         <span class="main-title">{{ currentTitle }}</span>
-        <!-- 深色 / 浅色切换 -->
-        <button class="theme-toggle" :class="{ light: !isDark }" :title="isDark ? '切换到浅色模式' : '切换到深色模式'" @click="toggleTheme">
+        <!-- 深色 / 浅色切换（强制深色时隐藏：嵌入大屏浮层不允许切浅色） -->
+        <button v-if="!forceDark" class="theme-toggle" :class="{ light: !isDark }" :title="isDark ? '切换到浅色模式' : '切换到深色模式'" @click="toggleTheme">
           <span class="tt-thumb">
             <svg v-if="isDark" class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
             <svg v-else class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
@@ -83,6 +83,10 @@
           @click="rightCollapsed = !rightCollapsed"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="14" x="4" y="5" rx="2" /><path d="M14.5 5v14" /></svg>
+        </button>
+        <!-- 关闭按钮：仅嵌入大屏浮层时出现（独立工作台由浏览器标签页关闭） -->
+        <button v-if="closable" class="col-expand-btn close-btn" title="关闭小安助手" @click="emit('close')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
@@ -338,7 +342,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted, toRefs } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
@@ -348,6 +352,24 @@ import { loginApi } from '@/api/auth'
 import { ACTIVE_DEMO_ACCOUNTS, type DemoAccount } from '@/config/demo-accounts'
 
 marked.setOptions({ breaks: true, gfm: true })
+
+/** 组件属性
+ *  - embedded：嵌入模式，铺满父容器（大屏浮层），而不是 100vw/100vh 独立整屏
+ *  - forceDark：强制深色主题，并隐藏主题切换按钮（嵌入大屏时只保留深色）
+ *  - closable：显示关闭按钮并抛出 close 事件（嵌入大屏浮层时用）
+ *  - defaultRightCollapsed：右栏（调用时间线 / 产物）默认折叠 */
+const props = withDefaults(
+  defineProps<{
+    embedded?: boolean
+    forceDark?: boolean
+    closable?: boolean
+    defaultRightCollapsed?: boolean
+  }>(),
+  { embedded: false, forceDark: false, closable: false, defaultRightCollapsed: false },
+)
+const { embedded, forceDark, closable, defaultRightCollapsed } = toRefs(props)
+
+const emit = defineEmits<{ (e: 'close'): void }>()
 
 function renderMarkdown(text: string): string {
   if (!text) return ''
@@ -420,8 +442,10 @@ if (!userStore.isLoggedIn) {
 }
 
 // ===== 深色 / 浅色主题（localStorage 持久化，默认深色） =====
-const isDark = ref(localStorage.getItem('agent_theme') !== 'light')
+// forceDark：嵌入大屏浮层时锁定深色，不读也不写 localStorage，避免改动独立工作台的主题偏好
+const isDark = ref(forceDark.value ? true : localStorage.getItem('agent_theme') !== 'light')
 function toggleTheme() {
+  if (forceDark.value) return
   isDark.value = !isDark.value
   localStorage.setItem('agent_theme', isDark.value ? 'dark' : 'light')
 }
@@ -742,7 +766,7 @@ const isNarrow = () => window.innerWidth < 768
 const leftWidth = ref(268)
 const rightWidth = ref(330)
 const leftCollapsed = ref(isNarrow())
-const rightCollapsed = ref(isNarrow())
+const rightCollapsed = ref(isNarrow() || defaultRightCollapsed.value)
 const resizing = ref<'left' | 'right' | null>(null)
 
 let prevNarrow = isNarrow()
@@ -988,6 +1012,22 @@ function downloadArtifact() {
   overflow: hidden;
 }
 
+/* 嵌入模式：铺满父容器（大屏浮层），不占用 100vw/100vh 独立整屏 */
+.agent-workbench.embedded {
+  width: 100%;
+  height: 100%;
+  /* 嵌入大屏的配色：底色由外部注入（= 三维模型背景色，所有导航页统一），
+     面板与文字按深蓝一族重算，避免"黑底应用贴在大屏上"的割裂感。
+     变量均可被外部覆盖。 */
+  --bg-0: var(--embed-page-bg, #00437a);
+  --bg-1: var(--embed-surface, #03285a);
+  --bg-2: var(--embed-surface-2, #0a3a70);
+  --bg-3: var(--embed-surface-3, #10477f);
+  --text-1: var(--embed-text-1, #eaf3ff);
+  --text-2: var(--embed-text-2, #a9c6e8);
+  --text-3: var(--embed-text-3, #86a8cf);
+}
+
 /* ===== 浅色模式 ===== */
 .agent-workbench.light {
   --bg-0: #eef1f6;
@@ -1066,6 +1106,9 @@ function downloadArtifact() {
 }
 .col-expand-btn:hover { background: var(--bg-2); color: var(--text-1); }
 .col-expand-btn.active { color: var(--accent); background: var(--accent-soft); }
+
+/* 关闭按钮（仅嵌入大屏浮层）：与折叠按钮同款，悬停转红区分 */
+.close-btn:hover { background: rgba(248, 113, 113, 0.14); color: var(--red); }
 
 /* 深色 / 浅色切换开关——强调色常驻，让用户一眼看出可交互 */
 .theme-toggle {

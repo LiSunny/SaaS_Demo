@@ -15,7 +15,7 @@
     </template>
 
     <template #nav>
-      <EbikeV2Nav :items="navItems" @select="handleSelect" />
+      <EbikeV2Nav :items="navItems" :active-index="activeIndex" @select="(item, idx) => emit('select', item, idx)" />
     </template>
   </BigscreenTitleBar>
 </template>
@@ -33,13 +33,13 @@ const navItems = ref([
   { label: '系统监测', key: 'nav-2' },
   { label: '消防档案', key: 'nav-3' },
   { label: '运行报告', key: 'nav-4' },
-  { label: '小安助手', key: 'nav-5' },
+  { label: '小安助手', key: 'agent' },
 ])
 
-function handleSelect(item: { key?: string }) {
-  // 后续模块接入时在此按 key 切换内容
-  void item
-}
+/** 当前选中项下标：由大屏页统一控制（助手浮层打开时该项保持选中） */
+defineProps<{ activeIndex?: number }>()
+
+const emit = defineEmits<{ (e: 'select', item: { key?: string }, index: number): void }>()
 </script>
 
 <style lang="scss" scoped>

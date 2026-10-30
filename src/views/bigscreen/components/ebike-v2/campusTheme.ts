@@ -122,6 +122,15 @@ export const BIGSCREEN_CAMPUS_THEMES: Record<CampusTimePreset, CampusTheme> = {
   night: NIGHT_THEME,
 }
 
+/**
+ * 大屏各导航页面的统一底色 = 三维模型场景背景色（skyBottom）。
+ *
+ * 白天 / 黄昏两档同值 #00437a（夜晚档为 #023a6b），本页昼夜开关只有
+ * 白天 / 黄昏两档，故取黄昏值作为导航页统一底色。
+ * 导航页（当前：小安助手）把本值注入 --embed-page-bg，保证与总览页同色。
+ */
+export const BIGSCREEN_CAMPUS_BG = BIGSCREEN_CAMPUS_THEMES.dusk.skyBottom
+
 /** 默认预设（进入大屏时的场景） */
 export const BIGSCREEN_CAMPUS_DEFAULT_TIME: CampusTimePreset = 'dusk'
 
