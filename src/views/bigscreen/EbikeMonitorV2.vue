@@ -1,13 +1,16 @@
 <template>
   <div class="ebike-v2">
     <!-- ===== 最低层级：校园三维模型（全屏铺底） ===== -->
-    <EbikeV2CampusModel ref="campusRef" />
+    <EbikeV2CampusModel v-if="!isMonitor" ref="campusRef" />
 
     <!-- ===== 大标题（浮于模型之上） ===== -->
     <EbikeV2Header :active-index="activeNavIndex" @select="handleNavSelect" />
 
+    <!-- ===== 系统监测页（顶栏第 3 项：组态画布 + 六个模块） ===== -->
+    <EbikeV2SystemMonitor v-if="isMonitor" />
+
     <!-- ===== 态势条 + 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
-    <main class="ebike-v2__content">
+    <main v-else class="ebike-v2__content">
       <!-- 通栏态势条：设备规模 / 完好率 / 预警 / 故障 / 离线 / 值班在岗 -->
       <FireOverviewStatusBar class="ebike-v2__statusbar" />
 
@@ -37,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import './components/ebike-v2/ebike-v2-fonts.css'
 import EbikeV2Header from './components/ebike-v2/EbikeV2Header.vue'
 import EbikeV2CampusModel from './components/ebike-v2/EbikeV2CampusModel.vue'
@@ -49,6 +52,7 @@ import FireOverviewPassivePanel from './components/ebike-v2/fire/FireOverviewPas
 import EbikeV2TimeSwitch from './components/ebike-v2/EbikeV2TimeSwitch.vue'
 import EbikeV2PoiToggle from './components/ebike-v2/EbikeV2PoiToggle.vue'
 import EbikeV2AgentPanel from './components/ebike-v2/EbikeV2AgentPanel.vue'
+import EbikeV2SystemMonitor from './components/ebike-v2/monitor/EbikeV2SystemMonitor.vue'
 import { provideCampusModel, type CampusModelApi } from './components/ebike-v2/useCampusModel'
 
 /** 模型实例：模型区悬浮控件（建筑导航 / 昼夜切换）通过 provide/inject 取用 */
@@ -58,6 +62,11 @@ provideCampusModel(campusRef)
 /** ===== 顶栏导航 ===== */
 const activeNavIndex = ref(0)
 const agentOpen = ref(false)
+
+/** 「系统监测」在导航中的下标 */
+const MONITOR_NAV_INDEX = 2
+/** 当前是否停在系统监测页 */
+const isMonitor = computed(() => activeNavIndex.value === MONITOR_NAV_INDEX)
 
 /** 打开助手前的导航项：关闭助手后回退到该项，保持大屏上下文 */
 let navIndexBeforeAgent = 0
