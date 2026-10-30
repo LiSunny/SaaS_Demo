@@ -152,7 +152,7 @@ onMounted(async () => {
   background-image:
     url('@/assets/bigscreen/ebike-v2/canvas-grid-bg.svg'),
     linear-gradient(180deg, rgba(0, 44, 94, 0.72), rgba(0, 30, 68, 0.72));
-  background-size: vw(200) vw(200), auto;
+  background-size: vw(80) vw(80), auto;
   background-repeat: repeat, no-repeat;
   background-color: #03254f;
   overflow: hidden;
