@@ -308,9 +308,12 @@ watch(
   white-space: nowrap;
 }
 
-/* 设备名：行内可伸缩的部分，名字长时省略 */
+/* 设备名：行内可伸缩的部分，名字长时省略
+   flex 比例 1.1 —— 比 1.4 少给设备列一点空间：点位名（如「主泵运行」56px）
+   加上报值（如「0.71 MPa」56px）共需 117px，窄视口下 1.4 的比例会让点位名
+   被压成「主泵…」。设备名最长 8 字（气体灭火控制主机），1.1 仍有余量。 */
 .evt__device {
-  flex: 1.4;
+  flex: 1.1;
   min-width: 0;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;

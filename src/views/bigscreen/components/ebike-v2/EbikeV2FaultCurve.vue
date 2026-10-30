@@ -11,7 +11,6 @@
             <span class="fc__ratio">占本系统 {{ ratioText }}</span>
           </div>
         </div>
-        <span class="fc__scope">{{ scopeText }}</span>
       </div>
 
       <!-- ===== ② 24h 统计 ===== -->
@@ -144,9 +143,6 @@ const lowest = computed(() => stats.value.lowest)
 const ratioText = computed(() =>
   deviceTotal.value ? `${((current.value / deviceTotal.value) * 100).toFixed(1)}%` : '—',
 )
-
-/** 右上角作用域标签 */
-const scopeText = computed(() => `${props.systemName} · 近 24 小时`)
 
 /* ============================================================
  * ECharts
@@ -376,21 +372,6 @@ onBeforeUnmount(() => {
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
   color: var(--fire-text-dim);
-  white-space: nowrap;
-}
-
-/* 作用域标签 */
-.fc__scope {
-  flex-shrink: 0;
-  margin-top: vh(2);
-  padding: vh(3) vw(8);
-  border-radius: vw(2);
-  background: rgba(0, 152, 230, 0.12);
-  border: 1px solid rgba(120, 190, 255, 0.18);
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  line-height: 1.3;
-  color: var(--fire-text-sub);
   white-space: nowrap;
 }
 

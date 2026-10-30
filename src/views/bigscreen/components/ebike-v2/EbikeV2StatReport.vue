@@ -1,12 +1,6 @@
 <template>
   <EbikeV2Card title="统计分析报表">
     <div class="sr">
-      <!-- ===== 口径行 ===== -->
-      <div class="sr__head">
-        <span class="sr__scope">{{ props.systemName }} · 定时生成报告</span>
-        <span class="sr__count">{{ reports.length }} 份</span>
-      </div>
-
       <!-- ===== 报告清单 ===== -->
       <ul class="sr__list">
         <li v-for="r in reports" :key="r.key" class="sr__item">
@@ -21,9 +15,6 @@
 
         <span v-if="!reports.length" class="sr__empty">该系统暂无定时报告</span>
       </ul>
-
-      <!-- ===== 口径注 ===== -->
-      <div class="sr__note">报告清单为演示数据（后端暂无报表接口）</div>
     </div>
   </EbikeV2Card>
 </template>
@@ -52,10 +43,8 @@ const props = withDefaults(
   defineProps<{
     /** 当前系统键（决定报告清单） */
     systemKey?: string
-    /** 当前系统名 */
-    systemName?: string
   }>(),
-  { systemKey: '', systemName: '本系统' },
+  { systemKey: '' },
 )
 
 /* ============================================================
@@ -164,38 +153,8 @@ const reports = computed(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: vh(6);
-  padding: vh(10) vw(16) vh(6);
+  padding: vh(10) vw(16);
   overflow: hidden;
-}
-
-/* ===== 口径行 ===== */
-.sr__head {
-  flex-shrink: 0;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: vw(8);
-}
-
-.sr__scope {
-  min-width: 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--fire-text-label);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sr__count {
-  flex-shrink: 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--fire-text-dim);
-  white-space: nowrap;
 }
 
 /* ===== 报告清单 ===== */
@@ -207,13 +166,17 @@ const reports = computed(() => {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: vh(4);
+  gap: vh(6);
   overflow: hidden;
 }
 
-/* 每份报告一张卡 */
+/* 每份报告一张卡：等分铺满卡片高度 */
 .sr__item {
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: vh(3) vw(10);
   border: 1px solid rgba(120, 190, 255, 0.16);
   border-radius: vw(3);
@@ -270,17 +233,5 @@ const reports = computed(() => {
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
   color: var(--fire-text-dim);
-}
-
-/* ===== 口径注 ===== */
-.sr__note {
-  flex-shrink: 0;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--fire-text-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

@@ -38,7 +38,7 @@
     <template #side>
       <EbikeV2HealthRadar :system-name="activeSystemName" />
       <EbikeV2DeviceStatus :scene="currentScene" />
-      <EbikeV2StatReport :system-key="activeSystemKey" :system-name="activeSystemName" />
+      <EbikeV2StatReport :system-key="activeSystemKey" />
     </template>
   </EbikeV2PageShell>
 </template>
