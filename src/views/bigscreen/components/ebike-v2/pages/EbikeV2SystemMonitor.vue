@@ -41,11 +41,7 @@
     <!-- 右列：健康度分析、设备状态监控已实现，统计分析报表待接入 -->
     <template #side>
       <EbikeV2HealthRadar :system-name="activeSystemName" />
-      <EbikeV2DeviceStatus
-        :scene="currentScene"
-        :system-name="activeSystemName"
-        :scene-name="currentScene?.name"
-      />
+      <EbikeV2DeviceStatus :scene="currentScene" />
       <EbikeV2PlaceholderCard
         v-for="t in SIDE_MODULES"
         :key="t"

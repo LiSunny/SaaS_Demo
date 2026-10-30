@@ -6,7 +6,6 @@
         <span class="dstat__total-num">{{ total }}</span>
         <span class="dstat__total-unit">台</span>
         <span class="dstat__total-label">设备总数</span>
-        <span class="dstat__total-scope">{{ scopeText }}</span>
       </div>
 
       <div class="dstat__divider" />
@@ -46,12 +45,8 @@ const props = withDefaults(
   defineProps<{
     /** 当前画面 */
     scene?: SceneConfig | null
-    /** 当前系统名 */
-    systemName?: string
-    /** 当前画面名 */
-    sceneName?: string
   }>(),
-  { scene: null, systemName: '', sceneName: '' },
+  { scene: null },
 )
 
 const nodes = computed(() => props.scene?.nodes ?? [])
@@ -84,11 +79,6 @@ const distribution = computed(() => {
         (CATEGORY_ORDER.get(a.key) ?? 99) - (CATEGORY_ORDER.get(b.key) ?? 99),
     )
 })
-
-/** 统计口径：系统 + 画面 */
-const scopeText = computed(
-  () => [props.systemName, props.sceneName].filter(Boolean).join(' · '),
-)
 </script>
 
 <style lang="scss" scoped>
@@ -130,18 +120,6 @@ const scopeText = computed(
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
   color: var(--fire-text-label);
-}
-
-.dstat__total-scope {
-  flex: 1;
-  min-width: 0;
-  text-align: right;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  color: var(--fire-text-dim);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* 细分隔线 */
