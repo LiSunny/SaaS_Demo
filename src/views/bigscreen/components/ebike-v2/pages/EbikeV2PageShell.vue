@@ -101,7 +101,8 @@ withDefaults(
   gap: vw(16);
 }
 
-.page-shell__row > * {
+/* 插槽内容属页面作用域，用 :deep 放行 */
+.page-shell__row > :deep(*) {
   flex: 1;
   min-width: 0;
 }
@@ -115,7 +116,7 @@ withDefaults(
   gap: vh(16);
 }
 
-.page-shell__side > * {
+.page-shell__side > :deep(*) {
   flex: 1;
   min-height: 0;
 }

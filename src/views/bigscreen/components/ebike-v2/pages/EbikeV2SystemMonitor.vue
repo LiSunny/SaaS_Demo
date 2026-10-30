@@ -27,6 +27,17 @@
         <EbikeV2SceneCanvas :scene="currentScene" empty-text="该系统暂无组态画面" />
       </section>
     </template>
+
+    <!-- 底部一行：多发故障排名已按设计稿实现，其余两模块待接入 -->
+    <template #row>
+      <EbikeV2FaultRank />
+      <EbikeV2PlaceholderCard
+        v-for="t in BOTTOM_MODULES"
+        :key="t"
+        :title="t"
+        :sub="currentSub"
+      />
+    </template>
   </EbikeV2PageShell>
 </template>
 
@@ -44,9 +55,11 @@ import { SYMBOL_SYSTEMS } from '@/symbols'
 import type { SceneConfig } from '@/types/scene-config'
 import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
+import EbikeV2FaultRank from '../EbikeV2FaultRank.vue'
+import EbikeV2PlaceholderCard from '../EbikeV2PlaceholderCard.vue'
 
-/** Figma 内容区里的模块分布 */
-const BOTTOM_MODULES = ['多发故障排名', '故障发生趋势', '实时警情']
+/** Figma 内容区里的模块分布（底部一行的「多发故障排名」已单独实现，不在此列） */
+const BOTTOM_MODULES = ['故障发生趋势', '实时警情']
 const SIDE_MODULES = ['健康度分析', '设备状态监控', '统计分析报表']
 
 const scenes = ref<SceneConfig[]>([])

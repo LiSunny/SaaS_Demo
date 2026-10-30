@@ -43,3 +43,13 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* 钉钉进步体：故障排名等模块的行内文字（设计稿 7:335 / 7:336）。
+   与其它大屏页（campus / campus-monitor / linking）声明的是同一份字体文件。 */
+@font-face {
+  font-family: 'DingTalk JinBuTi';
+  src: url('/fonts/DingTalkJinBuTi.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
