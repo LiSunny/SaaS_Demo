@@ -27,9 +27,10 @@
       </section>
     </template>
 
-    <!-- 底部一行：多发故障排名已按设计稿实现，其余两模块待接入 -->
+    <!-- 底部一行：多发故障排名、故障设备数量曲线已实现，实时警情待接入 -->
     <template #row>
       <EbikeV2FaultRank />
+      <EbikeV2FaultCurve :scene="currentScene" :system-name="activeSystemName" />
       <EbikeV2PlaceholderCard
         v-for="t in BOTTOM_MODULES"
         :key="t"
@@ -67,12 +68,13 @@ import type { SceneConfig } from '@/types/scene-config'
 import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
 import EbikeV2FaultRank from '../EbikeV2FaultRank.vue'
+import EbikeV2FaultCurve from '../EbikeV2FaultCurve.vue'
 import EbikeV2HealthRadar from '../EbikeV2HealthRadar.vue'
 import EbikeV2DeviceStatus from '../EbikeV2DeviceStatus.vue'
 import EbikeV2PlaceholderCard from '../EbikeV2PlaceholderCard.vue'
 
-/** Figma 内容区里的模块分布（底部一行的「多发故障排名」已单独实现，不在此列） */
-const BOTTOM_MODULES = ['故障发生趋势', '实时警情']
+/** Figma 内容区里的模块分布（底部一行的「多发故障排名」「故障设备数量曲线」已单独实现，不在此列） */
+const BOTTOM_MODULES = ['实时警情']
 /** 右列三模块（首位的「健康度分析」「设备状态监控」已单独实现，不在此列） */
 const SIDE_MODULES = ['统计分析报表']
 
@@ -151,7 +153,7 @@ onMounted(async () => {
   /* 底纹：淡淡的网格底衬 + 深蓝玻璃渐变 */
   background-image:
     url('@/assets/bigscreen/ebike-v2/canvas-grid-bg.svg'),
-    linear-gradient(180deg, rgba(0, 44, 94, 0.72), rgba(0, 30, 68, 0.72));
+    linear-gradient(180deg, rgba(1, 35, 73, 0.72), rgba(0, 30, 68, 0.72));
   background-size: vw(80) vw(80), auto;
   background-repeat: repeat, no-repeat;
   background-color: #03254f;
