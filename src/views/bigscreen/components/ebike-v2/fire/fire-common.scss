@@ -9,6 +9,10 @@
 //    2.85~4.27:1，核心数值读不出来。
 // 2. 非异常不占用语义色。正常数、完成率、达标率等一律走中性色阶，
 //    只靠字号与明度分层，不靠颜色表状态。
+// 3. 唯一的第二语义色：隐患等级（一般 #FFA600 / 重大 #FF8080）。
+//    只出现在「隐患排查治理」卡的等级角标上。等级是有序的（一般 < 重大），
+//    角标颜色承担的是严重度梯度；右上「故障 / 预警」是同一类故障的两个
+//    子类型，文案已能区分，故统一用红。
 //
 // 文字色阶按"值班员扫视优先级"排级，每级之间对比度差 ≥ 1.1 倍
 // （对比度按 1920×1080 实测：前景取声明色，背景取该文字墨迹盒内
@@ -41,6 +45,11 @@ $fire-text-dim: #7ea6d6;
 $fire-anomaly: #ff8080;
 // 异常态描边（芯片边框、行块左边线）
 $fire-anomaly-soft: rgba(255, 128, 128, 0.34);
+
+// ===== 隐患等级色 =====
+// 「隐患排查治理」卡的等级角标：一般 = 橙，重大 = 异常红。
+// 全页唯一的第二语义色，理由见本文件顶部第 3 条。
+$fire-level-general: #ffa600;
 
 // ===== 非异常中性色（图形用：色块 / 进度条 / 圆点） =====
 // 不使用绿橙红等语义色，视觉上只表达"这里没有异常"。
@@ -85,6 +94,7 @@ $fire-min-size: 14;
   --fire-text-dim: #{$fire-text-dim};
   --fire-anomaly: #{$fire-anomaly};
   --fire-anomaly-soft: #{$fire-anomaly-soft};
+  --fire-level-general: #{$fire-level-general};
   --fire-neutral: #{$fire-neutral};
   --fire-dist-normal: #{$fire-dist-normal};
   --fire-dist-alarm: #{$fire-dist-alarm};

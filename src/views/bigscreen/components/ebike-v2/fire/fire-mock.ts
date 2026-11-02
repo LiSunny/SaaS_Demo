@@ -338,59 +338,104 @@ export const ASSURANCE_BLOCKS: AssuranceBlock[] = [
 ]
 
 // ============================================================
-// 被动安全与隐患概况
+// 隐患排查治理
 // ============================================================
 
-export interface PassiveMetric {
+/** 隐患等级：一般 / 重大（与隐患台账 HazardLevel 同名同义） */
+export type HazardLevelKey = 'general' | 'major'
+
+export interface HazardSumItem {
+  /** 子项名：完成 / 未完成 / 一般 / 重大 */
   label: string
-  value: string
-  unit?: string
-  tone?: Tone
+  /** 子项计数 */
+  count: number
+  /** 占比 % —— 由 count 与总数算出，不手写百分比 */
+  ratio: number
 }
 
-export interface PassiveBlock {
+export interface HazardSummary {
   key: string
   name: string
-  metrics: PassiveMetric[]
-  /** 最严重一条（位置 + 描述） */
-  top?: string
-  topTone?: Tone
-  pending?: boolean
+  /** 图标素材 key（对应 `src/assets/bigscreen/ebike-v2/fire/sum-*.png`，设计稿原图） */
+  icon: string
+  /** ⓘ 说明角标的文案 */
+  hint: string
+  /** 主数值 */
+  count: number
+  /** 主数值单位 */
+  unit: string
+  /** 两个子项（占比之和为 100%） */
+  items: HazardSumItem[]
 }
 
-export const PASSIVE_BLOCKS: PassiveBlock[] = [
+export interface HazardRow {
+  key: string
+  /** 等级角标：一般 / 重大 */
+  level: HazardLevelKey
+  /** 隐患描述 */
+  title: string
+  /** 发现时间 */
+  time: string
+  /** 位置 */
+  location: string
+}
+
+/**
+ * 隐患排查治理的两组汇总（设计稿 80:4517 / 80:4541）
+ *
+ * 占比不手写：由子项计数与总数算出，改计数时百分比跟着变，
+ * 避免出现"加起来不等于 100%"的假数据。
+ *
+ * 口径说明（演示值，理由见组件注释）：
+ *   - 隐患台账（M1）虽有实装 store，但它的种子数据挂在 enterprise 1，
+ *     本演示账号属 enterprise 2，取不到数；排查任务（M1-7）仍是占位页。
+ *   - 因此本卡按本页其它三张卡的同一口径给演示值，不冒充台账真值。
+ */
+export const HAZARD_SUMMARIES: HazardSummary[] = [
   {
-    key: 'elec',
-    name: '电气火灾',
-    metrics: [
-      { label: '漏电', value: '2', unit: '处', tone: 'abnormal' },
-      { label: '三相不平衡', value: '1', unit: '处', tone: 'normal' },
-      { label: '线缆温度超限', value: '1', unit: '处', tone: 'abnormal' },
-      { label: '违规充电', value: '3', unit: '处', tone: 'abnormal' },
+    key: 'task',
+    name: '本月排查任务',
+    icon: 'task',
+    hint: '本月按排查计划派发并已完成的现场排查任务数（演示口径）',
+    count: 268,
+    unit: '个',
+    items: [
+      { label: '完成', count: 222, ratio: 0 },
+      { label: '未完成', count: 46, ratio: 0 },
     ],
-    top: '5 号楼 3 单元竖井 · 线缆温度超限',
-    topTone: 'abnormal',
-    pending: true,
   },
   {
-    key: 'door',
-    name: '防火门',
-    metrics: [
-      { label: '常闭门被开启', value: '4', unit: '扇', tone: 'abnormal' },
-      { label: '闭门器失效', value: '2', unit: '扇', tone: 'abnormal' },
-      { label: '顺序器故障', value: '1', unit: '扇', tone: 'abnormal' },
-      { label: '完好率', value: '96.0', unit: '%', tone: 'normal' },
+    key: 'open',
+    name: '未闭环隐患',
+    icon: 'hazard',
+    hint: '尚未完成整改闭环的隐患条数，按一般 / 重大分级（演示口径）',
+    count: 12,
+    unit: '个',
+    items: [
+      { label: '一般', count: 9, ratio: 0 },
+      { label: '重大', count: 3, ratio: 0 },
     ],
-    pending: true,
   },
-  {
-    key: 'evac',
-    name: '应急疏散',
-    metrics: [
-      { label: '应急照明在线率', value: '98.4', unit: '%', tone: 'normal' },
-      { label: '疏散指示故障', value: '3', unit: '处', tone: 'abnormal' },
-      { label: '安全出口占用', value: '2', unit: '处', tone: 'abnormal' },
-    ],
-    pending: true,
-  },
+]
+
+// 占比由计数算出
+HAZARD_SUMMARIES.forEach((s) => {
+  const total = s.items.reduce((sum, i) => sum + i.count, 0)
+  s.items.forEach((i) => {
+    i.ratio = total > 0 ? (i.count / total) * 100 : 0
+  })
+})
+
+/**
+ * 未闭环隐患列表（设计稿 80:4573 列表容器，2 行式：等级角标 + 标题 + 时间 / 位置）
+ *
+ * 与右上「实时警情」列表同一版式：角标 + 事件标题 + 完整时间戳 / 位置，
+ * 行间 1px 虚线。角标是隐患等级（一般 / 重大），不是故障类型。
+ */
+export const HAZARD_ROWS: HazardRow[] = [
+  { key: 'h1', level: 'general', title: '灭火器压力表指针在红区', time: '2026-11-02 15:20', location: '第一食堂 大厅东侧' },
+  { key: 'h2', level: 'major', title: '疏散通道被成品纸箱堆放堵塞', time: '2026-11-02 14:05', location: '3 号楼 2 单元 东侧疏散通道' },
+  { key: 'h3', level: 'general', title: '疏散指示灯不亮，应急照明失效', time: '2026-11-02 11:42', location: '大门口充电站 北侧通道' },
+  { key: 'h4', level: 'major', title: '配电箱私拉乱接电线，多股铜线裸露', time: '2026-11-01 16:30', location: '5 号楼 3 单元 竖井配电箱' },
+  { key: 'h5', level: 'general', title: '消防通道地面标识磨损褪色', time: '2026-11-01 10:12', location: '2 号楼 1 单元 主通道' },
 ]

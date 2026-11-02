@@ -34,17 +34,34 @@ const USER = { phone: '13300001111', password: 'admin123!@#' }
 const ROLE_TARGETS = [
   {
     role: 'L0 核心数值',
-    sels: ['.iip__value-num', '.asr__metric-value', '.alp__kpi-num'],
+    sels: ['.iip__value-num', '.asr__metric-value', '.alp__kpi-num', '.hz__sum-num'],
     only: 'hero',
   },
-  { role: 'L1 区块标题', sels: ['.iip__total-title', '.asr__name', '.psv__name', '.alp__kpi-name'] },
+  {
+    role: 'L1 区块标题',
+    sels: ['.iip__total-title', '.asr__name', '.alp__kpi-name', '.hz__sum-name'],
+  },
   {
     role: 'L2 指标标签',
-    sels: ['.asr__metric-label', '.psv__metric-label', '.alp__kpi-unit', '.alp__row-title'],
+    sels: [
+      '.asr__metric-label',
+      '.alp__kpi-unit',
+      '.alp__row-title',
+      '.hz__sum-unit',
+      '.hz__sum-ratio',
+      '.hz__row-title',
+    ],
   },
   {
     role: 'L3 辅助说明',
-    sels: ['.iip__unit', '.asr__metric-unit', '.psv__top-text', '.alp__row-time', '.alp__row-loc'],
+    sels: [
+      '.iip__unit',
+      '.asr__metric-unit',
+      '.alp__row-time',
+      '.alp__row-loc',
+      '.hz__row-time',
+      '.hz__row-loc',
+    ],
   },
   {
     role: 'L4 最弱辅助',
@@ -56,18 +73,29 @@ const ROLE_TARGETS = [
       '.iip__legend-item b',
       '.asr__metric-th',
       '.asr__trend-label',
+      '.hz__sum-tag',
     ],
   },
 ]
 
 /** 可点入口（非数据）：不占文字色阶，单独校验对比度 */
-const AFFORDANCE_TARGETS = [{ role: '更多入口', sels: ['.alp__more'] }]
+const AFFORDANCE_TARGETS = [
+  { role: '更多入口', sels: ['.alp__more', '.hz__more'] },
+]
 
 /**
- * 异常角标（胶囊 badge）：字压在自己的径向渐变底上，
- * 底色比卡底更亮，必须单独量 —— 混进"异常红"那组会拿别处的底色算。
+ * 角标：字压在自己的径向渐变底上，底色比卡底更亮，必须单独量 ——
+ * 混进"异常红"那组会拿别处的底色算。
+ *
+ * expect = 该组角标唯一允许的颜色：
+ *   - 异常角标（右上卡的故障 / 预警、右下卡的重大）统一用异常红
+ *   - 等级角标（一般）用橙 —— 全页唯一的第二语义色，等级是有序的，
+ *     角标颜色承担严重度梯度（见 fire-common.scss 顶部第 3 条）
  */
-const BADGE_TARGETS = [{ role: '异常角标', sels: ['.alp__badge'] }]
+const BADGE_TARGETS = [
+  { role: '异常角标', sels: ['.alp__badge', '.hz__badge.is-major'], expect: '255,128,128' },
+  { role: '等级角标(一般)', sels: ['.hz__badge.is-general'], expect: '255,166,0' },
+]
 
 /** 次级数值（系统行完好率）：达标为 L2 淡蓝，不达标为异常红，单独校验 */
 const SECONDARY_TARGETS = [
@@ -215,7 +243,7 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       return { x: b.x, y: b.y, w: b.width, h: b.height }
     }
     const out = []
-    const sels = ['.psv__metric-value', '.iip__sys-rate', '.alp__kpi-num', '.alp__badge']
+    const sels = ['.iip__sys-rate', '.alp__kpi-num', '.alp__badge', '.hz__badge.is-major']
     for (const sel of sels) {
       for (const el of document.querySelectorAll(sel)) {
         const box = inkBox(el)
@@ -434,9 +462,9 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
     checks.push([`${role} 对比度 ≥ 4.5`, minCr >= 4.5, String(minCr)])
   }
 
-  // ===== 异常角标：字压在自己的渐变底上，单独量 =====
-  console.log('--- 异常角标 ---')
-  for (const { role, sels } of BADGE_TARGETS) {
+  // ===== 角标：字压在自己的渐变底上，单独量 =====
+  console.log('--- 角标 ---')
+  for (const { role, sels, expect } of BADGE_TARGETS) {
     const rows = []
     for (const sel of sels) {
       for (const t of targets.filter((x) => x.sel === sel)) {
@@ -453,9 +481,9 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
     const minCr = Math.min(...rows.map((r) => r.cr))
     checks.push([`${role} 对比度 ≥ 4.5`, minCr >= 4.5, String(minCr)])
     checks.push([
-      `${role} 统一用异常红`,
-      rows.every((r) => r.rgb.join(',') === ANOMALY_RGB.join(',')),
-      '异常红',
+      `${role} 统一用 rgb(${expect})`,
+      rows.every((r) => r.rgb.join(',') === expect),
+      `rgb(${expect})`,
     ])
   }
 
@@ -530,12 +558,19 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       const r = el.getBoundingClientRect()
       return { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) }
     }
-    return { right: get('.col--right'), left: get('.col--left'), integrity: get('.iip'), alarm: get('.alp') }
+    return {
+      right: get('.col--right'),
+      left: get('.col--left'),
+      integrity: get('.iip'),
+      alarm: get('.alp'),
+      hazard: get('.hz'),
+    }
   })
   if (boxes.right) await snap(`${OUT}/右列-${vp.width}.png`, boxes.right)
   if (boxes.left) await snap(`${OUT}/左列-${vp.width}.png`, boxes.left)
   if (boxes.integrity) await snap(`${OUT}/完好率卡-${vp.width}.png`, boxes.integrity)
   if (boxes.alarm) await snap(`${OUT}/警情卡-${vp.width}.png`, boxes.alarm)
+  if (boxes.hazard) await snap(`${OUT}/隐患卡-${vp.width}.png`, boxes.hazard)
 
   await page.close()
 }
