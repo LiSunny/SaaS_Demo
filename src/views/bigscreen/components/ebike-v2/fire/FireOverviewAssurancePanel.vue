@@ -134,11 +134,18 @@ function sparkPoints(series: number[]): string {
   margin-left: vw(2);
 }
 
-/* 阈值说明：辅助信息，最弱一级 */
+/* 阈值说明：辅助信息，最弱一级。
+   阈值右对齐在卡片右缘，正压着三维模型；消防保障卡按设计稿移到左上后，
+   防排烟那一行的正后方是模型的亮区，玻璃卡透上来的底色把对比度压到 4.14
+   （验收线 4.5）。给阈值加一块深底小牌，底色由自己决定，不再随模型明暗浮动；
+   色值与「消防设备完好率」总体块的内底板同一套。 */
 .asr__metric-th {
   @include fire-dim(13);
   margin-left: auto;
   flex-shrink: 0;
+  padding: 0 vw(4);
+  border-radius: vw(2);
+  background: rgba(0, 36, 82, 0.5);
 }
 
 /* ===== 趋势 ===== */

@@ -27,20 +27,20 @@ const USER = { phone: '13300001111', password: 'admin123!@#' }
  * 异常红是色相维度：它不参与亮度排序，只要求"不低于最弱辅助"，
  * 否则会出现"要处理的故障"比"一行时间戳"还暗。
  *
- * L0 的取值只取非异常、非弱化的核心数值：态势条里既有正常的白，
- * 也有异常的红和屏蔽的淡蓝，三者同属"核心数值"槽位但不同色，
+ * L0 的取值只取非异常、非弱化的核心数值：完好率大数值（白，带冷调渐变）、
+ * 其他卡的核心计数，不同槽位可能有不同的白 / 红 / 淡蓝，
  * 因此判定"同角色颜色统一"时要把它们排除在外。
  */
 const ROLE_TARGETS = [
   {
     role: 'L0 核心数值',
-    sels: ['.fsb__value', '.iip__total-value', '.asr__metric-value', '.alp__count-value'],
+    sels: ['.iip__value-num', '.asr__metric-value', '.alp__count-value'],
     only: 'hero',
   },
   { role: 'L1 区块标题', sels: ['.iip__total-title', '.asr__name', '.psv__name'] },
-  { role: 'L2 指标标签', sels: ['.fsb__label', '.alp__count-label', '.alp__link-label', '.asr__metric-label', '.psv__metric-label'] },
-  { role: 'L3 辅助说明', sels: ['.alp__loc', '.fsb__unit', '.iip__unit', '.asr__metric-unit', '.psv__top-text'] },
-  { role: 'L4 最弱辅助', sels: ['.alp__time', '.alp__elapsed', '.iip__sys-name', '.iip__sys-total', '.iip__legend-item', '.asr__metric-th', '.asr__trend-label', '.iip__total-count'] },]
+  { role: 'L2 指标标签', sels: ['.alp__count-label', '.alp__link-label', '.asr__metric-label', '.psv__metric-label'] },
+  { role: 'L3 辅助说明', sels: ['.alp__loc', '.iip__unit', '.asr__metric-unit', '.psv__top-text'] },
+  { role: 'L4 最弱辅助', sels: ['.alp__time', '.alp__elapsed', '.iip__sys-name', '.iip__sys-total', '.iip__sys-label', '.iip__legend-label', '.iip__legend-item b', '.asr__metric-th', '.asr__trend-label'] },]
 
 /** 次级数值（系统行完好率）：达标为 L2 淡蓝，不达标为异常红，单独校验 */
 const SECONDARY_TARGETS = [
@@ -166,7 +166,7 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       return { x: b.x, y: b.y, w: b.width, h: b.height }
     }
     const out = []
-    const sels = ['.fsb__value', '.alp__type', '.alp__status', '.psv__metric-value', '.iip__sys-rate']
+    const sels = ['.alp__type', '.alp__status', '.psv__metric-value', '.iip__sys-rate']
     for (const sel of sels) {
       for (const el of document.querySelectorAll(sel)) {
         const box = inkBox(el)
@@ -408,11 +408,11 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       const r = el.getBoundingClientRect()
       return { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) }
     }
-    return { right: get('.col--right'), left: get('.col--left'), bar: get('.ebike-v2__statusbar') }
+    return { right: get('.col--right'), left: get('.col--left'), integrity: get('.iip') }
   })
   if (boxes.right) await snap(`${OUT}/右列-${vp.width}.png`, boxes.right)
   if (boxes.left) await snap(`${OUT}/左列-${vp.width}.png`, boxes.left)
-  if (boxes.bar) await snap(`${OUT}/态势条-${vp.width}.png`, boxes.bar)
+  if (boxes.integrity) await snap(`${OUT}/完好率卡-${vp.width}.png`, boxes.integrity)
 
   await page.close()
 }

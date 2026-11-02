@@ -98,18 +98,8 @@ export function deviceCount(profileKey: string, typeKey: string): number {
 }
 
 // ============================================================
-// 态势条
+// 系统汇总
 // ============================================================
-
-export interface StatusBarItem {
-  key: string
-  label: string
-  value: string
-  unit?: string
-  tone: Tone
-  /** 演示数据标记（真实数据不标） */
-  demo?: boolean
-}
 
 /** 8 个系统的汇总（前三有档案 → 台数为真值；后五待接入） */
 export interface SystemRow {
@@ -133,15 +123,21 @@ export interface SystemRow {
   pending: boolean
 }
 
+/**
+ * 8 个系统的汇总（前三有档案 → 台数为真值；后五待接入）
+ *
+ * 系统名用设计稿 70:703 的全称（消防用水监测 / 气体灭火系统 …），
+ * 短名只留在同页其他卡片里（消防保障卡按四大系统分组，用短名）。
+ */
 export const SYSTEM_ROWS: SystemRow[] = [
-  { key: 'water', name: '消防水', icon: 'water', total: deviceTotal('pipeline'), normal: 0, alarm: 8, fault: 7, offline: 16, rate: 0, pending: false },
-  { key: 'gas', name: '气体灭火', icon: 'gas', total: deviceTotal('gas'), normal: 0, alarm: 1, fault: 2, offline: 2, rate: 0, pending: false },
-  { key: 'smoke', name: '防排烟', icon: 'smoke', total: deviceTotal('smoke'), normal: 0, alarm: 2, fault: 2, offline: 2, rate: 0, pending: false },
-  { key: 'alarm', name: '火灾报警', icon: 'alarm', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
-  { key: 'door', name: '防火门', icon: 'door', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
-  { key: 'evac', name: '应急疏散', icon: 'evac', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
-  { key: 'power', name: '消防电源', icon: 'power', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
-  { key: 'elec', name: '电气火灾', icon: 'elec', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
+  { key: 'water', name: '消防用水监测', icon: 'water', total: deviceTotal('pipeline'), normal: 0, alarm: 8, fault: 7, offline: 16, rate: 0, pending: false },
+  { key: 'gas', name: '气体灭火系统', icon: 'gas', total: deviceTotal('gas'), normal: 0, alarm: 1, fault: 2, offline: 2, rate: 0, pending: false },
+  { key: 'smoke', name: '防排烟系统', icon: 'smoke', total: deviceTotal('smoke'), normal: 0, alarm: 2, fault: 2, offline: 2, rate: 0, pending: false },
+  { key: 'alarm', name: '火灾报警系统', icon: 'alarm', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
+  { key: 'door', name: '防火门监控', icon: 'door', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
+  { key: 'evac', name: '应急疏散救援', icon: 'evac', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
+  { key: 'power', name: '消防电源监控', icon: 'power', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
+  { key: 'elec', name: '电气火灾监控', icon: 'elec', total: 0, normal: 0, alarm: 0, fault: 0, offline: 0, rate: 0, pending: true },
 ]
 
 // 可用率与正常台数由台数与故障/离线数算出，不手写百分比
@@ -180,20 +176,11 @@ const TOTAL_AVAILABLE =
   TOTAL_DEVICES > 0 ? ((TOTAL_DEVICES - TOTAL_FAULT - TOTAL_OFFLINE) / TOTAL_DEVICES) * 100 : 0
 
 /**
- * 顶部态势条：只放"事件 / 值守"类指标。
- * 设备类统计（接入设备 / 完好率 / 预警 / 故障 / 离线）全部下沉到
- * 「消防设备完好率」卡片里，总览页不存在两处设备数据。
+ * 设备概况：完好率卡片顶部总体区用
+ *
+ * 总览页不再有通栏态势条（设计稿 70:313 无此元素），
+ * 「今日警情 / 待处置 / 闭环 / 平均响应 / 值班在岗 / 巡查完成率」随之移出总览页。
  */
-export const STATUS_BAR: StatusBarItem[] = [
-  { key: 'alarms', label: '今日警情', value: '6', unit: '起', tone: 'abnormal' },
-  { key: 'pending', label: '待处置', value: '2', unit: '起', tone: 'abnormal' },
-  { key: 'closed', label: '今日闭环', value: '4', unit: '起', tone: 'normal' },
-  { key: 'response', label: '平均响应', value: '3′12″', tone: 'normal' },
-  { key: 'duty', label: '值班在岗', value: '2 / 2', unit: '人', tone: 'normal', demo: true },
-  { key: 'patrol', label: '今日巡查完成率', value: '92', unit: '%', tone: 'normal', demo: true },
-]
-
-/** 设备概况：完好率卡片顶部总体区用 */
 export const DEVICE_OVERALL = {
   total: TOTAL_DEVICES,
   fault: TOTAL_FAULT,

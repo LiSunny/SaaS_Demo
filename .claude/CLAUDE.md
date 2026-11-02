@@ -207,7 +207,8 @@ src/api/adapters/
 - [x] `components/ebike-v2/EbikeV2CampusModel.vue` — 校园三维模型（iframe 嵌入 + 主题/机位覆盖 + 建筑导航面板开关）
 - [x] `components/ebike-v2/campusTheme.ts` — 昼夜三档各自的大屏配色与机位参数
 - [x] `components/ebike-v2/EbikeV2PoiToggle.vue` — 模型区悬浮「建筑导航」开关（展开模型自带 POI 面板，弹窗吸附在按钮下方展开）
-- [x] `components/ebike-v2/EbikeV2TimeSwitch.vue` — 模型区悬浮「场景光线」开关（白天 / 黄昏两态，样式沿用后台 `ThemeToggle` 的药丸轨道 + 滑动圆钮 + 钮内图标；在「建筑导航」按钮上方）
+- [x] `components/ebike-v2/EbikeV2TimeSwitch.vue` — 模型区悬浮「场景光线」开关（白天 / 黄昏两态；形制按设计稿 70:313 = 胶囊 99×34 + 左侧场景名 + 右侧白圆钮 28×28，钮内 18px 场景图标；在「建筑导航」按钮上方）
+- [x] `components/ebike-v2/EbikeV2CleanToggle.vue` — 模型区悬浮「全屏查看」入口（形制按设计稿 70:313 = 99×34 + 四角外扩图标 + 文字；进入全屏切内收图标 +「退出全屏」；全屏后转为右下角半透明退出入口）
 - [x] `components/ebike-v2/useCampusModel.ts` — 模型实例 provide / inject（模型区控件与页面层不同层级）
 - [x] 路由注册：`/landing/ebike-v2`、类型 `BigscreenType.ebike-v2`、模板 `bigscreen-templates.ts`、后台入库脚本 `server/scripts/register-ebike-v2-bigscreen.ts`
 - [ ] 6 个业务模块内容（当前只有小标题骨架）
@@ -256,7 +257,7 @@ src/api/adapters/
 
 - **三维模型走 iframe 整页嵌入**（`public/campus-model/`，`?embed=1`）：模型 `src/app.js` 1922 行、深度耦合自身 DOM，改为同源 iframe 加载，`model.js` 核心模块零改动；父页通过 `iframe.contentWindow.campusApp` 驱动（`camera` / `controls` / `scene` / `renderer` / `ctx.THREE`）
 - **嵌入模式只改 `index.html` + `styles.css`**：加 `html.is-embed` 隐藏自身 UI，加载完成后 `parent.postMessage({type:'campus-model:ready'})`；POI 面板标题在嵌入模式下改为「建筑导航」
-- **嵌入模式露出建筑导航面板**：`html.is-embed .panel-left` 默认收起，大屏侧按钮切 `.is-open`；定位用 vw/vh 与大屏页面同一套 1920×1080 设计基准（iframe 与页面视口 1:1），吸附在「建筑导航」按钮下方：left 61.25vw（= 按钮左缘 1176）/ top 23.5185vh（= 按钮底缘 246 + 8）/ width 12.7083vw（= 244，与上方控制组等宽）/ bottom 1.4815vh（= 1064，与两列模块底缘齐平）
+- **嵌入模式露出建筑导航面板**：`html.is-embed .panel-left` 默认收起，大屏侧按钮切 `.is-open`；定位用 vw/vh 与大屏页面同一套 1920×1080 设计基准（iframe 与页面视口 1:1），吸附在「建筑导航」按钮下方：left 58.2292vw（= 面板左缘 1118 = 按钮右缘 1362 − 244）/ top 11.8519vh（= 按钮底缘 120 + 8）/ width 12.7083vw（= 244）/ bottom 1.4815vh（= 1064，与两列模块底缘齐平）
 - **面板定位必须用设计单位而非写死像素**：写死 `left:508px; top:92px` 时，面板顶部 92~150 被大屏态势条（86~150 通栏，层级更高）压住，「建筑导航」标题与计数徽标整段不可见；且换视口即失效。iframe 内 `100vw/100vh` 即页面视口，`vw()/vh()` 与大屏页面完全等价
 - **视觉方案在父页覆盖**：`campusTheme.ts` 按昼夜三档各写一套天空/雾/灯光/曝光。天穹是 `renderOrder === -1000` 的 ShaderMaterial 网格（唯一带 `topColor`/`bottomColor` uniform），雾色与天穹底部同色让地块远端融进大屏底色 `#00437A`
 - **白天只换模型光照、不换场景背景**：白天档的天空/雾/场景背景沿用大屏底色（`#05284f→#00437a`，与黄昏同值），只把模型本体切成日光（暖白主光 2.4 + 强半球光 + 关夜间灯 + 曝光 1.05）。切白天若把天空刷成浅蓝 `#8ec9ef`，深蓝玻璃卡片会浮在一片亮天空上，整屏配色语言直接断掉；大屏是固定机位远看，背景一变还会被误读成"画面切了"
@@ -281,13 +282,19 @@ src/api/adapters/
   - 原始截图：`screenshots/ebike-compare/_nav-textonly-before.png`、`_nav-textonly-after.png`、`_figma-nav-51-1800.png`
 - **选中文字不用 `background-clip` 渐变**：17px 小字上垂直渐变几乎看不出，且渐变裁剪会把 `text-shadow` 一起裁掉、辉光显示异常
 - **导航字体用独立字体族名声明**（`ebike-v2-fonts.css` 的 `NavKeynote` / `NavPuHuiTiMedium`）：直接声明 `Alibaba PuHuiTi` 只给单个字重会让页面其它位置被合成，故换族名只作用于导航。代价是两个字体文件共 19.5MB（`Source-KeynoteartHans.otf` 10MB + `Alibaba-PuHuiTi-Medium.ttf` 9.5MB）
-- **建筑导航开关与昼夜切换不在设计稿里**，是自加控件。原放在顶栏导航与用户区之间的空档（建筑导航 x=1360、昼夜 x=1472），现已移到模型区：做成 `.ebike-v2__scene-tools` 悬浮控件组挂在两列容器上（`top:0` → 与两列顶边天然对齐，状态条改高度不用改数值；`right: calc(vw(468) + vw(16))` → 右缘距完好率模块 16px），昼夜切换在上、建筑导航在下
+- **建筑导航开关与昼夜切换不在设计稿里**，是自加控件。原放在顶栏导航与用户区之间的空档（建筑导航 x=1360、昼夜 x=1472），现已移到模型区：做成 `.ebike-v2__scene-tools` 悬浮控件组挂在两列容器上（`top:0` → 与两列顶边天然对齐，状态条改高度不用改数值），昼夜切换在上、建筑导航在下；建筑导航另置 `.ebike-v2__scene-tools-right`（`right: calc(vw(522) + vw(20))` → 右缘 1362 = 右列左缘 1382 − 20）
+- **两侧模块列宽按黄金分割 1 : φ : 1**：左右等宽 `vw(522)`（左 16→538、右 1382→1904），模型区 538→1382（844 = 522 × φ，φ=1.618）。设计稿 70:313 原为左 468 / 模型 1024 / 右 396，2026-11-02 按用户口径重分，卡内版式比例仍沿用设计稿
+- **绝对定位的 `left` 基准是列容器不是页面**：`.ebike-v2__scene-tools` 挂在 `.ebike-v2__cols`（自身左缘 = 内容区内边距 x=16）上，`left: vw(545)` 的绝对结果是 x=561（左列右缘 538 + 23），写 `vw(561)` 会整体右移 16px。右组用 `right` 锚右缘，无此偏移
 - **顶栏底图按 68px 通栏重排**（`src/assets/bigscreen/ebike-v2/header-bg.svg`）：斜纹组 `translate(0 -6) scale(1 1.0625)` 拉到 0~68 满高
 - **`<img>` 加载的 SVG 默认会上下留白居中**：盒子的宽高比与 SVG 自身 viewBox 比例不一致时，浏览器按 `preserveAspectRatio="xMidYMid meet"` 缩放并在剩余方向留白。实测底图盒 1690.5×66.11（比例 25.57）vs SVG 1932×68（比例 28.41）→ 内容按宽缩放 0.875、高 59.5，上下各留 3.3px，装饰线实际落在 CSS 59.0~62.8 而不是贴底。**三个 SVG（底图 / 装饰线 / 辉光）全部加 `preserveAspectRatio="none"`** 消除留白
 - **装饰线拆成独立图层用代码定位**（`header-line.svg` + `.v2-header-line`）：`bottom:0` + `height: vh(4)`，与 `.v2-header-glow` 共用同一基准带，两者必然严格重合，不受视口比例影响。装饰线底边实测 CSS 62.2~66.1，正好等于标题条底边 66.11
 - **底部装饰线的"流动"用设计稿自己的辉光块，不另加色块**：设计稿在 x=463.7~607.7 有一段静态辉光，另加一条流动亮痕会与它和两处蓝块同时高亮而打架。做法是把那段辉光从底图摘出，改成 `header-line-glow.svg`（144×4，外圈径向渐变改透明，两端淡出才无缝）沿线循环滑动；蓝块保持静止，线上任意时刻只有一处高光。`transform: translateX(-100% → calc(100vw + 100%))`，8s 一轮，约 258px/s
 - **辉光亮度按"不抢眼"压过两轮**：初版峰值 `#DDFFFE` @0.78 → 实测峰值像素 (176,223,240)，对照同位置装饰线 (63,139,205) 偏亮过多，用户反馈"太亮、太明显"。现为 `#C6E9FF` @0.38 / `#4F9EDC` @0.34，实测峰值 (111,171,219)，呈柔和光带而非白闪
 - **旧大屏零影响**：`/landing/ebike` 的组件只改 import 路径与标题底座实现，回归截图差异仅为实时时间戳 OSD
+- **全屏查看模式（只留三维模型，内部仍叫 cleanMode）**：入口是模型区控件组第二枚（四角外扩图标 +「全屏查看」）；进入时隐藏顶栏 / 左右模块列 / 悬浮控件组（用 `v-show` 保留 DOM，不重建三维模型 iframe），并收起助手浮层与建筑导航面板；退出靠右下角半透明「退出全屏」（`opacity .45`，悬停点亮）或 Esc 键
+- **模型区两枚场景控件尺寸固定 px，不随视口缩放**：控件里有 14px 文字，而大屏字号下限锁 14 不再缩小；盒子若跟着 `vw()/vh()` 缩，窄视口下文字就放不下。故这两枚控件按设计稿尺寸写死（胶囊 99×34、圆钮 28×28、图标 18px），各视口几何完全一致；1920 下与设计稿逐像素对齐
+- **清屏要跨层隐藏全局悬浮机器人**：小安机器人挂在 `StandaloneLayout` 里且 Teleport 到 `body`，组件 scoped 样式够不到，改用 `body.ebike-clean-mode` 类 + 页面内非 scoped 样式块隐藏 `.agent-floating-chat`
+- **本页 Playwright 合成点击全部判不过**：浮在三维模型 iframe 之上的控件（顶栏标题、建筑导航、全屏查看入口）用 `page.click()` 都会卡在可操作性检查（visible/stable），既有控件同样如此，不是新代码引入；CDP 真实输入事件命中正常。校验脚本改用 `page.mouse.click(元素中心坐标)`，与用户实际点击一致
 
 ### 下次建议动作
 
