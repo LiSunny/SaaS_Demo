@@ -389,6 +389,15 @@ export interface HazardSummary {
   count: number
   /** 主数值单位 */
   unit: string
+  /**
+   * 主数值的色调：normal 走中性蓝，abnormal 走异常红。
+   *
+   * 「未闭环隐患」是异常计数 —— 它与「本月排查任务」同色时，值班员会把
+   * 12 个未闭环隐患读成和 268 个任务一样的中性数字，异常就不可见了。
+   * 设计稿这块也是红渐变（80:4517 的蓝 #A5CEFF→#D0E4FC，
+   * 80:4541 的红 #E5523F→#FF8080）。
+   */
+  tone: 'normal' | 'abnormal'
   /** 两个子项（占比之和为 100%） */
   items: HazardSumItem[]
 }
@@ -424,6 +433,7 @@ export const HAZARD_SUMMARIES: HazardSummary[] = [
     hint: '本月按排查计划派发并已完成的现场排查任务数（演示口径）',
     count: 268,
     unit: '个',
+    tone: 'normal',
     items: [
       { label: '完成', count: 222, ratio: 0 },
       { label: '未完成', count: 46, ratio: 0 },
@@ -436,6 +446,7 @@ export const HAZARD_SUMMARIES: HazardSummary[] = [
     hint: '尚未完成整改闭环的隐患条数，按一般 / 重大分级（演示口径）',
     count: 12,
     unit: '个',
+    tone: 'abnormal',
     items: [
       { label: '一般', count: 9, ratio: 0 },
       { label: '重大', count: 3, ratio: 0 },

@@ -286,6 +286,15 @@ const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
   border-bottom: 1px dashed #234972;
 }
 
+.alp__row-head,
+.alp__row-loc {
+  /* 不让位置行被压扁：视口窄时行盒会先于内容缩小，
+     位置行被压到 1px 高 —— 文字不是被裁掉而是整行消失，看不出来是bug。
+     加 flex-shrink:0 后行为与右下「隐患排查治理」一致：宁可溢出被裁，
+     不做无声消失（该卡同一份改法见 FireOverviewPassivePanel）。 */
+  flex-shrink: 0;
+}
+
 .alp__row-head {
   display: flex;
   align-items: center;
@@ -294,10 +303,14 @@ const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
   min-width: 0;
 }
 
+/* 角标 → 标题的间距 8px（设计稿 EL-235879b0）。
+   实测设计 PNG：角标描边右缘 CSS 54.5，标题文字起笔 CSS 64.5，差 8~10px。
+   注意与右下「隐患排查治理」不同 —— 那张卡的间距是 16px（EL-2ee873d7），
+   两张卡的设计本来就不一样，不要互抄。 */
 .alp__row-lead {
   display: flex;
   align-items: center;
-  gap: vw(16);
+  gap: vw(8);
   min-width: 0;
 }
 

@@ -15,7 +15,7 @@
           </div>
 
           <div class="hz__sum-num-row">
-            <span class="hz__sum-num">{{ s.count }}</span>
+            <span class="hz__sum-num" :class="{ 'is-abnormal': s.tone === 'abnormal' }">{{ s.count }}</span>
             <span class="hz__sum-unit">{{ s.unit }}</span>
           </div>
 
@@ -41,9 +41,7 @@
         <div v-for="r in visibleRows" :key="r.key" class="hz__row">
           <div class="hz__row-head">
             <span class="hz__row-lead">
-              <span class="hz__badge" :class="r.level === 'major' ? 'is-major' : 'is-general'">
-                {{ LEVEL_LABEL[r.level] }}
-              </span>
+              <span class="hz__badge">{{ LEVEL_LABEL[r.level] }}</span>
               <span class="hz__row-title">{{ r.title }}</span>
             </span>
             <span class="hz__row-time">{{ r.time }}</span>
@@ -63,11 +61,12 @@
  *
  *   汇总区  两块并排（间距 6px，各占一半）：
  *            16×16 图标（设计稿原图导出）+ 名称(ⓘ 13×13) + 28px 数值 + 「个」
- *            数值渐变 #A5CEFF→#D0E4FC
- *            每块下排两个子项：48×18 定宽标签盒 + 14px 占比
+ *            数值渐变：本月排查任务 #A5CEFF→#D0E4FC
+ *                     未闭环隐患 #FF8080→#FFB3B3（异常红，见 .is-abnormal）
+ *            每块下排两个子项：48×18 定宽标签盒 + 14px 占比（行高 15.4px）
  *   分隔线  1px
  *   分区标题 蓝色竖条 + 「未闭环隐患（近 5 条）」15px + 右对齐「更多 ›」
- *   列表    单容器（底 rgba(0,84,160,0.2)、圆角 10、内距 6px 8px）
+ *   列表    单容器（底 rgba(0,31,60,0.5)、圆角 4、内距 6px 8px、行间距 8）
  *            每条 2 行：① 等级角标 + 隐患描述 + 右对齐完整时间戳 ② 位置
  *            行间 1px 虚线（#234972，2-2 虚线）
  *
@@ -78,28 +77,34 @@
  *   fire-mock.ts 的注释里。
  *
  * 与设计稿的四处有意偏离：
- *   1. 等级角标：一般保留设计稿的橙 #FFA600，重大由设计稿的 #E5523F 换成
- *      项目异常红 #FF8080 —— #E5523F 在卡片底色上实测仅 3.73:1，达不到
- *      4.5:1 的 AA 底线。橙是全页唯一的第二语义色：等级是有序的
- *      （一般 < 重大），角标颜色承担的是严重度梯度；右上「故障 / 预警」
- *      是同一类故障的两个子类型，文案已能区分，故统一用红。
+ *   1. 等级角标：设计稿按等级分色（一般 #FFA600 橙、重大 #E5523F 红），
+ *      本页统一用异常红 —— 全页角标只留一个红（用户 2026-11-02 定），
+ *      等级是有序的（一般 < 重大），角标颜色承担的是严重度梯度；
+ *      右上「故障 / 预警」是同一类故障的两个子类型，文案已能区分，
+ *      故统一用红，等级差异改由角标文案承担。
  *   2. 「个」用 L2 #A9C9EA 而非设计稿的 #8FB0D8：它与右上卡的「件」是
  *      同一个角色（核心数值后的单位），同页同角色必须同色。
  *   3. 角标文字 14px、设计稿 10px；「更多 ›」14px、设计稿 12px。
  *      全大屏字号下限 14px（fire-common.scss 的 $fire-min-size）。
- *   4. 列表只显示 4 条，且行内距比设计稿收紧：设计稿的等级角标文字是 10px、
- *      角标盒 16px 高，本页角标受 14px 字号下限约束、盒高 20px，按设计稿的
- *      行距（内距 6px、标题与位置间距 7px）放不下 4 条 —— 位置行会被压掉
- *      半行。收紧到内距 4px、间距 4px 后 4 条都完整显示（与右上卡同一处理）。
+ *   4. 异常数值的暗端用 #FF8080 而非设计稿的 #E5523F —— #E5523F 在
+ *      卡片底色上实测仅 3.73:1，达不到 4.5:1 的 AA 底线。
  *
- * 与设计稿的实测比对（1920×1080，卡内相对坐标）：
+ * 列表只显示 4 条，且行上下内距比设计稿收紧：设计稿的等级角标文字是 10px、
+ * 角标盒 16px 高，本页角标受 14px 字号下限约束、盒高 20px，按设计稿的
+ * 行距（内距 6px）放不下 4 条 —— 位置行会被压掉半行。收紧到内距 2px
+ * 后 4 条都完整显示（行间距 8px、行内间距 7px 与设计稿一致）。
+ *
+ * 与设计稿的实测比对（1920×1080，卡内相对坐标，含 40px 标题栏）：
  *   卡尺寸     522×462（设计稿 521.86×462）
  *   汇总块起点 x=13 / 264（设计稿 14 / 264），各宽 245（设计稿 246）
- *   名称行 y=63~78（设计稿 65~78）｜数值行 97~117（97.5~116）
- *   子项行     138~150（138~150.5）｜分隔线 175.4（174.4）
- *   分区标题   187~201（189~202）｜列表起点 213.2（213.4）
- *   子项横向   完成 16~｜82.8% 66~102｜未完成 138~｜17.2% 180~222
- *              （设计稿 16~｜12.5% 65~101.5｜138~｜185~222）
+ *   名称行     62~78.8（设计稿 65~78）
+ *   数值行     86.8~126.4，数值墨迹 94.8~117.8（设计稿 96~115.5）
+ *   子项行     138~156（设计稿 138~150.5）
+ *   分隔线     174.7（设计稿 176）
+ *   分区标题   185.7~202.5，蓝色竖条 190~201（设计稿 190~200.5）
+ *   列表起点   212.5（设计稿 214）
+ *   子项横向   完成 14~｜82.8% 64~102｜未完成 136.5~｜17.2% 186.5~222
+ *              （设计稿 16~｜65~101.5｜138~｜185~222）
  */
 import { computed } from 'vue'
 import EbikeV2Card from '../EbikeV2Card.vue'
@@ -128,10 +133,15 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
 @use "@/styles/function.scss" as *;
 @use "./fire-common.scss" as *;
 
-/* 卡片内容区：设计稿 #80:4514 / #80:4515 —— 内距 10px 12px，块间距 10px */
+/* 卡片内容区：设计稿 #80:4514 / #80:4515 —— 内距 10px 12px，块间距 10px。
+   下内距 20px（设计稿内层 #80:4515 固定高 389.16，撑不满卡片体，
+   底部留出约 21px；这里用 20px 让列表下沿落在设计稿的 CSS 440 处）。
+   右上「实时警情监控」那份没有这条 —— 它的设计稿列表底只留 11.5px，
+   两张卡的设计本来就不一样，不要互抄。 */
 .hz {
   @include fire-panel;
   gap: vh(10);
+  padding-bottom: vh(20);
 }
 
 /* ===== 汇总：两块并排 ===== */
@@ -151,6 +161,9 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
   justify-content: center;
   gap: vh(8);
   padding: vh(12) vw(2);
+  /* 设计稿给的是 10px 圆角，但该块无底色无描边，圆角不产生可见效果，
+     仍按设计稿写上，后续给汇总块加底色时形状已经对 */
+  border-radius: vw(10);
 }
 
 /* 指标名行：图标 + 名称 + ⓘ（间距 4px） */
@@ -204,6 +217,22 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
   font-variant-numeric: tabular-nums;
 }
 
+/**
+ * 异常数值：「未闭环隐患」是异常计数，改用本页统一异常红渐变。
+ *
+ * 设计稿这一块是红渐变（#E5523F→#FF8080），实测 PNG 确认渐变方向为
+ * 180deg（上深下浅）。暗端沿用 #FF8080 而非设计稿的 #E5523F ——
+ * #E5523F 在卡片底色上实测仅 3.73:1，达不到 4.5:1 的 AA 底线；
+ * 亮端 #FFB3B3 与右上卡异常 KPI 是同一份，两张卡的异常数值同色。
+ *
+ * 用 background-image 而不是 background：后者会把 background-clip 重置回
+ * border-box，渐变铺满数字盒子，文字被 fill-color: transparent 吃掉。
+ */
+.hz__sum-num.is-abnormal {
+  color: var(--fire-anomaly);
+  background-image: linear-gradient(180deg, #ff8080 0%, #ffb3b3 100%);
+}
+
 /* 单位「个」：L2，与右上卡的「件」同角色同色 */
 .hz__sum-unit {
   @include fire-label(16);
@@ -229,10 +258,16 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
 /**
  * 标签：48×18 定宽盒，文字左对齐（设计稿 layout_c9411501）。
  * 用行高撑出 18px 的行盒，基线与同组的百分比自然对齐。
+ *
+ * 宽度用 min-width 而不是 width：设计稿的 48px 是按 1920 基准给的，
+ * 而标签文字是 15px 固定字号（全大屏字号下限 14px，不随视口缩）。
+ * 视口窄于 1920 时 vw(48) 会缩到 36px，「未完成」三个字放不下，
+ * 文字会溢出盒子压到右侧百分比上（实测 1443 宽下「未完成17.2%」糊成一片）。
+ * min-width 让盒子在放不下时自己撑到文字宽度，1920 下仍然是 48px。
  */
 .hz__sum-tag {
   flex-shrink: 0;
-  width: vw(48);
+  min-width: vw(48);
   line-height: vh(18);
   @include fire-label(15);
   color: var(--fire-text-dim);
@@ -244,6 +279,8 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-weight: 700;
   color: var(--fire-text-label);
+  /* 行高 1.1 = 设计稿 15.4px（占比文字比标签盒矮，靠基线对齐） */
+  line-height: 1.1;
   white-space: nowrap;
 }
 
@@ -283,7 +320,10 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
   flex-shrink: 0;
 }
 
-/* ===== 隐患列表：单容器 ===== */
+/* ===== 隐患列表：单容器（设计稿 #80:4573） =====
+   底 rgba(0,31,60,.5)、圆角 4、内距 6px 8px、行间距 8。
+   底色与卡片玻璃底只差一档，没有这条深底 + 圆角 4 的边界，
+   列表会跟卡片底糊在一起，看不出是一块独立列表。 */
 .hz__list {
   flex: 1;
   min-height: 0;
@@ -291,8 +331,8 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
   flex-direction: column;
   gap: vh(8);
   padding: vh(6) vw(8);
-  border-radius: vw(10);
-  background: rgba(0, 84, 160, 0.2);
+  border-radius: vw(4);
+  background: rgba(0, 31, 60, 0.5);
   overflow: hidden;
 }
 
@@ -300,18 +340,18 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
    flex:1 让 4 条均分列表高度 —— 大屏放大后列表容器变高，行不跟着撑开会
    在容器底部留一条空带。
 
-   行内距比设计稿（6px / 7px）收紧到 4px / 4px：设计稿的等级角标文字是
-   10px、角标盒只有 16px 高，本页角标文字受 14px 字号下限约束，盒高 20px，
-   按设计稿的行距放不下 4 条 —— 位置行会被压掉半行。
-   子项加 flex-shrink:0 是兜底：行高不够时宁可溢出，也不裁字。 */
+   行内距对齐设计稿：标题与位置之间 7px（设计稿 EL-0f7e9a89 的 gap）。
+   行上下内距取 2px（设计稿 6px）：设计稿的 6px 是配着 5 条、且第 4 条被
+   卡片底边裁掉一行的版式算出来的；本卡保持 4 条完整可见，内距收 4px
+   才排得下（与右上「实时警情监控」同一处理）。 */
 .hz__row {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: vh(4);
-  padding: vh(4) 0;
+  gap: vh(7);
+  padding: vh(2) 0;
   border-bottom: 1px dashed #234972;
 }
 
