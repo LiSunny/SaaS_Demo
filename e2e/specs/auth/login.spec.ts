@@ -10,8 +10,8 @@
 import { test, expect } from '@playwright/test'
 import { loginAsAdmin, clearAuth, ADMIN } from '../../fixtures/auth'
 
-/** 与 playwright.config.ts 中的 baseURL 保持一致 */
-const BASE_URL = 'http://localhost:3200'
+/** 与 playwright.config.ts 中的 baseURL 保持一致；换端口跑时用 E2E_BASE_URL 覆盖 */
+const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3200'
 
 /** 转义正则特殊字符（含 host 中的 . 和 :） */
 const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -29,9 +29,11 @@ test.describe('登录页 & 路由守卫（P0）', () => {
   // =============================================
   // P0-2: 登录页应显示体验账号卡片
   // =============================================
-  test('登录页应渲染 4 个体验账号卡片', async ({ page }) => {
+  test('登录页应渲染可用的体验账号卡片', async ({ page }) => {
     await page.goto('/login')
-    const demoRoles = ['平台管理', '运营管理', '企业管理', '普通用户']
+    // 体验账号唯一数据源：src/config/demo-accounts.ts（运营管理 / 服务机构当前 enabled:false）
+    const demoRoles = ['监管机构', '社会单位', '平台管理']
+    await expect(page.locator('.demo-card')).toHaveCount(demoRoles.length)
     for (const role of demoRoles) {
       await expect(page.getByText(role).first()).toBeVisible()
     }
@@ -85,7 +87,7 @@ test.describe('登录页 & 路由守卫（P0）', () => {
     // 登录
     await page.locator('input[placeholder="请输入手机号"]').fill(ADMIN.phone)
     await page.locator('input[type="password"]').fill(ADMIN.password)
-    await page.locator('button:has-text("开始体验")').click()
+    await page.locator('button.login-btn').click()
 
     // 验证重定向回原始目标，而非固定跳到 /workbench
     await expect(page).toHaveURL(/\/admin\/enterpriseManagement\/index/, { timeout: 10000 })
@@ -106,7 +108,7 @@ test.describe('登录页 & 路由守卫（P0）', () => {
   // =============================================
   test('空表单点击登录应显示校验错误', async ({ page }) => {
     await page.goto('/login')
-    await page.locator('button:has-text("开始体验")').click()
+    await page.locator('button.login-btn').click()
     // Element Plus 会显示表单校验错误
     await expect(page.locator('.el-form-item__error').first()).toBeVisible({ timeout: 3000 })
   })
@@ -118,7 +120,7 @@ test.describe('登录页 & 路由守卫（P0）', () => {
     await page.goto('/login')
     await page.locator('input[placeholder="请输入手机号"]').fill(ADMIN.phone)
     await page.locator('input[type="password"]').fill('wrong_password_123')
-    await page.locator('button:has-text("开始体验")').click()
+    await page.locator('button.login-btn').click()
 
     // 错误消息：可能是 .login-error 文本或 ElMessage 弹层
     const errorIndicator = page.locator('.login-error, .el-message--error, .el-message').first()

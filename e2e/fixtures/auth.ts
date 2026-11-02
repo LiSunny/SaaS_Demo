@@ -21,7 +21,7 @@ export async function loginAsAdmin(page: Page) {
   await page.goto('/login')
   await page.locator('input[placeholder="请输入手机号"]').fill(ADMIN.phone)
   await page.locator('input[type="password"]').fill(ADMIN.password)
-  await page.locator('button:has-text("开始体验")').click()
+  await page.locator('button.login-btn').click()
   await page.waitForURL(/\/workbench/, { timeout: 10000 })
 }
 

@@ -201,6 +201,24 @@ async function main() {
   await ensureUser('13300002222', { realName: '刘伟', enterpriseId: street1.id })    // 商业街1（商业街管理方）
   console.log('  ✅ S2 管理方测试账号: 阳光物业(13300001111) / 商业街1(13300002222)')
 
+  // ---- 平台方体验账号（与 src/config/demo-accounts.ts「平台管理」卡片一致）----
+  // 登录页「快速体验」的平台方卡片、以及 e2e/fixtures/auth.ts 的 ADMIN 都用
+  // 13800000001 / 3xkxr4；测试库若缺这个用户，登录卡片与 e2e 鉴权都会 401。
+  const platformOpsPhone = '13800000001'
+  const platformOpsExists = await prisma.user.findUnique({ where: { phone: platformOpsPhone } })
+  if (!platformOpsExists) {
+    await prisma.user.create({
+      data: {
+        phone: platformOpsPhone,
+        realName: '测试运营',
+        password: bcrypt.hashSync('3xkxr4', 10),
+        status: 1,
+        systemRole: 'platform-ops',
+      },
+    })
+    console.log('  ✅ 平台方体验账号: 测试运营(13800000001)')
+  }
+
   // ---- 设备 / 告警 / 隐患 ----
   // 新思维高级中学（S1 社会单位）
   const d1 = await ensureDevice('教学楼烟感 A-101', { type: '烟感', status: '在线', location: '教学楼 1F', enterpriseId: school.id })
