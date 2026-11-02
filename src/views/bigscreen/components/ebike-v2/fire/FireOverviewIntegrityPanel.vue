@@ -12,14 +12,17 @@
           <div class="iip__total-text">
             <div class="iip__total-title">
               完好率
-              <svg v-if="hasIssue" class="iip__note" viewBox="0 0 12 12" width="13" height="13">
-                <title>存在报警 / 故障 / 离线设备</title>
+              <svg class="iip__note" viewBox="0 0 12 12" width="13" height="13">
+                <title>总体设备完好率：可用设备数 ÷ 接入设备总数</title>
                 <circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" stroke-width="1.1" />
                 <path d="M6 3.1v3.3M6 8.5v.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
               </svg>
             </div>
             <div class="iip__total-value">
-              <span class="iip__value-num" :style="{ color: dataColor(overallTone(DEVICE_OVERALL.rate)) }">
+              <span
+                class="iip__value-num"
+                :class="{ 'iip__value-num--abnormal': overallAbnormal }"
+              >
                 {{ DEVICE_OVERALL.rate.toFixed(1) }}
               </span>
               <span class="iip__unit">%</span>
@@ -45,6 +48,12 @@
 
       <div class="iip__divider" />
 
+      <!-- ===== 分区标题 + 更多入口（设计稿 #80:6056） ===== -->
+      <div class="iip__section">
+        <span class="iip__section-title">各系统状态详情</span>
+        <span class="iip__more">更多 ›</span>
+      </div>
+
       <!-- ===== 8 个系统：2 列 4 行，每格两行（名称 + 台数 / 完好率 + 占比条 + 百分比） ===== -->
       <div class="iip__systems">
         <div v-for="(row, ri) in sysRows" :key="ri" class="iip__sys-row">
@@ -68,13 +77,6 @@
           </div>
         </div>
       </div>
-
-      <!-- 底部分页点：设计稿 #80:5133（1 宽 2 圆） -->
-      <div class="iip__dots">
-        <i class="iip__dot iip__dot--wide" />
-        <i class="iip__dot" />
-        <i class="iip__dot" />
-      </div>
     </div>
   </EbikeV2Card>
 </template>
@@ -83,18 +85,24 @@
 /**
  * 消防总览 · 设备状态监控
  *
- * 版式按 Figma 70:313 左下卡（设计稿 Section 80:4933，521.86×500）重做：
+ * 版式按 Figma 设计稿 Section 80:4933（521.86×500）重做：
  *
- *   总体块  六边形文档徽标 48.72×47.96 + 「完好率」(说明角标) + 数值 24px + 状态分布环 64×64
+ *   总体块  六边形文档徽标 48.72×47.96 + 「完好率」(说明角标) + 数值 28px + 状态分布环 64×64
  *           下方 2 行 2 列图例：10×10 方块 + 名称 15px + 右对齐百分比 16px
  *   分隔线  1px
- *   8 系统  2 列 4 行卡片（底 rgba(0,84,160,0.2)、圆角 4、内距 8）
+ *   分区    蓝色竖条 + 「各系统状态详情」15px + 右对齐「更多 ›」
+ *   8 系统  2 列 4 行卡片（底 rgba(0,31,60,.5)、描边 1px #002C51、圆角 4、内距 8）
  *           每格两行：① 14px 图标 + 系统全称 14px + 右对齐台数 15px
  *                     ② 「完好率」14px + 占比条 4px + 右对齐百分比 14px
- *   分页点  居中 1 宽 2 圆（10×4 #5F96D4 + 2 个 4×4 点）
  *
  * 数值口径：完好率 =（总数 − 故障 − 离线）/ 总数，由 `fire-mock.ts` 算出，不手写百分比。
  * 尚未建档案的 5 个系统显示"待接入"，不用 mock 数字冒充。
+ *
+ * 与设计稿的偏离（均有理由，勿"顺手改回去"）：
+ *   1. 环、图例、系统行的文字色阶走本项目色阶（fire-common.scss），
+ *      不照抄设计稿的 #7EA6D6 / #5F86B3 —— 设计稿自身实测对比度低于 4.5:1。
+ *   2. 百分比 14px、图例行高 16.8px：设计稿百分比写 12px，
+ *      但全大屏字号下限为 14px（$fire-min-size）。
  */
 import { computed } from 'vue'
 import EbikeV2Card from '../EbikeV2Card.vue'
@@ -110,8 +118,8 @@ import {
   type Tone,
 } from './fire-mock'
 
-/** 有故障 / 报警 / 离线时，标题右侧挂说明角标（中性蓝，不作告警色） */
-const hasIssue = computed(() => DEVICE_OVERALL.fault + DEVICE_OVERALL.alarm + DEVICE_OVERALL.offline > 0)
+/** 总体完好率是否达标：达标为正常，低于目标即异常（同一个红） */
+const overallAbnormal = computed(() => DEVICE_OVERALL.rate < RATE_TARGET)
 
 /** 环形图分段：占比为 0 的状态不进环 */
 const donutSegments = computed(() =>
@@ -181,11 +189,11 @@ function iconColor(r: SystemRow): string {
   gap: vw(16);
 }
 
-/* 六边形文档徽标：设计稿 #80:4950「组合 4」48.72×47.96 */
+/* 六边形文档徽标：设计稿 #80:4950「组合 4」48.72×47.96（略宽于高，按设计稿比例） */
 .iip__emblem {
   flex-shrink: 0;
-  width: min(vw(48.72), vh(47.96));
-  height: min(vw(48.72), vh(47.96));
+  width: vw(48.72);
+  height: vh(47.96);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -235,7 +243,7 @@ function iconColor(r: SystemRow): string {
 }
 
 /* 主数值：总体完好率，卡内最大的一处。
-   设计稿 24px + 纵向渐变 #A5CEFF→#D0E4FC；
+   设计稿数值 28px（ts1）+ 纵向渐变 #A5CEFF→#D0E4FC；
    声明色保持 L0 白（脚本按声明色量对比度），视觉上叠一层冷调渐变。 */
 .iip__total-value {
   display: flex;
@@ -244,11 +252,18 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__value-num {
-  @include fire-value(32);
+  @include fire-value(28);
   background: linear-gradient(180deg, #a5ceff 0%, #d0e4fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* 异常态：红渐变（暗端即本页统一异常红 #FF8080）。
+   用 background-image 而不是 background —— 后者会把 background-clip 重置回
+   border-box，渐变铺满数字盒子，文字被 fill-color: transparent 吃掉。 */
+.iip__value-num--abnormal {
+  background-image: linear-gradient(180deg, #ff8080 0%, #ffb3b3 100%);
 }
 
 /* 百分号：16px 辅助级 */
@@ -276,6 +291,8 @@ function iconColor(r: SystemRow): string {
 
 .iip__legend-label {
   @include fire-dim(15);
+  /* 设计稿行高 16.8px（style_baa99601） */
+  line-height: 1.12;
   display: flex;
   align-items: center;
   gap: vw(4);
@@ -293,6 +310,10 @@ function iconColor(r: SystemRow): string {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-weight: 700;
   font-size: clamp(14px, calc(16px * var(--min-scale)), 16px);
+  /* 设计稿行高 16.8px：16px 字号 × 1.05。
+     不写死的话默认 normal 会把图例行撑到 19.2px，两行多占 5px，
+     下方 8 个系统卡每行就不够放、被裁掉字。 */
+  line-height: 1.05;
   color: var(--fire-text-dim);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -302,7 +323,38 @@ function iconColor(r: SystemRow): string {
   @include fire-divider;
 }
 
-/* ===== 8 个系统：设计稿 #70:2334（2 列 4 行，行距 8） ===== */
+/* ===== 分区标题 + 更多入口（设计稿 #80:6056） ===== */
+.iip__section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: vw(8);
+  flex-shrink: 0;
+}
+
+.iip__section-title {
+  @include fire-section-title(15);
+  /* 行高 1.12 = 设计稿 16.8px（style_baa99601） */
+  line-height: 1.12;
+
+  /* 设计稿竖条圆角 3px（3px 宽 → 圆头） */
+  &::before {
+    border-radius: 3px;
+  }
+}
+
+/* 「更多 ›」：设计稿 #92DBFF，是可点入口，不占用文字色阶。
+   行高写死 1.2（16.8px）：不写默认 normal 会撑到 20px，把下方系统卡压低。 */
+.iip__more {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
+  line-height: 1.2;
+  color: #92dbff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ===== 8 个系统：设计稿 #80:4998（2 列 4 行，行距 8） ===== */
 .iip__systems {
   display: flex;
   flex-direction: column;
@@ -318,6 +370,10 @@ function iconColor(r: SystemRow): string {
   min-height: 0;
 }
 
+/* 单个系统卡：设计稿 #80:5000 / #80:5016（EL-80c4b725）
+   底 rgba(0,31,60,.5)、描边 1px #002C51、圆角 4、内距 8、行距 8。
+   描边不是装饰：卡底与卡片玻璃底只差一档，没有这条 1px 边，
+   8 个卡会糊成一片，看不出是 8 个独立条目。 */
 .iip__sys {
   flex: 1;
   min-width: 0;
@@ -326,8 +382,9 @@ function iconColor(r: SystemRow): string {
   justify-content: center;
   gap: vh(8);
   padding: vh(8) vw(8);
+  border: 1px solid #002c51;
   border-radius: vw(4);
-  background: rgba(0, 84, 160, 0.2);
+  background: rgba(0, 31, 60, 0.5);
   overflow: hidden;
 }
 
@@ -352,6 +409,8 @@ function iconColor(r: SystemRow): string {
 
 .iip__sys-name {
   @include fire-dim(14);
+  /* 设计稿行高 16.8px（style_84ce3ed3）：行高写死，卡内两行才排得下 */
+  line-height: 1.2;
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -361,6 +420,8 @@ function iconColor(r: SystemRow): string {
 
 .iip__sys-total {
   @include fire-dim(15);
+  /* 设计稿 #80:5008 行高 15.4px */
+  line-height: 1.03;
   flex-shrink: 0;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -379,6 +440,7 @@ function iconColor(r: SystemRow): string {
    低于本项目 4.5:1 的底线 —— 保留项目色阶，记为设计稿偏离。 */
 .iip__sys-label {
   @include fire-dim(14);
+  line-height: 1.2;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -403,33 +465,14 @@ function iconColor(r: SystemRow): string {
 /* 系统行完好率：14px，与主数值拉开 */
 .iip__sys-rate {
   @include fire-value(14);
+  /* 设计稿 #80:5015 行高 15.4px */
+  line-height: 1.1;
   min-width: 44px;
   text-align: right;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
-/* ===== 底部分页点：设计稿 #80:5133（1 宽 2 圆，间距 2） ===== */
-.iip__dots {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: vw(2);
-}
-
-.iip__dot {
-  width: vw(4);
-  height: vw(4);
-  border-radius: 50%;
-  background: rgba(120, 190, 255, 0.16);
-}
-
-/* 当前页：10×4 胶囊 */
-.iip__dot--wide {
-  width: vw(10);
-  height: vw(4);
-  border-radius: vw(4);
-  background: #5f96d4;
-}
+/* 注：设计稿 80:4933 的卡片底部没有分页点（早期版本 #80:5133 有），
+   本卡按设计稿现状不加圆点。 */
 </style>

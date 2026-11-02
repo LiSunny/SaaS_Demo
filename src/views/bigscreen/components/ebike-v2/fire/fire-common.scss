@@ -57,15 +57,15 @@ $fire-neutral: #5f96d4;
 
 // ===== 状态分布环配色 =====
 // 三个异常若同用一个红，环上会连成一段、看不出分界；
-// 用同族红的明度阶梯，既满足"异常统一红色"，又保留报警 / 故障 / 离线三段的区分。
+// 用同族红的明度阶梯，既满足"异常统一红色"，又保留火警 / 预警 / 故障三段的区分。
 //
 // "正常"段不用中性亮色：它占 96.9% 的环面积，是整个卡片最大的一块色，
 // 用 #7fa6d6 会把该区底色调亮、把弱文字（阈值、图例）压到 4.5:1 以下。
 // 改用与卡片底同族的深蓝，正常段只作底衬，三段红才成为画面的信息主体。
 $fire-dist-normal: #2b5f9e;
 $fire-dist-alarm: #ffb3b3;
+$fire-dist-warn: #cc5252;
 $fire-dist-fault: #ff8080;
-$fire-dist-offline: #cc5252;
 
 // ===== 分隔线 / 底纹 =====
 $fire-line: rgba(120, 190, 255, 0.16);
@@ -97,8 +97,8 @@ $fire-min-size: 14;
   --fire-neutral: #{$fire-neutral};
   --fire-dist-normal: #{$fire-dist-normal};
   --fire-dist-alarm: #{$fire-dist-alarm};
+  --fire-dist-warn: #{$fire-dist-warn};
   --fire-dist-fault: #{$fire-dist-fault};
-  --fire-dist-offline: #{$fire-dist-offline};
 }
 
 // 小标题（指标名）—— L2 标签级

@@ -24,13 +24,15 @@ export const RATE_TARGET = 97
  * 状态分布环的配色：正常走中性色，三类异常用同族红的明度阶梯。
  *
  * 三个异常若同用一个红，环上会连成一段、看不出分界；用明度阶梯既满足
- * "异常统一红色"，又保留报警 / 故障 / 离线三段的区分（配合图例文字）。
+ * "异常统一红色"，又保留火警 / 预警 / 故障三段的区分（配合图例文字）。
+ *
+ * 色值与状态是一一对应的，改口径时色值跟着走，不要单独调色。
  */
-export const DIST_COLOR: Record<'normal' | 'alarm' | 'fault' | 'offline', string> = {
+export const DIST_COLOR: Record<'normal' | 'alarm' | 'warn' | 'fault', string> = {
   normal: 'var(--fire-dist-normal)',
   alarm: 'var(--fire-dist-alarm)',
+  warn: 'var(--fire-dist-warn)',
   fault: 'var(--fire-dist-fault)',
-  offline: 'var(--fire-dist-offline)',
 }
 
 /**
@@ -130,7 +132,7 @@ SYSTEM_ROWS.forEach((r) => {
   r.normal = r.total - r.alarm - r.fault - r.offline
 })
 
-/** 状态分布口径：正常 / 报警 / 故障 / 离线 */
+/** 状态分布口径：正常 / 火警 / 预警 / 故障 */
 export interface DistItem {
   key: string
   label: string
@@ -140,14 +142,32 @@ export interface DistItem {
   color: string
 }
 
-/** 状态分布：环形图与堆叠条共用 */
-export function distributionOf(total: number, normal: number, alarm: number, fault: number, offline: number): DistItem[] {
+/**
+ * 状态分布：环形图与堆叠条共用
+ *
+ * 图例的文案与排列按设计稿 80:4975 / 80:4986：正常 | 火警 / 预警 | 故障。
+ *
+ * 项目内部三类异常计数到设计稿四态的对应：
+ *   火警 ← alarm   设备触发火警信号
+ *   预警 ← offline 通讯中断 / 离线 —— 信号缺失，尚未定性为设备故障，需现场核查
+ *   故障 ← fault   设备自身故障信号
+ *
+ * 参数按设计稿的展示顺序给（正常 / 火警 / 预警 / 故障），
+ * 预警位传的是 offline 计数。
+ */
+export function distributionOf(
+  total: number,
+  normal: number,
+  alarm: number,
+  offline: number,
+  fault: number,
+): DistItem[] {
   const t = total || 1
   return [
     { key: 'normal', label: '正常', count: normal, ratio: normal / t, color: DIST_COLOR.normal },
-    { key: 'alarm', label: '报警', count: alarm, ratio: alarm / t, color: DIST_COLOR.alarm },
+    { key: 'alarm', label: '火警', count: alarm, ratio: alarm / t, color: DIST_COLOR.alarm },
+    { key: 'warn', label: '预警', count: offline, ratio: offline / t, color: DIST_COLOR.warn },
     { key: 'fault', label: '故障', count: fault, ratio: fault / t, color: DIST_COLOR.fault },
-    { key: 'offline', label: '离线', count: offline, ratio: offline / t, color: DIST_COLOR.offline },
   ]
 }
 
@@ -181,8 +201,8 @@ export const OVERALL_DIST = distributionOf(
   TOTAL_DEVICES,
   TOTAL_DEVICES - TOTAL_ALARM - TOTAL_FAULT - TOTAL_OFFLINE,
   TOTAL_ALARM,
-  TOTAL_FAULT,
   TOTAL_OFFLINE,
+  TOTAL_FAULT,
 )
 
 // ============================================================
