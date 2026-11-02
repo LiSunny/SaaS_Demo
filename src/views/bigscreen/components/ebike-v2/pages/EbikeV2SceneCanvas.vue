@@ -26,7 +26,7 @@
       <!-- 层1 · 静态底图：连线 + 图元位图 -->
       <svg
         class="monitor-scene__svg monitor-scene__svg--base"
-        :viewBox="viewBox"
+        :viewBox="sceneViewBox"
         preserveAspectRatio="xMidYMid meet"
         role="img"
         :aria-label="`${scene.name}组态图`"
@@ -54,7 +54,7 @@
       <!-- 层2 · 设备名称（无位图，随画面刷新重绘） -->
       <svg
         class="monitor-scene__svg monitor-scene__svg--text"
-        :viewBox="viewBox"
+        :viewBox="sceneViewBox"
         preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
       >
@@ -70,7 +70,7 @@
       <!-- 层3 · 管道流动动画（只有描边，无位图） -->
       <svg
         class="monitor-scene__svg monitor-scene__svg--flow"
-        :viewBox="viewBox"
+        :viewBox="sceneViewBox"
         preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
       >
@@ -102,7 +102,7 @@
     </div>
 
     <!-- 缩放控件：浮在画布右下角 -->
-    <div v-if="scene" class="monitor-scene__zoom">
+    <div v-if="scene && showZoom" class="monitor-scene__zoom">
       <button
         type="button"
         class="monitor-scene__zoom-btn"
@@ -158,14 +158,24 @@ const props = withDefaults(
     scene?: SceneConfig | null
     /** 空态文案 */
     emptyText?: string
+    /**
+     * 视口裁剪（SVG viewBox），缺省用画面自身尺寸。
+     * 画面原始比例与小卡片比例不一致时，裁到内容外接框能填满卡片；
+     * 不裁则会在上下留出大片空白。
+     */
+    viewBox?: string
+    /** 是否显示缩放控件；小卡片里没有交互需求，关掉 */
+    showZoom?: boolean
   }>(),
-  { scene: null, emptyText: '该系统暂无组态画面' },
+  { scene: null, emptyText: '该系统暂无组态画面', viewBox: '', showZoom: true },
 )
 
 /** 箭头 marker id（多实例不冲突） */
 const arrowId = `monitor-arrow-${useId()}`
 
-const viewBox = computed(() => `0 0 ${props.scene?.width || 1200} ${props.scene?.height || 700}`)
+const sceneViewBox = computed(
+  () => props.viewBox || `0 0 ${props.scene?.width || 1200} ${props.scene?.height || 700}`,
+)
 
 const nodes = computed<SceneNode[]>(() => props.scene?.nodes ?? [])
 const edges = computed<SceneEdge[]>(() => props.scene?.edges ?? [])

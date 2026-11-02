@@ -12,9 +12,9 @@
     <!-- ===== 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
     <main v-else v-show="!cleanMode" class="ebike-v2__content">
       <div class="ebike-v2__cols">
-        <!-- 左列：消防保障系统概况（上）/ 实时警情监控（下），顺序按设计稿 70:313 -->
+        <!-- 左列：消防用水监控（上）/ 实时警情监控（下），顺序按设计稿 70:313 -->
         <div class="col col--left">
-          <FireOverviewAssurancePanel class="col__item col__item--top" />
+          <FireOverviewWaterMonitorPanel class="col__item col__item--top" />
           <FireOverviewAlarmPanel class="col__item col__item--bottom" />
         </div>
 
@@ -53,7 +53,7 @@ import EbikeV2Header from './components/ebike-v2/EbikeV2Header.vue'
 import EbikeV2CampusModel from './components/ebike-v2/EbikeV2CampusModel.vue'
 import FireOverviewAlarmPanel from './components/ebike-v2/fire/FireOverviewAlarmPanel.vue'
 import FireOverviewIntegrityPanel from './components/ebike-v2/fire/FireOverviewIntegrityPanel.vue'
-import FireOverviewAssurancePanel from './components/ebike-v2/fire/FireOverviewAssurancePanel.vue'
+import FireOverviewWaterMonitorPanel from './components/ebike-v2/fire/FireOverviewWaterMonitorPanel.vue'
 import FireOverviewPassivePanel from './components/ebike-v2/fire/FireOverviewPassivePanel.vue'
 import EbikeV2TimeSwitch from './components/ebike-v2/EbikeV2TimeSwitch.vue'
 import EbikeV2PoiToggle from './components/ebike-v2/EbikeV2PoiToggle.vue'

@@ -57,6 +57,7 @@ import { SYMBOL_SYSTEMS } from '@/symbols'
 import type { SceneConfig } from '@/types/scene-config'
 import EbikeV2PageShell from './EbikeV2PageShell.vue'
 import EbikeV2SceneCanvas from './EbikeV2SceneCanvas.vue'
+import { pickOverviewScene } from '../scene-picker'
 import EbikeV2FaultRank from '../EbikeV2FaultRank.vue'
 import EbikeV2FaultCurve from '../EbikeV2FaultCurve.vue'
 import EbikeV2AlarmFeed from '../EbikeV2AlarmFeed.vue'
@@ -77,23 +78,9 @@ const systems = computed(() => {
   }))
 })
 
-/**
- * 取该系统要展示的画面
- *
- * 排除验证 / 测试用途的画面（调试遗留），其余取节点最多的一个 —— 节点多的是
- * "总貌"，是系统的整体视图；节点数相同时取最近更新的。
- */
-function pickScene(list: SceneConfig[]): SceneConfig | null {
-  const usable = list.filter((s) => !/验证|测试/.test(s.name))
-  const pool = usable.length ? usable : list
-  if (!pool.length) return null
-  return [...pool].sort(
-    (a, b) => (b.nodes?.length ?? 0) - (a.nodes?.length ?? 0) || b.updatedAt - a.updatedAt,
-  )[0]
-}
-
+/** 取该系统要展示的画面（挑选规则见 scene-picker） */
 const currentScene = computed(() =>
-  pickScene(scenes.value.filter((s) => s.systemKey === activeSystemKey.value)),
+  pickOverviewScene(scenes.value, activeSystemKey.value),
 )
 
 const nodeCount = computed(() => currentScene.value?.nodes?.length ?? 0)

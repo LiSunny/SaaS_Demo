@@ -127,6 +127,29 @@ export const FIREWATER_NODE_BINDINGS: SubsystemNodeBinding[] = [
   // ===== 阀门（当前画面未放置图元，预置规则；画面加图元即生效） =====
   { symbol: 'VLV-BUTT-01', match: { typeKeys: ['valve_switch'], codePrefix: 'FM' }, value: 'openCount', metricKey: 'valveState', onValue: 'open' },
   { symbol: 'VLV-GATE-01', match: { typeKeys: ['valve_switch'], codePrefix: 'BZ' }, value: 'openCount', metricKey: 'valveState', onValue: 'open' },
+
+  // ===== 消防给水系统总貌（大屏总览页「消防用水监控」卡） =====
+  /**
+   * 画面结构（平台组态配置 scene-mvq3l0imru1x）：
+   *   水池 / 水箱 → 泵组 + 控制柜 → 阀门 → 末端（消火栓 / 消火栓箱 / 末端试水 /
+   *   喷淋喷头 / 报警阀组）
+   *
+   * 分配规则：按画面节点出现顺序，每个消费方依次领取档案里的下一段（每段 2 个点）；
+   * 同一图元出现两次的（PMP-SET-01 / CAB-PMP-01）用 nth 区分。
+   * 阀门类图元领取该类全部点位 —— 组内有任一阀门异常整组就算异常，
+   * 与消防水系统监测页「最不利点」口径一致（见 CUS-PSW-01 取全部 114 个压力探测器）。
+   */
+  { symbol: 'TNK-FIRE-01', match: { typeKeys: ['water_level'], slice: [0, 2] }, value: 'levelPercent', metricKey: 'level' },
+  { symbol: 'RES-TANK-01', match: { typeKeys: ['water_level'], slice: [2, 4] }, value: 'levelPercent', metricKey: 'level' },
+  { symbol: 'PMP-SET-01', nth: 1, match: { typeKeys: ['pipe_slave'], slice: [0, 2] }, value: 'deviceState', metricKey: 'runStatus' },
+  { symbol: 'CAB-PMP-01', nth: 1, match: { typeKeys: ['pipe_slave'], slice: [2, 4] }, value: 'deviceState', metricKey: 'runStatus' },
+  { symbol: 'HYD-IND-01', match: { typeKeys: ['pipe_pressure'], slice: [0, 2] }, value: 'pressureMin', metricKey: 'pressure' },
+  { symbol: 'HYD-HOSE-01', match: { typeKeys: ['pipe_pressure'], slice: [2, 4] }, value: 'pressureMin', metricKey: 'pressure' },
+  { symbol: 'TST-TEST-01', match: { typeKeys: ['hydrant_test'], codePrefix: 'ZSD', slice: [0, 2] }, value: 'pressureMin', metricKey: 'pressure' },
+  { symbol: 'PMP-SET-01', nth: 2, match: { typeKeys: ['pipe_slave'], slice: [4, 6] }, value: 'deviceState', metricKey: 'runStatus' },
+  { symbol: 'CAB-PMP-01', nth: 2, match: { typeKeys: ['pipe_slave'], slice: [6, 8] }, value: 'deviceState', metricKey: 'runStatus' },
+  { symbol: 'SPK-SPR-01', match: { typeKeys: ['pipe_pressure'], slice: [4, 6] }, value: 'pressureMin', metricKey: 'pressure' },
+  { symbol: 'ALV-GRP-01', match: { typeKeys: ['valve_switch'], codePrefix: 'BZ' }, value: 'openCount', metricKey: 'valveState', onValue: 'open' },
 ]
 
 /**
@@ -163,6 +186,16 @@ export function aggregateNode(
       subValue: '无独立测点',
       state: { off: true },
     }
+  }
+
+  /**
+   * 没有点位就没有状态可谈。
+   *
+   * 组内为空时若按「正常」处理，图元会挂上 is-run —— 大屏上看起来与健康设备无异，
+   * 实际是数据还没到。off（灰）才是「不知道」的诚实表达。
+   */
+  if (!members.length) {
+    return { points: members, abnormal: 0, value: '--', subValue: '', state: { off: true } }
   }
 
   const metric = metricOf(members[0], binding.metricKey)
@@ -231,18 +264,23 @@ export function aggregateNode(
       }
     }
     case 'deviceState': {
-      const p = members[0]
-      const rt = p ? getRuntime(p.id) : undefined
+      /**
+       * 文本取组内异常点自身的状态，不能拿 members[0] 的「正常」盖住组里的故障。
+       * 状态标记走统一映射：故障=橙、报警=红、离线=灰、正常=绿。
+       */
+      const worst = members.find(p => statusOf(p, getRuntime) !== 'normal')
+      const src = worst ?? members[0]
+      const rt = getRuntime(src.id)
       const raw = rt?.values?.[binding.metricKey]
       const label =
         metric?.states?.find(s => s.value === raw)?.label ??
-        (status === 'normal' ? '正常' : status === 'fault' ? '故障' : '--')
+        (status === 'fault' ? '故障' : status === 'alarm' ? '报警' : '正常')
       return {
         points: members,
         abnormal,
         value: label,
         subValue: '',
-        state: status === 'fault' ? { fault: true } : { run: true },
+        state: analogState(status),
       }
     }
     default:
