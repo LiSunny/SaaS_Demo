@@ -5,6 +5,7 @@
 > 状态：已落地（菜单 + 路由 + 占位页 + 校验脚本）
 > 同日补充：一级菜单排序调整（见结论 8）；巡查检查首个子项改名「数据看板」
 > 后续调整：原「值守与应急 › 消防监控」迁至「设备设施管理 › 运行监控」（2026-10-27，见结论 10）
+> 后续调整：社会单位侧占位「项目管理」(`unit-project`) 下线，与运营商侧「项目运营」(`operator`) 合并为同一功能定位，后者为唯一入口（2026-11-02）
 
 ---
 
@@ -12,12 +13,12 @@
 
 1. 「安全管理」一级菜单解散，原 8 个二级项拆入 7 个一级菜单。
 2. 新增 6 个一级菜单：值守与应急、培训与演练、消防维保、特种作业管理、安全档案、项目管理；原「安全概览」升为独立一级菜单。
-3. 单位侧「项目管理」与运营商侧「项目管理」（`key=operator`）分组独立，互斥可见，不合并。
+3. 单位侧「项目管理」与运营商侧「项目管理」（`key=operator`）分组独立，互斥可见，不合并。（2026-11-02 修订：二者为同一功能定位，单位侧占位分组下线，合并由「项目运营」承载）
 4. 新增路由 60 条，全部挂占位页；消防监控 4 条与可视化大屏沿用真实页。
 5. 导航分组 11 → 17；菜单节点新增 68、删除 12；带路由的叶子 109 → 150。
 6. `ROUTE_TO_NAV_KEY` 70 → 130 条，`NAV_KEY_TO_ROUTE` 69 → 127 条。
 7. 7 个业务域菜单的首个子项统一为「数据看板」（原「首页」），模块首页路径不变。
-8. 社会单位侧一级菜单排序：设备设施管理 → 巡查检查 → 值守与应急 → 隐患排查治理 → 特种作业管理 → 消防维保 → 培训与演练 → 安全档案 → 协同工作 → 项目管理 → 安全概览 → 单位设置。「消防维保」排在「特种作业管理」之后。
+8. 社会单位侧一级菜单排序：设备设施管理 → 巡查检查 → 值守与应急 → 隐患排查治理 → 特种作业管理 → 消防维保 → 培训与演练 → 安全档案 → 协同工作 → 安全概览 → 单位设置。「消防维保」排在「特种作业管理」之后。
 9. 「区域监管」仍居 `NAV_GROUPS` 首位，对社会单位用户不可见；「设备设施管理」在数组中紧随其后，故监管侧、运营商侧、技术服务侧的侧栏顺序不变。
 10. 2026-10-27 后续调整：原「值守与应急 › 消防监控」4 项删除，3 项三系统监测迁至「设备设施管理 › 运行监控」（消防水 / 气体灭火 / 防排烟），组态总览仅保留 URL。当前菜单叶子 150 条、`ROUTE_TO_NAV_KEY` 132 条、`NAV_KEY_TO_ROUTE` 127 条。
 
@@ -107,13 +108,6 @@
 ├── 协同管理：流程编排 / 协同监控
 └── 待办事项 / 已办事项 / 发起事项
 
-项目管理 unit-project（社会单位侧）
-├── 数据看板 /unit/projects
-├── 项目总览：项目看板 / 项目统计
-├── 项目台账：全部项目 / 项目成员
-├── 项目交付：交付节点 / 验收记录
-└── 服务评价 /unit/projects/evaluation
-
 安全概览 unit-overview
 ├── 安全态势 /unit/dashboard
 ├── 数据看板 /unit/data
@@ -164,9 +158,10 @@
 | `src/views/fire-maintenance/fire-maintenance-pages.ts` | 新增：消防维保 10 条配置 |
 | `src/views/special-work/special-work-pages.ts` | 新增：特种作业管理 12 条配置 |
 | `src/views/safety-archive/safety-archive-pages.ts` | 新增：安全档案 9 条配置 |
-| `src/views/project/project-pages.ts` | 新增：项目管理 8 条配置 |
 | `src/config/permission-modules.ts` | `remote-duty`→值守与应急、`maintain-app`→消防维保、`danger-work`→特种作业管理；新增 `safety-archive` |
 | `src/views/workbench/widgets/AppShortcutsWidget.vue` | 快捷入口改为 9 个业务域入口，全部指向新菜单首页 |
+
+（2026-11-02 修订：删除 `src/views/project/project-pages.ts` 及其 8 条项目管理占位配置，`src/views/shared/module-registry.ts` 去掉对应 import 与展开；`src/config/navigation.ts` 删除 `unit-project` 分组及 `ROUTE_TO_NAV_KEY` / `NAV_KEY_TO_ROUTE` 中 8 条映射；`src/router/index.ts` 删除 `/unit/projects` 路由块，改为 2 条重定向到 `/projects`；`AppShortcutsWidget.vue` 的项目入口改为「项目运营」→ `/projects`）
 
 一致性校验脚本 `scripts/check-nav-consistency.mjs` 保留在本地工作区，本次未入库；它对菜单 / 路由 / 页面配置三方做静态核对，可直接用于后续菜单改动。
 
@@ -184,6 +179,8 @@
 | 浏览器实测（dev 3200，社会单位账号 13100001234） | 侧栏 17 个分组渲染正常；社会单位侧可见 12 个一级菜单，顺序与第三节一致；「巡查检查」首个子项显示「数据看板」，`/unit/patrol` 页面标题为「数据看板」；控制台无 error，warn 27 条（26 条未实现路由 + 1 条 prop 类型）均为既有 |
 
 死链 26 条为改动前既有（`单位设置` 24 条、运营商侧「项目管理」2 条、`/admin/member-types` 1 条），本次未处理。
+
+2026-11-02 修订后复验：`vue-tsc -b` 通过；`vite build` 通过（13.78s）；`check-nav-consistency.mjs` 报告导航分组 16 个、菜单叶子 144 条、路由 170 条、占位页配置 52 条，三方一致，死链 24 条（`单位设置` 24 条 + `/admin/member-types` 1 条中未实现部分，较改动前减少 2 条）；浏览器实测社会单位账号 13100001234 侧栏渲染 12 个分组，项目相关分组仅「项目运营」一个，含项目总览 / 项目档案 / 重点单位 / 家庭 / 九小场所 / 项目工单；`/managed/key-units` 6 行、`/managed/families` 3 行、`/managed/small-venues` 3 行均渲染演示数据；`/unit/projects/evaluation` 重定向到 `/projects`。
 
 ---
 
