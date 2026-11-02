@@ -45,22 +45,6 @@ export function dataColor(tone: Tone, level: 'hero' | 'label' = 'hero'): string 
   return level === 'hero' ? 'var(--fire-text-hero)' : 'var(--fire-text-label)'
 }
 
-/**
- * 标记色（图形级）：圆点、进度条、图标、描边。
- * 与 dataColor 的差别只在非异常档用中性蓝而非文字白 —— 色块不能用白，
- * 否则在深底上像发光点。
- */
-export function markColor(tone: Tone): string {
-  if (tone === 'abnormal') return 'var(--fire-anomaly)'
-  if (tone === 'idle') return 'var(--fire-text-sub)'
-  return 'var(--fire-neutral)'
-}
-
-/** 异常态描边：芯片 / 行块左边线 */
-export function markBorder(tone: Tone): string {
-  return tone === 'abnormal' ? 'var(--fire-anomaly-soft)' : 'var(--fire-chip-border)'
-}
-
 /** 设备台数：主机 + 分机 + 采集器件 */
 export function deviceTotal(profileKey: string): number {
   const p = getSubsystemProfile(profileKey)
@@ -202,65 +186,64 @@ export const OVERALL_DIST = distributionOf(
 )
 
 // ============================================================
-// 实时警情与联动状态
+// 实时警情
 // ============================================================
 
-export interface AlarmCount {
+export interface AlarmKpi {
   key: string
   label: string
   count: number
+  /**
+   * 该计数当前是否异常。
+   *
+   * tone 描述"这一项现在有没有问题"，不描述类目本身：
+   *   - 火警 0 起属正常，标成异常会让一个红色的 0 站在最前面
+   *   - 屏蔽非零即异常 —— 有点位被屏蔽就不再上报，属于要处置的事
+   */
   tone: Tone
+  /** 图标素材（对应 `src/assets/bigscreen/ebike-v2/fire/kpi-*.png`，设计稿原图） */
+  icon: string
+  /** ⓘ 说明角标的文案 */
+  hint: string
 }
 
 /**
- * 主机信号五类计数（火灾报警系统档案未建，取演示值）。
- * tone 描述"该计数当前是否异常"，不描述类目本身：
- * 火警当前 0 起属正常，标成异常会让一个红色的 0 站在最前面。
+ * 主机信号四类计数（火灾报警系统档案未建，取演示值）。
+ *
+ * 版式按设计稿 80:4826：2×2，图标框 + 名称ⓘ + 32px 数值 + 单位「件」。
  */
-export const ALARM_COUNTS: AlarmCount[] = [
-  { key: 'fire', label: '火警', count: 0, tone: 'normal' },
-  { key: 'fault', label: '故障', count: 3, tone: 'abnormal' },
-  { key: 'shield', label: '屏蔽', count: 1, tone: 'idle' },
-  { key: 'comm', label: '通讯异常', count: 2, tone: 'abnormal' },
-]
-
-export interface LinkageItem {
-  key: string
-  label: string
-  /** 反馈 = 动作反馈正常；待机 = 未动作；故障 = 反馈异常 */
-  state: '反馈' | '待机' | '故障'
-  tone: Tone
-}
-
-export const LINKAGE: LinkageItem[] = [
-  { key: 'sprinkler', label: '喷淋泵', state: '反馈', tone: 'normal' },
-  { key: 'hydrant', label: '消火栓泵', state: '反馈', tone: 'normal' },
-  { key: 'smoke', label: '排烟风机', state: '反馈', tone: 'normal' },
-  { key: 'shutter', label: '防火卷帘', state: '待机', tone: 'idle' },
-  { key: 'lift', label: '电梯迫降', state: '反馈', tone: 'normal' },
-  { key: 'broadcast', label: '广播', state: '反馈', tone: 'normal' },
+export const ALARM_COUNTS: AlarmKpi[] = [
+  { key: 'fire', label: '火警', count: 0, tone: 'normal', icon: 'fire', hint: '当前处于火警状态的报警点位数量' },
+  { key: 'fault', label: '故障', count: 3, tone: 'abnormal', icon: 'fault', hint: '当前处于故障状态的报警点位数量' },
+  { key: 'shield', label: '屏蔽', count: 1, tone: 'abnormal', icon: 'shield', hint: '被临时屏蔽、不再上报的报警点位数量' },
+  { key: 'comm', label: '通讯异常', count: 2, tone: 'abnormal', icon: 'comm', hint: '通讯中断、无法上报状态的设备数量' },
 ]
 
 export interface AlarmRow {
   key: string
+  /** 胶囊角标：故障 / 预警 */
+  badge: string
+  /** 事件标题 */
+  title: string
+  /** 完整时间戳 */
   time: string
-  type: string
-  typeTone: Tone
+  /** 发生位置 */
   location: string
-  status: string
-  statusTone: Tone
-  /** 响应时长（异常行闪烁） */
-  elapsed: string
-  /** 是否异常行（待处置 / 处置中 / 故障） */
-  active: boolean
 }
 
+/**
+ * 最近警情（设计稿 80:4899 列表容器，2 行式：角标+标题+时间 / 位置）
+ *
+ * 角标只有"故障 / 预警"两类。设计稿把故障标橙、预警标红，
+ * 与本页"异常统一一个红"的色彩规则冲突 —— 角标文案已经区分了档位，
+ * 颜色不再承担区分职责，故统一用异常红。
+ */
 export const ALARM_ROWS: AlarmRow[] = [
-  { key: 'a1', time: '15:41', type: '故障', typeTone: 'abnormal', location: '3 号楼 2 单元 5 层', status: '待处置', statusTone: 'abnormal', elapsed: '03:12', active: true },
-  { key: 'a2', time: '15:12', type: '屏蔽', typeTone: 'idle', location: '2 号楼 防火门磁', status: '已确认', statusTone: 'normal', elapsed: '01:48', active: false },
-  { key: 'a3', time: '14:55', type: '通讯异常', typeTone: 'abnormal', location: '1 号楼 消火栓', status: '处置中', statusTone: 'abnormal', elapsed: '05:33', active: true },
-  { key: 'a4', time: '14:31', type: '故障', typeTone: 'abnormal', location: '第一食堂 电缆温度', status: '待处置', statusTone: 'abnormal', elapsed: '08:06', active: true },
-  { key: 'a5', time: '13:58', type: '监管', typeTone: 'normal', location: '校医院 疏散通道', status: '已确认', statusTone: 'normal', elapsed: '02:21', active: false },
+  { key: 'a1', badge: '预警', title: '燃气预警', time: '2026-11-02 15:41', location: '2 号楼 燃气报警器' },
+  { key: 'a2', badge: '故障', title: '欠压故障', time: '2026-11-02 15:12', location: '3 号楼 2 单元 5 层' },
+  { key: 'a3', badge: '故障', title: '通讯中断', time: '2026-11-02 14:55', location: '1 号楼 消火栓' },
+  { key: 'a4', badge: '预警', title: '烟感误报', time: '2026-11-02 14:31', location: '第一食堂 电缆温度' },
+  { key: 'a5', badge: '预警', title: '疏散通道占用', time: '2026-11-02 13:58', location: '校医院 疏散通道' },
 ]
 
 // ============================================================

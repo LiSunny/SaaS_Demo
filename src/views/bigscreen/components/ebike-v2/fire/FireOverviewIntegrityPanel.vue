@@ -244,7 +244,7 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__value-num {
-  @include fire-value(24);
+  @include fire-value(32);
   background: linear-gradient(180deg, #a5ceff 0%, #d0e4fc 100%);
   -webkit-background-clip: text;
   background-clip: text;

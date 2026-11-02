@@ -34,13 +34,40 @@ const USER = { phone: '13300001111', password: 'admin123!@#' }
 const ROLE_TARGETS = [
   {
     role: 'L0 核心数值',
-    sels: ['.iip__value-num', '.asr__metric-value', '.alp__count-value'],
+    sels: ['.iip__value-num', '.asr__metric-value', '.alp__kpi-num'],
     only: 'hero',
   },
-  { role: 'L1 区块标题', sels: ['.iip__total-title', '.asr__name', '.psv__name'] },
-  { role: 'L2 指标标签', sels: ['.alp__count-label', '.alp__link-label', '.asr__metric-label', '.psv__metric-label'] },
-  { role: 'L3 辅助说明', sels: ['.alp__loc', '.iip__unit', '.asr__metric-unit', '.psv__top-text'] },
-  { role: 'L4 最弱辅助', sels: ['.alp__time', '.alp__elapsed', '.iip__sys-name', '.iip__sys-total', '.iip__sys-label', '.iip__legend-label', '.iip__legend-item b', '.asr__metric-th', '.asr__trend-label'] },]
+  { role: 'L1 区块标题', sels: ['.iip__total-title', '.asr__name', '.psv__name', '.alp__kpi-name'] },
+  {
+    role: 'L2 指标标签',
+    sels: ['.asr__metric-label', '.psv__metric-label', '.alp__kpi-unit', '.alp__row-title'],
+  },
+  {
+    role: 'L3 辅助说明',
+    sels: ['.iip__unit', '.asr__metric-unit', '.psv__top-text', '.alp__row-time', '.alp__row-loc'],
+  },
+  {
+    role: 'L4 最弱辅助',
+    sels: [
+      '.iip__sys-name',
+      '.iip__sys-total',
+      '.iip__sys-label',
+      '.iip__legend-label',
+      '.iip__legend-item b',
+      '.asr__metric-th',
+      '.asr__trend-label',
+    ],
+  },
+]
+
+/** 可点入口（非数据）：不占文字色阶，单独校验对比度 */
+const AFFORDANCE_TARGETS = [{ role: '更多入口', sels: ['.alp__more'] }]
+
+/**
+ * 异常角标（胶囊 badge）：字压在自己的径向渐变底上，
+ * 底色比卡底更亮，必须单独量 —— 混进"异常红"那组会拿别处的底色算。
+ */
+const BADGE_TARGETS = [{ role: '异常角标', sels: ['.alp__badge'] }]
 
 /** 次级数值（系统行完好率）：达标为 L2 淡蓝，不达标为异常红，单独校验 */
 const SECONDARY_TARGETS = [
@@ -125,7 +152,8 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
    * 只取直接文本、不含子元素：`.iip__total-value` 里既有大数值也有
    * "共 1353 台"，整盒取会把两种颜色混在一起测。
    */
-  const targets = await page.evaluate(([ROLE_TARGETS, SECONDARY_TARGETS]) => {
+  const targets = await page.evaluate(
+    ([ROLE_TARGETS, SECONDARY_TARGETS, AFFORDANCE_TARGETS, BADGE_TARGETS]) => {
     const inkBox = (el) => {
       const node = [...el.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
       if (!node) return null
@@ -136,7 +164,12 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       return { x: b.x, y: b.y, w: b.width, h: b.height }
     }
     const out = []
-    for (const { role, sels } of [...ROLE_TARGETS, ...SECONDARY_TARGETS]) {
+    for (const { role, sels } of [
+      ...ROLE_TARGETS,
+      ...SECONDARY_TARGETS,
+      ...AFFORDANCE_TARGETS,
+      ...BADGE_TARGETS,
+    ]) {
       for (const sel of sels) {
         for (const el of document.querySelectorAll(sel)) {
           const box = inkBox(el)
@@ -168,7 +201,7 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       }
     }
     return out
-  }, [ROLE_TARGETS, SECONDARY_TARGETS])
+  }, [ROLE_TARGETS, SECONDARY_TARGETS, AFFORDANCE_TARGETS, BADGE_TARGETS])
 
   /** 异常数据候选：这些选择器里的元素可能是红，也可能是中性色 */
   const anomalyCandidates = await page.evaluate(() => {
@@ -182,7 +215,7 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       return { x: b.x, y: b.y, w: b.width, h: b.height }
     }
     const out = []
-    const sels = ['.alp__type', '.alp__status', '.psv__metric-value', '.iip__sys-rate']
+    const sels = ['.psv__metric-value', '.iip__sys-rate', '.alp__kpi-num', '.alp__badge']
     for (const sel of sels) {
       for (const el of document.querySelectorAll(sel)) {
         const box = inkBox(el)
@@ -381,6 +414,51 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
     checks.push(['次级数值对比度 ≥ 4.5', minCr >= 4.5, String(minCr)])
   }
 
+  // ===== 可点入口（非数据）：不占文字色阶，只校验对比度 =====
+  console.log('--- 可点入口 ---')
+  for (const { role, sels } of AFFORDANCE_TARGETS) {
+    const rows = []
+    for (const sel of sels) {
+      for (const t of targets.filter((x) => x.sel === sel)) {
+        const rgb = rgbOf(t.color)
+        const bg = localBg(t.box)
+        if (!bg) continue
+        rows.push({ text: t.text, rgb, cr: +contrast(rgb, bg).toFixed(2) })
+      }
+    }
+    if (!rows.length) continue
+    for (const r of rows) {
+      console.log(`    ${role} 「${r.text}」 ${r.rgb.join(',')} cr=${r.cr}`)
+    }
+    const minCr = Math.min(...rows.map((r) => r.cr))
+    checks.push([`${role} 对比度 ≥ 4.5`, minCr >= 4.5, String(minCr)])
+  }
+
+  // ===== 异常角标：字压在自己的渐变底上，单独量 =====
+  console.log('--- 异常角标 ---')
+  for (const { role, sels } of BADGE_TARGETS) {
+    const rows = []
+    for (const sel of sels) {
+      for (const t of targets.filter((x) => x.sel === sel)) {
+        const rgb = rgbOf(t.color)
+        const bg = localBg(t.box)
+        if (!bg) continue
+        rows.push({ text: t.text, rgb, bg, cr: +contrast(rgb, bg).toFixed(2) })
+      }
+    }
+    if (!rows.length) continue
+    for (const r of rows) {
+      console.log(`    ${role} 「${r.text}」 ${r.rgb.join(',')} cr=${r.cr}  底色 rgb(${r.bg.join(',')})`)
+    }
+    const minCr = Math.min(...rows.map((r) => r.cr))
+    checks.push([`${role} 对比度 ≥ 4.5`, minCr >= 4.5, String(minCr)])
+    checks.push([
+      `${role} 统一用异常红`,
+      rows.every((r) => r.rgb.join(',') === ANOMALY_RGB.join(',')),
+      '异常红',
+    ])
+  }
+
   // ===== 异常数据：统一红，且亮度不低于最弱辅助 =====
   console.log('--- 异常数据 ---')
   const redEls = []
@@ -452,11 +530,12 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       const r = el.getBoundingClientRect()
       return { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) }
     }
-    return { right: get('.col--right'), left: get('.col--left'), integrity: get('.iip') }
+    return { right: get('.col--right'), left: get('.col--left'), integrity: get('.iip'), alarm: get('.alp') }
   })
   if (boxes.right) await snap(`${OUT}/右列-${vp.width}.png`, boxes.right)
   if (boxes.left) await snap(`${OUT}/左列-${vp.width}.png`, boxes.left)
   if (boxes.integrity) await snap(`${OUT}/完好率卡-${vp.width}.png`, boxes.integrity)
+  if (boxes.alarm) await snap(`${OUT}/警情卡-${vp.width}.png`, boxes.alarm)
 
   await page.close()
 }

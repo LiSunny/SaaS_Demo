@@ -141,8 +141,9 @@ $fire-min-size: 14;
 }
 
 // 分区小标题（面板内的二级标题）—— L1 标题级
-@mixin fire-section-title {
-  @include fire-label(13);
+// $size：设计稿该处小标题的字号（多数卡片 13→14px 下限，实时警情卡 15px）
+@mixin fire-section-title($size: 13) {
+  @include fire-label($size);
   color: var(--fire-text-title);
   display: flex;
   align-items: center;
