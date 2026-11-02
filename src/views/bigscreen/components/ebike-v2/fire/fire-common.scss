@@ -186,3 +186,36 @@ $fire-min-size: 14;
   background: $fire-chip;
   border: 1px solid $fire-chip-border;
 }
+
+/**
+ * 胶囊角标（警情 / 隐患等级共用一套）
+ *
+ * 底色分两层：先一层深蓝压住卡片底色，再叠语义色的径向渐变。
+ * 只叠渐变的话，角标红字压在自己那层浅红上实测仅 4.31:1，
+ * 加深底后 4.86~5.10:1。
+ *
+ * @param $r $g $b  语义色分量（异常红 255,128,128；等级橙 255,166,0）
+ * @param $a1 $a2  径向渐变的起止透明度
+ */
+@mixin fire-badge($r, $g, $b, $a1: 0.16, $a2: 0.2) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: vh(2) vw(6);
+  border-radius: vw(4);
+  border: 1px solid rgb($r, $g, $b);
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba($r, $g, $b, $a1) 0%,
+      rgba($r, $g, $b, $a2) 68%,
+      rgba($r, $g, $b, $a1) 100%
+    ),
+    rgba(0, 20, 46, 0.55);
+  color: rgb($r, $g, $b);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(#{$fire-min-size}px, calc(#{$fire-min-size} * var(--min-scale)), #{$fire-min-size}px);
+  line-height: 1;
+  white-space: nowrap;
+}

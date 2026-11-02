@@ -339,39 +339,12 @@ const visibleRows = computed(() => HAZARD_ROWS.slice(0, VISIBLE_ROWS))
    底色分两层：先一层深蓝压住底色，再叠等级色径向渐变。
    只叠渐变的话，角标字压在自己那层浅色上实测不足 4.5:1。 */
 .hz__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: vh(2) vw(6);
-  border-radius: vw(4);
-  border: 1px solid currentColor;
-  color: var(--fire-level-general);
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(255, 166, 0, 0.13) 0%,
-      rgba(255, 166, 0, 0.16) 68%,
-      rgba(255, 166, 0, 0.13) 100%
-    ),
-    rgba(0, 20, 46, 0.55);
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
-  line-height: 1;
-  white-space: nowrap;
+  @include fire-badge(255, 166, 0, 0.13, 0.16);
 }
 
 /* 重大：换成项目异常红（设计稿 #E5523F 对比度不足） */
 .hz__badge.is-major {
-  color: var(--fire-anomaly);
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(255, 128, 128, 0.13) 0%,
-      rgba(255, 128, 128, 0.16) 68%,
-      rgba(255, 128, 128, 0.13) 100%
-    ),
-    rgba(0, 20, 46, 0.55);
+  @include fire-badge(255, 128, 128, 0.13, 0.16);
 }
 
 .hz__row-title {

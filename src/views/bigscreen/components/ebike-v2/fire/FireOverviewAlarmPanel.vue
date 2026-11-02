@@ -291,26 +291,7 @@ const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
    底色分两层：先一层深蓝压住底色，再叠红色径向渐变。
    只叠渐变的话，角标红字压在自己那层浅红上，实测只有 4.31:1，达不到 4.5:1 底线。 */
 .alp__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: vh(2) vw(6);
-  border-radius: vw(4);
-  border: 1px solid var(--fire-anomaly);
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(255, 128, 128, 0.16) 0%,
-      rgba(255, 128, 128, 0.2) 68%,
-      rgba(255, 128, 128, 0.16) 100%
-    ),
-    rgba(0, 20, 46, 0.55);
-  color: var(--fire-anomaly);
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
-  line-height: 1;
-  white-space: nowrap;
+  @include fire-badge(255, 128, 128, 0.16, 0.2);
 }
 
 .alp__row-title {

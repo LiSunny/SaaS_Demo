@@ -34,12 +34,12 @@ const USER = { phone: '13300001111', password: 'admin123!@#' }
 const ROLE_TARGETS = [
   {
     role: 'L0 核心数值',
-    sels: ['.iip__value-num', '.asr__metric-value', '.alp__kpi-num', '.hz__sum-num'],
+    sels: ['.iip__value-num', '.asr__metric-value', '.alp__kpi-num', '.hz__sum-num', '.wm__num'],
     only: 'hero',
   },
   {
     role: 'L1 区块标题',
-    sels: ['.iip__total-title', '.asr__name', '.alp__kpi-name', '.hz__sum-name'],
+    sels: ['.iip__total-title', '.asr__name', '.alp__kpi-name', '.hz__sum-name', '.wm__name-text'],
   },
   {
     role: 'L2 指标标签',
@@ -50,6 +50,8 @@ const ROLE_TARGETS = [
       '.hz__sum-unit',
       '.hz__sum-ratio',
       '.hz__row-title',
+      '.wm__unit',
+      '.wm__item-title',
     ],
   },
   {
@@ -61,6 +63,8 @@ const ROLE_TARGETS = [
       '.alp__row-loc',
       '.hz__row-time',
       '.hz__row-loc',
+      '.wm__item-time',
+      '.wm__item-loc',
     ],
   },
   {
@@ -80,7 +84,7 @@ const ROLE_TARGETS = [
 
 /** 可点入口（非数据）：不占文字色阶，单独校验对比度 */
 const AFFORDANCE_TARGETS = [
-  { role: '更多入口', sels: ['.alp__more', '.hz__more'] },
+  { role: '更多入口', sels: ['.alp__more', '.hz__more', '.wm__more'] },
 ]
 
 /**
@@ -88,12 +92,16 @@ const AFFORDANCE_TARGETS = [
  * 混进"异常红"那组会拿别处的底色算。
  *
  * expect = 该组角标唯一允许的颜色：
- *   - 异常角标（右上卡的故障 / 预警、右下卡的重大）统一用异常红
+ *   - 异常角标（右上 / 左上卡的故障 / 预警、右下卡的重大）统一用异常红
  *   - 等级角标（一般）用橙 —— 全页唯一的第二语义色，等级是有序的，
  *     角标颜色承担严重度梯度（见 fire-common.scss 顶部第 3 条）
  */
 const BADGE_TARGETS = [
-  { role: '异常角标', sels: ['.alp__badge', '.hz__badge.is-major'], expect: '255,128,128' },
+  {
+    role: '异常角标',
+    sels: ['.alp__badge', '.hz__badge.is-major', '.wm__badge'],
+    expect: '255,128,128',
+  },
   { role: '等级角标(一般)', sels: ['.hz__badge.is-general'], expect: '255,166,0' },
 ]
 
@@ -243,7 +251,14 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       return { x: b.x, y: b.y, w: b.width, h: b.height }
     }
     const out = []
-    const sels = ['.iip__sys-rate', '.alp__kpi-num', '.alp__badge', '.hz__badge.is-major']
+    const sels = [
+      '.iip__sys-rate',
+      '.alp__kpi-num',
+      '.alp__badge',
+      '.hz__badge.is-major',
+      '.hz__sum-num',
+      '.wm__num',
+    ]
     for (const sel of sels) {
       for (const el of document.querySelectorAll(sel)) {
         const box = inkBox(el)
@@ -564,6 +579,7 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
       integrity: get('.iip'),
       alarm: get('.alp'),
       hazard: get('.hz'),
+      water: get('.wm'),
     }
   })
   if (boxes.right) await snap(`${OUT}/右列-${vp.width}.png`, boxes.right)
@@ -571,6 +587,7 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
   if (boxes.integrity) await snap(`${OUT}/完好率卡-${vp.width}.png`, boxes.integrity)
   if (boxes.alarm) await snap(`${OUT}/警情卡-${vp.width}.png`, boxes.alarm)
   if (boxes.hazard) await snap(`${OUT}/隐患卡-${vp.width}.png`, boxes.hazard)
+  if (boxes.water) await snap(`${OUT}/消防用水卡-${vp.width}.png`, boxes.water)
 
   await page.close()
 }

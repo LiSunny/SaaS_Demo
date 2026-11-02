@@ -231,11 +231,11 @@ onBeforeUnmount(() => {
 .col--left { width: vw(522); }
 .col--right { width: vw(522); }
 
-/* 卡片高配比：设计稿按内容分配 —— 左 462:500、右 500:462。
-   462/962 ≈ 48.0%、500/962 ≈ 52.0%，故折成 48:52 / 52:48。 */
+/* 卡片高度：左列两卡等分填充父容器（用户 2026-11-02 定）——
+   左列上下各占 (978 − 16) / 2 = 481，与卡片内容是否匹配无关。
+   右列沿用设计稿 70:313 的 500:462 配比（52:48）。 */
 .col__item { min-height: 0; }
-.col--left .col__item--top { flex: 48 1 0; }
-.col--left .col__item--bottom { flex: 52 1 0; }
+.col--left .col__item { flex: 1 1 0; }
 .col--right .col__item--top { flex: 52 1 0; }
 .col--right .col__item--bottom { flex: 48 1 0; }
 </style>
