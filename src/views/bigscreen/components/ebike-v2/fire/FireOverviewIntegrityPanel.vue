@@ -1,11 +1,12 @@
 <template>
-  <EbikeV2Card title="消防设备完好率">
+  <EbikeV2Card title="设备状态监控">
     <div class="iip">
       <!-- ===== 总体块：图标 + 标题(说明角标) + 完好率数值 + 状态分布环 ===== -->
       <div class="iip__total">
         <div class="iip__total-row">
-          <span class="iip__iconbox">
-            <FireSystemIcon system="bookmark" :size="28" />
+          <!-- 设计稿 #80:4950「组合 4」48.72×47.96：六边形文档徽标 -->
+          <span class="iip__emblem">
+            <img src="@/assets/bigscreen/ebike-v2/fire/fire-state-hexagon.png" alt="" />
           </span>
 
           <div class="iip__total-text">
@@ -49,7 +50,7 @@
         <div v-for="(row, ri) in sysRows" :key="ri" class="iip__sys-row">
           <div v-for="r in row" :key="r.key" class="iip__sys">
             <div class="iip__sys-head">
-              <span class="iip__sys-icon" :style="{ color: r.pending ? 'var(--fire-text-dim)' : iconColor(r) }">
+              <span class="iip__sys-icon" :style="{ color: iconColor(r) }">
                 <FireSystemIcon :system="r.icon" :size="14" />
               </span>
               <span class="iip__sys-name" :title="r.name">{{ r.name }}</span>
@@ -67,22 +68,30 @@
           </div>
         </div>
       </div>
+
+      <!-- 底部分页点：设计稿 #80:5133（1 宽 2 圆） -->
+      <div class="iip__dots">
+        <i class="iip__dot iip__dot--wide" />
+        <i class="iip__dot" />
+        <i class="iip__dot" />
+      </div>
     </div>
   </EbikeV2Card>
 </template>
 
 <script setup lang="ts">
 /**
- * 消防总览 · 消防设备完好率
+ * 消防总览 · 设备状态监控
  *
- * 版式按 Figma 70:703（总览页右列上卡，396×500）重做：
+ * 版式按 Figma 70:313 左下卡（设计稿 Section 80:4933，521.86×500）重做：
  *
- *   总体块  图标 48×48 + 「完好率」(说明角标) + 数值 32px + 状态分布环 64×64
+ *   总体块  六边形文档徽标 48.72×47.96 + 「完好率」(说明角标) + 数值 24px + 状态分布环 64×64
  *           下方 2 行 2 列图例：10×10 方块 + 名称 15px + 右对齐百分比 16px
  *   分隔线  1px
  *   8 系统  2 列 4 行卡片（底 rgba(0,84,160,0.2)、圆角 4、内距 8）
  *           每格两行：① 14px 图标 + 系统全称 14px + 右对齐台数 15px
  *                     ② 「完好率」14px + 占比条 4px + 右对齐百分比 14px
+ *   分页点  居中 1 宽 2 圆（10×4 #5F96D4 + 2 个 4×4 点）
  *
  * 数值口径：完好率 =（总数 − 故障 − 离线）/ 总数，由 `fire-mock.ts` 算出，不手写百分比。
  * 尚未建档案的 5 个系统显示"待接入"，不用 mock 数字冒充。
@@ -133,10 +142,16 @@ function rateColor(r: SystemRow): string {
   return dataColor(overallTone(r.rate), 'label')
 }
 
-/** 图标颜色跟该系统最差状态 */
+/**
+ * 系统图标颜色跟该系统最差状态
+ *
+ * 设计稿 80:4943 实测：已接入的三个系统图标取暖红（#FA7E7F / #F37C7E / #E1777B，
+ * 与项目异常红 #ff8080 同档），待接入的五个取浅蓝（#7CA4D4 / #729BCA，
+ * 与 L4 #7ea6d6 同档）—— 与「状态色」的判定一致，不另立一套。
+ */
 function iconColor(r: SystemRow): string {
   if (r.fault > 0 || r.alarm > 0 || r.offline > 0) return 'var(--fire-anomaly)'
-  return 'var(--fire-neutral)'
+  return 'var(--fire-text-dim)'
 }
 </script>
 
@@ -150,13 +165,14 @@ function iconColor(r: SystemRow): string {
   gap: vh(12);
 }
 
-/* ===== 总体块：设计稿 #70:719（内距 8px 12px 0，无底色） ===== */
+/* ===== 总体块：设计稿 #80:4948（内距 8px 12px 0、间距 8、圆角 8，无底色） ===== */
 .iip__total {
   display: flex;
   flex-direction: column;
   gap: vh(8);
   flex-shrink: 0;
   padding: vh(8) vw(12) 0;
+  border-radius: vw(8);
 }
 
 .iip__total-row {
@@ -165,22 +181,20 @@ function iconColor(r: SystemRow): string {
   gap: vw(16);
 }
 
-/* 图标框：设计稿「组合 4」48.72×47.96 */
-.iip__iconbox {
-  width: min(vw(48), vh(48));
-  height: min(vw(48), vh(48));
+/* 六边形文档徽标：设计稿 #80:4950「组合 4」48.72×47.96 */
+.iip__emblem {
   flex-shrink: 0;
+  width: min(vw(48.72), vh(47.96));
+  height: min(vw(48.72), vh(47.96));
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: vw(8);
-  background: rgba(54, 120, 227, 0.14);
-  color: #6fb0ff;
 
-  /* 图标随框等比缩放（FireSystemIcon 的 size 是固定 px 值） */
-  :deep(svg) {
-    width: 58%;
-    height: 58%;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
   }
 }
 
@@ -221,6 +235,7 @@ function iconColor(r: SystemRow): string {
 }
 
 /* 主数值：总体完好率，卡内最大的一处。
+   设计稿 24px + 纵向渐变 #A5CEFF→#D0E4FC；
    声明色保持 L0 白（脚本按声明色量对比度），视觉上叠一层冷调渐变。 */
 .iip__total-value {
   display: flex;
@@ -229,8 +244,8 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__value-num {
-  @include fire-value(32);
-  background: linear-gradient(180deg, #d0e4fc 0%, #ffffff 100%);
+  @include fire-value(24);
+  background: linear-gradient(180deg, #a5ceff 0%, #d0e4fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -345,7 +360,7 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__sys-total {
-  @include fire-dim(14);
+  @include fire-dim(15);
   flex-shrink: 0;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -359,6 +374,9 @@ function iconColor(r: SystemRow): string {
   min-width: 0;
 }
 
+/* 「完好率」小标签：14px L4。
+   设计稿 80:5034 用 #5F86B3，但设计稿自身实测只有 3.05~3.15:1（底色取格内暗像素中位色），
+   低于本项目 4.5:1 的底线 —— 保留项目色阶，记为设计稿偏离。 */
 .iip__sys-label {
   @include fire-dim(14);
   flex-shrink: 0;
@@ -389,5 +407,29 @@ function iconColor(r: SystemRow): string {
   text-align: right;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
+}
+
+/* ===== 底部分页点：设计稿 #80:5133（1 宽 2 圆，间距 2） ===== */
+.iip__dots {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: vw(2);
+}
+
+.iip__dot {
+  width: vw(4);
+  height: vw(4);
+  border-radius: 50%;
+  background: rgba(120, 190, 255, 0.16);
+}
+
+/* 当前页：10×4 胶囊 */
+.iip__dot--wide {
+  width: vw(10);
+  height: vw(4);
+  border-radius: vw(4);
+  background: #5f96d4;
 }
 </style>

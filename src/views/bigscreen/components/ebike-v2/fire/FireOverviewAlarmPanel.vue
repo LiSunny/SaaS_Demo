@@ -1,5 +1,5 @@
 <template>
-  <EbikeV2Card title="实时警情与联动状态">
+  <EbikeV2Card title="实时警情监控">
     <div class="alp">
       <!-- 主机信号计数 -->
       <div class="alp__counts">

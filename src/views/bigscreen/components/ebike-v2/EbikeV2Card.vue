@@ -1,6 +1,6 @@
 <template>
   <section class="v2-card">
-    <BigscreenSectionTitle :title="title" />
+    <BigscreenSectionTitle :title="title" heavy />
     <div class="v2-card__body">
       <slot />
     </div>

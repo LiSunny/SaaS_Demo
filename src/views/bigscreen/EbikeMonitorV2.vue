@@ -12,15 +12,15 @@
     <!-- ===== 左右两列模块（浮于模型之上，中间留空展示模型） ===== -->
     <main v-else v-show="!cleanMode" class="ebike-v2__content">
       <div class="ebike-v2__cols">
-        <!-- 左列：消防用水监控（上）/ 实时警情监控（下），顺序按设计稿 70:313 -->
+        <!-- 左列：消防用水监控（上）/ 设备状态监控（下），顺序按设计稿 70:313 -->
         <div class="col col--left">
           <FireOverviewWaterMonitorPanel class="col__item col__item--top" />
-          <FireOverviewAlarmPanel class="col__item col__item--bottom" />
+          <FireOverviewIntegrityPanel class="col__item col__item--bottom" />
         </div>
 
-        <!-- 右列：消防设备完好率（上）/ 被动安全与隐患概况（下） -->
+        <!-- 右列：实时警情监控（上）/ 隐患排查治理（下） -->
         <div class="col col--right">
-          <FireOverviewIntegrityPanel class="col__item col__item--top" />
+          <FireOverviewAlarmPanel class="col__item col__item--top" />
           <FireOverviewPassivePanel class="col__item col__item--bottom" />
         </div>
 

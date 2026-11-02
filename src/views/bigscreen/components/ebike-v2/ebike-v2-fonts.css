@@ -44,6 +44,18 @@
   font-display: swap;
 }
 
+/* 卡片标题：设计稿 70:4945 用 Source-KeynoteartHans 900（思源演示斜黑体），
+   字重 900 是该字体自带的（otf 只有这一档），另起族名是为了不和导航的
+   'NavKeynote'（同文件、font-weight: normal）互相覆盖；
+   与导航命中同一个字体文件，浏览器只下载一份。 */
+@font-face {
+  font-family: 'SectionTitleHans';
+  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* 钉钉进步体：故障排名等模块的行内文字（设计稿 7:335 / 7:336）。
    与其它大屏页（campus / campus-monitor / linking）声明的是同一份字体文件。 */
 @font-face {

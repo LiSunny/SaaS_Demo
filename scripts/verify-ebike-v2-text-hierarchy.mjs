@@ -141,10 +141,26 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
         for (const el of document.querySelectorAll(sel)) {
           const box = inkBox(el)
           if (!box) continue
+          /**
+           * 渐变文字：声明色被渐变盖住，屏幕上根本没有声明色。
+           *
+           * 设计稿 80:4972 的主数值就是「声明 #FFFFFF + 内联渐变 #A5CEFF→#D0E4FC」，
+           * 声明色（白）只作对比度测算基准，真实墨色是渐变两端。
+           * 这里把渐变的 rgb 停靠点一并带出去：
+           *   命中判定改看停靠点（白像素不会出现）；
+           *   对比度按最暗的那个停靠点算（最坏情况），不按声明色算。
+           */
+          const bgImg = getComputedStyle(el).backgroundImage
+          const paint = bgImg.includes('gradient')
+            ? [...bgImg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)/g)].map((m) =>
+                [Number(m[1]), Number(m[2]), Number(m[3])],
+              )
+            : []
           out.push({
             role,
             sel,
             color: getComputedStyle(el).color,
+            paint,
             text: (el.textContent || '').trim().slice(0, 14),
             box,
           })
@@ -255,19 +271,37 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
     }
     const base = [...tally.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
     const rows = []
+    /** 被本级基准色筛掉的元素：不能静默丢弃 —— 也要量出来，否则等于没测 */
+    const dropped = []
     for (const t of group) {
       const rgb = rgbOf(t.color)
-      if (only === 'hero' && rgb.join(',') !== '255,255,255') continue
-      if (!only && rgb.join(',') !== base) continue
+      if (only === 'hero' && rgb.join(',') !== '255,255,255') {
+        dropped.push({ ...t, rgb, why: '非本级基准色' })
+        continue
+      }
+      if (!only && rgb.join(',') !== base) {
+        dropped.push({ ...t, rgb, why: '非本级基准色' })
+        continue
+      }
       const bg = localBg(t.box)
       if (!bg) continue
+      /**
+       * 前景色取「实际会渲染出来的最坏颜色」：
+       *   渐变文字 → 渐变里最暗的那个停靠点（屏幕上的真实墨色）
+       *   普通文字 → 声明色
+       */
+      const paintRgb = t.paint?.length
+        ? t.paint.reduce((a, b) => (relLum(b) < relLum(a) ? b : a))
+        : rgb
       rows.push({
         sel: t.sel,
         text: t.text,
         rgb,
         bg,
-        cr: +contrast(rgb, bg).toFixed(2),
-        painted: hasColor(t.box, rgb),
+        cr: +contrast(paintRgb, bg).toFixed(2),
+        painted: t.paint?.length
+          ? Math.max(...t.paint.map((p) => hasColor(t.box, p)))
+          : hasColor(t.box, rgb),
       })
     }
     if (!rows.length) continue
@@ -289,6 +323,16 @@ for (const vp of [{ width: 1920, height: 1080 }]) {
     for (const r of rows) {
       console.log(
         `    ${r.sel.padEnd(28)} 「${r.text}」 cr=${String(r.cr).padStart(5)}  底色 rgb(${r.bg.join(',')})  命中 ${(r.painted * 100).toFixed(0)}%`,
+      )
+    }
+    for (const d of dropped) {
+      const bg = localBg(d.box)
+      if (!bg) continue
+      const paintRgb = d.paint?.length
+        ? d.paint.reduce((a, b) => (relLum(b) < relLum(a) ? b : a))
+        : d.rgb
+      console.log(
+        `    ${d.sel.padEnd(28)} 「${d.text}」 cr=${String(contrast(paintRgb, bg).toFixed(2)).padStart(5)}  底色 rgb(${bg.join(',')})  ⚠ ${d.why} ${d.rgb.join(',')}`,
       )
     }
   }

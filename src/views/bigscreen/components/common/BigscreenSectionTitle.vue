@@ -13,13 +13,20 @@
     <img class="title-deco-right" src="@/assets/bigscreen/section-deco-right.svg" alt="" />
 
     <!-- Layer 4: 标题文字（Figma: left 39.87px, 垂直居中, Source-KeynoteartHans 22px, white→#89b5ff） -->
-    <span class="title-text">{{ title }}</span>
+    <span class="title-text" :class="{ 'title-text--heavy': heavy }">{{ title }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 defineProps<{
   title: string
+  /**
+   * 消防大屏 v2 版式：字重 900 + 实色 #A2CAFF（设计稿 70:4945 的 style_130dbec8）。
+   *
+   * 默认走旧版渐变描边 —— 应急局电动车监控大屏 v1 的卡片标题是另一套设计稿，
+   * 这里换默认会把 v1 的七张卡一起改掉。
+   */
+  heavy?: boolean
 }>()
 </script>
 
@@ -81,5 +88,16 @@ defineProps<{
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
+}
+
+/* 消防大屏 v2：字重 900 + 实色 #A2CAFF（设计稿 70:4945）。
+   换字体而不是只加 font-weight —— 中文字体没有 900 这一档，
+   写 900 只会拿到合成粗体，笔画糊成一团；斜黑体本身就是 900。 */
+.title-text--heavy {
+  font-family: 'SectionTitleHans', 'PingFang SC', sans-serif;
+  font-weight: 900;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: #a2caff;
 }
 </style>
