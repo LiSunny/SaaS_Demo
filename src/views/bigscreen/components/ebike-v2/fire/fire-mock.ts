@@ -230,14 +230,19 @@ export interface AlarmKpi {
 /**
  * 主机信号四类计数（火灾报警系统档案未建，取演示值）。
  *
- * 版式按设计稿 80:4826：2×2，图标框 + 名称ⓘ + 32px 数值 + 单位「件」。
+ * 版式按设计稿 80:4826：2×2，图标框 + 名称ⓘ + 28px 数值 + 单位「件」。
+ *
+ * 色调按计数推导，不逐条手写：计数为 0 = 这一项现在没问题（正常的 0），
+ * 计数大于 0 = 有火警 / 有故障 / 有屏蔽 / 有通讯中断，属异常。
+ * 设计稿的占位值正好符合这条规则（火警 12、屏蔽 12 是红；
+ * 故障 0、通讯异常 0 是蓝），换成真实计数后配色自动跟对。
  */
 export const ALARM_COUNTS: AlarmKpi[] = [
-  { key: 'fire', label: '火警', count: 0, tone: 'normal', icon: 'fire', hint: '当前处于火警状态的报警点位数量' },
-  { key: 'fault', label: '故障', count: 3, tone: 'abnormal', icon: 'fault', hint: '当前处于故障状态的报警点位数量' },
-  { key: 'shield', label: '屏蔽', count: 1, tone: 'abnormal', icon: 'shield', hint: '被临时屏蔽、不再上报的报警点位数量' },
-  { key: 'comm', label: '通讯异常', count: 2, tone: 'abnormal', icon: 'comm', hint: '通讯中断、无法上报状态的设备数量' },
-]
+  { key: 'fire', label: '火警', count: 0, icon: 'fire', hint: '当前处于火警状态的报警点位数量' },
+  { key: 'fault', label: '故障', count: 3, icon: 'fault', hint: '当前处于故障状态的报警点位数量' },
+  { key: 'shield', label: '屏蔽', count: 1, icon: 'shield', hint: '被临时屏蔽、不再上报的报警点位数量' },
+  { key: 'comm', label: '通讯异常', count: 2, icon: 'comm', hint: '通讯中断、无法上报状态的设备数量' },
+].map((c) => ({ ...c, tone: (c.count > 0 ? 'abnormal' : 'normal') as Tone }))
 
 export interface AlarmRow {
   key: string

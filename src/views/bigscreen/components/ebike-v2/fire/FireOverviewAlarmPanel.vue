@@ -55,19 +55,21 @@
 /**
  * 消防总览 · 实时警情监控
  *
- * 版式按 Figma 70:313 右上卡（设计稿 Section 80:4812，521.86×500）重做：
+ * 版式按 Figma 设计稿 Section 80:4812（521.86×500）重做：
  *
- *   KPI 区  2 行 2 列：46×46 图标（设计稿原图导出）+ 名称(ⓘ 13×13) + 32px 数值 + 单位「件」
+ *   KPI 区  2 行 2 列：46×46 图标（设计稿原图导出）+ 名称(ⓘ 13×13) + 28px 数值 + 单位「件」
  *          数值渐变：异常 #FF8080→#FFB3B3，非异常 #A5CEFF→#D0E4FC
+ *          色调按计数推导（0 = 正常，非 0 = 异常），见 fire-mock 的 ALARM_COUNTS
  *   分隔线  1px
  *   分区标题  蓝色竖条 + 「最近警情（近 5 条）」15px + 右对齐「更多 ›」
- *   列表    单容器（底 rgba(0,84,160,0.2)、圆角 10、内距 6px 8px）
+ *   列表    单容器（底 rgba(0,31,60,.5)、圆角 4、内距 6px 8px、行间距 8）
  *          每条 2 行：① 胶囊角标 + 事件标题 + 右对齐完整时间戳 ② 位置
  *          行间 1px 虚线（#234972，2-2 虚线）
  *
  * 与设计稿的四处有意偏离：
- *   1. 角标统一用异常红。设计稿把「故障」标橙、「预警」标红，与本页
- *      "异常统一一个红"的色彩规则冲突（见 fire-common.scss 顶部说明）；
+ *   1. 角标统一用异常红。设计稿把「故障」标橙（#FFA600）、「预警」标红
+ *      （#E5523F），与本页"异常统一一个红"的色彩规则冲突（见 fire-common.scss
+ *      顶部说明，且用户 2026-11-02 定过"全页角标只留一个红"）；
  *      角标文案已区分档位，颜色不再承担区分职责。
  *   2. 角标文字 14px、设计稿 10px；「更多 ›」14px、设计稿 12px。
  *      全大屏字号下限 14px（fire-common.scss 的 $fire-min-size）。
@@ -78,7 +80,9 @@
  *
  * 列表只显示 4 条：设计稿的列表容器是"填满剩余高度"，第 4 条本来就被卡片
  * 底边裁掉一行（设计稿 PNG 实测第 4 条的下沿在 512，卡高 500）。
- * 这里保留 4 条的可见条数，但让 4 条都完整显示，不做裁切。
+ * 这里保留 4 条的可见条数，但让 4 条都完整显示，不做裁切 —— 代价是行内
+ * 上下内距从设计稿的 6px 收到 2px（行间距 8px、行内间距 7px 与设计稿一致），
+ * 否则 4 条排不进 213px 的列表净高。
  */
 import { computed } from 'vue'
 import EbikeV2Card from '../EbikeV2Card.vue'
@@ -184,14 +188,14 @@ const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
 }
 
 /**
- * 核心数值：32px 纵向渐变。
+ * 核心数值：28px 纵向渐变（设计稿 style_a92bd2c0）。
  * 声明色保留在 L0 白 / 异常红（脚本按声明色量对比度），视觉上叠一层渐变。
- * 行高 1.2375 = 设计稿 39.6px —— 行高决定 KPI 块的高度，
+ * 行高 1.4143 = 设计稿 39.6px —— 行高决定 KPI 块的高度，
  * 改它会让下方分隔线偏离设计稿 221px 的位置。
  */
 .alp__kpi-num {
-  @include fire-value(32);
-  line-height: 1.2375;
+  @include fire-value(28);
+  line-height: 1.4143;
   background: linear-gradient(180deg, #a5ceff 0%, #d0e4fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -229,6 +233,8 @@ const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
 
 .alp__section-title {
   @include fire-section-title(15);
+  /* 行高 1.12 = 设计稿 16.8px（style_baa99601） */
+  line-height: 1.12;
 
   /* 设计稿竖条圆角 3px（3px 宽 → 圆头） */
   &::before {
@@ -236,39 +242,47 @@ const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
   }
 }
 
-/* 「更多 ›」：设计稿 #92DBFF，是可点入口，不占用文字色阶 */
+/* 「更多 ›」：设计稿 #92DBFF，是可点入口，不占用文字色阶。
+   行高写死 1.2（16.8px）：不写默认 normal 会撑到 20px，把下方列表压低。 */
 .alp__more {
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
+  line-height: 1.2;
   color: #92dbff;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* ===== 警情列表：单容器 ===== */
+/* ===== 警情列表：单容器（设计稿 #80:4899） =====
+   底 rgba(0,31,60,.5)、圆角 4、内距 6px 8px、行间距 8。
+   底色与卡片玻璃底只差一档，没有这条深底 + 圆角 4 的边界，
+   列表会跟卡片底糊在一起，看不出是一块独立列表。 */
 .alp__list {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: vh(4);
+  gap: vh(8);
   padding: vh(6) vw(8);
-  border-radius: vw(10);
-  background: rgba(0, 84, 160, 0.2);
+  border-radius: vw(4);
+  background: rgba(0, 31, 60, 0.5);
   overflow: hidden;
 }
 
 /* 每条 2 行；行间虚线（设计稿 1px #234972，2-2 虚线）。
    flex:1 让 4 条均分列表高度 —— 大屏放大后列表容器变高，行不跟着撑开会
-   在容器底部留一条空带。 */
+   在容器底部留一条空带。
+   行内上下内距取 2px（设计稿 6px）：设计稿的 6px + 行间距 8px 是配着
+   5 条、且第 4 条被卡片底边裁掉一行的版式算出来的；本卡保持 4 条完整可见，
+   内距收 4px 才排得下（实测 4 条各 47.35px，内容 47.8px）。 */
 .alp__row {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: vh(4);
-  padding: vh(4) 0;
+  gap: vh(7);
+  padding: vh(2) 0;
   border-bottom: 1px dashed #234972;
 }
 
