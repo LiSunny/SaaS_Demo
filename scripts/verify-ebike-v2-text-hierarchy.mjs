@@ -93,8 +93,8 @@ const AFFORDANCE_TARGETS = [
  *
  * expect = 该组角标唯一允许的颜色：
  *   - 异常角标（右上 / 左上卡的故障 / 预警、右下卡的重大）统一用异常红
- *   - 等级角标（一般）用橙 —— 全页唯一的第二语义色，等级是有序的，
- *     角标颜色承担严重度梯度（见 fire-common.scss 顶部第 3 条）
+ *   - 等级角标（一般）同样用异常红 —— 用户 2026-11-02 定：全页角标只留
+ *     一个红，等级差异由角标文案承担（见 fire-common.scss 顶部第 3 条）
  */
 const BADGE_TARGETS = [
   {
@@ -102,7 +102,7 @@ const BADGE_TARGETS = [
     sels: ['.alp__badge', '.hz__badge.is-major', '.wm__badge'],
     expect: '255,128,128',
   },
-  { role: '等级角标(一般)', sels: ['.hz__badge.is-general'], expect: '255,166,0' },
+  { role: '等级角标(一般)', sels: ['.hz__badge.is-general'], expect: '255,128,128' },
 ]
 
 /** 次级数值（系统行完好率）：达标为 L2 淡蓝，不达标为异常红，单独校验 */
