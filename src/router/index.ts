@@ -343,19 +343,23 @@ const router = createRouter({
       ],
     },
 
-    // ===== 项目管理（社会单位侧） =====
+    // ===== 项目管理（运营商侧：项目档案 / 项目详情 / 三个台账） =====
+    // 需求依据 docs/项目管理/product-design.md
     {
-      path: '/unit/projects',
+      path: '/projects',
       component: DefaultLayout,
       children: [
-        { path: '', name: 'UnitProjectHome', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'board', name: 'UnitProjectBoard', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'statistics', name: 'UnitProjectStat', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'list', name: 'UnitProjectList', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'members', name: 'UnitProjectMembers', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'milestones', name: 'UnitProjectMilestone', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'acceptance', name: 'UnitProjectAcceptance', component: () => import('@/views/shared/ModulePlaceholder.vue') },
-        { path: 'evaluation', name: 'UnitProjectEvaluate', component: () => import('@/views/shared/ModulePlaceholder.vue') },
+        { path: '', name: 'ProjectArchive', component: () => import('@/views/operator-project/ProjectList.vue') },
+        { path: ':id', name: 'ProjectDetail', component: () => import('@/views/operator-project/ProjectDetail.vue'), meta: { hidden: true } },
+      ],
+    },
+    {
+      path: '/managed',
+      component: DefaultLayout,
+      children: [
+        { path: 'key-units', name: 'ManagedKeyUnits', component: () => import('@/views/operator-project/ManagedUnitList.vue'), props: { kind: 'enterprise' } },
+        { path: 'families', name: 'ManagedFamilies', component: () => import('@/views/operator-project/ManagedUnitList.vue'), props: { kind: 'family' } },
+        { path: 'small-venues', name: 'ManagedSmallVenues', component: () => import('@/views/operator-project/ManagedUnitList.vue'), props: { kind: 'venue' } },
       ],
     },
 
@@ -451,6 +455,11 @@ const router = createRouter({
     { path: '/workflow/order/:id', redirect: to => `/system/order/${to.params.id}` },
     { path: '/collab/flow/template', redirect: '/system/template' },
     { path: '/collab/flow/monitor', redirect: '/system/monitor' },
+
+    // ===== 兼容重定向（社会单位侧占位「项目管理」→ 运营商侧「项目运营」） =====
+    // 两个分组是同一功能定位，占位分组已下线，旧链接统一指向实装的项目档案页。
+    { path: '/unit/projects', redirect: '/projects' },
+    { path: '/unit/projects/:pathMatch(.*)*', redirect: '/projects' },
   ],
 })
 

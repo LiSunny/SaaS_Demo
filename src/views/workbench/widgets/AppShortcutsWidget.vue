@@ -42,7 +42,7 @@ const apps = computed<AppShortcut[]>(() => [
   { key: 'special',   label: '特种作业管理', icon: '🔥', route: '/unit/special-work',       ready: true },
   { key: 'training',  label: '培训与演练',   icon: '📘', route: '/unit/training',           ready: true },
   { key: 'archive',   label: '安全档案',     icon: '🗂',  route: '/unit/safety-archive',      ready: true },
-  { key: 'project',   label: '项目管理',     icon: '🏗',  route: '/unit/projects',           ready: true },
+  { key: 'project',   label: '项目运营',     icon: '🏗',  route: '/projects',                ready: true },
 ])
 
 function navigate(app: AppShortcut) {

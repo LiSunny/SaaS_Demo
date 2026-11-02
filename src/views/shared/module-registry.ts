@@ -13,7 +13,6 @@ import { TRAINING_PAGES } from '@/views/training/training-pages'
 import { MAINTENANCE_PAGES } from '@/views/fire-maintenance/fire-maintenance-pages'
 import { SPECIAL_WORK_PAGES } from '@/views/special-work/special-work-pages'
 import { ARCHIVE_PAGES } from '@/views/safety-archive/safety-archive-pages'
-import { PROJECT_PAGES } from '@/views/project/project-pages'
 
 export const MODULE_PAGE_CONFIG: Record<string, ModulePageConfig> = {
   ...OVERVIEW_PAGES,
@@ -22,5 +21,4 @@ export const MODULE_PAGE_CONFIG: Record<string, ModulePageConfig> = {
   ...MAINTENANCE_PAGES,
   ...SPECIAL_WORK_PAGES,
   ...ARCHIVE_PAGES,
-  ...PROJECT_PAGES,
 }

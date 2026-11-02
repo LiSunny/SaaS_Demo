@@ -6,7 +6,7 @@
  * 群体分组：
  *   regulator → 区域监管（监管机构）
  *   unit      → 社会单位业务域（学校/企业/商户/物业）
- *   operator  → 项目管理（社会单位-运营商）
+ *   operator  → 项目运营（运营商侧：项目档案 / 三个台账）
  *   service   → 技术服务（技术服务机构）
  *   platform  → 系统管理（平台方，按 systemRole）
  *
@@ -489,47 +489,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 11. 项目管理（社会单位：消防工程 / 维保服务项目） =====
-  // 与运营商侧「项目管理」（key=operator）分属不同群体，各自独立分组
-  {
-    key: 'unit-project',
-    label: '项目管理',
-    icon: 'shop',
-    visibleTo: ['unit'],
-    children: [
-      { key: 'unit-project-home', label: '数据看板', icon: 'menuicon-48', route: '/unit/projects' },
-      {
-        key: 'unit-project-overview',
-        label: '项目总览',
-        icon: 'menuicon-30',
-        children: [
-          { key: 'unit-project-board', label: '项目看板', route: '/unit/projects/board' },
-          { key: 'unit-project-stat', label: '项目统计', route: '/unit/projects/statistics' },
-        ],
-      },
-      {
-        key: 'unit-project-ledger',
-        label: '项目台账',
-        icon: 'menuicon-28',
-        children: [
-          { key: 'unit-project-list', label: '全部项目', route: '/unit/projects/list' },
-          { key: 'unit-project-members', label: '项目成员', route: '/unit/projects/members' },
-        ],
-      },
-      {
-        key: 'unit-project-delivery',
-        label: '项目交付',
-        icon: 'menuicon-31',
-        children: [
-          { key: 'unit-project-milestone', label: '交付节点', route: '/unit/projects/milestones' },
-          { key: 'unit-project-acceptance', label: '验收记录', route: '/unit/projects/acceptance' },
-        ],
-      },
-      { key: 'unit-project-evaluate', label: '服务评价', icon: 'menuicon-47', route: '/unit/projects/evaluation' },
-    ],
-  },
-
-  // ===== 12. 安全概览（社会单位：学校/企业/商户/物业） =====
+  // ===== 11. 安全概览（社会单位：学校/企业/商户/物业） =====
   // 原「安全管理›安全概览」升为独立一级菜单（安全管理一级菜单已解散）
   {
     key: 'unit-overview',
@@ -641,12 +601,16 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 
-  // ===== 14. 项目管理（社会单位-运营商） =====
+  // ===== 14. 项目运营（运营商侧） =====
+  // 「项目运营」与已下线的社会单位侧占位「项目管理」是同一功能定位，本分组为唯一入口。
+  // visibleTo 覆盖四方使用群体 + 平台系统角色：
+  //   - 平台侧账号在 demo 环境没有 operator 企业归属，不放开则整个分组被过滤掉；
+  //   - 四个入口是本模块对外的唯一入口，只对某一群体开放会导致其它群体登录后看不到功能。
   {
     key: 'operator',
-    label: '项目管理',
+    label: '项目运营',
     icon: 'building',
-    visibleTo: ['operator'],
+    visibleTo: ['regulator', 'unit', 'operator', 'service', 'platform-ops', 'platform-admin'],
     children: [
       {
         key: 'op-overview',
@@ -657,15 +621,10 @@ export const NAV_GROUPS: NavGroup[] = [
           { key: 'op-bigscreen', label: '项目大屏' },
         ],
       },
-      {
-        key: 'op-projects',
-        label: '项目列表',
-        icon: 'menuicon-28',
-        children: [
-          { key: 'op-project-list', label: '全部项目', route: '/projects' },
-          { key: 'op-member-delivery', label: '成员交付', route: '/projects/:id/members' },
-        ],
-      },
+      { key: 'op-project-list', label: '项目档案', icon: 'menuicon-28', route: '/projects' },
+      { key: 'op-key-units', label: '重点单位', icon: 'menuicon-31', route: '/managed/key-units' },
+      { key: 'op-families', label: '家庭', icon: 'menuicon-33', route: '/managed/families' },
+      { key: 'op-small-venues', label: '九小场所', icon: 'menuicon-32', route: '/managed/small-venues' },
       {
         key: 'op-orders',
         label: '项目工单',
@@ -960,18 +919,15 @@ export const ROUTE_TO_NAV_KEY: Record<string, string> = {
   '/unit/safety-archive/records': 'unit-archive-record',
   '/unit/safety-archive/borrow': 'unit-archive-borrow',
   '/unit/safety-archive': 'unit-archive-home',
-  // 项目管理（社会单位）：具体路径在前，保证「路径前缀兜底匹配」时先命中子路由
-  '/unit/projects/board': 'unit-project-board',
-  '/unit/projects/statistics': 'unit-project-stat',
-  '/unit/projects/list': 'unit-project-list',
-  '/unit/projects/members': 'unit-project-members',
-  '/unit/projects/milestones': 'unit-project-milestone',
-  '/unit/projects/acceptance': 'unit-project-acceptance',
-  '/unit/projects/evaluation': 'unit-project-evaluate',
-  '/unit/projects': 'unit-project-home',
   '/collab/task/pending': 'collab-pending',
   '/collab/task/completed': 'collab-completed',
   '/collab/task/started': 'collab-started',
+  // 项目管理（运营商侧）：项目档案 + 三个台账
+  // /projects/:id 走前缀兜底，命中 '/projects'
+  '/projects': 'op-project-list',
+  '/managed/key-units': 'op-key-units',
+  '/managed/families': 'op-families',
+  '/managed/small-venues': 'op-small-venues',
 }
 
 /** 侧栏节点 key → 路由路径（用于导航） */
@@ -1040,6 +996,10 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'op-order-monitor': '/system/monitor',
   'op-members': '/enterprise/members',
   'op-positions': '/enterprise/positions',
+  'op-project-list': '/projects',
+  'op-key-units': '/managed/key-units',
+  'op-families': '/managed/families',
+  'op-small-venues': '/managed/small-venues',
   'svc-order-monitor': '/system/monitor',
   'svc-members': '/enterprise/members',
   'svc-positions': '/enterprise/positions',
@@ -1102,15 +1062,6 @@ export const NAV_KEY_TO_ROUTE: Record<string, string> = {
   'unit-archive-ledger': '/unit/safety-archive/ledger',
   'unit-archive-record': '/unit/safety-archive/records',
   'unit-archive-borrow': '/unit/safety-archive/borrow',
-  // 项目管理（社会单位）
-  'unit-project-home': '/unit/projects',
-  'unit-project-board': '/unit/projects/board',
-  'unit-project-stat': '/unit/projects/statistics',
-  'unit-project-list': '/unit/projects/list',
-  'unit-project-members': '/unit/projects/members',
-  'unit-project-milestone': '/unit/projects/milestones',
-  'unit-project-acceptance': '/unit/projects/acceptance',
-  'unit-project-evaluate': '/unit/projects/evaluation',
 }
 
 // ===== 工具函数 =====
