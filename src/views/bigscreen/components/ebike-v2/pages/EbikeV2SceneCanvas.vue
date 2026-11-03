@@ -49,6 +49,15 @@
         >
           <SceneSymbolNode :symbol="n.symbol" :size="n.size" variant="image" :state="n.state" />
         </g>
+
+        <!-- 选中设备的标记环（值守工作台：指出是哪台在报警） -->
+        <circle
+          v-if="pickedNode"
+          class="monitor-scene__pick"
+          :cx="pickedNode.x"
+          :cy="pickedNode.y"
+          :r="pickedNode.size * 0.78"
+        />
       </svg>
 
       <!-- 层2 · 设备名称（无位图，随画面刷新重绘） -->
@@ -166,8 +175,19 @@ const props = withDefaults(
     viewBox?: string
     /** 是否显示缩放控件；小卡片里没有交互需求，关掉 */
     showZoom?: boolean
+    /**
+     * 高亮的节点 id —— 值守工作台「报警位置」用它指出是哪台设备在报警。
+     * 这是"选中"标记，不是设备状态：设备状态只由角标承担。
+     */
+    highlightNodeId?: string
   }>(),
-  { scene: null, emptyText: '该系统暂无组态画面', viewBox: '', showZoom: true },
+  {
+    scene: null,
+    emptyText: '该系统暂无组态画面',
+    viewBox: '',
+    showZoom: true,
+    highlightNodeId: '',
+  },
 )
 
 /** 箭头 marker id（多实例不冲突） */
@@ -179,6 +199,11 @@ const sceneViewBox = computed(
 
 const nodes = computed<SceneNode[]>(() => props.scene?.nodes ?? [])
 const edges = computed<SceneEdge[]>(() => props.scene?.edges ?? [])
+
+/** 被选中的节点（报警位置高亮用） */
+const pickedNode = computed<SceneNode | null>(
+  () => nodes.value.find((n) => n.id === props.highlightNodeId) ?? null,
+)
 
 /** 只有管道连线有流动动画 */
 const flowingEdges = computed(() => edges.value.filter((e) => e.flow && e.flow !== 'none'))
@@ -478,9 +503,12 @@ function onPointerUp(e: PointerEvent) {
 }
 
 /* ===== 设备名称 ===== */
+/* 14px：大屏最小字号下限（fire-common.scss 的 $fire-min-size）。
+   这张画布在值守工作台的「报警位置」里被缩到约 450×290，
+   13px 的标签在那个尺寸下已经认不出来了。 */
 .monitor-scene__label {
   fill: #a9c9ea;
-  font-size: 13px;
+  font-size: 14px;
   text-anchor: middle;
   paint-order: stroke;
   stroke: rgba(4, 30, 64, 0.85);
@@ -505,6 +533,26 @@ function onPointerUp(e: PointerEvent) {
 
 /* 图标后面的光晕圈去掉：状态只由角标承担 */
 .monitor-scene :deep(.sym-halo) { display: none; }
+
+/* ===== 选中标记（值守工作台：指出是哪台设备在报警） =====
+   这是"选中"不是"状态" —— 设备状态仍只由角标承担，两者不混用。
+   环画在 SVG 层（position:absolute 对 SVG 元素无效，故用真实的 <circle>）。 */
+.monitor-scene__pick {
+  fill: none;
+  stroke: #ff8080;
+  stroke-width: 2;
+  opacity: 0.9;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: monitor-pick-pulse 1.6s ease-in-out infinite;
+}
+@keyframes monitor-pick-pulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monitor-scene__pick { animation: none; }
+}
 
 /* 异常角标闪烁：故障 2s / 预警 2.5s，与页面 3s 刷新周期错开 */
 @keyframes monitor-badge-blink {

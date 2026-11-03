@@ -1,6 +1,7 @@
 <template>
   <section class="v2-card">
-    <BigscreenSectionTitle :title="title" heavy />
+    <!-- plain：不出标题栏，只留玻璃卡体（KPI 卡这类"无标题区"的面板用） -->
+    <BigscreenSectionTitle v-if="!plain" :title="title" heavy />
     <div class="v2-card__body">
       <slot />
     </div>
@@ -10,9 +11,15 @@
 <script setup lang="ts">
 import BigscreenSectionTitle from '../common/BigscreenSectionTitle.vue'
 
-defineProps<{
-  title: string
-}>()
+withDefaults(
+  defineProps<{
+    /** 面板标题（plain 模式下可不传） */
+    title?: string
+    /** 不渲染标题栏（卡片只有内容，没有分区标题） */
+    plain?: boolean
+  }>(),
+  { title: '', plain: false },
+)
 </script>
 
 <style lang="scss" scoped>
