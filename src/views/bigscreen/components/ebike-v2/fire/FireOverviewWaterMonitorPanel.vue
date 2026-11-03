@@ -2,8 +2,37 @@
   <EbikeV2Card title="消防用水监控">
     <div class="wm">
       <!-- ===== 三项指标：图标 + 名称ⓘ + 数值 + 24h 迷你趋势 ===== -->
-      <div v-for="m in metrics" :key="m.key" class="wm__metric">
-        <img class="wm__icon" :src="METRIC_ICON" alt="" />
+      <div
+        v-for="m in metrics"
+        :key="m.key"
+        class="wm__metric"
+        :class="{ 'wm__metric--entry': m.key === 'tank' }"
+        :role="m.key === 'tank' ? 'button' : undefined"
+        :tabindex="m.key === 'tank' ? 0 : undefined"
+        @click="m.key === 'tank' && goPumpRoom()"
+        @keydown.enter="m.key === 'tank' && goPumpRoom()"
+      >
+        <!-- 图标：入口行在图标右下角叠一个下钻箭头徽标。
+             名称行（名称 55px + ⓘ 13px，文字列定宽 126px）与数值行都排得
+             满满当当，图标右侧只有 16px 间隙 —— 放文字必然压住"水箱液位"。
+             徽标叠在图标自身上，不占任何布局空间，卡片横向排布
+             （图标 48.72 + 文字列 126 + 趋势图 291 = 497.8）保持设计稿
+             逐像素对齐。 -->
+        <span class="wm__icon-wrap">
+          <img class="wm__icon" :src="METRIC_ICON" alt="" />
+          <span v-if="m.key === 'tank'" class="wm__entry-hint" aria-hidden="true">
+            <svg viewBox="0 0 12 12" width="12" height="12">
+              <path
+                d="M4 2.5 L8.5 6 L4 9.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+        </span>
         <div class="wm__text">
           <div class="wm__name">
             <span class="wm__name-text">{{ m.name }}</span>
@@ -83,12 +112,28 @@
  */
 import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useRoute, useRouter } from 'vue-router'
 import { useSubsystemStore } from '@/stores/subsystem'
 import EbikeV2Card from '../EbikeV2Card.vue'
 import FireTrendSpark from './FireTrendSpark.vue'
 import { ALARM_ROWS } from './fire-mock'
 import { buildWaterMetrics } from './water-metrics'
 import metricGauge from '@/assets/bigscreen/ebike-v2/fire/metric-gauge.png'
+
+const router = useRouter()
+const route = useRoute()
+
+/**
+ * 下钻到「水泵房场景监控」二级专题页
+ *
+ * 只保留 bigscreenId：大屏记录上下文不能丢。
+ */
+function goPumpRoom() {
+  router.push({
+    path: '/landing/ebike-v2/pump-room',
+    query: route.query.bigscreenId ? { bigscreenId: route.query.bigscreenId } : {},
+  })
+}
 
 /** 指标图标：设计稿原图导出，三行共用同一枚（设计稿 94:9841 / 9866 / 9891 同素材） */
 const METRIC_ICON = metricGauge
@@ -162,6 +207,61 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: vw(4);
   white-space: nowrap;
+}
+
+/* ===== 入口行（水箱液位）=====
+   水箱液位行可点击下钻到「水泵房场景监控」专题页。
+   提示做成叠在图标右下角的**箭头徽标**：名称行（名称 55px + ⓘ 13px，
+   文字列定宽 126px）与数值行都排得满满当当，图标右侧只有 16px 间隙 ——
+   放文字必然压住"水箱液位"。徽标叠在图标自身上，不占任何布局空间，
+   卡片横向排布（图标 48.72 + 文字列 126 + 趋势图 291 = 497.8）
+   保持设计稿逐像素对齐。 */
+.wm__metric--entry {
+  position: relative;
+  cursor: pointer;
+  border-radius: vw(4);
+  transition: background 0.15s;
+}
+
+.wm__metric--entry:hover {
+  background: rgba(0, 84, 160, 0.28);
+}
+
+.wm__metric--entry:focus-visible {
+  outline: 1px solid rgba(96, 200, 255, 0.6);
+  outline-offset: 1px;
+}
+
+/* 图标容器：包住图标与叠在它右下角的入口徽标。
+   尺寸与 .wm__icon 完全一致（48.72×47.96），不改变卡片的横向排布。 */
+.wm__icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: vw(48.72);
+  height: vh(47.96);
+}
+
+/**
+ * 「泵房场景」下钻箭头徽标
+ *
+ * 叠在图标右下角，不占布局空间。与同卡「更多 ›」同一角色语义、同色
+ * （#92dbff）。常显而不是 hover 才现 —— 值班员扫一眼就该知道这行能下钻，
+ * 藏起来等于没有入口。
+ */
+.wm__entry-hint {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: vw(18);
+  height: vw(18);
+  border-radius: 50%;
+  background: rgba(0, 44, 94, 0.92);
+  border: 1px solid #92dbff;
+  color: #92dbff;
+  pointer-events: none;
 }
 
 .wm__name-text {

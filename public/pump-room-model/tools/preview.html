@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>泵房模型预览（部分模块）</title>
+  <script type="importmap">
+  { "imports": { "three": "../vendor/three/three.module.js" } }
+  </script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b1016; overflow: hidden; }
+    #viewport { position: absolute; inset: 0; }
+    #hud { position: absolute; left: 12px; top: 12px; color: #9fd; font: 12px ui-monospace, monospace;
+           background: rgba(0,0,0,.55); padding: 8px 10px; border-radius: 6px; white-space: pre; }
+  </style>
+</head>
+<body>
+  <div id="viewport"></div>
+  <div id="hud">装配中…</div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js';
+    import { createMaterials } from '../src/core/materials.js';
+    import { PUMP_ROOM } from '../src/layout.js';
+
+    const MODULES = [
+      ['shell.js', 'buildShell'], ['tanks.js', 'buildTanks'], ['pumps.js', 'buildPumps'],
+      ['piping.js', 'buildPiping'], ['electrical.js', 'buildElectrical'], ['lighting.js', 'buildLighting'],
+    ];
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.getElementById('viewport').appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#10161d');
+    scene.fog = new THREE.Fog('#10161d', 26, 62);
+
+    const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.05, 400);
+    camera.position.set(13.5, 9.2, -14.5);
+    camera.lookAt(0, 1.2, 0);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.2, 0);
+    controls.maxPolarAngle = 1.5;
+    controls.minDistance = 2;
+    controls.maxDistance = 60;
+
+    const materials = createMaterials(THREE);
+    const registered = new Map();
+    const pois = {
+      add: () => {}, addAll: () => {}, list: () => [],
+      register(id, m) { if (!registered.has(id)) registered.set(id, []); registered.get(id).push(m); },
+      meshesOf: (id) => registered.get(id) || [],
+    };
+    let seed = 7;
+    const ctx = {
+      THREE, mat: materials.get,
+      rng: () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; },
+      pois, layout: PUMP_ROOM, options: { quality: 'high', wireframe: false },
+    };
+
+    const status = [];
+    for (const [file, fn] of MODULES) {
+      try {
+        const mod = await import(`../src/modules/${file}`);
+        const r = mod[fn](ctx);
+        scene.add(r && r.group ? r.group : r);
+        status.push(`${file} ✓`);
+      } catch (e) {
+        status.push(`${file} ✗ ${e.message}`);
+      }
+    }
+
+    // 临时环境光（正式灯光由 lighting.js 提供）
+    scene.add(new THREE.HemisphereLight('#cfe2ff', '#2a2f36', 0.55));
+    const key = new THREE.DirectionalLight('#fff4e0', 1.5);
+    key.position.set(8, 14, -6);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.camera.left = -18; key.shadow.camera.right = 18;
+    key.shadow.camera.top = 18; key.shadow.camera.bottom = -18;
+    scene.add(key);
+    const fill = new THREE.DirectionalLight('#bcd4ff', 0.45);
+    fill.position.set(-10, 8, 10);
+    scene.add(fill);
+
+    let meshes = 0, tris = 0;
+    scene.traverse((o) => {
+      if (!o.isMesh) return;
+      meshes += 1;
+      const g = o.geometry;
+      const c = g.index ? g.index.count : g.attributes.position.count;
+      tris += (c / 3) * (o.isInstancedMesh ? o.count : 1);
+    });
+
+    const hud = document.getElementById('hud');
+    hud.textContent = status.join('\n') + `\n网格 ${meshes}  三角面 ${Math.round(tris)}  POI ${registered.size}`;
+
+    window.__preview = { THREE, scene, camera, renderer, controls, materials, registered, status, meshes, tris };
+
+    let frames = 0;
+    function loop() {
+      requestAnimationFrame(loop);
+      controls.update();
+      renderer.render(scene, camera);
+      frames += 1;
+      hud.dataset.frames = frames;
+    }
+    loop();
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>

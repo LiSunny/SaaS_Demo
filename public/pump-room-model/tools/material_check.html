@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>材质库校验</title>
+  <script type="importmap">
+  { "imports": { "three": "../vendor/three/three.module.js" } }
+  </script>
+  <style>
+    body { font: 13px/1.6 ui-monospace, monospace; background: #111; color: #ddd; padding: 16px; }
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid #333; padding: 2px 8px; text-align: left; }
+    .ok { color: #6f6; } .bad { color: #f66; }
+    pre { background: #1b1b1b; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h3>材质库校验（createMaterials）</h3>
+  <div id="out">运行中…</div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { createMaterials, MATERIAL_NAMES } from '../src/core/materials.js';
+
+    const log = [];
+    const out = document.getElementById('out');
+    try {
+      const m = createMaterials(THREE);
+      const rows = [];
+      let missing = 0;
+      for (const name of MATERIAL_NAMES) {
+        const mat = m.get(name);
+        const ok = !!mat && !!mat.isMaterial;
+        if (!ok) missing += 1;
+        const hasMap = !!(mat && mat.map);
+        const color = mat && mat.color ? '#' + mat.color.getHexString() : '—';
+        const emi = mat && mat.emissive ? '#' + mat.emissive.getHexString() : '—';
+        rows.push(`<tr class="${ok ? 'ok' : 'bad'}"><td>${name}</td><td>${mat ? mat.type : '—'}</td><td>${hasMap ? '有' : '无'}</td><td>${color}</td><td>${emi}</td><td>${mat && mat.transparent ? mat.opacity : '—'}</td></tr>`);
+      }
+      // 未知名兜底
+      let fallback = 'ok';
+      try {
+        const f = m.get('__not_exist__');
+        fallback = f && f.isMaterial ? 'ok' : 'bad';
+      } catch (e) { fallback = 'bad: ' + e.message; }
+
+      const table = `<table><tr><th>材质名</th><th>类型</th><th>贴图</th><th>主色</th><th>自发光</th><th>不透明度</th></tr>${rows.join('')}</table>`;
+      out.innerHTML = table;
+      log.push(`材质总数 ${MATERIAL_NAMES.length}，缺失 ${missing}`);
+      log.push(`未知名兜底：${fallback}`);
+      log.push(`dispose 存在：${typeof m.dispose === 'function'}`);
+      log.push(`接口方法：${Object.keys(m).join(', ')}`);
+      window.__materialCheck = { total: MATERIAL_NAMES.length, missing, fallback, dispose: typeof m.dispose === 'function' };
+    } catch (e) {
+      out.innerHTML = '<pre class="bad">' + (e && e.stack ? e.stack : String(e)) + '</pre>';
+      window.__materialCheck = { error: e.message };
+    }
+    const pre = document.createElement('pre');
+    pre.textContent = log.join('\n');
+    out.appendChild(pre);
+  </script>
+</body>
+</html>
