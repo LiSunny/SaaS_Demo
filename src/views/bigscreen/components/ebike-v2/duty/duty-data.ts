@@ -12,6 +12,10 @@
  * 口径对应云端「值守监控 › 值守工作台」：
  *   一条待核实事件 = 一台设备上的一个持续告警（不是一次上报）
  *   上报次数 / 首次报警时间 / 最新报警时间都挂在这一条上
+ *
+ * 平面图描点用另一份清单：buildSceneDevices 给出画面里的**全部**设备
+ * （含未报警的），报警状态由事件表叠加 —— 消防 CRT 的平面图就是
+ * "所有点位都在，报警的点标红"，不是只画报警的那几台。
  */
 import { symbolDef, SYMBOL_REGISTRY_VERSION } from '@/symbols'
 import type { SceneConfig } from '@/types/scene-config'
@@ -84,6 +88,95 @@ export interface DutySpaceNode {
 }
 
 /* ============================================================
+ * 设备清单（平面图描点用）
+ * ============================================================ */
+
+/** 画面里的一台设备 */
+export interface SceneDevice {
+  /** 设备身份 key = 图元符号 + 设备名（同一台设备出现在多个画面时共用一个 key） */
+  key: string
+  /** 设备名（画面图元标签） */
+  label: string
+  /** 图元符号 */
+  symbol: string
+  /** 所属画面 id */
+  sceneId: string
+  /** 所属画面名 */
+  sceneName: string
+  /** 所属系统 key */
+  systemKey: string
+  /** 设备在园区空间里的归属 */
+  space?: DeviceSpace
+}
+
+/**
+ * 画面 → 设备清单（全量，含未报警的设备）
+ *
+ * 平面图要画的是「这个单元里有哪些设备点位」，不是「哪几台在报警」，
+ * 所以这里取画面里的每一个图元节点；同一台设备出现在多张画面时只留一条
+ * （按设备身份 key 去重，与事件表的口径一致）。
+ */
+export function buildSceneDevices(scenes: SceneConfig[]): SceneDevice[] {
+  const out = new Map<string, SceneDevice>()
+  for (const scene of scenes) {
+    for (const n of scene.nodes ?? []) {
+      const def = symbolDef(n.symbol)
+      const label = n.label || def?.name || n.symbol
+      const key = deviceKeyOf(n.symbol, label)
+      if (out.has(key)) continue
+      out.set(key, {
+        key,
+        label,
+        symbol: n.symbol,
+        sceneId: scene.id,
+        sceneName: scene.name,
+        systemKey: scene.systemKey,
+      })
+    }
+  }
+  return [...out.values()]
+}
+
+/**
+ * 设备 / 事件是否落在选中的管理单元内
+ *
+ * 节点 key 与树一一对应：
+ *   zone-*  按园区分区筛
+ *   bld-*   按建筑筛
+ *   part-*  按建筑内的部位筛
+ *   dev-*   按设备筛（同一台设备跨画面的事件一起出来）
+ *   root    不筛
+ *
+ * @param space 设备 / 事件的园区空间归属
+ * @param key   选中的树节点 key
+ */
+export function inUnit(space: DeviceSpace | undefined, key: string): boolean {
+  if (key === 'root') return true
+  if (!space) return false
+  if (key.startsWith('zone-')) return space.zoneId === key.slice(5)
+  if (key.startsWith('bld-')) return space.buildingId === key.slice(4)
+  if (key.startsWith('part-')) {
+    const [buildingId, part] = key.slice(5).split('::')
+    return space.buildingId === buildingId && space.part === part
+  }
+  return true
+}
+
+/**
+ * 按设备身份 key 判断是否落在选中的管理单元内
+ *
+ * 设备叶子节点用 dev-* 表达，此时按设备身份 key 精确匹配。
+ */
+export function deviceInUnit(
+  deviceKey: string,
+  space: DeviceSpace | undefined,
+  key: string,
+): boolean {
+  if (key.startsWith('dev-')) return deviceKey === key.slice(4)
+  return inUnit(space, key)
+}
+
+/* ============================================================
  * 类别判定
  * ============================================================ */
 
@@ -122,12 +215,6 @@ export function formatShort(t: number): string {
   const d = new Date(t)
   const p = (n: number) => String(n).padStart(2, '0')
   return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-/** MM/DD */
-export function formatDay(t: number): string {
-  const d = new Date(t)
-  return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
 }
 
 /**
@@ -240,40 +327,6 @@ export function buildDutyEvents(
  * 派生数据
  * ============================================================ */
 
-/** 持续报警历史曲线：把上报次数分摊到最近若干天 */
-export function dutyTrendOf(event: DutyEvent): Array<{ date: string; count: number }> {
-  const rnd = rngOf(seedOf(`trend-${event.id}`))
-  /** 分摊到几天：最多 7 天，按上报次数决定 */
-  const days = Math.min(7, Math.max(3, Math.ceil(event.reportTimes / 5)))
-  const out: Array<{ date: string; count: number }> = []
-  let left = event.reportTimes
-  for (let i = days - 1; i >= 0; i--) {
-    const day = event.latestAt - i * 86_400_000
-    // 当天分摊：最后一天（最新一天）把剩下的都算上，其余按平均值加噪声
-    const avg = Math.round(event.reportTimes / days) + Math.round((rnd() - 0.5) * 2)
-    const share = i === 0 ? left : Math.min(left, Math.max(0, avg))
-    left -= share
-    out.push({ date: formatDay(day), count: share })
-  }
-  return out
-}
-
-/** 报警记录：消息推送流水 */
-export function dutyTimelineOf(event: DutyEvent): Array<{ time: string; text: string }> {
-  const rnd = rngOf(seedOf(`timeline-${event.id}`))
-  const out: Array<{ time: string; text: string }> = []
-  let t = event.latestAt
-  for (let i = 0; i < 8; i++) {
-    const pushers = 1 + Math.floor(rnd() * 35)
-    out.push({
-      time: formatTime(t),
-      text: `系统内推送告警事件给${event.source}等${pushers}人（基础推送），给${event.source}等${pushers}人（app）`,
-    })
-    t -= 1 + Math.floor(rnd() * 20) * 3_600_000
-  }
-  return out
-}
-
 /* ============================================================
  * KPI
  * ============================================================ */
@@ -331,21 +384,47 @@ export function applyDeviceSpaces(events: DutyEvent[], spaces: Map<string, Devic
 }
 
 /**
+ * 把设备空间归属写回设备清单（平面图描点用）。
+ *
+ * 与事件同一张归属表，所以平面图上的点位和树里的分支永远指同一栋楼。
+ */
+export function attachDeviceSpaces(
+  devices: SceneDevice[],
+  spaces: Map<string, DeviceSpace>,
+): void {
+  for (const d of devices) {
+    const sp = spaces.get(d.key)
+    if (sp) d.space = sp
+  }
+}
+
+/**
  * 园区空间树：园区 › 分区 › 建筑 › 部位 › 设备
  *
- * 只有存在待核实事件的分支才出现 —— 树本身就是"哪里有异常"的导航。
+ * 结构按**设备**建（每个有设备的单元都能在树里点到，平面图才有东西可描），
+ * 计数按**事件**算（每个节点右侧的红字 = 该单元下待核实事件数）。
+ *
+ * 设计稿的树是一棵完整的组织树（公司 › 楼栋 › 楼层/部位），本身不带告警数据；
+ * 这里沿用它的骨架，额外加一列待核实事件数 —— 本页的树是"哪栋楼有异常"的
+ * 导航，没有计数就只剩一列楼名。
+ *
  * 设备按 deviceKey 聚合：同一台设备在两张画面都报警时，树里只有一片叶子，
  * 事件数累加（点叶子能把两张画面的事件一起筛出来）。
  *
- * @param spaces 园区空间真值（只用来定建筑顺序）
- * @param events 待核实事件
+ * @param spaces  园区空间真值（只用来定建筑顺序）
+ * @param devices 设备清单（带空间归属）
+ * @param events  待核实事件（只用来计数）
  */
-export function buildDutySpaceTree(spaces: CampusSpaces, events: DutyEvent[]): DutySpaceNode {
+export function buildDutySpaceTree(
+  spaces: CampusSpaces,
+  devices: SceneDevice[],
+  events: DutyEvent[],
+): DutySpaceNode {
   const root: DutySpaceNode = {
     key: 'root',
     label: '校园消防',
     level: 'zone',
-    count: events.length,
+    count: 0,
     children: [],
   }
 
@@ -354,17 +433,14 @@ export function buildDutySpaceTree(spaces: CampusSpaces, events: DutyEvent[]): D
   const partNodes = new Map<string, DutySpaceNode>()
   const deviceNodes = new Map<string, DutySpaceNode>()
 
-  for (const e of events) {
-    const sp = e.space
-    if (!sp) continue
-
+  /** 取（或建）某台设备所在的部位节点 */
+  function partOf(sp: DeviceSpace): DutySpaceNode {
     let zone = zoneNodes.get(sp.zoneId)
     if (!zone) {
       zone = { key: `zone-${sp.zoneId}`, label: sp.zoneName, level: 'zone', count: 0, children: [] }
       zoneNodes.set(sp.zoneId, zone)
       root.children.push(zone)
     }
-    zone.count += 1
 
     let building = buildingNodes.get(sp.buildingId)
     if (!building) {
@@ -378,7 +454,6 @@ export function buildDutySpaceTree(spaces: CampusSpaces, events: DutyEvent[]): D
       buildingNodes.set(sp.buildingId, building)
       zone.children.push(building)
     }
-    building.count += 1
 
     const partKey = `${sp.buildingId}::${sp.part}`
     let part = partNodes.get(partKey)
@@ -387,15 +462,36 @@ export function buildDutySpaceTree(spaces: CampusSpaces, events: DutyEvent[]): D
       partNodes.set(partKey, part)
       building.children.push(part)
     }
-    part.count += 1
+    return part
+  }
 
-    let device = deviceNodes.get(e.deviceKey)
-    if (!device) {
-      device = { key: `dev-${e.deviceKey}`, label: e.source, level: 'device', count: 0, children: [] }
-      deviceNodes.set(e.deviceKey, device)
-      part.children.push(device)
+  // 结构：一台设备一片叶子
+  for (const d of devices) {
+    if (!d.space) continue
+    if (deviceNodes.has(d.key)) continue
+    const part = partOf(d.space)
+    const node: DutySpaceNode = {
+      key: `dev-${d.key}`,
+      label: d.label,
+      level: 'device',
+      count: 0,
+      children: [],
     }
-    device.count += 1
+    deviceNodes.set(d.key, node)
+    part.children.push(node)
+  }
+
+  // 计数：一条事件给它的整条路径 +1
+  for (const e of events) {
+    if (!e.space) continue
+    root.count += 1
+    partOf(e.space).count += 1
+    const device = deviceNodes.get(e.deviceKey)
+    if (device) device.count += 1
+    const building = buildingNodes.get(e.space.buildingId)
+    if (building) building.count += 1
+    const zone = zoneNodes.get(e.space.zoneId)
+    if (zone) zone.count += 1
   }
 
   // 分区按模型的分区顺序、建筑按模型清单顺序，部位按楼层数值
