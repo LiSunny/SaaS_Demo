@@ -10,6 +10,19 @@
  *   夜间靠路灯与窗户自发光提供亮点。
  */
 
+/**
+ * 大屏整体底色（所有 tab 共用）
+ *
+ * 用户 2026-11-03 定：#000D34。
+ *
+ * 总览页（三维模型）、实时警情 / 系统监测 / 消防档案 / 运行报告四个导航页、
+ * 泵房场景页、小安助手浮层全部取这一个值 —— 切 tab 时背景不跳变。
+ *
+ * 它同时是模型天穹的底色与雾色：雾色与天穹底部同色，远端地块才会融进
+ * 大屏底色而不是留一道硬边（见下方 DAY_THEME / DUSK_THEME 注释）。
+ */
+export const BIGSCREEN_PAGE_BG = '#000d34'
+
 export type CampusTimePreset = 'day' | 'dusk' | 'night'
 
 export interface CampusTheme {
@@ -66,9 +79,9 @@ export interface CampusCamera {
  * 天空、雾、场景背景一律不动。
  */
 const DAY_THEME: CampusTheme = {
-  skyTop: '#05284f',
-  skyBottom: '#00437a',
-  fogColor: '#00437a',
+  skyTop: '#000a26',
+  skyBottom: BIGSCREEN_PAGE_BG,
+  fogColor: BIGSCREEN_PAGE_BG,
   fogDensity: 7.4e-4,
   sunColor: '#fff6e6',
   sunIntensity: 2.4,
@@ -83,9 +96,9 @@ const DAY_THEME: CampusTheme = {
 
 /** 黄昏：暖色主光 + 蓝天光 + 路灯暖点（默认） */
 const DUSK_THEME: CampusTheme = {
-  skyTop: '#05284f',
-  skyBottom: '#00437a',
-  fogColor: '#00437a',
+  skyTop: '#000a26',
+  skyBottom: BIGSCREEN_PAGE_BG,
+  fogColor: BIGSCREEN_PAGE_BG,
   fogDensity: 7.4e-4,
   sunColor: '#ffd9a8',
   sunIntensity: 1.6,
@@ -100,9 +113,9 @@ const DUSK_THEME: CampusTheme = {
 
 /** 夜晚：深蓝夜空 + 月光 + 路灯 / 窗户全亮 */
 const NIGHT_THEME: CampusTheme = {
-  skyTop: '#021c38',
-  skyBottom: '#023a6b',
-  fogColor: '#023a6b',
+  skyTop: '#00060f',
+  skyBottom: BIGSCREEN_PAGE_BG,
+  fogColor: BIGSCREEN_PAGE_BG,
   fogDensity: 8.0e-4,
   sunColor: '#b9cdf5',
   sunIntensity: 1.15,
@@ -123,13 +136,11 @@ export const BIGSCREEN_CAMPUS_THEMES: Record<CampusTimePreset, CampusTheme> = {
 }
 
 /**
- * 大屏各导航页面的统一底色 = 三维模型场景背景色（skyBottom）。
+ * 大屏各导航页面的统一底色 = 大屏整体底色（#000D34）。
  *
- * 白天 / 黄昏两档同值 #00437a（夜晚档为 #023a6b），本页昼夜开关只有
- * 白天 / 黄昏两档，故取黄昏值作为导航页统一底色。
  * 导航页（当前：小安助手）把本值注入 --embed-page-bg，保证与总览页同色。
  */
-export const BIGSCREEN_CAMPUS_BG = BIGSCREEN_CAMPUS_THEMES.dusk.skyBottom
+export const BIGSCREEN_CAMPUS_BG = BIGSCREEN_PAGE_BG
 
 /** 默认预设（进入大屏时的场景） */
 export const BIGSCREEN_CAMPUS_DEFAULT_TIME: CampusTimePreset = 'dusk'

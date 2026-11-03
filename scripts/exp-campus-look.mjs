@@ -22,10 +22,13 @@ const VARIANTS = [
     time: 'day',
     camera: { azimuth: 0, elevation: 44, distance: 1120, targetY: 40 },
     theme: {
-      skyTop: '#2f86d6',
-      skyBottom: '#8ec9ef',
-      fogColor: '#7fb8e2',
-      fogDensity: 5.4e-4,
+      // 白天档天穹与黄昏同色（只换模型本体光照）。
+      // 历史候选（已否决）：skyTop #2f86d6 / skyBottom #8ec9ef / fog #7fb8e2
+      // —— 浅蓝白昼天会让深蓝玻璃卡片浮在亮天空上，与整屏深蓝配色语言打架。
+      skyTop: '#000a26',
+      skyBottom: '#000d34',
+      fogColor: '#000d34',
+      fogDensity: 7.4e-4,
       sunColor: '#fff6e6',
       sunIntensity: 2.4,
       hemiSky: '#bcd9f5',
@@ -42,9 +45,9 @@ const VARIANTS = [
     time: 'night',
     camera: { azimuth: 0, elevation: 44, distance: 1120, targetY: 40 },
     theme: {
-      skyTop: '#021c38',
-      skyBottom: '#023a6b',
-      fogColor: '#023a6b',
+      skyTop: '#00060f',
+      skyBottom: '#000d34',
+      fogColor: '#000d34',
       fogDensity: 8.0e-4,
       sunColor: '#b9cdf5',
       sunIntensity: 1.15,
@@ -62,9 +65,9 @@ const VARIANTS = [
     time: 'dusk',
     camera: { azimuth: 0, elevation: 44, distance: 1120, targetY: 40 },
     theme: {
-      skyTop: '#05284f',
-      skyBottom: '#00437a',
-      fogColor: '#00437a',
+      skyTop: '#000a26',
+      skyBottom: '#000d34',
+      fogColor: '#000d34',
       fogDensity: 7.4e-4,
       sunColor: '#ffd9a8',
       sunIntensity: 1.6,

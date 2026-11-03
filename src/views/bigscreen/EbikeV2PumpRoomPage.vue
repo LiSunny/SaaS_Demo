@@ -120,8 +120,8 @@ onBeforeUnmount(() => {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  /* 底色与总览页三维模型背景一致（导航页统一底色单一来源） */
-  background: #00437a;
+  /* 底色与大屏整体底色一致（导航页统一底色单一来源） */
+  background: #000d34;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   /* 消防面板的主题变量：文字色阶 + 异常红，各卡片共用同一份 */
   @include fire.fire-theme;

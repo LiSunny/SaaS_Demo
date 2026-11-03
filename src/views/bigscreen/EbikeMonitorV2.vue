@@ -1,5 +1,9 @@
 <template>
-  <div class="ebike-v2" :class="{ 'ebike-v2--clean': cleanMode }">
+  <div
+    class="ebike-v2"
+    :class="{ 'ebike-v2--clean': cleanMode }"
+    :style="{ '--bigscreen-page-bg': BIGSCREEN_PAGE_BG }"
+  >
     <!-- ===== 最低层级：校园三维模型（全屏铺底，仅总览页需要） ===== -->
     <EbikeV2CampusModel v-if="!activePage" ref="campusRef" />
 
@@ -63,6 +67,7 @@ import EbikeV2RealTimeAlarm from './components/ebike-v2/pages/EbikeV2RealTimeAla
 import EbikeV2SystemMonitor from './components/ebike-v2/pages/EbikeV2SystemMonitor.vue'
 import EbikeV2FireArchive from './components/ebike-v2/pages/EbikeV2FireArchive.vue'
 import EbikeV2OperationReport from './components/ebike-v2/pages/EbikeV2OperationReport.vue'
+import { BIGSCREEN_PAGE_BG } from './components/ebike-v2/campusTheme'
 import { provideCampusModel, type CampusModelApi } from './components/ebike-v2/useCampusModel'
 
 /** 模型实例：模型区悬浮控件（建筑导航 / 昼夜切换）通过 provide/inject 取用 */
@@ -157,7 +162,9 @@ onBeforeUnmount(() => {
   position: relative;
   width: 100vw; height: 100vh;
   overflow: hidden;
-  background: #00437A;
+  /* 大屏整体底色：所有 tab 共用（campusTheme.ts 的 BIGSCREEN_PAGE_BG 单一来源）。
+     变量由模板上的内联 style 注入，这里只消费不改值。 */
+  background: var(--bigscreen-page-bg, #000d34);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   /* 消防面板的主题变量：文字色阶 + 异常红，各面板与内联 style 共用同一份 */
   @include fire.fire-theme;

@@ -1016,13 +1016,18 @@ function downloadArtifact() {
 .agent-workbench.embedded {
   width: 100%;
   height: 100%;
-  /* 嵌入大屏的配色：底色由外部注入（= 三维模型背景色，所有导航页统一），
+  /* 嵌入大屏的配色：底色由外部注入（= 大屏整体底色 #000D34，所有导航页统一），
      面板与文字按深蓝一族重算，避免"黑底应用贴在大屏上"的割裂感。
-     变量均可被外部覆盖。 */
-  --bg-0: var(--embed-page-bg, #00437a);
-  --bg-1: var(--embed-surface, #03285a);
-  --bg-2: var(--embed-surface-2, #0a3a70);
-  --bg-3: var(--embed-surface-3, #10477f);
+     变量均可被外部覆盖。
+
+     surface 三级是按新底色重算的：页底 L=0.00536 之后，旧值
+     （#03285a / #0a3a70 / #10477f）相对页底变成 4~12 倍，浮在近黑底上
+     像三块突兀的亮蓝。新值把层级重新锚到 2.0 / 4.4 / 6.7 倍，
+     文字对比度 text-1 ≥ 10.9:1、text-2 ≥ 6.9:1、text-3 ≥ 4.9:1（≥4.5）。 */
+  --bg-0: var(--embed-page-bg, #000d34);
+  --bg-1: var(--embed-surface, #061a3a);
+  --bg-2: var(--embed-surface-2, #0c2956);
+  --bg-3: var(--embed-surface-3, #113468);
   --text-1: var(--embed-text-1, #eaf3ff);
   --text-2: var(--embed-text-2, #a9c6e8);
   --text-3: var(--embed-text-3, #86a8cf);

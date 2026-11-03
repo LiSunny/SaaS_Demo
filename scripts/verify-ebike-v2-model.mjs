@@ -108,9 +108,11 @@ console.log(JSON.stringify(info, null, 2))
 
 // 场景光线开关：默认黄昏，点一下切到白天。
 // 白天只切模型光照，场景背景 / 雾 / 天空必须保持大屏底色不变。
+// 圆钮垂直居中：药丸开关内 28px 圆钮相对胶囊上下留白相等。
+// 组件在 4e86da4 改版时去掉了 .v2-time__track 这层包裹，胶囊本体即容器。
 const margins = () =>
   page.evaluate(() => {
-    const t = document.querySelector('.v2-time__track')?.getBoundingClientRect()
+    const t = document.querySelector('.v2-time__switch')?.getBoundingClientRect()
     const h = document.querySelector('.v2-time__thumb')?.getBoundingClientRect()
     if (!t || !h) return null
     const r = (x) => Math.round(x * 10) / 10
@@ -156,9 +158,9 @@ const dayMargin = await margins()
 let failed = 0
 const checks = [
   ['白天场景背景未变', switched['背景切换前后'] === '未变', switched['背景切换前后']],
-  ['白天场景背景 = 大屏底色 00437a', switched.sceneBg === '00437a', switched.sceneBg],
-  ['白天雾色 = 大屏底色 00437a', switched.fog === '00437a', switched.fog],
-  ['白天天空底色 = 大屏底色 00437a', switched.skyBottom === '00437a', switched.skyBottom],
+  ['白天场景背景 = 大屏底色 000d34', switched.sceneBg === '000d34', switched.sceneBg],
+  ['白天雾色 = 大屏底色 000d34', switched.fog === '000d34', switched.fog],
+  ['白天天空底色 = 大屏底色 000d34', switched.skyBottom === '000d34', switched.skyBottom],
   ['黄昏圆钮垂直居中', !!duskMargin && Math.abs(duskMargin.上边距 - duskMargin.下边距) <= 0.5, JSON.stringify(duskMargin)],
   ['白天圆钮垂直居中', !!dayMargin && Math.abs(dayMargin.上边距 - dayMargin.下边距) <= 0.5, JSON.stringify(dayMargin)],
 ]

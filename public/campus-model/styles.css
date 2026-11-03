@@ -845,7 +845,7 @@ html.is-embed .viewport {
   height: 100%;
 }
 
-/* 嵌入模式配色：与大屏底色 #00437A 同一口径 */
+/* 嵌入模式配色：与大屏底色 #000D34 同一口径 */
 html.is-embed {
   --panel-bg: rgba(0, 44, 86, 0.62);
   --panel-bg-solid: rgba(0, 38, 76, 0.94);

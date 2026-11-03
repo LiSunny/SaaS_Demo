@@ -340,7 +340,8 @@ defineExpose({
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: #00437a;
+  /* 模型加载期的兜底底色 = 大屏整体底色，避免加载完成瞬间闪一下别的色 */
+  background: #000d34;
 }
 
 .campus-layer__frame {
@@ -358,7 +359,7 @@ defineExpose({
   align-items: center;
   justify-content: center;
   gap: 14px;
-  background: #00437a;
+  background: #000d34;
   color: #c8e4ff;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
