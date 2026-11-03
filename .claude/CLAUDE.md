@@ -306,7 +306,8 @@ src/api/adapters/
 - **系统监测页按设计稿 110:10889 重构**（`pages/EbikeV2SystemMonitor.vue`）：版式换成「顶部设备检测指标概览横条 + 左侧组态画布 + 右列（实时警情 / 多发故障排名）」。原右列三模块（健康度分析 / 设备状态监控 / 统计分析报表）与底部三模块行（故障曲线等）设计稿里都没有，连同 `EbikeV2PageShell.vue` / `EbikeV2PlaceholderCard.vue` 一并删除（设计稿是唯一准绳，不留"以防万一"的模块）。系统切换从画布左上角的浮动按钮移到顶部横条的「当前系统」下拉
 - **指标四项计数取平台真值，不写演示值**（`scene-points.ts`）：设备总数 = 画面图元数；故障 = 绑定声明 `onClass:['is-fault']` 的点位数；屏蔽 = 绑定声明 `offClass:['is-off']` 的点位数（设备停运、不再上报）；预警 = `onClass` 含 `is-over/is-alarm/is-flow` 的点位数。分类依据是**图元库绑定声明的状态类**，不是点位名的模糊匹配 —— 同一份口径同时供「实时警情」「多发故障排名」用，三处对同一画面的说法必须一致
 - **大屏下拉浮层必须 Teleport 到 body**：带 `backdrop-filter` 的祖先会把溢出的子元素裁到自身边框盒内（滤镜区域 = border box），下拉留在玻璃卡里只剩一条缝。`EbikeV2MonitorMetrics.vue` 的系统下拉用 `<Teleport to="body">` + 触发框 `getBoundingClientRect()` 算 `position: fixed` 的 top/left/width
-- **右列底部要给悬浮机器人留位**：小安机器人是全局 fixed 悬浮件（112×112，右下角 24px），设计稿里没有它，但它整块落在右列右下角 —— 排名卡的百分比会被盖住。`.monitor__side` 底部留 `vh(128)` 空位，卡片内容全部落在机器人上方
+- **右列两卡高度等分父容器，不再给悬浮机器人留位**：`.monitor__side > :deep(*) { flex: 1 1 0 }` 让「实时警情」「多发故障排名」各占一半（各 322px），底边与组态画布齐平（830）。原先底部留的 `vh(128)` 机器人空位已去掉 —— 留白会破坏等分。小安机器人是全局 fixed 悬浮件（112×112，右下角 24px），仍会压住排名卡**末行占比条的灰底右段**，但占比填充段在左侧、百分比数字在右端靠边，两者都不受影响
+- **气体灭火 / 防排烟的 mock 数据走平台组态配置链路，不在前端另造**（`server/prisma/seed-monitor-scenes.ts`）：平台原有两幅画面（gas / smoke）各只有 2 个节点，用的还是只在画面文件内联注册的自定义图元（GFES-* / SCS-*），大屏画布渲染不出图形、点位也取不到 → 四项指标全 0、警情与排名都空。补的 mock 画面节点**只用内置图元库里的符号**（带 `onClass` / `offClass` 声明），入库到 SceneConfig 表，经 `/api/scenes` 出，前端一行不改。`npm run db:seed:monitor`（server/ 下）幂等补写，`prisma/seed.ts` 里也调一次，新库/e2e 库开箱即有。故障类型数控制在 4 条以内 —— 等分后每张卡只有约 322px，排名行高 38 + 行距 18，排 5 行会被 `overflow` 裁掉
 
 ### 下次建议动作
 
