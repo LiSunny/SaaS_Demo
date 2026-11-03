@@ -1,32 +1,33 @@
 <template>
   <div class="op-report bigscreen">
-    <div class="op-report__scroll">
-      <!-- 页面信息条：数据新鲜度 + 报告总数 -->
-      <div class="op-report__meta">
-        <span>小安助手自动汇总 · 数据截至 2026-11-03 24:00</span>
-        <span class="op-report__meta-total">共 {{ REPORT_TOTAL }} 份报告</span>
-      </div>
+    <!-- ===== 左栏：报告分类（设计稿 117:21199） ===== -->
+    <EbikeV2ReportSidebar
+      class="op-report__side"
+      :categories="categories"
+      :active-category="activeCategory"
+      @update:active-category="onCategoryChange"
+    />
 
-      <!-- 三类报告分区 -->
-      <section v-for="group in REPORT_GROUPS" :key="group.key" class="op-report__group">
-        <div class="op-report__group-head">
-          <BigscreenSectionTitle :title="group.label" heavy />
-          <span class="op-report__group-meta">{{ group.desc }} · 共 {{ group.items.length }} 份</span>
-        </div>
-
-        <div class="op-report__cards">
-          <EbikeV2ReportCard
-            v-for="item in group.items"
-            :key="item.id"
-            :report="item"
-            @open="openReport"
-          />
-        </div>
-      </section>
-    </div>
+    <!-- ===== 右栏：详细记录（设计稿 117:21246） ===== -->
+    <EbikeV2ReportListPanel
+      class="op-report__main"
+      :category="currentCategory"
+      :records="filteredRecords"
+      :page="currentPage"
+      :page-size="currentPageSize"
+      :search="currentSearch"
+      :filter-values="currentFilters"
+      :date-range="currentDateRange"
+      @update:search="onSearch"
+      @update:filter-values="onFilters"
+      @update:date-range="onDateRange"
+      @update:page="onPage"
+      @update:page-size="onPageSize"
+      @open="openReport"
+    />
 
     <!-- 报告预览：页内浮层，不跳路由 -->
-    <EbikeV2ReportPreview v-if="activeReport" :report="activeReport" @close="closeReport" />
+    <EbikeV2ReportPreview v-if="activeRecord" :report="activeRecord" @close="closeReport" />
   </div>
 </template>
 
@@ -34,42 +35,153 @@
 /**
  * 运行报告页
  *
- * 三类报告各一个分区，每类挂若干份报告卡：
- *   告警分析报告 / 设备运行报告 / 值守报告。
+ * 版式按设计稿 110:11432（智能安全管控平台 / 运行报告）：
+ *   左「报告分类」分区（280 宽，三类报告）+ 右「详细记录」分区（工具条 + 卡片列表 + 分页）。
  *
- * 版式来自 Figma「人工智能+公共安全管理平台（后台）」的报告卡组件（1:1 还原，
- * 见 EbikeV2ReportCard.vue 的换算说明）；页面自身沿用大屏深蓝玻璃的页面语言：
- * 底色随大屏根节点（与总览页同源），分区标题复用 BigscreenSectionTitle。
+ * 分类从「三类分区纵向铺开」改成左栏侧栏：设计稿把分类做成侧栏，
+ * 右侧主区因此能占满整屏宽度，一行放得下 5 张报告卡；
+ * 三类同时可见的诉求由左栏承担（切分类不丢上下文）。
  *
- * 为什么不做成「tab 切换 + 单列表」：大屏是值守场景，三类报告要一眼同时可见，
- * 切 tab 会把另外两类藏起来。因此按分区纵向铺开，每类一行卡片。
+ * 卡片上的「点击查看」打开页内浮层（值守场景不能跳路由、不开新标签页）。
  *
- * 数据：report/report-data.ts 的演示数据（基准日 2026-11-03）。
- * 接口接入时只换该文件，组件不动。
+ * 数据：`report/report-data.ts` 的演示数据（基准日 2026-11-03，日期写死，
+ * 班组 / 班次 / 值班人员沿用消防档案页同一套口径）。接口接入时只换该文件，组件不动。
+ *
+ * 根节点带 `bigscreen` class：项目的大屏 EP 深色主题（`styles/bigscreen-ep.scss`）
+ * 以它为作用域，下拉框 / 日期面板 / 分页器用这套主题才是深色；不带就是
+ * Element Plus 默认浅色样式，与全站大屏不一致。
  */
-import { ref } from 'vue'
-import BigscreenSectionTitle from '../../common/BigscreenSectionTitle.vue'
-import EbikeV2ReportCard from '../report/EbikeV2ReportCard.vue'
+import { computed, ref } from 'vue'
+import EbikeV2ReportListPanel from '../report/EbikeV2ReportListPanel.vue'
 import EbikeV2ReportPreview from '../report/EbikeV2ReportPreview.vue'
-import { REPORT_GROUPS, REPORT_TOTAL } from '../report/report-data'
-import type { ReportItem } from '../report/report-data'
+import EbikeV2ReportSidebar from '../report/EbikeV2ReportSidebar.vue'
+import {
+  DEFAULT_REPORT_CATEGORY,
+  REPORT_CATEGORIES,
+  filterReportRecords,
+} from '../report/report-data'
+import type { ReportDateRange, ReportKind, ReportRecord } from '../report/report-data'
+
+/** 三类报告（tab） */
+const categories = REPORT_CATEGORIES
+
+/** 当前分类 */
+const activeCategory = ref<ReportKind>(DEFAULT_REPORT_CATEGORY)
+
+/**
+ * 每个分类各自记住搜索词、筛选值、日期区间与分页：切走再切回来不丢。
+ * 筛选值默认取该维度的第一项（「全部」）。
+ */
+const searchMap = ref<Record<string, string>>(
+  Object.fromEntries(categories.map((c) => [c.key, ''])),
+)
+const filterMap = ref<Record<string, Record<string, string>>>(
+  Object.fromEntries(
+    categories.map((c) => [
+      c.key,
+      Object.fromEntries(c.filters.map((f) => [f.key, f.options[0]])),
+    ]),
+  ),
+)
+const dateRangeMap = ref<Record<string, ReportDateRange>>(
+  Object.fromEntries(categories.map((c) => [c.key, null])),
+)
+
+/** 每个分类各自的页码与每页条数 */
+const pageMap = ref<Record<string, number>>(Object.fromEntries(categories.map((c) => [c.key, 1])))
+const sizeMap = ref<Record<string, number>>(Object.fromEntries(categories.map((c) => [c.key, 10])))
+
+/** 当前分类定义 */
+const currentCategory = computed(
+  () => categories.find((c) => c.key === activeCategory.value) ?? categories[0],
+)
+
+/** 当前分类的搜索词 */
+const currentSearch = computed(() => searchMap.value[activeCategory.value] ?? '')
+
+/** 当前分类的筛选值 */
+const currentFilters = computed(() => filterMap.value[activeCategory.value] ?? {})
+
+/** 当前分类的日期区间 */
+const currentDateRange = computed(() => dateRangeMap.value[activeCategory.value] ?? null)
+
+/** 当前分类的页码 / 每页条数 */
+const currentPage = computed(() => pageMap.value[activeCategory.value] ?? 1)
+const currentPageSize = computed(() => sizeMap.value[activeCategory.value] ?? 10)
+
+/** 过滤后的记录：搜索词、筛选器与日期区间之间是 AND 关系 */
+const filteredRecords = computed(() =>
+  filterReportRecords(
+    currentCategory.value,
+    currentCategory.value.records,
+    currentSearch.value,
+    currentFilters.value,
+    currentDateRange.value,
+  ),
+)
 
 /** 当前打开的报告；null 表示预览浮层关闭 */
-const activeReport = ref<ReportItem | null>(null)
+const activeRecord = ref<ReportRecord | null>(null)
 
-function openReport(report: ReportItem) {
-  activeReport.value = report
+/* ============================================================
+ * 交互
+ * ============================================================ */
+
+/** 切换分类 */
+function onCategoryChange(key: ReportKind) {
+  activeCategory.value = key
 }
 
+/** 更新当前分类的搜索词（筛选条件变了，回到第一页） */
+function onSearch(value: string) {
+  searchMap.value = { ...searchMap.value, [activeCategory.value]: value }
+  resetPage()
+}
+
+/** 更新当前分类的筛选值（同上，回到第一页） */
+function onFilters(value: Record<string, string>) {
+  filterMap.value = { ...filterMap.value, [activeCategory.value]: value }
+  resetPage()
+}
+
+/** 更新当前分类的日期区间（同上，回到第一页） */
+function onDateRange(value: ReportDateRange) {
+  dateRangeMap.value = { ...dateRangeMap.value, [activeCategory.value]: value }
+  resetPage()
+}
+
+/** 更新当前分类的页码 */
+function onPage(value: number) {
+  pageMap.value = { ...pageMap.value, [activeCategory.value]: value }
+}
+
+/** 更新当前分类的每页条数 */
+function onPageSize(value: number) {
+  sizeMap.value = { ...sizeMap.value, [activeCategory.value]: value }
+  resetPage()
+}
+
+/** 当前分类回到第一页 */
+function resetPage() {
+  pageMap.value = { ...pageMap.value, [activeCategory.value]: 1 }
+}
+
+/** 打开报告预览 */
+function openReport(record: ReportRecord) {
+  activeRecord.value = record
+}
+
+/** 关闭报告预览 */
 function closeReport() {
-  activeReport.value = null
+  activeRecord.value = null
 }
 </script>
 
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
 
-/* 页面容器：顶栏以下铺满；底色随大屏根节点（与总览页同源） */
+/* 页面容器：顶栏以下铺满；底色随大屏根节点（与总览页同源）。
+   内距 16 / 间距 16 取自设计稿 117:21198。 */
 .op-report {
   position: absolute;
   top: vh(68);
@@ -77,70 +189,19 @@ function closeReport() {
   right: 0;
   bottom: 0;
   display: flex;
-  flex-direction: column;
-  padding: vh(14) vw(16) vh(12);
-}
-
-/* 内容区：视口不够高时纵向滚动 */
-.op-report__scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: vh(14);
-}
-
-/* 页面信息条 */
-.op-report__meta {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
   gap: vw(16);
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: var(--fire-text-dim);
+  padding: vh(16) vw(16);
 }
 
-.op-report__meta-total {
-  margin-left: auto;
-  color: var(--fire-text-sub);
-}
-
-/* 报告分区 */
-.op-report__group {
+/* 左栏：报告分类（设计稿固定 280 宽） */
+.op-report__side {
+  width: vw(280);
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: vh(10);
 }
 
-/* 分区标题行 */
-.op-report__group-head {
-  position: relative;
-}
-
-/* 分区说明：绝对定位到标题行右侧，让开标题右端的小装饰
-   （BigscreenSectionTitle 的右侧装饰占 right 18.53~62.74） */
-.op-report__group-meta {
-  position: absolute;
-  right: vw(72);
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: var(--fire-text-dim);
-  white-space: nowrap;
-}
-
-/* 卡片网格：一行 4 张（4×458 + 3×16 = 1880，设计稿内容宽 1888）。
-   视口变窄时按 auto-fit 自动换行，不压扁卡片（卡片是固定比例的对象）。 */
-.op-report__cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, calc(458 * var(--min-scale)));
-  justify-content: center;
-  gap: calc(16 * var(--min-scale));
+/* 右栏：详细记录（吃掉剩余宽度） */
+.op-report__main {
+  flex: 1;
+  min-width: 0;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <!-- 页内浮层：不跳路由、不开新标签页（值守场景不能打断大屏上下文） -->
-  <div class="rpv" role="dialog" aria-modal="true" :aria-label="`${report.title} ${report.period}`">
+  <div class="rpv" role="dialog" aria-modal="true" :aria-label="`${report.title} ${report.date}`">
     <!-- 遮罩：点击关闭 -->
     <div class="rpv__scrim" @click="emit('close')" />
 
@@ -9,7 +9,7 @@
       <header class="rpv__head">
         <span class="rpv__head-bar" />
         <h2 class="rpv__title">{{ report.title }}</h2>
-        <span class="rpv__period">{{ report.period }}</span>
+        <span class="rpv__period">{{ report.date }}</span>
         <button type="button" class="rpv__close" title="关闭" @click="emit('close')">
           <X :size="18" />
         </button>
@@ -65,9 +65,9 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import { X } from 'lucide-vue-next'
 import badgeSrc from '@/assets/bigscreen/ebike-v2/report/report-agent-badge.png'
-import type { ReportItem } from './report-data'
+import type { ReportRecord } from './report-data'
 
-defineProps<{ report: ReportItem }>()
+defineProps<{ report: ReportRecord }>()
 
 const emit = defineEmits<{ (e: 'close'): void }>()
 
@@ -319,8 +319,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   color: var(--fire-text-sub);
 }
 
-/* 角标素材是 Figma 徽标的整体导出（340×104），缩到 62 宽时「小安助手」
-   四个字只剩 11px 高、糊成一团；这里给 104×32（0.3×），文字仍可读。 */
+/* 角标素材是 Figma 徽标的整体导出（306×93），缩到 104 宽时「小安助手」
+   四个字仍可读；这里给 104×32，比例与素材一致。 */
 .rpv__foot-agent-icon {
   width: calc(104 * var(--min-scale));
   height: calc(32 * var(--min-scale));
