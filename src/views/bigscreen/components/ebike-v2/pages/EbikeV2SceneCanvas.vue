@@ -412,19 +412,18 @@ function onPointerUp(e: PointerEvent) {
   letter-spacing: 1px;
 }
 
-/* ===== 缩放控件（浮在画布右下角） ===== */
+/* ===== 缩放控件（浮在画布右上角，设计稿 #117:22511） ===== */
 .monitor-scene__zoom {
   position: absolute;
-  right: vw(14);
-  bottom: vh(12);
+  top: vh(16);
+  right: vw(16);
   z-index: 4;
   display: flex;
   align-items: center;
   gap: vw(6);
   padding: vh(4) vw(6);
-  border: 1px solid rgba(120, 190, 255, 0.2);
   border-radius: vw(2);
-  background: rgba(0, 44, 94, 0.72);
+  background: #00346f;
 }
 
 .monitor-scene__zoom-btn {
@@ -458,14 +457,14 @@ function onPointerUp(e: PointerEvent) {
   width: vw(44);
 }
 
-/* 当前缩放比（100% = 适应画布） */
+/* 当前缩放比（100% = 适应画布）：设计稿 #117:22515 用 Douyin Sans Bold 14px #CFE4FF */
 .monitor-scene__zoom-val {
   min-width: vw(38);
   text-align: center;
   font-family: 'Douyin Sans', sans-serif;
   font-weight: 700;
   font-size: 14px;
-  color: var(--fire-text-title);
+  color: #cfe4ff;
 }
 
 /* ===== 连线 ===== */

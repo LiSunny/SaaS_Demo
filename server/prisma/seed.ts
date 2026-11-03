@@ -6,6 +6,7 @@
 
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
+import { seedMonitorScenes } from './seed-monitor-scenes.js'
 
 const prisma = new PrismaClient()
 
@@ -197,7 +198,7 @@ async function main() {
     return user
   }
 
-  await ensureUser('13300001111', { realName: '周志远', enterpriseId: property.id }) // 阳光物业（物业方）
+  const dutyUser = await ensureUser('13300001111', { realName: '周志远', enterpriseId: property.id }) // 阳光物业（物业方）
   await ensureUser('13300002222', { realName: '刘伟', enterpriseId: street1.id })    // 商业街1（商业街管理方）
   console.log('  ✅ S2 管理方测试账号: 阳光物业(13300001111) / 商业街1(13300002222)')
 
@@ -218,6 +219,12 @@ async function main() {
     })
     console.log('  ✅ 平台方体验账号: 测试运营(13800000001)')
   }
+
+  // ---- 大屏「系统监测」页的 mock 组态画面（气体灭火 / 防排烟）----
+  // 画面是平台组态配置的数据（SceneConfig 表），大屏经 /api/scenes 取，
+  // 指标 / 实时警情 / 多发故障排名都从画面绑定点位派生 —— 不在前端另造一套。
+  // 详见 prisma/seed-monitor-scenes.ts。
+  await seedMonitorScenes(prisma, dutyUser.id)
 
   // ---- 设备 / 告警 / 隐患 ----
   // 新思维高级中学（S1 社会单位）

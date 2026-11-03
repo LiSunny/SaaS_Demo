@@ -303,8 +303,13 @@ src/api/adapters/
 - **大屏字号有 14px 下限，控件盒子不能纯按 vw 缩**：设计稿量的是 1920，但文字不随视口缩，盒子按比例缩到窄视口就装不下（分页器的「10 条」被截成「1...」）。这类固定文案控件给 `min-width`（px），不只给 `vw()`
 - **e2e 前后端端口可覆盖**：`e2e/setup.mjs` 的 `E2E_FE_PORT` / `E2E_API_PORT`、`e2e/playwright.config.ts` 的 `E2E_BASE_URL` 可改端口。手工 dev server 常占着 3200，此时 setup 里的 `vite --strictPort` 不会退出、只打一行「Port 3200 is already in use」，随后 `waitForServer` 立刻成功 —— 测试于是跑在手工 dev server 上（代理到真实后端/真实库），以为在测测试库，其实在测开发环境。改端口避开
 - **档案分类 tab 的 icon 用 Figma 原始素材（用户显式授权的例外）**：三个 24×24 彩色立体插画节点 `112:330` / `112:337` / `112:345`（值班记录=记录板、巡查记录=折叠地图+定位针、隐患台账=台账+警示三角），已导出为 `src/assets/bigscreen/ebike-v2/archive/archive-icon-{duty,patrol,hazard}.svg`，组件里 `import` 拿 URL 渲染 `<img class="archive-side__icon-img">`。这属于「禁止从 Figma 导出」默认规则的例外：**仅当用户点名要原图时**才这么做，且只用于 Figma 里本身就是 IMAGE-SVG 导出素材的节点（自带渐变描边，重画必然走样）；矢量图形组件仍走项目图标库。SVG 在 4KB 以下会被 Vite 内联成 data URL，运行时无外部依赖
+- **系统监测页按设计稿 110:10889 重构**（`pages/EbikeV2SystemMonitor.vue`）：版式换成「顶部设备检测指标概览横条 + 左侧组态画布 + 右列（实时警情 / 多发故障排名）」。原右列三模块（健康度分析 / 设备状态监控 / 统计分析报表）与底部三模块行（故障曲线等）设计稿里都没有，连同 `EbikeV2PageShell.vue` / `EbikeV2PlaceholderCard.vue` 一并删除（设计稿是唯一准绳，不留"以防万一"的模块）。系统切换从画布左上角的浮动按钮移到顶部横条的「当前系统」下拉
+- **指标四项计数取平台真值，不写演示值**（`scene-points.ts`）：设备总数 = 画面图元数；故障 = 绑定声明 `onClass:['is-fault']` 的点位数；屏蔽 = 绑定声明 `offClass:['is-off']` 的点位数（设备停运、不再上报）；预警 = `onClass` 含 `is-over/is-alarm/is-flow` 的点位数。分类依据是**图元库绑定声明的状态类**，不是点位名的模糊匹配 —— 同一份口径同时供「实时警情」「多发故障排名」用，三处对同一画面的说法必须一致
+- **大屏下拉浮层必须 Teleport 到 body**：带 `backdrop-filter` 的祖先会把溢出的子元素裁到自身边框盒内（滤镜区域 = border box），下拉留在玻璃卡里只剩一条缝。`EbikeV2MonitorMetrics.vue` 的系统下拉用 `<Teleport to="body">` + 触发框 `getBoundingClientRect()` 算 `position: fixed` 的 top/left/width
+- **右列底部要给悬浮机器人留位**：小安机器人是全局 fixed 悬浮件（112×112，右下角 24px），设计稿里没有它，但它整块落在右列右下角 —— 排名卡的百分比会被盖住。`.monitor__side` 底部留 `vh(128)` 空位，卡片内容全部落在机器人上方
 
 ### 下次建议动作
+
 
 1. `npm run dev` → 访问 `/landing/ebike-v2` 查看三维背景效果
 2. 补 v2 的 6 个业务模块内容（复用旧大屏模块组件，浅色主题另做）
