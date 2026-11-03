@@ -38,10 +38,6 @@ const NODES = [
  *  期望的指标：设备总数 1 / 故障 1 / 屏蔽 0 / 预警 0 */
 const GAS_NODES = [{ id: 'g1', symbol: 'PAI-CYL-01', x: 320, y: 300, size: 72, label: '钢瓶压力表' }]
 
-/** 种子灌入的 mock 画面（见 server/prisma/seed-monitor-scenes.ts）
- *  本用例自建画面并按画面派生断言，先把种子画面清掉，免得被"节点多的胜出"规则抢走。 */
-const SEEDED_SCENE_IDS = ['scene-mock-gas', 'scene-mock-smoke']
-
 /** 通过 API 写登录态，跳过登录页 */
 async function login(page: import('@playwright/test').Page) {
   const res = await page.request.post(`${API}/api/auth/login`, {
@@ -59,17 +55,6 @@ async function login(page: import('@playwright/test').Page) {
     { token, user },
   )
   return token
-}
-
-/** 清掉种子里的 mock 画面（软删除；已删过也不报错） */
-async function removeSeededScenes(
-  page: import('@playwright/test').Page,
-  token: string,
-) {
-  const headers = { Authorization: `Bearer ${token}` }
-  for (const id of SEEDED_SCENE_IDS) {
-    await page.request.delete(`${API}/api/scenes/${encodeURIComponent(id)}`, { headers })
-  }
 }
 
 /** 建一幅画面（平台级共享），并写入图元 */
@@ -146,7 +131,6 @@ test.describe('大屏系统监测页', () => {
 
   test.beforeEach(async ({ page }) => {
     const token = await login(page)
-    await removeSeededScenes(page, token)
     await seedScenes(page, token)
   })
 

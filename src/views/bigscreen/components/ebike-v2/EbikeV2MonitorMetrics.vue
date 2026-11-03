@@ -262,7 +262,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointerDo
   }
 }
 
-/* 下拉浮层（Teleport 到 body，按触发按钮定位） */
+/* 下拉浮层（Teleport 到 body，按触发按钮定位）
+   浮层被传送到 body，脱离大屏根节点 —— 页面级的 --fire-text-* 与 --min-scale
+   都取不到（var() 解析失败会回退成继承色，正文就成了黑字）。
+   所以这里的色值直接引 fire-common.scss 的 SCSS 真源，字号用固定 px。 */
 .mm__menu {
   position: fixed;
   z-index: 2000;
@@ -285,16 +288,16 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointerDo
   background: transparent;
   text-align: left;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
+  font-size: 16px;
   line-height: 1.3;
-  color: var(--fire-text-label);
+  color: fire.$fire-text-label;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .mm__menu-item:hover {
   background: rgba(0, 84, 160, 0.45);
-  color: var(--fire-text-title);
+  color: fire.$fire-text-title;
 }
 
 .mm__menu-item.is-active {

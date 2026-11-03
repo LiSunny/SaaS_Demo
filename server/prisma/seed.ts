@@ -6,7 +6,7 @@
 
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
-import { seedMonitorScenes } from './seed-monitor-scenes.js'
+import { seedMonitorSymbols, dropMockOverviewScenes } from './seed-monitor-symbols.js'
 
 const prisma = new PrismaClient()
 
@@ -220,11 +220,13 @@ async function main() {
     console.log('  ✅ 平台方体验账号: 测试运营(13800000001)')
   }
 
-  // ---- 大屏「系统监测」页的 mock 组态画面（气体灭火 / 防排烟）----
-  // 画面是平台组态配置的数据（SceneConfig 表），大屏经 /api/scenes 取，
-  // 指标 / 实时警情 / 多发故障排名都从画面绑定点位派生 —— 不在前端另造一套。
-  // 详见 prisma/seed-monitor-scenes.ts。
-  await seedMonitorScenes(prisma, dutyUser.id)
+  // ---- 大屏「系统监测」页用的平台图元补登记（气体灭火 / 防排烟）----
+  // 组态配置里那两幅画面（气体灭火设备状态监测 / 防排烟系统设备监控）用的
+  // GFES-* / SCS-* 图元从没登记进图元管理，大屏画布渲染不出、也取不到点位。
+  // 这里补登记（产品图沿用画面文件里的 OSS 地址），绑定补上状态类声明。
+  // 详见 prisma/seed-monitor-symbols.ts。
+  await dropMockOverviewScenes(prisma)
+  await seedMonitorSymbols(prisma, dutyUser.id)
 
   // ---- 设备 / 告警 / 隐患 ----
   // 新思维高级中学（S1 社会单位）

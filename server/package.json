@@ -10,7 +10,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "db:seed:monitor": "tsx prisma/seed-monitor-scenes.ts",
+    "db:seed:monitor": "tsx prisma/seed-monitor-symbols.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma db push --force-reset && prisma db seed"
   },
