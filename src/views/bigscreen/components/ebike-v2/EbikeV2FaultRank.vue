@@ -36,29 +36,23 @@
  *   徽标行下方一条占比条（灰底 + 蓝色填充），行内间距按设计稿：19 / 19 / 12。
  *   行距 18，行高 38。
  *
- * 数据取自画面绑定点位（scene-points.ts 的 faultTypeRanks）：
- *   故障类型 = 异常点位按点位名聚合（故障 / 渗漏故障 / 报警 / 溢流 …）
- *   占比     = 该类型的异常点位数 ÷ 画面异常点位数
- * 不写演示值 —— 换系统换画面，排名跟着变。
+ * 数据来自实时设备数据（monitor-data.ts 的 monitorFaultRanksOf）：
+ *   故障类型 = 按**设备类型**聚合（消火栓环网阀门 / 管网压力探测器 / 末端试水装置 …）
+ *   占比     = 该类型的异常设备台数 ÷ 全部异常设备台数
+ * 与「设备设施管理 → 运行监控」的三个系统主页同源 —— 哪类设备出问题最多，
+ * 画布上对应的图元就会亮起闪烁角标，两边说的是同一件事。
  */
-import { computed } from 'vue'
 import EbikeV2Card from './EbikeV2Card.vue'
 import rankBadge from '@/assets/bigscreen/ebike-v2/monitor/rank-badge-01.svg'
-import { faultTypeRanks } from './scene-points'
-import type { SceneConfig } from '@/types/scene-config'
+import type { MonitorRankRow } from './monitor-data'
 
 const props = withDefaults(
   defineProps<{
-    /** 当前画面 */
-    scene?: SceneConfig | null
+    /** 排名行（由父组件从实时设备数据派生） */
+    ranks?: MonitorRankRow[]
   }>(),
-  { scene: null },
+  { ranks: () => [] },
 )
-
-/** 最多列出的故障类型数：与设计稿一致（5 行） */
-const MAX_ROWS = 5
-
-const ranks = computed(() => faultTypeRanks(props.scene, MAX_ROWS))
 
 /** 名次补零：01 / 02 */
 function pad2(n: number): string {

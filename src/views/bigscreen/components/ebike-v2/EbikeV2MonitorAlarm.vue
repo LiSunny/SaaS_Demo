@@ -25,73 +25,25 @@
  *   每条两行：① [胶囊角标 + 故障类型] …… 右对齐完整时间戳 ② 位置
  *   行间 1px 虚线（#234972）
  *
- * 数据来自画面的绑定点位（scene-points.ts）：
- *   角标类别 = 绑定声明的状态类（is-fault → 故障；is-over / is-alarm / is-flow → 预警）
- *   故障类型 = 点位名（消防泵组的「故障」点、管道段的「渗漏故障」点 …）
- *   位置     = 画面图元标签（设备名）—— 平台画面暂无逐点位的房间位置，先给设备名
- *   时间戳   = 按系统名做确定性随机（同一系统刷新页面看到同一批警情）
+ * 数据来自实时设备数据（monitor-data.ts 的 monitorAlarmsOf）：
+ *   角标类别 = 设备当前状态（fault → 故障；alarm → 预警；offline / shielded 同理）
+ *   标题     = 设备编号（现场铭牌号）—— 值守员按编号找人
+ *   位置     = 设备类型 · 位置描述
+ *   时间戳   = 该设备最近一次上报时间
  *
  * 角标配色沿用大屏口径：全页角标只留一个红（#FF8080），档位由角标文案承担。
  * 设计稿把「故障」标橙（#FFA600），与该口径冲突 —— 理由见 fire-common.scss 顶部说明。
  */
-import { computed } from 'vue'
 import EbikeV2Card from './EbikeV2Card.vue'
-import { rngOf, seedOf } from './seeded-random'
-import {
-  FAULT_STATE_CLASSES,
-  hasStateClass,
-  isAbnormalSource,
-  pointSourcesOf,
-} from './scene-points'
-import type { SceneConfig } from '@/types/scene-config'
+import type { MonitorAlarmRow } from './monitor-data'
 
 const props = withDefaults(
   defineProps<{
-    /** 当前画面 */
-    scene?: SceneConfig | null
-    /** 当前系统名（决定演示时间戳的种子） */
-    systemName?: string
+    /** 警情行（由父组件从实时设备数据派生） */
+    rows?: MonitorAlarmRow[]
   }>(),
-  { scene: null, systemName: '本系统' },
+  { rows: () => [] },
 )
-
-/** 卡片可见条数：与设计稿一致（4 条，下面留白） */
-const VISIBLE = 4
-
-const pad = (n: number): string => String(n).padStart(2, '0')
-
-/** 时刻文本：2026-11-03 14:22 */
-function fmt(ts: number): string {
-  const d = new Date(ts)
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-/**
- * 警情条目
- *
- * 每个异常点位出一条警情；同一设备的多个异常点位各占一条。
- * 时间为演示值（后端暂无实时告警接口），按系统名做种子 → 刷新页面不跳。
- */
-const rows = computed(() => {
-  const sources = pointSourcesOf(props.scene).filter(isAbnormalSource)
-  if (!sources.length) return []
-
-  const rnd = rngOf(seedOf(`${props.systemName}-${props.scene?.id ?? ''}`))
-  const base = Date.now()
-
-  return sources.slice(0, VISIBLE).map((s, i) => {
-    // 时间倒序、间隔不等，避免整点齐刷刷
-    const ago = (i * 37 + Math.floor(rnd() * 26) + 3) * 60_000
-    const fault = hasStateClass(s.onClasses, FAULT_STATE_CLASSES)
-    return {
-      key: `${s.nodeId}-${s.point}-${i}`,
-      badge: fault ? '故障' : '预警',
-      title: s.point,
-      time: fmt(base - ago),
-      location: s.device,
-    }
-  })
-})
 </script>
 
 <style lang="scss" scoped>

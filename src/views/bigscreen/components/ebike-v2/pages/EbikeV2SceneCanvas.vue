@@ -42,7 +42,7 @@
         </g>
 
         <g
-          v-for="n in nodes"
+          v-for="n in nodeViews"
           :key="n.id"
           class="monitor-scene__node"
           :transform="`translate(${n.x - n.size / 2}, ${n.y - n.size / 2})`"
@@ -65,15 +65,40 @@
         class="monitor-scene__svg monitor-scene__svg--text"
         :viewBox="sceneViewBox"
         preserveAspectRatio="xMidYMid meet"
-        aria-hidden="true"
+        aria-hidden="false"
       >
-        <text
-          v-for="n in nodes"
+        <g
+          v-for="n in nodeViews"
           :key="n.id"
-          class="monitor-scene__label"
-          :x="n.x"
-          :y="n.y + n.size / 2 + 18"
-        >{{ labelOf(n) }}</text>
+          class="monitor-scene__hit-group"
+          :class="{ 'is-clickable': clickable }"
+          :role="clickable ? 'button' : undefined"
+          :tabindex="clickable ? 0 : undefined"
+          :aria-label="ariaOf(n)"
+          @click="onSelect(n)"
+          @keydown.enter.prevent="onSelect(n)"
+          @keydown.space.prevent="onSelect(n)"
+        >
+          <!-- 原生 tooltip：说明这个图元管着多少台设备、其中多少台异常 -->
+          <title>{{ tipOf(n) }}</title>
+
+          <text
+            class="monitor-scene__label"
+            :x="n.x"
+            :y="n.y + n.size / 2 + 18"
+          >{{ labelOf(n) }}</text>
+
+          <!-- 命中区：图元与文字之间的空白处也要能点中，否则只有像素处可点 -->
+          <rect
+            class="monitor-scene__hit"
+            :x="n.x - n.size / 2"
+            :y="n.y - n.size / 2"
+            :width="n.size"
+            :height="n.size + 36"
+            fill="none"
+            pointer-events="all"
+          />
+        </g>
       </svg>
 
       <!-- 层3 · 管道流动动画（只有描边，无位图） -->
@@ -149,8 +174,15 @@
  *
  * 与组态编辑器（SceneCanvas.vue）分开：编辑器带网格 / 端口 / 状态条等编辑器件，
  * 大屏只需要"画面 + 设备"。图元几何、端口坐标、正交连线路径复用 @/symbols 同一套实现。
+ *
+ * 节点状态与点击下钻（传了 systemKey 时启用）：
+ *   节点的设备归属与实时状态来自 useSubsystemStore + 各系统的绑定表，
+ *   与「设备设施管理 → 运行监控」的三个系统主页同一套数据 ——
+ *   画布上的闪烁角标就是那边那批设备的角标，点一下能看到这批设备的清单。
+ * 不传 systemKey（值守工作台的平面图）时保持原样：只用画面自带的 state。
  */
 import { computed, onMounted, reactive, ref, useId } from 'vue'
+import { storeToRefs } from 'pinia'
 import SceneSymbolNode from '@/components/device-facility/SceneSymbolNode.vue'
 import {
   edgePath,
@@ -158,7 +190,10 @@ import {
   symbolDef,
   SYMBOL_REGISTRY_VERSION,
 } from '@/symbols'
+import { useSubsystemStore } from '@/stores/subsystem'
 import { useSymbolStore } from '@/stores/symbols'
+import { aggregateNodeOf } from '../monitor-bindings'
+import { monitorNodeViews, type MonitorNodeView } from '../monitor-data'
 import type { SceneConfig, SceneEdge, SceneNode } from '@/types/scene-config'
 
 const props = withDefaults(
@@ -180,6 +215,12 @@ const props = withDefaults(
      * 这是"选中"标记，不是设备状态：设备状态只由角标承担。
      */
     highlightNodeId?: string
+    /**
+     * 所属系统（pipeline / gas / smoke）——
+     * 传了就接实时设备状态（异常角标闪烁）并支持点击下钻看设备清单；
+     * 不传就只用画面自带的 state（值守工作台的平面图走这条）。
+     */
+    systemKey?: string
   }>(),
   {
     scene: null,
@@ -187,8 +228,17 @@ const props = withDefaults(
     viewBox: '',
     showZoom: true,
     highlightNodeId: '',
+    systemKey: '',
   },
 )
+
+const emit = defineEmits<{ (e: 'select', node: MonitorNodeView): void }>()
+
+/* ================= 实时设备数据 ================= */
+
+const subsystem = useSubsystemStore()
+const { points } = storeToRefs(subsystem)
+const { getRuntime } = subsystem
 
 /** 箭头 marker id（多实例不冲突） */
 const arrowId = `monitor-arrow-${useId()}`
@@ -200,9 +250,40 @@ const sceneViewBox = computed(
 const nodes = computed<SceneNode[]>(() => props.scene?.nodes ?? [])
 const edges = computed<SceneEdge[]>(() => props.scene?.edges ?? [])
 
+/** 是否支持点击下钻 */
+const clickable = computed(() => !!props.systemKey)
+
+/**
+ * 节点视图
+ *
+ * 有 systemKey → 按设备数据聚合状态（异常角标闪烁 + 下钻设备清单）；
+ * 无 systemKey → 用画面自带的 state（值守工作台的平面图）。
+ */
+const nodeViews = computed<MonitorNodeView[]>(() => {
+  const scene = props.scene
+  if (!scene) return []
+  if (!props.systemKey) {
+    return (scene.nodes ?? []).map((n) => ({
+      id: n.id,
+      symbol: n.symbol,
+      label: n.label || symbolDef(n.symbol)?.name || n.symbol,
+      x: n.x,
+      y: n.y,
+      size: n.size ?? 60,
+      state: n.state ?? {},
+      abnormal: 0,
+      total: 0,
+      members: [],
+    }))
+  }
+  return monitorNodeViews(scene, (symbol, nth) =>
+    aggregateNodeOf(props.systemKey, symbol, nth, points.value, getRuntime),
+  )
+})
+
 /** 被选中的节点（报警位置高亮用） */
-const pickedNode = computed<SceneNode | null>(
-  () => nodes.value.find((n) => n.id === props.highlightNodeId) ?? null,
+const pickedNode = computed<MonitorNodeView | null>(
+  () => nodeViews.value.find((n) => n.id === props.highlightNodeId) ?? null,
 )
 
 /** 只有管道连线有流动动画 */
@@ -221,8 +302,26 @@ function flowPathOf(e: SceneEdge): string {
     : edgePath(e, nodes.value)
 }
 
-function labelOf(n: SceneNode): string {
+function labelOf(n: MonitorNodeView): string {
   return n.label || symbolDef(n.symbol)?.name || n.symbol
+}
+
+/** tooltip：说明这个图元管着多少台设备、其中多少台异常 */
+function tipOf(n: MonitorNodeView): string {
+  if (!props.systemKey) return n.label
+  return `${n.label} · ${n.total} 台设备${n.abnormal ? ` · ${n.abnormal} 台异常` : ' · 全部正常'}`
+}
+
+/** 无障碍读法 */
+function ariaOf(n: MonitorNodeView): string {
+  if (!props.systemKey) return n.label
+  return `${n.label}：${n.total} 台设备，${n.abnormal} 台异常`
+}
+
+/** 点击图元 → 下钻看这批设备的清单 */
+function onSelect(n: MonitorNodeView): void {
+  if (!clickable.value) return
+  emit('select', n)
 }
 
 /**
@@ -512,6 +611,23 @@ function onPointerUp(e: PointerEvent) {
   paint-order: stroke;
   stroke: rgba(4, 30, 64, 0.85);
   stroke-width: 3px;
+}
+
+/* ===== 可点击的图元（传了 systemKey 才可点）===== */
+.monitor-scene__hit-group:focus {
+  outline: none;
+}
+
+.monitor-scene__hit-group.is-clickable {
+  cursor: pointer;
+}
+
+.monitor-scene__hit-group.is-clickable:hover .monitor-scene__label {
+  fill: #cfe4ff;
+}
+
+.monitor-scene__hit-group.is-clickable:focus-visible .monitor-scene__label {
+  fill: #a2caff;
 }
 
 /* ===== 角标：正常不显示，只有异常提示 ===== */

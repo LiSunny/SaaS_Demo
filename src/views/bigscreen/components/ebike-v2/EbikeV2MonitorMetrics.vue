@@ -78,8 +78,9 @@
  * 图标用 Figma 导出的原始素材（节点 125:336 / 125:342 / 125:345 / 125:339），
  * 不自绘 —— 自绘会丢掉那层线宽与配色。
  *
- * 四项计数全部来自平台真值（见 scene-points.ts 的 sceneMetricsOf）：
- * 设备总数 = 画面图元数；故障 / 屏蔽 / 预警 = 画面绑定点位声明的状态类计数。
+ * 四项计数来自实时设备数据（monitor-data.ts 的 monitorMetricsOf），
+ * 与「设备设施管理 → 运行监控」的三个系统主页同源：按设备台数统计，
+ *   设备总数 = 接入台数；故障 / 屏蔽 / 预警 = 对应状态的设备台数。
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import caretDown from '@/assets/bigscreen/ebike-v2/monitor/system-select-down.svg'
@@ -87,8 +88,7 @@ import iconTotal from '@/assets/bigscreen/ebike-v2/monitor/metric-icon-cpu.svg'
 import iconFault from '@/assets/bigscreen/ebike-v2/monitor/metric-icon-alert-circle.svg'
 import iconShield from '@/assets/bigscreen/ebike-v2/monitor/metric-icon-eye-off.svg'
 import iconWarn from '@/assets/bigscreen/ebike-v2/monitor/metric-icon-bell.svg'
-import { sceneMetricsOf, type SceneMetrics } from './scene-points'
-import type { SceneConfig } from '@/types/scene-config'
+import type { MonitorMetrics } from './monitor-data'
 
 export interface MonitorSystem {
   key: string
@@ -101,10 +101,14 @@ const props = withDefaults(
     systems?: MonitorSystem[]
     /** 当前系统键 */
     systemKey?: string
-    /** 当前画面（指标计数的真值来源） */
-    scene?: SceneConfig | null
+    /** 四项指标（实时口径，由父组件从设备数据算） */
+    metrics?: MonitorMetrics
   }>(),
-  { systems: () => [], systemKey: '', scene: null },
+  {
+    systems: () => [],
+    systemKey: '',
+    metrics: () => ({ total: 0, fault: 0, shielded: 0, warn: 0 }),
+  },
 )
 
 const emit = defineEmits<{ (e: 'update:systemKey', key: string): void }>()
@@ -114,7 +118,7 @@ const emit = defineEmits<{ (e: 'update:systemKey', key: string): void }>()
  * ============================================================ */
 
 const metrics = computed(() => {
-  const m: SceneMetrics = sceneMetricsOf(props.scene)
+  const m = props.metrics
   return [
     {
       key: 'total',
@@ -124,7 +128,7 @@ const metrics = computed(() => {
       color: '#a2caff',
     },
     { key: 'fault', label: '故障', value: String(m.fault), icon: iconFault, color: '#ffa600' },
-    { key: 'shield', label: '屏蔽', value: String(m.shield), icon: iconShield, color: '#47ffff' },
+    { key: 'shield', label: '屏蔽', value: String(m.shielded), icon: iconShield, color: '#47ffff' },
     { key: 'warn', label: '预警', value: String(m.warn), icon: iconWarn, color: '#ff8a00' },
   ]
 })
