@@ -1,129 +1,146 @@
 <template>
-  <EbikeV2PageShell :row-modules="ROW_MODULES" :side-modules="SIDE_MODULES">
-    <template #main>
-      <EbikeV2Card title="报告预览" class="report">
-        <!-- 报告参数条：只出维度框架，生成行为待接入 -->
-        <div class="report__toolbar">
-          <span class="report__filter">
-            报告周期
-            <i class="report__caret" />
-          </span>
-          <span class="report__filter">
-            报告类型
-            <i class="report__caret" />
-          </span>
-          <span class="report__filter">
-            统计范围
-            <i class="report__caret" />
-          </span>
-          <span class="report__action">生成报告</span>
+  <div class="op-report bigscreen">
+    <div class="op-report__scroll">
+      <!-- 页面信息条：数据新鲜度 + 报告总数 -->
+      <div class="op-report__meta">
+        <span>小安助手自动汇总 · 数据截至 2026-11-03 24:00</span>
+        <span class="op-report__meta-total">共 {{ REPORT_TOTAL }} 份报告</span>
+      </div>
+
+      <!-- 三类报告分区 -->
+      <section v-for="group in REPORT_GROUPS" :key="group.key" class="op-report__group">
+        <div class="op-report__group-head">
+          <BigscreenSectionTitle :title="group.label" heavy />
+          <span class="op-report__group-meta">{{ group.desc }} · 共 {{ group.items.length }} 份</span>
         </div>
 
-        <!-- 报告正文区 -->
-        <div class="report__page">
-          <span class="report__page-empty">报告内容待生成</span>
+        <div class="op-report__cards">
+          <EbikeV2ReportCard
+            v-for="item in group.items"
+            :key="item.id"
+            :report="item"
+            @open="openReport"
+          />
         </div>
-      </EbikeV2Card>
-    </template>
-  </EbikeV2PageShell>
+      </section>
+    </div>
+
+    <!-- 报告预览：页内浮层，不跳路由 -->
+    <EbikeV2ReportPreview v-if="activeReport" :report="activeReport" @close="closeReport" />
+  </div>
 </template>
 
 <script setup lang="ts">
 /**
  * 运行报告页
  *
- * 周期报告的生成与留档：主区放报告预览（参数 + 正文），
- * 底部看模板 / 生成记录 / 定时任务，右列看关键指标汇总、分发与导出。
- * 本轮只出模块框架与标题。
+ * 三类报告各一个分区，每类挂若干份报告卡：
+ *   告警分析报告 / 设备运行报告 / 值守报告。
+ *
+ * 版式来自 Figma「人工智能+公共安全管理平台（后台）」的报告卡组件（1:1 还原，
+ * 见 EbikeV2ReportCard.vue 的换算说明）；页面自身沿用大屏深蓝玻璃的页面语言：
+ * 底色随大屏根节点（与总览页同源），分区标题复用 BigscreenSectionTitle。
+ *
+ * 为什么不做成「tab 切换 + 单列表」：大屏是值守场景，三类报告要一眼同时可见，
+ * 切 tab 会把另外两类藏起来。因此按分区纵向铺开，每类一行卡片。
+ *
+ * 数据：report/report-data.ts 的演示数据（基准日 2026-11-03）。
+ * 接口接入时只换该文件，组件不动。
  */
-import EbikeV2Card from '../EbikeV2Card.vue'
-import EbikeV2PageShell from './EbikeV2PageShell.vue'
+import { ref } from 'vue'
+import BigscreenSectionTitle from '../../common/BigscreenSectionTitle.vue'
+import EbikeV2ReportCard from '../report/EbikeV2ReportCard.vue'
+import EbikeV2ReportPreview from '../report/EbikeV2ReportPreview.vue'
+import { REPORT_GROUPS, REPORT_TOTAL } from '../report/report-data'
+import type { ReportItem } from '../report/report-data'
 
-/** 底部三模块 */
-const ROW_MODULES = ['报告模板', '生成记录', '定时任务']
+/** 当前打开的报告；null 表示预览浮层关闭 */
+const activeReport = ref<ReportItem | null>(null)
 
-/** 右列三模块 */
-const SIDE_MODULES = ['关键指标汇总', '报告分发', '导出记录']
+function openReport(report: ReportItem) {
+  activeReport.value = report
+}
+
+function closeReport() {
+  activeReport.value = null
+}
 </script>
 
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
 
-.report {
-  height: 100%;
-}
-
-/* 卡片内容区改为纵向排列：参数条在上，报告正文占满剩余高度 */
-.report :deep(.v2-card__body) {
+/* 页面容器：顶栏以下铺满；底色随大屏根节点（与总览页同源） */
+.op-report {
+  position: absolute;
+  top: vh(68);
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
+  padding: vh(14) vw(16) vh(12);
 }
 
-/* 参数条 */
-.report__toolbar {
+/* 内容区：视口不够高时纵向滚动 */
+.op-report__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: vh(14);
+}
+
+/* 页面信息条 */
+.op-report__meta {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: vw(10);
-  padding: vh(10) vw(14) vh(6);
-}
-
-.report__filter {
-  display: inline-flex;
-  align-items: center;
-  gap: vw(6);
-  height: vh(30);
-  padding: 0 vw(10);
-  border: 1px solid rgba(120, 190, 255, 0.22);
-  border-radius: vw(2);
-  background: rgba(0, 68, 130, 0.42);
-  color: var(--fire-text-label);
+  gap: vw(16);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
   letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-/* 下拉箭头（静态：筛选项未接入） */
-.report__caret {
-  width: 0;
-  height: 0;
-  border-left: vw(4) solid transparent;
-  border-right: vw(4) solid transparent;
-  border-top: vh(5) solid rgba(169, 201, 234, 0.75);
-}
-
-/* 主操作位（静态：生成逻辑未接入） */
-.report__action {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  height: vh(30);
-  padding: 0 vw(16);
-  border: 1px solid rgba(96, 200, 255, 0.5);
-  border-radius: vw(2);
-  background: linear-gradient(180deg, rgba(0, 134, 228, 0.9) 0%, rgba(0, 86, 168, 0.9) 100%);
-  color: #fff;
-  font-size: 14px;
-  letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-/* 报告正文区 */
-.report__page {
-  flex: 1;
-  min-height: 0;
-  margin: vh(6) vw(14) vh(14);
-  border: 1px dashed rgba(120, 190, 255, 0.24);
-  border-radius: vw(2);
-  background: rgba(0, 30, 68, 0.34);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.report__page-empty {
-  font-size: 14px;
   color: var(--fire-text-dim);
+}
+
+.op-report__meta-total {
+  margin-left: auto;
+  color: var(--fire-text-sub);
+}
+
+/* 报告分区 */
+.op-report__group {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: vh(10);
+}
+
+/* 分区标题行 */
+.op-report__group-head {
+  position: relative;
+}
+
+/* 分区说明：绝对定位到标题行右侧，让开标题右端的小装饰
+   （BigscreenSectionTitle 的右侧装饰占 right 18.53~62.74） */
+.op-report__group-meta {
+  position: absolute;
+  right: vw(72);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: 14px;
   letter-spacing: 1px;
+  color: var(--fire-text-dim);
+  white-space: nowrap;
+}
+
+/* 卡片网格：一行 4 张（4×458 + 3×16 = 1880，设计稿内容宽 1888）。
+   视口变窄时按 auto-fit 自动换行，不压扁卡片（卡片是固定比例的对象）。 */
+.op-report__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, calc(458 * var(--min-scale)));
+  justify-content: center;
+  gap: calc(16 * var(--min-scale));
 }
 </style>
