@@ -9,30 +9,18 @@
         :class="{ 'wm__metric--entry': m.key === 'tank' }"
         :role="m.key === 'tank' ? 'button' : undefined"
         :tabindex="m.key === 'tank' ? 0 : undefined"
+        :title="m.key === 'tank' ? '点击进入泵房场景监控' : undefined"
+        :aria-label="m.key === 'tank' ? '水箱液位，点击进入泵房场景监控' : undefined"
         @click="m.key === 'tank' && goPumpRoom()"
         @keydown.enter="m.key === 'tank' && goPumpRoom()"
       >
-        <!-- 图标：入口行在图标右下角叠一个下钻箭头徽标。
-             名称行（名称 55px + ⓘ 13px，文字列定宽 126px）与数值行都排得
-             满满当当，图标右侧只有 16px 间隙 —— 放文字必然压住"水箱液位"。
-             徽标叠在图标自身上，不占任何布局空间，卡片横向排布
-             （图标 48.72 + 文字列 126 + 趋势图 291 = 497.8）保持设计稿
-             逐像素对齐。 -->
-        <span class="wm__icon-wrap">
-          <img class="wm__icon" :src="METRIC_ICON" alt="" />
-          <span v-if="m.key === 'tank'" class="wm__entry-hint" aria-hidden="true">
-            <svg viewBox="0 0 12 12" width="12" height="12">
-              <path
-                d="M4 2.5 L8.5 6 L4 9.5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </span>
-        </span>
+        <!-- 图标：设计稿 48.72×47.96 原图导出。
+             原先叠在图标右下角的「下钻箭头徽标」已按用户要求去除
+             （2026-11-03）：它是手写 SVG，与项目「禁止手写 SVG」的规矩冲突，
+             压在图标上也压观感。整块下钻能力保留，改由 hover 底色 + 焦点框
+             + 原生 tooltip 承担提示；图标直接作为 flex 子元素，横向排布
+             （图标 48.72 + 文字列 126 + 趋势图 291 = 497.8）不变。 -->
+        <img class="wm__icon" :src="METRIC_ICON" alt="" />
         <div class="wm__text">
           <div class="wm__name">
             <span class="wm__name-text">{{ m.name }}</span>
@@ -99,6 +87,9 @@
  * （config/firewater-scene.ts）与点位解析，与组态画面、消防水系统监测页一致。
  * 迷你趋势图自己画 SVG 而不是接 ECharts，理由见 FireTrendSpark.vue。
  *
+ * 警情列表用 WATER_ALARM_ROWS（fire-mock.ts）：只挂水系统自己的告警，
+ * 右侧「实时警情监控」卡的跨系统列表是另一份 ALARM_ROWS，两者不混用。
+ *
  * 与设计稿的有意偏离：
  *   1. 数值红色渐变的暗端用 #FF8080 而非设计稿的 #E5523F ——
  *      #E5523F 在卡片底色上实测仅 3.73:1，达不到 4.5:1 的 AA 底线。
@@ -116,7 +107,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSubsystemStore } from '@/stores/subsystem'
 import EbikeV2Card from '../EbikeV2Card.vue'
 import FireTrendSpark from './FireTrendSpark.vue'
-import { ALARM_ROWS } from './fire-mock'
+import { WATER_ALARM_ROWS } from './fire-mock'
 import { buildWaterMetrics } from './water-metrics'
 import metricGauge from '@/assets/bigscreen/ebike-v2/fire/metric-gauge.png'
 
@@ -152,7 +143,14 @@ const metrics = computed(() => buildWaterMetrics(points.value, subsystem.getRunt
 
 /** 警情列表可见条数：与设计稿一致（列表区只放得下 2 条） */
 const VISIBLE_ROWS = 2
-const visibleRows = computed(() => ALARM_ROWS.slice(0, VISIBLE_ROWS))
+
+/**
+ * 警情列表：水系统专用（消防管网监控档案里的部件）
+ *
+ * 不用通用的 ALARM_ROWS —— 那份是跨系统总览（给右侧「实时警情监控」卡用），
+ * 里面有燃气预警、烟感误报这些非水系统告警，挂在水系统卡下会让值班员误读。
+ */
+const visibleRows = computed(() => WATER_ALARM_ROWS.slice(0, VISIBLE_ROWS))
 
 onMounted(() => {
   subsystem.loadSubsystem('pipeline')
@@ -211,11 +209,8 @@ onBeforeUnmount(() => {
 
 /* ===== 入口行（水箱液位）=====
    水箱液位行可点击下钻到「水泵房场景监控」专题页。
-   提示做成叠在图标右下角的**箭头徽标**：名称行（名称 55px + ⓘ 13px，
-   文字列定宽 126px）与数值行都排得满满当当，图标右侧只有 16px 间隙 ——
-   放文字必然压住"水箱液位"。徽标叠在图标自身上，不占任何布局空间，
-   卡片横向排布（图标 48.72 + 文字列 126 + 趋势图 291 = 497.8）
-   保持设计稿逐像素对齐。 */
+   箭头徽标已按用户要求去除（2026-11-03），下钻提示改由 hover 底色 +
+   焦点框 + 原生 tooltip（title）承担：不动卡片横向排布，也不新增图标。 */
 .wm__metric--entry {
   position: relative;
   cursor: pointer;
@@ -230,38 +225,6 @@ onBeforeUnmount(() => {
 .wm__metric--entry:focus-visible {
   outline: 1px solid rgba(96, 200, 255, 0.6);
   outline-offset: 1px;
-}
-
-/* 图标容器：包住图标与叠在它右下角的入口徽标。
-   尺寸与 .wm__icon 完全一致（48.72×47.96），不改变卡片的横向排布。 */
-.wm__icon-wrap {
-  position: relative;
-  flex-shrink: 0;
-  width: vw(48.72);
-  height: vh(47.96);
-}
-
-/**
- * 「泵房场景」下钻箭头徽标
- *
- * 叠在图标右下角，不占布局空间。与同卡「更多 ›」同一角色语义、同色
- * （#92dbff）。常显而不是 hover 才现 —— 值班员扫一眼就该知道这行能下钻，
- * 藏起来等于没有入口。
- */
-.wm__entry-hint {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: vw(18);
-  height: vw(18);
-  border-radius: 50%;
-  background: rgba(0, 44, 94, 0.92);
-  border: 1px solid #92dbff;
-  color: #92dbff;
-  pointer-events: none;
 }
 
 .wm__name-text {
