@@ -34,6 +34,36 @@
 @use "@/styles/function.scss" as *;
 
 // ===== 文字色阶 =====
+// 消防档案页（设计稿 110:16923）新增的一组色值。
+// 也放在这里而不是散在组件里：项目约定「颜色只准用 var(--xxx)」，
+// 且色值要有一处真源，组件与 TS 侧都引用同一份。
+$fire-text-bright: #f2fbff; // 分页条、输入框内文字（设计稿 #F2FBFF）
+$fire-pager-text: #bebebe; // 页码次要态（设计稿 #BEBEBE）
+
+// ===== 消防档案页 · 表格与工具条 =====
+$fire-toolbar-bg: rgba(0, 40, 86, 0.96); // 工具条底（设计稿 rgba(0,40,86,0.96)）
+$fire-input-line: #1a4573; // 输入框 / 下拉描边（设计稿 #1A4573）
+$fire-table-head-bg: #003569; // 表头底（设计稿 #003569）
+$fire-table-head-text: #d4e3ff; // 表头文字（设计稿 #D4E3FF）
+$fire-table-line: #0c3464; // 数据行分隔线（设计稿 #0C3464）
+$fire-btn-primary: rgba(0, 134, 228, 0.9); // 主按钮（设计稿 rgba(0,134,228,0.9)）
+$fire-btn-ghost: rgba(0, 68, 130, 0.56); // 次按钮 / 当前页 / 上下一页（设计稿 rgba(0,68,130,0.56)）
+$fire-btn-outline: #007dd5; // 批量导出描边（设计稿 #007DD5）
+$fire-tab-idle: rgba(0, 68, 130, 0.42); // 分类 tab 常态底（设计稿 rgba(0,68,130,0.42)）
+$fire-tab-active: linear-gradient(
+  180deg,
+  rgba(0, 134, 228, 0.9) 0%,
+  rgba(0, 86, 168, 0.9) 100%
+); // 分类 tab 选中底（设计稿 110:19428）
+$fire-tab-active-line: rgba(96, 200, 255, 0.6); // 分类 tab 选中描边
+
+// ===== 通用描边 / 浮层 / hover（多处分页复用，收敛到一处）=====
+$fire-line-soft: rgba(120, 190, 255, 0.18); // 表格与分页条分隔线
+$fire-menu-bg: rgba(22, 70, 145, 0.97); // 下拉浮层 / 操作反馈条
+$fire-hover-blue: rgba(0, 134, 228, 0.55); // 选中 / hover 态底色
+$fire-row-hover: rgba(0, 84, 160, 0.18); // 数据行 hover
+
+// ===== 文字色阶 =====
 $fire-text-hero: #ffffff;
 $fire-text-title: #cfe4ff;
 $fire-text-label: #a9c9ea;
@@ -91,6 +121,25 @@ $fire-min-size: 14;
   --fire-text-label: #{$fire-text-label};
   --fire-text-sub: #{$fire-text-sub};
   --fire-text-dim: #{$fire-text-dim};
+  --fire-text-bright: #{$fire-text-bright};
+  --fire-pager-text: #{$fire-pager-text};
+  --fire-toolbar-bg: #{$fire-toolbar-bg};
+  --fire-input-line: #{$fire-input-line};
+  --fire-table-head-bg: #{$fire-table-head-bg};
+  --fire-table-head-text: #{$fire-table-head-text};
+  --fire-table-line: #{$fire-table-line};
+  --fire-btn-primary: #{$fire-btn-primary};
+  --fire-btn-ghost: #{$fire-btn-ghost};
+  --fire-btn-outline: #{$fire-btn-outline};
+  --fire-tab-idle: #{$fire-tab-idle};
+  --fire-tab-active: #{$fire-tab-active};
+  --fire-tab-active-line: #{$fire-tab-active-line};
+  --fire-line-soft: #{$fire-line-soft};
+  --fire-menu-bg: #{$fire-menu-bg};
+  --fire-hover-blue: #{$fire-hover-blue};
+  --fire-row-hover: #{$fire-row-hover};
+  --fire-chip: #{$fire-chip};
+  --fire-chip-border: #{$fire-chip-border};
   --fire-anomaly: #{$fire-anomaly};
   --fire-anomaly-soft: #{$fire-anomaly-soft};
   --fire-level-general: #{$fire-level-general};

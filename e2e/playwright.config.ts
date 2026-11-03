@@ -18,7 +18,9 @@ export default defineConfig({
     ['json', { outputFile: 'reports/test-results.json' }],
   ],
   use: {
-    baseURL: 'http://localhost:3200',
+    // 端口可覆盖（见 setup.mjs）：手工 dev server 常占着 3200，
+    // 此时 e2e 起的前端会静默跑在那个 dev server 上（代理到真实后端/真实库）。
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3200',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

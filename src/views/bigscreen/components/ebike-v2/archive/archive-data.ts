@@ -45,26 +45,43 @@ export interface ArchiveColumn {
   type?: ArchiveCellType
   /** 最小宽度（px）：窄视口下宁可横滚也不压列，避免时间戳折行 */
   minWidth?: number
+  /** 固定宽度（px）：给了就不参与比例分配。设计稿的「操作」列即固定 156px */
+  fixed?: number
 }
 
-/** 筛选维度 */
+/** 侧栏 tab 图标（实际由侧栏组件映射到 Figma 导出的原始素材） */
+export type ArchiveIcon = 'clipboard' | 'map' | 'warning'
+
+/** 筛选维度（下拉框） */
 export interface ArchiveFilter {
-  /** 字段名（dateRange 时为筛选器自身 key，另用 field 指定被筛字段） */
+  /** 被筛字段名 */
   key: string
   /** 触发器上显示的维度名 */
   label: string
-  /** 可选值，第一项固定为「全部」 */
+  /**
+   * 「不限」项的文案，同时也是下拉的第一项。
+   * 设计稿 110:20070 的触发器显示的是「全部班组」「全部班次」——
+   * 不限项带维度名，值班员一眼知道这个下拉筛的是什么；
+   * 若一律叫「全部」，三个下拉并排时认不出谁是谁。
+   */
+  allLabel: string
+  /** 可选值，第一项固定为 allLabel */
   options: string[]
-  /** 匹配方式：exact 按字段精确匹配；dateRange 按日期区间匹配 */
-  match?: 'exact' | 'dateRange'
-  /** dateRange 时被比较的字段名 */
-  field?: string
 }
+
+/** 日期区间：[起始日, 结束日]；未选时为 null（不按日期过滤） */
+export type ArchiveDateRange = [string, string] | null
 
 /** 一个 tab（记录类型） */
 export interface ArchiveTab {
   key: ArchiveTabKey
   label: string
+  /** 侧栏 tab 的图标 */
+  icon: ArchiveIcon
+  /** 搜索框占位文案 */
+  searchPlaceholder: string
+  /** 日期区间筛选所作用的字段（取该字段值的日期部分比较） */
+  dateField: string
   columns: ArchiveColumn[]
   filters: ArchiveFilter[]
   rows: ArchiveRow[]
@@ -80,13 +97,10 @@ export interface ArchiveTab {
  * 口径与本大屏一致：**异常统一一个红**（故障 / 预警 / 待处置 / 隐患计数都同色），
  * 非异常不占用语义色，只靠字号与明度分层。所以「已完成 / 已确认 / 在岗」走中性色阶，
  * 不使用平台截图里的绿 / 橙 —— 深蓝玻璃底上绿橙达不到 4.5:1 对比度。
+ *
+ * 值班记录按设计稿 110:11265 收敛为 7 列（无「状态」列），故此处没有值班态。
  */
 export const STATUS_TONE: Record<string, StatusTone> = {
-  // 值班记录
-  在岗: 'normal',
-  迟到: 'abnormal',
-  缺岗: 'abnormal',
-  请假: 'normal',
   // 巡查记录（6 态与平台巡查任务一致）
   待执行: 'normal',
   执行中: 'normal',
@@ -107,101 +121,87 @@ export const STATUS_TONE: Record<string, StatusTone> = {
 /** 演示基准日：所有日期以此为「今天」 */
 export const ARCHIVE_BASE_DATE = '2026-11-03'
 
-/** 日期偏移（天），用于近 N 天的区间判断 */
-function shiftDate(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + days)
-  return d.toISOString().slice(0, 10)
-}
-
-/** 日期区间匹配（基准日口径）：今日 / 近7天 / 本月 */
-function matchDateRange(date: string, range: string): boolean {
-  if (!date) return false
-  if (range === '今日') return date === ARCHIVE_BASE_DATE
-  if (range === '近7天') {
-    const from = shiftDate(ARCHIVE_BASE_DATE, -6)
-    return date >= from && date <= ARCHIVE_BASE_DATE
-  }
-  if (range === '本月') return date.startsWith(ARCHIVE_BASE_DATE.slice(0, 7))
-  return true
-}
-
 /* ============================================================
  * ① 值班记录
  * ============================================================ */
 
+/**
+ * 值班记录列 —— 按设计稿 110:11265 收敛为 7 列。
+ *
+ * 设计稿的表头是：日期 / 班组 / 班次 / 实际上班时间 / 值班人员 / 值班内容 / 操作，
+ * 没有「负责人」与「状态」两列，故这两项从数据里一并去掉（不保留隐藏字段，
+ * 免得列与列对不上时看不出是删了还是漏了）。
+ */
 const DUTY_COLUMNS: ArchiveColumn[] = [
-  { key: 'date', label: '日期', flex: 1, type: 'text', minWidth: 110 },
-  { key: 'team', label: '班组', flex: 0.9, type: 'text', minWidth: 100 },
-  { key: 'shift', label: '班次', flex: 0.7, type: 'text', minWidth: 76 },
-  { key: 'onDutyAt', label: '实际上班时间', flex: 1.2, type: 'datetime', minWidth: 168 },
-  { key: 'owner', label: '负责人', flex: 0.8, type: 'text', minWidth: 90 },
+  { key: 'date', label: '日期', flex: 1, type: 'text', minWidth: 120 },
+  { key: 'team', label: '班组', flex: 1, type: 'text', minWidth: 120 },
+  { key: 'shift', label: '班次', flex: 0.8, type: 'text', minWidth: 80 },
+  { key: 'onDutyAt', label: '实际上班时间', flex: 1.2, type: 'datetime', minWidth: 172 },
   { key: 'staff', label: '值班人员', flex: 1, type: 'text', minWidth: 120 },
-  { key: 'content', label: '值班内容', flex: 1.8, type: 'text', minWidth: 200 },
-  { key: 'status', label: '状态', flex: 0.8, type: 'status', minWidth: 90 },
-  { key: 'action', label: '操作', flex: 0.6, type: 'action', minWidth: 84 },
+  { key: 'content', label: '值班内容', flex: 1.8, type: 'text', minWidth: 220 },
+  { key: 'action', label: '操作', flex: 0, type: 'action', fixed: 156 },
 ]
 
 const DUTY_ROWS: ArchiveRow[] = [
   {
     date: '2026-11-03', team: '消控室一班', shift: '白班', onDutyAt: '2026-11-03 08:00:00',
-    owner: '李阳', staff: '王志刚、李明',
-    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', status: '在岗', action: '',
+    staff: '王志刚、李明',
+    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', action: '',
   },
   {
     date: '2026-11-03', team: '消控室一班', shift: '夜班', onDutyAt: '2026-11-03 20:00:00',
-    owner: '王志豪', staff: '陈建国',
-    content: '值守中控室主机，复核火警与故障信号并登记', status: '在岗', action: '',
+    staff: '陈建国',
+    content: '值守中控室主机，复核火警与故障信号并登记', action: '',
   },
   {
     date: '2026-11-02', team: '消控室二班', shift: '白班', onDutyAt: '2026-11-02 08:10:00',
-    owner: '陈建国', staff: '刘建国',
-    content: '检查气体灭火钢瓶压力与防排烟风机电位', status: '迟到', action: '',
+    staff: '刘建国',
+    content: '检查气体灭火钢瓶压力与防排烟风机电位', action: '',
   },
   {
     date: '2026-11-02', team: '园区巡检班', shift: '24小时', onDutyAt: '2026-11-02 00:00:00',
-    owner: '李阳', staff: '网格员李明',
-    content: '园区外围消防通道巡查，记录违规占道情况', status: '在岗', action: '',
+    staff: '网格员李明',
+    content: '园区外围消防通道巡查，记录违规占道情况', action: '',
   },
   {
     date: '2026-11-01', team: '消控室一班', shift: '白班', onDutyAt: '2026-11-01 08:00:00',
-    owner: '王志豪', staff: '王志刚',
-    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', status: '在岗', action: '',
+    staff: '王志刚',
+    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', action: '',
   },
   {
     date: '2026-11-01', team: '消控室二班', shift: '夜班', onDutyAt: '2026-11-01 20:00:00',
-    owner: '李阳', staff: '黄建国',
-    content: '值守中控室主机，复核火警与故障信号并登记', status: '缺岗', action: '',
+    staff: '黄建国',
+    content: '值守中控室主机，复核火警与故障信号并登记', action: '',
   },
   {
     date: '2026-10-31', team: '园区巡检班', shift: '24小时', onDutyAt: '2026-10-31 00:00:00',
-    owner: '陈建国', staff: '网格员李明',
-    content: '食堂与宿舍楼消防设施抽查，核对应急照明与疏散指示', status: '在岗', action: '',
+    staff: '网格员李明',
+    content: '食堂与宿舍楼消防设施抽查，核对应急照明与疏散指示', action: '',
   },
   {
     date: '2026-10-31', team: '消控室一班', shift: '白班', onDutyAt: '2026-10-31 08:00:00',
-    owner: '李阳', staff: '李明',
-    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', status: '在岗', action: '',
+    staff: '李明',
+    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', action: '',
   },
   {
     date: '2026-10-30', team: '消控室二班', shift: '白班', onDutyAt: '2026-10-30 08:00:00',
-    owner: '王志豪', staff: '刘建国',
-    content: '检查气体灭火钢瓶压力与防排烟风机电位', status: '请假', action: '',
+    staff: '刘建国',
+    content: '检查气体灭火钢瓶压力与防排烟风机电位', action: '',
   },
   {
     date: '2026-10-30', team: '消控室一班', shift: '夜班', onDutyAt: '2026-10-30 20:00:00',
-    owner: '李阳', staff: '王志刚',
-    content: '值守中控室主机，复核火警与故障信号并登记', status: '在岗', action: '',
+    staff: '王志刚',
+    content: '值守中控室主机，复核火警与故障信号并登记', action: '',
   },
   {
     date: '2026-10-29', team: '园区巡检班', shift: '24小时', onDutyAt: '2026-10-29 00:00:00',
-    owner: '陈建国', staff: '网格员李明',
-    content: '园区外围消防通道巡查，记录违规占道情况', status: '在岗', action: '',
+    staff: '网格员李明',
+    content: '园区外围消防通道巡查，记录违规占道情况', action: '',
   },
   {
     date: '2026-10-28', team: '消控室一班', shift: '白班', onDutyAt: '2026-10-28 08:00:00',
-    owner: '李阳', staff: '黄建国',
-    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', status: '迟到', action: '',
+    staff: '黄建国',
+    content: '巡检消防水泵房与配电室，记录水压与电量并完成交接', action: '',
   },
 ]
 
@@ -218,7 +218,7 @@ const PATROL_COLUMNS: ArchiveColumn[] = [
   { key: 'planStart', label: '计划开始时间', flex: 1.2, type: 'datetime', minWidth: 168 },
   { key: 'planEnd', label: '计划结束时间', flex: 1.2, type: 'datetime', minWidth: 168 },
   { key: 'finishedAt', label: '实际完成时间', flex: 1.2, type: 'datetime', minWidth: 168 },
-  { key: 'action', label: '操作', flex: 0.6, type: 'action', minWidth: 84 },
+  { key: 'action', label: '操作', flex: 0, type: 'action', fixed: 156 },
 ]
 
 const PATROL_ROWS: ArchiveRow[] = [
@@ -298,7 +298,7 @@ const HAZARD_COLUMNS: ArchiveColumn[] = [
   { key: 'reportedAt', label: '上报日期', flex: 1.2, type: 'datetime', minWidth: 168 },
   { key: 'patrolPoint', label: '关联巡检点', flex: 1.1, type: 'text', minWidth: 130 },
   { key: 'shared', label: '是否分享数据', flex: 0.8, type: 'bool', minWidth: 100 },
-  { key: 'action', label: '操作', flex: 0.6, type: 'action', minWidth: 84 },
+  { key: 'action', label: '操作', flex: 0, type: 'action', fixed: 156 },
 ]
 
 const HAZARD_ROWS: ArchiveRow[] = [
@@ -368,32 +368,55 @@ const HAZARD_ROWS: ArchiveRow[] = [
  * tab 定义
  * ============================================================ */
 
+/**
+ * 筛选项的可选值从数据里现算，不写死。
+ *
+ * 写死的清单会跟演示数据漂移：改一行数据（如新增一个班组），
+ * 下拉里就多出一个永远筛不出结果的选项，或漏掉一个真实存在的值。
+ */
+function buildFilterOptions(rows: ArchiveRow[], key: string, allLabel: string): string[] {
+  const seen = new Set<string>()
+  for (const row of rows) {
+    const v = row[key]
+    if (v) seen.add(v)
+  }
+  return [allLabel, ...Array.from(seen).sort((a, b) => a.localeCompare(b, 'zh-CN'))]
+}
+
 export const ARCHIVE_TABS: ArchiveTab[] = [
   {
     key: 'duty',
     label: '值班记录',
+    icon: 'clipboard',
+    searchPlaceholder: '搜索人员',
+    dateField: 'date',
     columns: DUTY_COLUMNS,
+    // 设计稿 110:20070 的筛选条：全部班组 / 全部班次 + 日期区间
     filters: [
-      { key: 'shift', label: '班次', options: ['全部', '白班', '夜班', '24小时'] },
-      { key: 'status', label: '状态', options: ['全部', '在岗', '迟到', '缺岗', '请假'] },
-      { key: 'date', label: '日期', options: ['全部', '今日', '近7天', '本月'], match: 'dateRange', field: 'date' },
+      { key: 'team', label: '班组', allLabel: '全部班组', options: buildFilterOptions(DUTY_ROWS, 'team', '全部班组') },
+      { key: 'shift', label: '班次', allLabel: '全部班次', options: buildFilterOptions(DUTY_ROWS, 'shift', '全部班次') },
     ],
     rows: DUTY_ROWS,
   },
   {
     key: 'patrol',
     label: '巡查记录',
+    icon: 'map',
+    searchPlaceholder: '搜索任务 / 执行人',
+    dateField: 'planStart',
     columns: PATROL_COLUMNS,
     filters: [
       {
         key: 'status',
         label: '状态',
-        options: ['全部', '待执行', '执行中', '已完成', '预期未完成', '逾期完成', '已取消'],
+        allLabel: '全部状态',
+        options: buildFilterOptions(PATROL_ROWS, 'status', '全部状态'),
       },
       {
         key: 'plan',
         label: '所属计划',
-        options: ['全部', '员工食堂隐患排查计划', '生活服务区隐患排查计划', '校园超市消防安全巡查计划'],
+        allLabel: '全部计划',
+        options: buildFilterOptions(PATROL_ROWS, 'plan', '全部计划'),
       },
     ],
     rows: PATROL_ROWS,
@@ -401,11 +424,14 @@ export const ARCHIVE_TABS: ArchiveTab[] = [
   {
     key: 'hazard',
     label: '隐患台账',
+    icon: 'warning',
+    searchPlaceholder: '搜索隐患 / 上报人',
+    dateField: 'reportedAt',
     columns: HAZARD_COLUMNS,
     filters: [
-      { key: 'status', label: '整改状态', options: ['全部', '待认领', '待整改', '已确认'] },
-      { key: 'type', label: '隐患类型', options: ['全部', '安全档案记录', '区域风险', '消防设施', '电气线路'] },
-      { key: 'source', label: '上报来源', options: ['全部', '系统自建', '安全档案二维码', '员工自查'] },
+      { key: 'status', label: '整改状态', allLabel: '全部状态', options: buildFilterOptions(HAZARD_ROWS, 'status', '全部状态') },
+      { key: 'type', label: '隐患类型', allLabel: '全部类型', options: buildFilterOptions(HAZARD_ROWS, 'type', '全部类型') },
+      { key: 'source', label: '上报来源', allLabel: '全部来源', options: buildFilterOptions(HAZARD_ROWS, 'source', '全部来源') },
     ],
     rows: HAZARD_ROWS,
   },
@@ -415,30 +441,41 @@ export const ARCHIVE_TABS: ArchiveTab[] = [
  * 过滤
  * ============================================================ */
 
+/** 取字段值的日期部分（'2026-11-03 09:41:30' → '2026-11-03'） */
+function datePart(value: string): string {
+  return value.slice(0, 10)
+}
+
 /**
- * 按搜索词与筛选值过滤行。
+ * 按搜索词、筛选值与日期区间过滤行。
  *
  * 搜索词匹配行内**全部字段**（含状态文案），大小写不敏感；
- * 多个筛选器之间是 AND 关系，与搜索词也是 AND。
+ * 多个筛选器之间是 AND 关系，与搜索词、日期区间也是 AND。
  */
 export function filterArchiveRows(
   tab: ArchiveTab,
   rows: ArchiveRow[],
   search: string,
   filterValues: Record<string, string>,
+  dateRange: ArchiveDateRange = null,
 ): ArchiveRow[] {
   const keyword = search.trim().toLowerCase()
 
   return rows.filter((row) => {
     for (const f of tab.filters) {
       const picked = filterValues[f.key]
-      if (!picked || picked === '全部') continue
-      const value = row[f.field ?? f.key] ?? ''
-      if (f.match === 'dateRange') {
-        if (!matchDateRange(value, picked)) return false
-      } else if (value !== picked) {
-        return false
-      }
+      // 第一项（allLabel）= 不限，不参与过滤
+      if (!picked || picked === f.allLabel) continue
+      if ((row[f.key] ?? '') !== picked) return false
+    }
+
+    // 日期区间：取被筛字段的日期部分比较（闭区间）
+    if (dateRange) {
+      const [from, to] = dateRange
+      const day = datePart(row[tab.dateField] ?? '')
+      if (!day) return false
+      if (from && day < from) return false
+      if (to && day > to) return false
     }
 
     if (keyword) {

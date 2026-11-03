@@ -55,9 +55,11 @@ export default async function globalSetup() {
   console.log('  ✅ 种子数据已填充')
 
   // ── 4. 启动后端（独立端口 + 独立数据库） ──
+  const BE_PORT = process.env.E2E_API_PORT ?? '3202'
+  const FE_PORT = process.env.E2E_FE_PORT ?? '3200'
   const beEnv = {
     ...process.env,
-    PORT: '3202',
+    PORT: BE_PORT,
     DATABASE_URL: 'file:./test.db',
     NODE_ENV: 'test',
     JWT_SECRET: 'test-secret-do-not-use-in-production',
@@ -68,19 +70,19 @@ export default async function globalSetup() {
     env: beEnv,
     stdio: 'pipe',
   })
-  beProcess.stdout.on('data', (d) => process.stdout.write(`[BE:3202] ${d}`))
-  beProcess.stderr.on('data', (d) => process.stderr.write(`[BE:3202:err] ${d}`))
+  beProcess.stdout.on('data', (d) => process.stdout.write(`[BE:${BE_PORT}] ${d}`))
+  beProcess.stderr.on('data', (d) => process.stderr.write(`[BE:${BE_PORT}:err] ${d}`))
   globalThis.__E2E_BE_PROCESS = beProcess
 
-  await waitForServer('http://localhost:3202/api/health', 20000)
-  console.log('  ✅ 后端已就绪 (http://localhost:3202)')
+  await waitForServer(`http://localhost:${BE_PORT}/api/health`, 20000)
+  console.log(`  ✅ 后端已就绪 (http://localhost:${BE_PORT})`)
 
   // ── 5. 启动前端（proxy → 3202） ──
   const feEnv = {
     ...process.env,
-    VITE_API_TARGET: 'http://localhost:3202',
+    VITE_API_TARGET: `http://localhost:${BE_PORT}`,
   }
-  const feProcess = spawn('npx', ['vite', '--port', '3200', '--strictPort'], {
+  const feProcess = spawn('npx', ['vite', '--port', FE_PORT, '--strictPort'], {
     cwd: ROOT,
     env: feEnv,
     stdio: 'pipe',
@@ -89,8 +91,8 @@ export default async function globalSetup() {
   feProcess.stderr.on('data', (d) => process.stderr.write(`[FE:err] ${d}`))
   globalThis.__E2E_FE_PROCESS = feProcess
 
-  await waitForServer('http://localhost:3200', 30000)
-  console.log('  ✅ 前端已就绪 (http://localhost:3200)')
+  await waitForServer(`http://localhost:${FE_PORT}`, 30000)
+  console.log(`  ✅ 前端已就绪 (http://localhost:${FE_PORT})`)
 
   console.log('🔧 [E2E Setup] 测试环境就绪\n')
 }

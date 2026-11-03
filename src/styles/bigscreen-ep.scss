@@ -361,6 +361,91 @@
 }
 
 /* ============================================================
+ * el-date-picker — 日期区间面板（teleport 到 body，需独立作用域）
+ *
+ * 项目里日期面板的暗色适配只写在 `html.dark` 下（style.css），
+ * 大屏页面没有 html.dark，直接用会弹出浅色面板，与深蓝卡片割裂。
+ * 这里补一份大屏专用的面板主题。
+ * ============================================================ */
+.bigscreen-el-date-panel {
+  --bg-card: rgba(22, 70, 145, 0.97);
+  --text-primary: #f2fbff;
+  --text-secondary: #c5c5c5;
+  --text-muted: #8fb0d8;
+  --accent-primary: #3cd3d7;
+  --accent-primary10: rgba(71, 132, 232, 0.15);
+  --border-default: rgba(71, 132, 232, 0.45);
+  --border-high: rgba(71, 132, 232, 0.65);
+
+  background: rgba(22, 70, 145, 0.97) !important;
+  border: 1px solid rgba(71, 132, 232, 0.45) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+
+  .el-date-range-picker__header,
+  .el-picker-panel__header {
+    border-bottom: 1px solid rgba(71, 132, 232, 0.3);
+  }
+
+  .el-date-picker__header-label,
+  .el-date-picker__header-label.active,
+  .el-date-picker__header-label:hover {
+    color: #f2fbff !important;
+  }
+
+  .el-picker-panel__icon-btn {
+    color: #c5c5c5 !important;
+  }
+  .el-picker-panel__icon-btn:hover {
+    color: #3cd3d7 !important;
+  }
+
+  .el-date-table th {
+    color: #c5c5c5 !important;
+    border-bottom: 1px solid rgba(71, 132, 232, 0.3) !important;
+  }
+  .el-date-table td.available {
+    color: #f2fbff !important;
+  }
+  .el-date-table td.today {
+    color: #3cd3d7 !important;
+  }
+  .el-date-table td.current:not(.disabled) {
+    background: #3cd3d7 !important;
+    color: #001529 !important;
+  }
+  .el-date-table td.available:hover,
+  .el-date-table td.today:hover {
+    background: rgba(71, 132, 232, 0.2) !important;
+  }
+  .el-date-table td.in-range {
+    background: rgba(71, 132, 232, 0.14) !important;
+  }
+  .el-date-table td.start-date,
+  .el-date-table td.end-date {
+    background: rgba(71, 132, 232, 0.35) !important;
+    color: #f2fbff !important;
+  }
+  .el-date-table td.disabled {
+    color: #6b7f99 !important;
+  }
+
+  .el-picker-panel__footer {
+    border-top: 1px solid rgba(71, 132, 232, 0.3);
+  }
+
+  .el-button {
+    background: transparent;
+    border-color: rgba(71, 132, 232, 0.45);
+    color: #c5c5c5;
+  }
+  .el-button:hover {
+    border-color: #3cd3d7;
+    color: #3cd3d7;
+  }
+}
+
+/* ============================================================
  * el-popper — 全局弹出层（teleport 到 body）
  * ============================================================ */
 .bigscreen-popper {

@@ -1,7 +1,16 @@
 <template>
   <div class="archive bigscreen">
+    <!-- ===== 左栏：档案分类（设计稿 110:19099） ===== -->
+    <EbikeV2ArchiveSidebar
+      class="archive__side"
+      :tabs="tabs"
+      :active-tab="activeTab"
+      @update:active-tab="onTabChange"
+    />
+
+    <!-- ===== 右栏：详细记录（设计稿 110:16923） ===== -->
     <EbikeV2ListPanel
-      title="消防档案"
+      class="archive__main"
       :tabs="tabs"
       :active-tab="activeTab"
       :rows="filteredRows"
@@ -9,11 +18,10 @@
       :page-size="currentPageSize"
       :search="currentSearch"
       :filter-values="currentFilters"
-      search-placeholder="搜索名称 / 位置 / 人员"
-      empty-text="没有符合条件的记录"
-      @update:active-tab="activeTab = $event"
+      :date-range="currentDateRange"
       @update:search="onSearch"
       @update:filter-values="onFilters"
+      @update:date-range="onDateRange"
       @update:page="onPage"
       @update:page-size="onPageSize"
     />
@@ -24,14 +32,12 @@
 /**
  * 消防档案页
  *
- * 台账与留档的检索入口：页内用 tab 分类三类记录，各自一张列表：
- *   值班记录 / 巡查记录 / 隐患台账。
+ * 版式按设计稿 110:11265（智能安全管控平台 / 消防档案）：
+ *   左「档案分类」分区（280 宽，纵向三个分类）+ 右「详细记录」分区（表格）。
  *
- * 版式：满宽单卡（不用共享的 `EbikeV2PageShell`）。
- *   那个外壳强制「右列 520 + 底部三模块」，主区只剩 1352px，而这三张表
- *   各有 9~10 列且含「2026-11-03 09:41:30」这类长值，主区被压到
- *   1352px 后长时间戳列只能截断。此页的信息就是「列表」本身，没有第二个
- *   模块要放，故整页给列表。
+ * 分类 tab 从原来的「卡片内顶部横排」移到左栏（设计稿把分类做成侧栏，
+ * 表格区因此能占满整屏宽度 —— 值班记录 7 列、巡查 9 列、隐患 10 列，
+ * 窄表区会把长时间戳列压到截断）。
  *
  * 数据：`archive/archive-data.ts` 的演示数据（基准日 2026-11-03，日期写死，
  * 楼栋取校园三维模型 Z4 的真实 POI）。接口接入时只换该文件，组件不动。
@@ -41,13 +47,14 @@
  * 深底上绿橙达不到 4.5:1 对比度。
  *
  * 根节点带 `bigscreen` class：项目的大屏 EP 深色主题（`styles/bigscreen-ep.scss`）
- * 以它为作用域，分页器（el-pagination）用这套主题才是深色；不带就是
+ * 以它为作用域，下拉框 / 日期面板 / 分页器用这套主题才是深色；不带就是
  * Element Plus 默认浅色样式，与全站大屏不一致。
  */
 import { computed, ref } from 'vue'
+import EbikeV2ArchiveSidebar from '../archive/EbikeV2ArchiveSidebar.vue'
 import EbikeV2ListPanel from '../EbikeV2ListPanel.vue'
 import { ARCHIVE_TABS, filterArchiveRows } from '../archive/archive-data'
-import type { ArchiveTabKey } from '../archive/archive-data'
+import type { ArchiveDateRange, ArchiveTabKey } from '../archive/archive-data'
 
 /** 三类记录（tab） */
 const tabs = ARCHIVE_TABS
@@ -56,7 +63,7 @@ const tabs = ARCHIVE_TABS
 const activeTab = ref<ArchiveTabKey>('duty')
 
 /**
- * 每个 tab 各自记住搜索词与筛选值：切走再切回来不丢。
+ * 每个 tab 各自记住搜索词、筛选值、日期区间与分页：切走再切回来不丢。
  * 筛选值默认取该维度的第一项（「全部」）。
  */
 const searchMap = ref<Record<string, string>>(
@@ -64,8 +71,14 @@ const searchMap = ref<Record<string, string>>(
 )
 const filterMap = ref<Record<string, Record<string, string>>>(
   Object.fromEntries(
-    tabs.map((t) => [t.key, Object.fromEntries(t.filters.map((f) => [f.key, f.options[0]]))]),
+    tabs.map((t) => [
+      t.key,
+      Object.fromEntries(t.filters.map((f) => [f.key, f.options[0]])),
+    ]),
   ),
+)
+const dateRangeMap = ref<Record<string, ArchiveDateRange>>(
+  Object.fromEntries(tabs.map((t) => [t.key, null])),
 )
 
 /** 每个 tab 各自的页码与每页条数 */
@@ -81,14 +94,28 @@ const currentSearch = computed(() => searchMap.value[activeTab.value] ?? '')
 /** 当前 tab 的筛选值 */
 const currentFilters = computed(() => filterMap.value[activeTab.value] ?? {})
 
+/** 当前 tab 的日期区间 */
+const currentDateRange = computed(() => dateRangeMap.value[activeTab.value] ?? null)
+
 /** 当前 tab 的页码 / 每页条数 */
 const currentPage = computed(() => pageMap.value[activeTab.value] ?? 1)
 const currentPageSize = computed(() => sizeMap.value[activeTab.value] ?? 10)
 
-/** 过滤后的行：搜索词与各筛选器之间是 AND 关系 */
+/** 过滤后的行：搜索词、筛选器与日期区间之间是 AND 关系 */
 const filteredRows = computed(() =>
-  filterArchiveRows(currentTab.value, currentTab.value.rows, currentSearch.value, currentFilters.value),
+  filterArchiveRows(
+    currentTab.value,
+    currentTab.value.rows,
+    currentSearch.value,
+    currentFilters.value,
+    currentDateRange.value,
+  ),
 )
+
+/** 切换分类 */
+function onTabChange(key: ArchiveTabKey) {
+  activeTab.value = key
+}
 
 /** 更新当前 tab 的搜索词（筛选条件变了，回到第一页） */
 function onSearch(value: string) {
@@ -99,6 +126,12 @@ function onSearch(value: string) {
 /** 更新当前 tab 的筛选值（同上，回到第一页） */
 function onFilters(value: Record<string, string>) {
   filterMap.value = { ...filterMap.value, [activeTab.value]: value }
+  resetPage()
+}
+
+/** 更新当前 tab 的日期区间（同上，回到第一页） */
+function onDateRange(value: ArchiveDateRange) {
+  dateRangeMap.value = { ...dateRangeMap.value, [activeTab.value]: value }
   resetPage()
 }
 
@@ -130,14 +163,19 @@ function resetPage() {
   right: 0;
   bottom: 0;
   display: flex;
-  flex-direction: column;
+  gap: vw(18);
   padding: vh(18) vw(16) vh(16);
 }
 
-/* 列表面板占满整页 */
-.archive :deep(.list-panel) {
+/* 左栏：档案分类（设计稿固定 280 宽） */
+.archive__side {
+  width: vw(280);
+  flex-shrink: 0;
+}
+
+/* 右栏：详细记录（吃掉剩余宽度） */
+.archive__main {
   flex: 1;
-  min-height: 0;
-  height: auto;
+  min-width: 0;
 }
 </style>

@@ -14,7 +14,7 @@
 | 颜色 / 字号 / 间距 | 只准用 `var(--xxx)` | `grep` 查 `src/style.css` |
 | 表单输入框 | `class="clean-input"` 等公共样式 | `.claude/references/ui-patterns.md` 第三节 |
 | Figma 写代码 | 设计稿每个元素 → 先映射到项目已有组件/class | 逐元素对照，找不到再问用户 |
-| **图标** | **项目内不存在的图标 → 用占位图 `📷`，告诉用户自己替换。禁止手写 SVG、禁止从 Figma 导出** | 用户已有明确 skill 规定 |
+| **图标** | **项目内不存在的图标 → 用占位图 `📷`，告诉用户自己替换。禁止手写 SVG、禁止从 Figma 导出**（唯一例外：用户明确点名「直接使用 Figma 设计素材」时，导出原始素材落盘，见下方「消防档案」条目） | 用户已有明确 skill 规定 |
 
 **违反本规则的后果**：手写 SVG → 项目已有同名图标文件；自创 class → 项目已有标准 class；硬编码颜色 → 全局 Token 已定义；自己画图标 → 用户反复强调不能用 SVG 画。每次都浪费 1-2 轮对话修复。
 
@@ -296,6 +296,13 @@ src/api/adapters/
 - **模型区两枚场景控件尺寸固定 px，不随视口缩放**：控件里有 14px 文字，而大屏字号下限锁 14 不再缩小；盒子若跟着 `vw()/vh()` 缩，窄视口下文字就放不下。故这两枚控件按设计稿尺寸写死（胶囊 99×34、圆钮 28×28、图标 18px），各视口几何完全一致；1920 下与设计稿逐像素对齐
 - **清屏要跨层隐藏全局悬浮机器人**：小安机器人挂在 `StandaloneLayout` 里且 Teleport 到 `body`，组件 scoped 样式够不到，改用 `body.ebike-clean-mode` 类 + 页面内非 scoped 样式块隐藏 `.agent-floating-chat`
 - **本页 Playwright 合成点击全部判不过**：浮在三维模型 iframe 之上的控件（顶栏标题、建筑导航、全屏查看入口）用 `page.click()` 都会卡在可操作性检查（visible/stable），既有控件同样如此，不是新代码引入；CDP 真实输入事件命中正常。校验脚本改用 `page.mouse.click(元素中心坐标)`，与用户实际点击一致
+- **消防档案页按设计稿 110:11265 重构为左右两栏**（`pages/EbikeV2FireArchive.vue`）：左「档案分类」分区固定 `vw(280)`（`archive/EbikeV2ArchiveSidebar.vue`，三个纵向 tab：值班记录 / 巡查记录 / 隐患台账），右「详细记录」分区吃掉剩余宽度。分类 tab 从「卡片内顶部横排」移到侧栏后，表格区能占满整屏宽度 —— 值班 7 列 / 巡查 9 列 / 隐患 10 列，窄表区会把长时间戳列压到截断。设计稿未给条数角标，故 tab 上不显示计数
+- **大屏分页器覆盖必须 `!important` + 更高特异性**：全局 `src/style.css` 的 `.el-pagination.is-background .el-pager li { background-color: var(--pagi-bg) !important }` 会压过 `styles/bigscreen-ep.scss` 的 `.bigscreen .el-pagination .el-pager li`（后者无 `!important`，特异性再高也压不住 important）。大屏页没有 `html.dark`，`--pagi-bg` 落到 `:root` 的浅色 `#F0F1F6`，不压掉就渲染成浅灰方块、与深蓝卡片割裂。页面内覆盖（如 `EbikeV2ListPanel.vue` 的 `.list-panel__pager`）要写 `!important` 且选择器比全局更具体
+- **大屏日期区间面板需要独立暗色作用域**：项目里 `el-picker-panel` 的暗色适配只写在 `html.dark` 下，大屏没有 `html.dark`，直接用 `el-date-picker` 会弹出浅色面板。已在 `styles/bigscreen-ep.scss` 补 `.bigscreen-el-date-panel`（teleport 到 body，需独立作用域），页面用 `popper-class="bigscreen-el-date-panel"` 挂上
+- **`el-date-picker` 的根元素不吃 scoped 作用域标记**：Vue 只把父组件的 `data-v-*` 挂到子组件的根元素，而 EP 日期选择器的根是内部渲染的 `.el-date-editor`，拿不到作用域标记 —— 写 `.list-panel__date { ... }` 会整条不命中（表现是宽度/内距都没生效，元素被 flex 撑开）。做法是外面包一层自己的 `<div class="list-panel__date">`，再用 `:deep(.el-date-editor)` 往下打
+- **大屏字号有 14px 下限，控件盒子不能纯按 vw 缩**：设计稿量的是 1920，但文字不随视口缩，盒子按比例缩到窄视口就装不下（分页器的「10 条」被截成「1...」）。这类固定文案控件给 `min-width`（px），不只给 `vw()`
+- **e2e 前后端端口可覆盖**：`e2e/setup.mjs` 的 `E2E_FE_PORT` / `E2E_API_PORT`、`e2e/playwright.config.ts` 的 `E2E_BASE_URL` 可改端口。手工 dev server 常占着 3200，此时 setup 里的 `vite --strictPort` 不会退出、只打一行「Port 3200 is already in use」，随后 `waitForServer` 立刻成功 —— 测试于是跑在手工 dev server 上（代理到真实后端/真实库），以为在测测试库，其实在测开发环境。改端口避开
+- **档案分类 tab 的 icon 用 Figma 原始素材（用户显式授权的例外）**：三个 24×24 彩色立体插画节点 `112:330` / `112:337` / `112:345`（值班记录=记录板、巡查记录=折叠地图+定位针、隐患台账=台账+警示三角），已导出为 `src/assets/bigscreen/ebike-v2/archive/archive-icon-{duty,patrol,hazard}.svg`，组件里 `import` 拿 URL 渲染 `<img class="archive-side__icon-img">`。这属于「禁止从 Figma 导出」默认规则的例外：**仅当用户点名要原图时**才这么做，且只用于 Figma 里本身就是 IMAGE-SVG 导出素材的节点（自带渐变描边，重画必然走样）；矢量图形组件仍走项目图标库。SVG 在 4KB 以下会被 Vite 内联成 data URL，运行时无外部依赖
 
 ### 下次建议动作
 
