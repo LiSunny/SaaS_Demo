@@ -1,20 +1,8 @@
 <template>
   <Teleport to="body">
-    <div class="agent-floating-chat" :class="[{ 'is-open': store.isOpen }, robotPhase]">
-      <!-- ===== 折叠态：机器人 ===== -->
-      <div v-if="!store.isOpen" class="robot-wrapper">
-        <button
-          class="chat-fab"
-          @click="handleRobotClick"
-          title="AI 助手"
-        >
-          <img src="@/assets/agent-robot.svg" alt="AI助手" class="fab-robot-img" />
-        </button>
-        <!-- 打招呼气泡 -->
-        <div v-if="robotPhase === 'greeting'" class="robot-greeting">
-          <span>嗨，我是AI助手 👋</span>
-        </div>
-      </div>
+    <div class="agent-floating-chat" :class="{ 'is-open': store.isOpen }">
+      <!-- 2026-11-04：大屏右下角机器人图标已移除，此处不再渲染折叠态入口。
+           悬浮对话面板本体保留，仍可由代码调用 store.open() 唤起。 -->
 
       <!-- ===== 展开态：遮罩 + 居中面板 ===== -->
       <div v-if="store.isOpen" class="chat-overlay" @click.self="store.close()">
@@ -246,18 +234,8 @@ import { useAiChatStore, type FileAttachment, type FileUploadResult } from '@/st
 const store = useAiChatStore()
 const router = useRouter()
 
-// 机器人动画阶段：hidden → flying-in → greeting → peeking
-type RobotPhase = 'hidden' | 'flying-in' | 'greeting' | 'peeking'
-const robotPhase = ref<RobotPhase>('hidden')
-
-function handleRobotClick() {
-  if (robotPhase.value !== 'peeking') return
-  store.open()
-}
-
-// 在已有 onMounted 中追加机器人动画逻辑
-// 页面加载 800ms → flying-in, 1500ms → greeting, 4500ms → peeking
-;
+// 2026-11-04：右下角机器人图标（含飞入 / 打招呼 / 探头动画）已移除，
+// 对应的阶段状态与点击处理一并删除；对话面板本身不变。
 const inputText = ref('')
 const bodyRef = ref<HTMLElement | null>(null)
 const debugBodyRef = ref<HTMLElement | null>(null)
@@ -543,10 +521,6 @@ function handleNavigate(e: Event) {
 
 onMounted(() => {
   window.addEventListener('agent:navigate', handleNavigate)
-  // 机器人入场动画
-  setTimeout(() => { robotPhase.value = 'flying-in' }, 800)
-  setTimeout(() => { robotPhase.value = 'greeting' }, 1500)
-  setTimeout(() => { robotPhase.value = 'peeking' }, 4500)
 })
 
 onUnmounted(() => {
@@ -557,97 +531,15 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-/* ===== 机器人容器 ===== */
+/* ===== 悬浮对话容器 =====
+   2026-11-04：右下角机器人图标（含飞入 / 打招呼 / 探头动画）已移除，
+   容器现在只承载展开态的对话面板。 */
 .agent-floating-chat {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 9999;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-
-  &.hidden .robot-wrapper { opacity: 0; }
-
-  &.flying-in .robot-wrapper {
-    animation: robot-fly-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  &.peeking .robot-wrapper {
-    transform: translateX(60px); /* 只露出一半 */
-    transition: transform 0.5s ease-out;
-    opacity: 1;
-  }
-}
-
-/* ===== 飞入动画（从右侧外部飞入） ===== */
-@keyframes robot-fly-in {
-  0%   { transform: translateX(160px); opacity: 0; }
-  60%  { transform: translateX(-12px); opacity: 1; }
-  100% { transform: translateX(0); opacity: 1; }
-}
-
-.robot-wrapper {
-  position: relative;
-  transition: transform 0.5s ease-out, opacity 0.5s;
-}
-
-/* ===== 浮动按钮 ===== */
-.chat-fab {
-  width: 112px;
-  height: 112px;
-  border: none;
-  background: none;
-  box-shadow: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: scale(1.15);
-  }
-}
-
-.fab-robot-img {
-  width: 112px;
-  height: 112px;
-  object-fit: contain;
-}
-
-/* ===== 打招呼气泡 ===== */
-.robot-greeting {
-  position: absolute;
-  bottom: 100%;
-  right: -10px;
-  margin-bottom: 12px;
-  background: #fff;
-  color: #1a1a2e;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 10px 16px;
-  border-radius: 16px 16px 4px 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  white-space: nowrap;
-  animation: greeting-bounce 0.4s ease-out;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    right: 24px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #fff;
-  }
-}
-
-@keyframes greeting-bounce {
-  0% { transform: scale(0); }
-  60% { transform: scale(1.1); }
-  100% { transform: scale(1); }
 }
 
 @keyframes dot-pulse {
