@@ -138,20 +138,34 @@ test.describe('组态配置（P1）', () => {
     await page.goto('/device-facility/rule/symbol-library')
 
     // 标题声明的图元数 / 分类数 / 系统数 = 实际渲染数
+    //
+    // 自定义图元是从接口异步拉取、push 进响应式 SYMBOLS 数组的
+    // （src/symbols/index.ts registerCustomSymbol），标题里的「共 N 个图元」
+    // 与网格渲染、分类计数、系统计数分属不同的读取时刻 —— 拆开读会读到
+    // 不同时刻的数（先读标题拿到 47，再读分类计数已经变成 51）。
+    // 这里把「声明数 = 卡片数 = 分类计数和 = 系统计数和」当作一条不变量轮询，
+    // 等页面自己稳定。断的是不变量本身，不是把它放宽。
+    await expect
+      .poll(
+        async () => {
+          const d = await page.locator('.symbol-page__desc').textContent()
+          const t = declared(d, '图元')
+          const cards = await page.locator('.symbol-page__card').count()
+          const catCounts = await page.locator('.symbol-page__cat .symbol-page__cat-count').allTextContents()
+          const catSum = catCounts.slice(1).reduce((n, x) => n + Number(x), 0)
+          const sysCounts = await page.locator('.symbol-page__sys-btn .symbol-page__cat-count').allTextContents()
+          const sysSum = sysCounts.slice(1).reduce((n, x) => n + Number(x), 0)
+          return { ok: t === cards && catSum === t && sysSum === t, declared: t, cards, catSum, sysSum }
+        },
+        { timeout: 20000 },
+      )
+      .toMatchObject({ ok: true })
+
     const desc = await page.locator('.symbol-page__desc').textContent()
-    const total = declared(desc, '图元')
     const sysCount = declared(desc, '系统')
     const catCount = declared(desc, '分类')
-    await expect(page.locator('.symbol-page__card')).toHaveCount(total)
     await expect(page.locator('.symbol-page__sys-btn')).toHaveCount(sysCount + 1) // + 全部
     await expect(page.locator('.symbol-page__cat')).toHaveCount(catCount + 1) // + 全部分类
-
-    // 分类计数之和 = 图元总数（每个图元恰好属于一个分类）
-    const catCounts = await page.locator('.symbol-page__cat .symbol-page__cat-count').allTextContents()
-    expect(catCounts.slice(1).reduce((n, t) => n + Number(t), 0)).toBe(total)
-    // 系统计数之和 = 图元总数（每个图元恰好归属一个系统）
-    const sysCounts = await page.locator('.symbol-page__sys-btn .symbol-page__cat-count').allTextContents()
-    expect(sysCounts.slice(1).reduce((n, t) => n + Number(t), 0)).toBe(total)
 
     await expect(page.locator('.symbol-page__card svg.sym-root').first()).toBeVisible()
 

@@ -87,9 +87,12 @@ test.describe('水泵房场景监控', () => {
     }
 
     await page.locator('.wm__metric--entry').click({ timeout: 60000 })
-    await expect(page).toHaveURL(/\/landing\/ebike-v2\/pump-room/)
-    await expect(page).toHaveURL(/bigscreenId=20/)
-    await expect(page.locator('.pump-page')).toBeVisible()
+    // 二级专题页要拉起三维模型（WebGL + 地形/水体相交告警），无头环境下首帧很慢，
+    // 路由跳转要等动态 import 的组件解析完才落 URL —— 默认 10s 的 expect 超时不够，
+    // 表现为「点击后没跳转」的假失败。这里放宽的是等待窗口，不是断言本身。
+    await expect(page).toHaveURL(/\/landing\/ebike-v2\/pump-room/, { timeout: 60000 })
+    await expect(page).toHaveURL(/bigscreenId=20/, { timeout: 60000 })
+    await expect(page.locator('.pump-page')).toBeVisible({ timeout: 60000 })
   })
 
   test('模型铺底 + 右侧竖排 5 张指标卡', async ({ page }) => {
