@@ -369,7 +369,7 @@ onBeforeUnmount(() => {
 }
 
 .wm__item-title {
-  @include fire-label(14);
+  @include fire-label(15);
   color: var(--fire-text-label);
   overflow: hidden;
   text-overflow: ellipsis;

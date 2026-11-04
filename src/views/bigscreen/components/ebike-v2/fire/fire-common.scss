@@ -66,9 +66,9 @@ $fire-row-hover: rgba(0, 84, 160, 0.18); // 数据行 hover
 // ===== 文字色阶 =====
 $fire-text-hero: #ffffff;
 $fire-text-title: #cfe4ff;
-$fire-text-label: #a9c9ea;
-$fire-text-sub: #8fb0d8;
-$fire-text-dim: #7ea6d6;
+$fire-text-label: #93afcc;
+$fire-text-sub: #708fb6;
+$fire-text-dim: #5077a7;
 
 // ===== 异常色 =====
 // 所有异常数据共用这一个红；不再按故障 / 预警分两档。
@@ -155,7 +155,7 @@ $fire-min-size: 10;
   $s: fire-size($size);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
-  color: var(--fire-text-label);
+  color: var(--fire-text-sub);
   line-height: 1.2;
 }
 
@@ -174,7 +174,7 @@ $fire-min-size: 10;
   $s: fire-size($size);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: clamp(#{$fire-min-size}px, calc(#{$s} * var(--min-scale)), #{$s}px);
-  color: var(--fire-text-sub);
+  color: var(--fire-text-dim);
   line-height: 1.2;
 }
 
@@ -252,7 +252,7 @@ $fire-min-size: 10;
   flex-shrink: 0;
   padding: vh(4) vw(6);
   border-radius: vw(4);
-  border: 1px solid rgb($r, $g, $b);
+  border: 0.5px solid rgb($r, $g, $b);
   background:
     radial-gradient(
       circle at 50% 50%,
