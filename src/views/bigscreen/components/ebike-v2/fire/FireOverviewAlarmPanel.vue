@@ -30,7 +30,7 @@
 
       <!-- ===== 最近警情：分区标题 + 更多入口 ===== -->
       <div class="alp__section">
-        <span class="alp__section-title">最近警情（近 5 条）</span>
+        <span class="alp__section-title">实时警情</span>
         <span class="alp__more">更多 ›</span>
       </div>
 

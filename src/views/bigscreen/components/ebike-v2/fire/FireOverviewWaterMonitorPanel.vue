@@ -46,7 +46,7 @@
 
       <!-- ===== 最近警情：分区标题 + 更多入口 ===== -->
       <div class="wm__section">
-        <span class="wm__section-title">最近警情（近 5 条）</span>
+        <span class="wm__section-title">实时警情</span>
         <span class="wm__more">更多 ›</span>
       </div>
 

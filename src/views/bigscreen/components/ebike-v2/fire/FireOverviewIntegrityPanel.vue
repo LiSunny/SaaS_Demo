@@ -60,7 +60,7 @@
           <div v-for="r in row" :key="r.key" class="iip__sys">
             <div class="iip__sys-head">
               <span class="iip__sys-icon" :style="{ color: iconColor(r) }">
-                <FireSystemIcon :system="r.icon" :size="14" />
+                <FireSystemIcon :system="r.icon" :size="15" />
               </span>
               <span class="iip__sys-name" :title="r.name">{{ r.name }}</span>
               <span class="iip__sys-total">{{ r.pending ? '待接入' : r.total }}</span>
@@ -158,7 +158,7 @@ function rateColor(r: SystemRow): string {
  * 与 L4 #7ea6d6 同档）—— 与「状态色」的判定一致，不另立一套。
  */
 function iconColor(r: SystemRow): string {
-  if (r.fault > 0 || r.alarm > 0 || r.offline > 0) return 'var(--fire-anomaly)'
+  // if (r.fault > 0 || r.alarm > 0 || r.offline > 0) return 'var(--fire-anomaly)'
   return 'var(--fire-text-dim)'
 }
 </script>
@@ -408,7 +408,8 @@ function iconColor(r: SystemRow): string {
 }
 
 .iip__sys-name {
-  @include fire-dim(14);
+  @include fire-label(15);
+  color: var(--fire-text-label);
   /* 设计稿行高 16.8px（style_84ce3ed3）：行高写死，卡内两行才排得下 */
   line-height: 1.2;
   flex: 1;

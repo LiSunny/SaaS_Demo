@@ -32,7 +32,7 @@
 
       <!-- ===== 未闭环隐患：分区标题 + 更多入口 ===== -->
       <div class="hz__section">
-        <span class="hz__section-title">未闭环隐患（近 5 条）</span>
+        <span class="hz__section-title">未闭环隐患</span>
         <span class="hz__more">更多 ›</span>
       </div>
 
