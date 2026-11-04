@@ -7,10 +7,7 @@
       title="校园三维模型"
     />
     <Transition name="campus-fade" @after-leave="onOverlayGone">
-      <div v-if="!ready" class="campus-layer__loading">
-        <span class="campus-layer__spinner" />
-        <span class="campus-layer__text">正在构建校园场景…</span>
-      </div>
+      <EbikeV2CampusLoading v-if="!ready" :percent="progress" :stage="stage" />
     </Transition>
   </div>
 </template>
@@ -27,6 +24,7 @@ import {
   type CampusTheme,
   type CampusTimePreset,
 } from './campusTheme'
+import EbikeV2CampusLoading from './EbikeV2CampusLoading.vue'
 
 type QualityPreset = 'high' | 'medium' | 'low'
 
@@ -51,6 +49,10 @@ const props = withDefaults(
 
 const frameRef = ref<HTMLIFrameElement | null>(null)
 const ready = ref(false)
+
+/** 装配进度：模型侧按阶段上报（campus-model:progress），驱动加载遮罩 */
+const progress = ref(0)
+const stage = ref('正在加载模型资源…')
 
 /** 模型实例（window.campusApp，见 campus-model README §5.1） */
 const model = ref<any>(null)
@@ -260,7 +262,15 @@ function stopPolling() {
 }
 
 function handleMessage(e: MessageEvent) {
-  if (e?.data?.type !== 'campus-model:ready') return
+  const type = e?.data?.type
+  if (type === 'campus-model:progress') {
+    if (frameRef.value && e.source !== frameRef.value.contentWindow) return
+    const pct = Number(e.data.percent)
+    if (Number.isFinite(pct)) progress.value = pct
+    if (typeof e.data.stage === 'string' && e.data.stage) stage.value = e.data.stage
+    return
+  }
+  if (type !== 'campus-model:ready') return
   if (frameRef.value && e.source !== frameRef.value.contentWindow) return
   ensureConfigured()
 }
@@ -351,21 +361,6 @@ defineExpose({
   border: none;
 }
 
-.campus-layer__loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  background: #000d34;
-  color: #c8e4ff;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: 14px;
-  letter-spacing: 1px;
-}
-
 /* 遮罩淡出，露出俯视园区 → 落位的入场轨迹 */
 .campus-fade-leave-active {
   transition: opacity 0.6s ease;
@@ -373,17 +368,5 @@ defineExpose({
 
 .campus-fade-leave-to {
   opacity: 0;
-}
-
-.campus-layer__spinner {
-  width: 34px; height: 34px;
-  border: 2px solid rgba(120, 190, 255, 0.25);
-  border-top-color: #69ccff;
-  border-radius: 50%;
-  animation: campus-spin 0.9s linear infinite;
-}
-
-@keyframes campus-spin {
-  to { transform: rotate(360deg); }
 }
 </style>

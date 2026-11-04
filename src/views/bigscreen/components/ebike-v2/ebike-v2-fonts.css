@@ -56,6 +56,18 @@
   font-display: swap;
 }
 
+/* 加载遮罩副文案：设计稿 173:26615 的「正在加载模型资源…」用 Alibaba PuHuiTi Regular 400。
+   全站的 'Alibaba PuHuiTi' 只在 font-family 栈里出现，并没有对应的 @font-face
+   （页面实际回退到系统字体），所以这里为 Regular 单独起一个族名，
+   与导航的 'NavPuHuiTiMedium'（Medium 500）互不影响。 */
+@font-face {
+  font-family: 'LoadingPuHuiTi';
+  src: url('/fonts/Alibaba-PuHuiTi-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* 钉钉进步体：故障排名等模块的行内文字（设计稿 7:335 / 7:336）。
    与其它大屏页（campus / campus-monitor / linking）声明的是同一份字体文件。 */
 @font-face {

@@ -373,6 +373,28 @@ export function createApp(container, options = {}) {
   const dom = container || $('viewport');
   if (!dom) throw new Error('[app] 缺少渲染容器 #viewport');
 
+  /* ── 0. 首帧进度（父页遮罩据此亮起） ─────────────────────────── */
+
+  /**
+   * 装配进度上报：把阶段映射成百分比，postMessage 给大屏父页驱动进度条。
+   *
+   * 嵌入模式（?embed=1）下父页用一张园区海报顶在模型上，遮罩必须自己知道
+   * 加载到哪一步，否则只能给一个假进度。
+   */
+  let lastReported = -1;
+  function reportProgress(pct, stage) {
+    const p = Math.max(0, Math.min(100, Math.round(pct)));
+    if (p === lastReported) return;
+    lastReported = p;
+    const sub = $('loading-sub');
+    if (sub) sub.textContent = stage;
+    try {
+      parent.postMessage({ type: 'campus-model:progress', percent: p, stage }, '*');
+    } catch (e) { /* 跨域时忽略 */ }
+  }
+
+  reportProgress(2, '初始化渲染器');
+
   /* ── 1. 渲染器 ─────────────────────────────────────────────────── */
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -1770,6 +1792,7 @@ export function createApp(container, options = {}) {
   }
 
   async function buildScene() {
+    reportProgress(6, '载入建筑 / 地形 / 植被模块…');
     setLoadingText('载入建筑 / 地形 / 植被模块…');
 
     const [bRes, tRes, vRes] = await Promise.all([
@@ -1783,6 +1806,7 @@ export function createApp(container, options = {}) {
     // 建筑
     if (bRes.ok) {
       try {
+        reportProgress(34, '装配建筑模块…');
         const out = bRes.fn(ctx);
         if (out && out.group) {
           scene.add(out.group);
@@ -1813,6 +1837,7 @@ export function createApp(container, options = {}) {
     let terrainAdded = false;
     if (tRes.ok) {
       try {
+        reportProgress(62, '装配地形模块…');
         const out = tRes.fn(ctx);
         if (out && out.group) {
           scene.add(out.group);
@@ -1837,6 +1862,7 @@ export function createApp(container, options = {}) {
     // 植被
     if (vRes.ok) {
       try {
+        reportProgress(84, '装配植被模块…');
         const out = vRes.fn(ctx);
         if (out && out.group) {
           vegetationResult = out;
@@ -1857,6 +1883,7 @@ export function createApp(container, options = {}) {
     }
 
     // 后处理：索引重建、UI 刷新
+    reportProgress(93, '重建索引与点位…');
     rebuildPickIndex();
     renderCategoryChips();
     refreshPoiList();
@@ -1869,9 +1896,9 @@ export function createApp(container, options = {}) {
 
     if (failures.length) {
       toast(`部分模块未就绪：${failures.join('、')}（详见控制台）`);
-      setLoadingText(`已跳过：${failures.join('、')}`);
+      reportProgress(100, `已跳过：${failures.join('、')}`);
     } else {
-      setLoadingText('完成');
+      reportProgress(100, '完成');
     }
     hideLoading();
   }
