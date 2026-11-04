@@ -157,8 +157,8 @@ function rateColor(r: SystemRow): string {
  * 与项目异常红 #ff8080 同档），待接入的五个取浅蓝（#7CA4D4 / #729BCA，
  * 与 L4 #7ea6d6 同档）—— 与「状态色」的判定一致，不另立一套。
  */
-function iconColor(r: SystemRow): string {
-  // if (r.fault > 0 || r.alarm > 0 || r.offline > 0) return 'var(--fire-anomaly)'
+function iconColor(_r: SystemRow): string {
+  // if (_r.fault > 0 || _r.alarm > 0 || _r.offline > 0) return 'var(--fire-anomaly)'
   return 'var(--fire-text-dim)'
 }
 </script>
