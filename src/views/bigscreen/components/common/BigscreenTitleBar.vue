@@ -20,9 +20,6 @@
     <!-- 导航条：主题可选提供，组件自行定位 -->
     <slot name="nav" />
 
-    <!-- 右侧扩展位：返回按钮等（页面用 #right 插槽提供） -->
-    <slot name="right" />
-
     <!-- 用户区 -->
     <div class="bs-title-bar__user">
       <span class="bs-title-bar__user-name">{{ displayName }}</span>

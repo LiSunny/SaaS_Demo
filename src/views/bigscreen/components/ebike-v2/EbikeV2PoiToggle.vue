@@ -31,11 +31,17 @@ function handleToggle() {
 @use "@/styles/function.scss" as *;
 
 .v2-poi-toggle {
-  height: vh(34);
-  padding: 0 vw(12) 0 vw(8);
+  width: 99px;
+  height: 34px;
   display: flex; align-items: center; gap: vw(6);
-  border: 1px solid rgba(0, 152, 230, 0.35);
+  
+  gap: 6px;
+  padding: 0 0 0 7px;
+  margin: 0;
+  border: 1px solid rgba(0, 152, 230, 0.45);
+  border-radius: 6px;
   background: rgba(0, 68, 130, 0.55);
+
   color: rgba(200, 228, 255, 0.9);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
   font-size: 14px;
