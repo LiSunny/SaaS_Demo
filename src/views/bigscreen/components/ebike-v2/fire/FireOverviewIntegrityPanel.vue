@@ -290,7 +290,8 @@ function iconColor(_r: SystemRow): string {
 }
 
 .iip__legend-label {
-  @include fire-dim(15);
+  @include fire-label(15);
+  color: var(--fire-text-title);
   /* 设计稿行高 16.8px（style_baa99601） */
   line-height: 1.12;
   display: flex;
@@ -306,6 +307,7 @@ function iconColor(_r: SystemRow): string {
   flex-shrink: 0;
 }
 
+
 .iip__legend-item b {
   font-family: 'Douyin Sans', 'Alibaba PuHuiTi', sans-serif;
   font-weight: 700;
@@ -314,7 +316,7 @@ function iconColor(_r: SystemRow): string {
      不写死的话默认 normal 会把图例行撑到 19.2px，两行多占 5px，
      下方 8 个系统卡每行就不够放、被裁掉字。 */
   line-height: 1.05;
-  color: var(--fire-text-dim);
+  color: var(--fire-text-label);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
