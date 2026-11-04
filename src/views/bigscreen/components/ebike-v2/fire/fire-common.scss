@@ -103,9 +103,9 @@ $fire-chip: rgba(0, 152, 230, 0.12);
 $fire-chip-border: rgba(120, 190, 255, 0.18);
 
 // ===== 字号下限 =====
-// 全大屏最小 14px：mixin 传入的字号不足 14 时统一抬到 14，
-// clamp 的下限也锁 14px，视口缩小后不再继续缩小。
-$fire-min-size: 14;
+// 全大屏最小 10px：mixin 传入的字号不足 10 时统一抬到 10，
+// clamp 的下限也锁 10px，视口缩小后不再继续缩小。
+$fire-min-size: 10;
 
 @function fire-size($size) {
   @return if($size < $fire-min-size, $fire-min-size, $size);
@@ -250,7 +250,7 @@ $fire-min-size: 14;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: vh(2) vw(6);
+  padding: vh(4) vw(6);
   border-radius: vw(4);
   border: 1px solid rgb($r, $g, $b);
   background:

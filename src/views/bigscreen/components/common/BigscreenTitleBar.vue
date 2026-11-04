@@ -10,11 +10,18 @@
     <!-- 主题底图：各主题自行提供（斜纹装饰 / 底部分隔线 / 蓝块） -->
     <slot name="background" />
 
-    <!-- 主标题 -->
-    <h1 class="bs-title-bar__title">{{ title }}</h1>
+    <!-- 主标题：默认是平台名；页面可用 #title 插槽换成自己的标题块 -->
+    <div class="bs-title-bar__title-box">
+      <slot name="title">
+        <h1 class="bs-title-bar__title">{{ title }}</h1>
+      </slot>
+    </div>
 
     <!-- 导航条：主题可选提供，组件自行定位 -->
     <slot name="nav" />
+
+    <!-- 右侧扩展位：返回按钮等（页面用 #right 插槽提供） -->
+    <slot name="right" />
 
     <!-- 用户区 -->
     <div class="bs-title-bar__user">
@@ -88,9 +95,16 @@ function handleCommand(cmd: string) {
 
 /* ===== 主标题（Figma: x=32 y=10, Source-KeynoteartHans 36px, white→#7fd4ff） =====
  * 字号 / 距顶由 titleSize / titleTop 控制，默认值即设计稿值；
- * 主题可调小字号而不影响其它大屏。 */
-.bs-title-bar__title {
+ * 主题可调小字号而不影响其它大屏。
+ *
+ * 定位从 h1 自己挪到了外层 .bs-title-bar__title-box：
+ * 页面用 #title 插槽换成自己的标题块（中文名 + 英文装饰）时，
+ * 插槽内容要继承同一套 left/top 定位，挂在 h1 上就没有承载盒了。 */
+.bs-title-bar__title-box {
   position: absolute; left: vw(32); top: var(--bs-title-top);
+}
+
+.bs-title-bar__title {
   margin: 0;
   font-family: 'Source-KeynoteartHans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
   font-size: clamp(
