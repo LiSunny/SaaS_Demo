@@ -7,6 +7,7 @@
         {{ scopeLabel }} · {{ devices.length }} 台设备
         <template v-if="eventCount"> · {{ eventCount }} 条警情</template>
         <template v-if="overflow"> · 显示前 {{ plotted.length }} 台</template>
+        <template v-if="located"> · 已定位「{{ located.label }}」</template>
       </span>
     </header>
 
@@ -21,7 +22,7 @@
           v-for="d in plotted"
           :key="d.key"
           class="plan__point"
-          :class="{ 'is-alarmed': !!d.event }"
+          :class="{ 'is-alarmed': !!d.event, 'is-located': d.key === locateKey }"
           :style="d.style"
           :title="d.tip"
         >
@@ -29,9 +30,23 @@
           <span v-if="d.event" class="plan__point-tag">{{ d.event.category }}</span>
         </div>
 
+        <!-- 定位标签：浮在设备列表层之上，保证「定位到平面图」这一下始终看得见 -->
+        <span v-if="located" class="plan__locate" :style="located.tagStyle">
+          <span class="plan__locate-name">{{ located.label }}</span>
+          <span v-if="located.event" class="plan__locate-cat">{{ located.event.category }}</span>
+        </span>
+
         <!-- 当前范围内没有设备 -->
         <span v-if="!plotted.length" class="plan__empty">该管理单元下暂无设备点位</span>
       </div>
+
+      <!-- 设备列表层：浮在平面图之上（设计稿 #160:25871「设备列表」） -->
+      <EbikeV2DutyDeviceList
+        class="plan__devices"
+        :devices="devices"
+        :locate-key="locateKey"
+        @locate="locateKey = $event"
+      />
     </div>
   </section>
 </template>
@@ -47,11 +62,19 @@
  *   内容框  #140:25704：内距 12
  *     底图  #140:25702：CAD 平面图（object-fit: contain）
  *     图元  5 个绝对定位的设备图标（58~64 见方，带 0 4px 10.5px 投影）
+ *     设备列表 #160:25871：浮在平面图之上的绝对定位区块（展开时占内容高度 56%，
+ *             折叠时只剩标题条），见 EbikeV2DutyDeviceList.vue
  *
  * 语义：这是消防 CRT 的「平面图描点」——
  *   图上一个点 = 一台设备（不是一类设备的聚合），点位落在平面图里的位置；
  *   设备报警时该点标红（设计稿给告警图元加了 2px 红描边），一眼能看出
  *   报警设备在平面图的哪个位置、也就是哪栋楼哪层。
+ *
+ * 两层的关系：平面图是「在哪」，设备列表是「有哪些」——
+ *   列表点「定位」→ 平面图上对应的那一点描一圈选中蓝，并浮出一枚标签
+ *   （标签压在设备列表层之上：列表展开时盖住了图的下半部分，
+ *     没有这枚标签，用户点了「定位」看不到任何反应）。
+ *   列表默认把有事件的设备置顶，值班员扫一眼顶部就知道哪些在报警。
  *
  * 坐标：设计稿的图元位置相对「内容框 1479×820」给出，而底图是 contain 落位
  * （实际只占中间 1011×818，两侧是留白）。这里把舞台取成底图那块，
@@ -72,8 +95,9 @@
  *   3. 设计稿只有 5 个机位，这里按设计稿机位 + 规则网格补足到 33 个，
  *      设备多于机位时标题条会提示"显示前 N 台"。
  */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { formatTime, type DutyEvent, type SceneDevice } from './duty-data'
+import EbikeV2DutyDeviceList from './EbikeV2DutyDeviceList.vue'
 
 const props = defineProps<{
   /** 当前管理单元内的全部设备（含未报警的），带警情 */
@@ -83,6 +107,9 @@ const props = defineProps<{
   /** 当前管理单元内的待核实事件条数（与左侧树的红字同一口径） */
   eventCount: number
 }>()
+
+/** 被「定位」的设备 key（设备列表点操作列时高亮平面图上对应的那一点） */
+const locateKey = ref('')
 
 /* ============================================================
  * 舞台坐标
@@ -232,6 +259,11 @@ const plotted = computed(() => {
         top: `${((slot.y - slot.size / 2) / STAGE_H) * 100}%`,
         width: `${(slot.size / STAGE_W) * 100}%`,
       },
+      /** 定位标签的落点（点位中心，百分比坐标） */
+      tagStyle: {
+        left: `${(slot.x / STAGE_W) * 100}%`,
+        top: `${(slot.y / STAGE_H) * 100}%`,
+      },
       tip: d.event
         ? `${d.label} · ${d.event.point}（${d.event.category}）\n${d.event.location} · ${formatTime(d.event.latestAt)}`
         : `${d.label} · 当前无警情`,
@@ -241,6 +273,9 @@ const plotted = computed(() => {
 
 /** 设备数超出机位表（提示只画了前 N 台） */
 const overflow = computed(() => props.devices.length > plotted.value.length)
+
+/** 被定位的那台设备（不在当前机位里就没有标签） */
+const located = computed(() => plotted.value.find((d) => d.key === locateKey.value))
 </script>
 
 <style lang="scss" scoped>
@@ -292,6 +327,7 @@ const overflow = computed(() => props.devices.length > plotted.value.length)
 
 /* ===== 内容区：设计稿 #140:25704 ===== */
 .plan__body {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -302,6 +338,19 @@ const overflow = computed(() => props.devices.length > plotted.value.length)
      否则底图和按底图坐标摆的图元就对不上（max-height 收高度时宽不变，
      比例被拉扁，contain 会在盒子里再留边，图元全部错位）。 */
   container-type: size;
+}
+
+/* ===== 设备列表层：浮在平面图之上（设计稿 #160:25871） ===== */
+/* 设计稿里它是平面图内容框内的绝对定位区块（x 12 / y 376 / 1477×450），
+   盖住平面图下半部分 —— 平面图留上半部分当上下文，设备清单当下半部分的正文。
+   展开高度由列表组件自己定（56% = 设计稿 450 / 796），折叠时只留 40 高的标题条，
+   平面图整块露出来。 */
+.plan__devices {
+  position: absolute;
+  left: vw(12);
+  right: vw(12);
+  bottom: vw(12);
+  z-index: 10;
 }
 
 /* 舞台：底图实际落位的那块（1014×820），图元与底图共用同一坐标系 */
@@ -362,6 +411,51 @@ const overflow = computed(() => props.devices.length > plotted.value.length)
   white-space: nowrap;
 }
 
+/* 定位态：设备列表点「定位」后，平面图上那一点的描边
+   用选中蓝（#63A9FF，与树选中态同一色），不占用异常红 */
+.plan__point.is-located .plan__point-img {
+  outline: 2px solid #63a9ff;
+  outline-offset: 2px;
+  border-radius: vw(4);
+  animation: plan-locate 1.2s ease-in-out infinite;
+}
+
+/* 定位标签：浮在设备列表层之上（列表盖住了图下半部分，
+   没有这枚标签，「定位」这一下在图上就看不见了） */
+.plan__locate {
+  position: absolute;
+  z-index: 30;
+  transform: translate(-50%, calc(-100% - vw(10)));
+  display: inline-flex;
+  align-items: center;
+  gap: vw(6);
+  max-width: vw(280);
+  padding: vh(4) vw(10);
+  border: 1px solid rgba(99, 169, 255, 0.85);
+  border-radius: vw(4);
+  background: rgba(0, 32, 71, 0.96);
+  color: var(--fire-text-hero);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(14px, calc(14px * var(--min-scale)), 14px);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 vh(4) vh(14) rgba(0, 10, 30, 0.5);
+}
+
+.plan__locate-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan__locate-cat {
+  flex-shrink: 0;
+  padding: 0 vw(6);
+  border-radius: vw(2);
+  background: var(--fire-anomaly);
+  color: #06203f;
+  font-size: clamp(12px, calc(13px * var(--min-scale)), 13px);
+}
+
 /* 空态 */
 .plan__empty {
   position: absolute;
@@ -380,6 +474,17 @@ const overflow = computed(() => props.devices.length > plotted.value.length)
   50% {
     filter: drop-shadow(0 4px 10.5px rgba(0, 0, 0, 0.69))
       drop-shadow(0 0 10px rgba(255, 128, 128, 0.85));
+  }
+}
+
+/* 定位态呼吸：选中蓝，不是异常 */
+@keyframes plan-locate {
+  0%,
+  100% {
+    outline-color: rgba(99, 169, 255, 0.95);
+  }
+  50% {
+    outline-color: rgba(99, 169, 255, 0.35);
   }
 }
 </style>

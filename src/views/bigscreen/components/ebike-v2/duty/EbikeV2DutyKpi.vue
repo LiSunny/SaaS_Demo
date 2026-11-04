@@ -36,7 +36,7 @@
 
       <!-- 状态分布环 + 图例 -->
       <div class="kpi__legend">
-        <FireDonut :segments="r.segments" :size="66" :thickness="7" />
+        <FireDonut :segments="r.segments" :size="58" :thickness="10" />
         <div class="kpi__legend-list">
           <div v-for="d in r.dist" :key="d.key" class="kpi__legend-row">
             <i class="kpi__dot" :style="{ background: d.color }" />

@@ -235,9 +235,15 @@ export function durationText(from: number, to: number): string {
  * 事件生成
  * ============================================================ */
 
-/** 设备编码：由节点 id 派生的稳定 15 位数字（演示用，非真实 IMEI） */
-function deviceCodeOf(nodeId: string): string {
-  const rnd = rngOf(seedOf(`code-${nodeId}`))
+/**
+ * 设备编码：由设备身份 key 派生的稳定 15 位数字（演示用，非真实 IMEI）
+ *
+ * 取设备身份 key 而不是节点 id：编码是**设备的属性**，不是事件的属性 ——
+ * 同一台设备在多张画面里出现、既在设备清单里又在事件表里，
+ * 编码必须处处相同，否则值班员对着「设备清单」查不到事件里的那台设备。
+ */
+export function deviceCodeOfKey(deviceKey: string): string {
+  const rnd = rngOf(seedOf(`code-${deviceKey}`))
   let out = ''
   for (let i = 0; i < 15; i++) out += String(Math.floor(rnd() * 10))
   return out
@@ -283,6 +289,7 @@ export function buildDutyEvents(
       const deviceName = node.label || def?.name || node.symbol
       const points = list.map((s) => s.point)
       const category = dutyCategoryOf(points[0] ?? '')
+      const deviceKey = deviceKeyOf(node.symbol, deviceName)
 
       const rnd = rngOf(seedOf(`evt-${scene.id}-${nodeId}`))
 
@@ -296,7 +303,7 @@ export function buildDutyEvents(
       out.push({
         id: `${scene.id}-${nodeId}`,
         source: deviceName,
-        deviceKey: deviceKeyOf(node.symbol, deviceName),
+        deviceKey,
         symbol: node.symbol,
         point: points.join('、'),
         category,
@@ -308,7 +315,7 @@ export function buildDutyEvents(
         // 在那之前先用系统名兜底，不拿画面名当位置 —— 画面名是画面标识，不是地点。
         location: scene.scope || systemNames.get(scene.systemKey) || scene.name,
         deviceType: def?.name || node.symbol,
-        deviceCode: deviceCodeOf(nodeId),
+        deviceCode: deviceCodeOfKey(deviceKey),
         reportTimes,
         firstAt,
         latestAt,
