@@ -83,6 +83,7 @@ function handleCommand(cmd: string) {
 
 <style lang="scss" scoped>
 @use "@/styles/function.scss" as *;
+@use "@/styles/bigscreen-title.scss" as *;
 
 .bs-title-bar {
   position: absolute; top: 0; left: 0;
@@ -102,18 +103,7 @@ function handleCommand(cmd: string) {
 }
 
 .bs-title-bar__title {
-  margin: 0;
-  font-family: 'Source-KeynoteartHans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
-  font-size: clamp(
-    20px,
-    calc(var(--bs-title-size) * var(--min-scale)),
-    calc(var(--bs-title-size) * 1px)
-  );
-  font-weight: 400; line-height: normal;
-  background: linear-gradient(to bottom, #ffffff 0%, #7fd4ff 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-  white-space: nowrap;
+  @include bs-title-text;
 }
 
 /* ===== 用户区（Figma: y=9, gap 11px, 头像 44×44） ===== */

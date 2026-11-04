@@ -4,10 +4,11 @@
  * 覆盖：
  * - 入口：总览页「消防用水监控」卡的第一行「水箱液位」是可点入口
  * - 路由：/landing/ebike-v2/pump-room 独立页，带 bigscreenId 上下文
- * - 布局：三维模型铺底（iframe 在底层）、顶部 5 张指标卡、右侧设备详情列
- * - 数据来源标注：温湿度 / 水浸带「演示」标签，平台实时项不带
- * - 示意标注：备泵、母管、排污井无独立测点，标为示意不伪造状态
- * - 三维交互：视图预设切换、剖视开关、点详情行聚焦设备
+ * - 布局：三维模型铺底（iframe 在底层）、右侧竖排 5 张实时指标卡
+ * - 场景顶栏：独立实现，只保留标题牌；无全局菜单、无右上角用户信息
+ * - 标题牌：水平英文装饰 + 「消防水泵房」，返回按钮在中文名下方
+ * - 卡面无「演示」字样
+ * - 三维交互：视图预设切换、剖视开关
  * - 返回：回到总览页且保留 bigscreenId
  *
  * 登录用种子企业用户（非平台角色）：平台角色带 system-role，
@@ -63,8 +64,7 @@ test.describe('水泵房场景监控', () => {
     await page.goto('/landing/ebike-v2?bigscreenId=20')
     await expect(page.locator('.wm__metric--entry')).toBeVisible()
     await expect(page.locator('.wm__metric--entry .wm__name-text')).toHaveText('水箱液位')
-    // 入口提示徽标存在（叠在图标右下角，不挤动卡片几何）
-    await expect(page.locator('.wm__metric--entry .wm__entry-hint')).toBeVisible()
+    // 入口提示徽标已按批注去掉（只去箭头、保留整块下钻点击），这里不再断言它存在
 
     // 卡片几何不被入口徽标挤动：入口行与其它两行的图标 / 文字列 / 趋势图起点一致
     const geom = await page.evaluate(() => {
@@ -92,7 +92,7 @@ test.describe('水泵房场景监控', () => {
     await expect(page.locator('.pump-page')).toBeVisible()
   })
 
-  test('模型铺底 + 顶部 5 张指标卡 + 右侧详情列', async ({ page }) => {
+  test('模型铺底 + 右侧竖排 5 张指标卡', async ({ page }) => {
     await page.goto('/landing/ebike-v2/pump-room?bigscreenId=20')
     await expect(page.locator('.pump-page')).toBeVisible()
 
@@ -123,52 +123,115 @@ test.describe('水泵房场景监控', () => {
     expect(Number.isNaN(overlayZ)).toBe(false)
     expect(overlayZ).toBeGreaterThan(sceneZ)
 
-    // 顶部 5 张指标卡
-    await expect(page.locator('.pump-page__top .pm')).toHaveCount(5)
+    // 右侧竖排 5 张指标卡
+    await expect(page.locator('.pump-page__side .pm')).toHaveCount(5)
 
-    // 右侧详情列
-    await expect(page.locator('.pump-page__side .pd')).toBeVisible()
-    await expect(page.locator('.pd__group')).toHaveCount(5)
+    // 竖排：卡片自上而下依次排列，同在右侧栏内
+    const cards = await page.evaluate(() =>
+      [...document.querySelectorAll('.pump-page__side .pm')].map((el) => {
+        const r = el.getBoundingClientRect()
+        return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }
+      }),
+    )
+    const side = await page.locator('.pump-page__side').boundingBox()
+    for (const c of cards) {
+      expect(c.x).toBe(cards[0].x)
+      expect(c.w).toBe(cards[0].w)
+      // 卡片在右侧栏内，不越界
+      expect(c.x + c.w).toBeLessThanOrEqual(Math.round(side!.x + side!.width) + 1)
+    }
+    for (let i = 1; i < cards.length; i++) {
+      expect(cards[i].y).toBeGreaterThan(cards[i - 1].y)
+    }
+
+    // 原「泵房设备」详情列已按批注移除
+    await expect(page.locator('.pump-page__side .pd')).toHaveCount(0)
+    await expect(page.locator('.pump-page__top')).toHaveCount(0)
   })
 
-  test('指标卡区分演示数据与平台实时，示意项不伪造状态', async ({ page }) => {
+  test('场景顶栏：独立标题牌，无全局菜单与用户信息', async ({ page }) => {
+    await page.goto('/landing/ebike-v2/pump-room?bigscreenId=20')
+    await expect(page.locator('.pr-header')).toBeVisible()
+
+    // 场景页有自己的顶栏组件，不复用带全局菜单的 EbikeV2Header
+    await expect(page.locator('.v2-nav__item')).toHaveCount(0)
+    await expect(page.locator('.bs-title-bar__user')).toHaveCount(0)
+    // 也没有通用顶栏那套壳
+    await expect(page.locator('.bs-title-bar')).toHaveCount(0)
+  })
+
+  test('标题牌：水平英文装饰 + 中文名 + 返回按钮在中文名下方', async ({ page }) => {
+    await page.goto('/landing/ebike-v2/pump-room?bigscreenId=20')
+    await expect(page.locator('.pump-title')).toBeVisible()
+    await expect(page.locator('.pump-title__cn')).toHaveText('消防水泵房')
+    await expect(page.locator('.pump-title__en')).toHaveText('FIRE PUMP ROOM')
+
+    // 等字体就绪：牌子尺寸随字体 metrics 变，字体没到位时量到的值会偏。
+    await page.evaluate(() => document.fonts.ready)
+
+    // 同一帧内量：分两次 boundingBox() 会跨帧，字体中途就位就会量出两个尺寸
+    const geom = await page.evaluate(() => {
+      const r = (sel: string) => {
+        const el = document.querySelector(sel)!
+        const b = el.getBoundingClientRect()
+        return { x: b.x, y: b.y, w: b.width, h: b.height, right: b.right, bottom: b.bottom }
+      }
+      return {
+        plate: r('.pump-title'),
+        en: r('.pump-title__en'),
+        cn: r('.pump-title__cn'),
+        back: r('.pump-title__back'),
+        band: r('.pr-header'),
+      }
+    })
+
+    // 英文水平：宽 > 高
+    expect(geom.en.w).toBeGreaterThan(geom.en.h)
+    // 英文是中文名上方的引导行
+    expect(geom.en.bottom).toBeLessThanOrEqual(geom.cn.y + 1)
+
+    // 返回按钮在中文名下方一行
+    expect(geom.back.y).toBeGreaterThanOrEqual(geom.cn.bottom)
+    expect(geom.back.x).toBeLessThanOrEqual(geom.cn.x + 1)
+    expect(geom.back.bottom).toBeLessThanOrEqual(geom.plate.bottom + 1)
+
+    // 整块牌子收在顶栏带内，不能压到顶栏底部那道装饰线
+    expect(geom.plate.bottom).toBeLessThanOrEqual(geom.band.bottom)
+  })
+
+  test('卡面无「演示」字样，液位主值自带 %', async ({ page }) => {
     await page.goto('/landing/ebike-v2/pump-room?bigscreenId=20')
     await expect(page.locator('.pm').first()).toBeVisible()
 
-    // 演示数据标注：温湿度 + 水浸共 3 张卡带「演示」标签
-    await expect(page.locator('.pm__origin')).toHaveCount(3)
-    const origins = await page.evaluate(() =>
-      [...document.querySelectorAll('.pm')].map((el) => ({
-        name: el.querySelector('.pm__name')?.textContent?.trim(),
-        origin: el.querySelector('.pm__origin')?.textContent?.trim() ?? 'platform',
-      })),
-    )
-    const demoNames = origins.filter((o) => o.origin === '演示').map((o) => o.name)
-    expect(demoNames).toContain('环境温度')
-    expect(demoNames).toContain('环境湿度')
-    expect(demoNames).toContain('水浸报警')
+    // 演示标签已按批注移除：卡面上不出现来源角标
+    await expect(page.locator('.pm__origin')).toHaveCount(0)
+    // 整页可见文本里也不该有「演示」二字
+    const bodyText = await page.evaluate(() => document.body.innerText)
+    expect(bodyText).not.toContain('演示')
 
-    // 平台实时项不带演示标签
-    const platform = origins.filter((o) => o.origin === 'platform').map((o) => o.name)
-    expect(platform).toContain('水罐液位')
-    expect(platform).toContain('水泵 / 控制柜')
-
-    // 示意项：备泵 / 母管 / 排污井无独立测点，标为示意
-    const schematic = await page.evaluate(() =>
-      [...document.querySelectorAll('.pd__row.is-schematic')].map((el) =>
-        el.querySelector('.pd__name')?.textContent?.trim(),
+    // 五张卡都在
+    const names = await page.evaluate(() =>
+      [...document.querySelectorAll('.pm')].map((el) =>
+        el.querySelector('.pm__name')?.textContent?.trim(),
       ),
     )
-    expect(schematic).toContain('3# 消防备用泵')
-    expect(schematic).toContain('吸水母管 DN200')
-    expect(schematic).toContain('1# 排污井')
+    expect(names).toEqual(['环境温度', '环境湿度', '水浸报警', '水罐液位', '水泵 / 控制柜'])
 
-    // 备泵显示「备用」而不是伪造的运行状态
-    const standby = page.locator('.pd__row', { hasText: '3# 消防备用泵' }).locator('.pd__value')
-    await expect(standby).toHaveText('备用')
+    // 液位主值自带 %（平台聚合已格式化），卡上不再重复挂一个单位
+    const level = await page.evaluate(() => {
+      const el = [...document.querySelectorAll('.pm')].find(
+        (c) => c.querySelector('.pm__name')?.textContent?.trim() === '水罐液位',
+      )
+      return {
+        value: el?.querySelector('.pm__value')?.textContent?.trim() ?? '',
+        unit: el?.querySelector('.pm__unit')?.textContent?.trim() ?? '',
+      }
+    })
+    expect(level.value).toMatch(/^\d+%$/)
+    expect(level.unit).toBe('')
   })
 
-  test('三维视图预设可切换、剖视可开关、点详情行聚焦设备', async ({ page }) => {
+  test('三维视图预设可切换、剖视可开关', async ({ page }) => {
     await page.goto('/landing/ebike-v2/pump-room?bigscreenId=20')
     await expect(page.locator('.pump-scene__frame')).toHaveCount(1)
 
@@ -231,31 +294,21 @@ test.describe('水泵房场景监控', () => {
     })
     expect(cutawayOff).toBe(false)
 
-    // 点详情行 → 三维相机聚焦到该设备
-    await page.locator('.pd__row', { hasText: '1# 消防水罐' }).click({ timeout: 60000 })
-    await page.waitForTimeout(600)
-    const focused = await page.evaluate(() => {
-      const f = document.querySelector('.pump-scene__frame') as HTMLIFrameElement
-      const app = (f.contentWindow as any).__pumpRoomApp
-      const poi = app.pois.get('PR_TANK_01')
-      return {
-        pos: [app.camera.position.x, app.camera.position.y, app.camera.position.z],
-        poiName: poi?.name,
-      }
-    })
-    expect(focused.poiName).toBe('1# 消防水罐')
-    // 相机离开了室内机位 → 说明确实聚焦了
-    expect(Math.abs(focused.pos[1] - 2.88)).toBeGreaterThan(0.5)
+    // 设备清单已按批注移除，页面侧不再有「点行聚焦设备」的入口；
+    // 三维模型自身仍可在画面里点设备高亮（模型内交互，不归页面用例管）。
   })
 
   test('返回总览并保留 bigscreenId', async ({ page }) => {
     await page.goto('/landing/ebike-v2/pump-room?bigscreenId=20')
-    await expect(page.locator('.pump-page__back')).toBeVisible()
-    await page.locator('.pump-page__back').click({ timeout: 60000 })
+    // 返回按钮在标题牌内、中文名下方
+    await expect(page.locator('.pump-title__back')).toBeVisible()
+    await page.locator('.pump-title__back').click({ timeout: 60000 })
     // URL 断言要严：/landing/ebike-v2 是 /landing/ebike-v2/pump-room 的前缀，
     // 松正则连泵房页自己都匹配，等于什么都没断言。
-    await expect(page).toHaveURL(/\/landing\/ebike-v2(\?|#|$)/)
-    await expect(page).toHaveURL(/bigscreenId=20/)
+    // 超时放宽到 30s：点击之后路由确认要等主线程空出来 —— 三维循环在软件渲染下
+    // 把主线程占满，路由的 push 是异步的，默认 10s 偶尔不够（实测偶发）。
+    await expect(page).toHaveURL(/\/landing\/ebike-v2(\?|#|$)/, { timeout: 30000 })
+    await expect(page).toHaveURL(/bigscreenId=20/, { timeout: 30000 })
     // 回总览要等三维校园模型挂载（软件渲染下不便宜）
     await expect(page.locator('.ebike-v2')).toBeVisible({ timeout: 30000 })
   })

@@ -1,0 +1,38 @@
+// 大屏顶栏主标题的共用样式
+//
+// 为什么抽出来：标题文字的渐变色与字体在两处都要用 ——
+//   ① 平台顶栏标题（components/common/BigscreenTitleBar.vue 的默认标题）
+//   ② 页面自定义标题牌（泵房页的「消防水泵房」+ 竖排英文装饰）
+// 两处各写一份，改了渐变色只会改一处，颜色就对不上了。
+//
+// 字号走 --bs-title-size：BigscreenTitleBar 用内联样式写死（标题牌继承同一份），
+// 缩放走 --min-scale —— 与 .bs-title-bar 的既有写法保持一致。
+// 注意：用了这个 mixin 的元素必须在能拿到 --bs-title-size 的作用域内
+// （放在 .bs-title-bar 内部即可，它由内联样式下发）。
+@use "function" as *;
+
+$bs-title-color-top: #ffffff;
+$bs-title-color-bottom: #7fd4ff;
+
+/** 顶栏主标题文字：艺术字 + 白→蓝纵向渐变 */
+@mixin bs-title-text {
+  margin: 0;
+  font-family: 'Source-KeynoteartHans', 'YouSheBiaoTiHei', 'PingFang SC', sans-serif;
+  font-size: clamp(
+    20px,
+    calc(var(--bs-title-size) * var(--min-scale)),
+    calc(var(--bs-title-size) * 1px)
+  );
+  /* 艺术字体只有 normal 一档，写 400 —— 写粗只会拿到合成粗体，笔画糊成一团 */
+  font-weight: 400;
+  line-height: normal;
+  background: linear-gradient(
+    to bottom,
+    #{$bs-title-color-top} 0%,
+    #{$bs-title-color-bottom} 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}

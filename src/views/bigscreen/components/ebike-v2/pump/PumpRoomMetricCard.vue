@@ -1,7 +1,7 @@
 <template>
   <EbikeV2Card plain class="pm">
     <div class="pm__inner">
-      <!-- 指标名 + ⓘ 说明 + 来源标签 -->
+      <!-- 指标名 + ⓘ 说明 -->
       <div class="pm__head">
         <span class="pm__name">{{ metric.name }}</span>
         <svg class="pm__info" viewBox="0 0 12 12" width="13" height="13">
@@ -9,8 +9,6 @@
           <circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" stroke-width="1.1" />
           <path d="M6 3.1v3.3M6 8.5v.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
         </svg>
-        <!-- 演示数据来源标注：本地造的数据必须说清楚，不能冒充平台测点 -->
-        <span v-if="metric.origin === 'demo'" class="pm__origin">演示</span>
       </div>
 
       <!-- 数值 + 单位 -->
@@ -35,10 +33,10 @@
 
 <script setup lang="ts">
 /**
- * 水泵房场景监控 · 顶部指标卡
+ * 水泵房场景监控 · 实时指标卡
  *
- * 版式沿用总览页「消防用水监控」卡的指标行（图标 + 名称ⓘ + 数值 + 24h 迷你趋势），
- * 但改成竖排：顶部一排 5 张，每张自带标题区。
+ * 版式沿用总览页「消防用水监控」卡的指标行（名称ⓘ + 数值 + 24h 迷你趋势），
+ * 竖排放在页面右侧：5 张卡等高一行，卡内的趋势图撑满剩余高度。
  *
  * 数值色只有两种语义：正常走中性色阶，异常走全页唯一的异常红 #ff8080。
  * 不按等级分色（橙/黄）—— 用户定的口径：全页角标只留一个红，
@@ -70,6 +68,9 @@ withDefaults(
   @include fire-panel;
   gap: vh(6);
   padding: vh(10) vw(12);
+  /* 没有趋势图的卡（状态类指标）：内容整体居中，不贴在卡顶留一大片空白。
+     有趋势图时图表是 flex:1，会吃掉全部剩余空间，justify-content 不起作用。 */
+  justify-content: center;
 }
 
 /* ===== 指标名行 ===== */
@@ -90,17 +91,6 @@ withDefaults(
 .pm__info {
   flex-shrink: 0;
   color: var(--fire-text-sub);
-}
-
-/* 来源标签：弱色小字，只说明"这是演示数据"，不承担语义 */
-.pm__origin {
-  @include fire-dim(14);
-  flex-shrink: 0;
-  margin-left: auto;
-  padding: 0 vw(6);
-  border: 1px solid rgba(120, 190, 255, 0.22);
-  border-radius: vw(2);
-  line-height: 1.4;
 }
 
 /* ===== 数值行 ===== */
