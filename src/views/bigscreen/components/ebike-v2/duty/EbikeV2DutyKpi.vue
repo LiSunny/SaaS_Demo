@@ -1,5 +1,6 @@
 <template>
   <div class="kpi">
+    
     <!-- ===== 三张计数卡（设计稿 EL-7cf51341：等分整行） ===== -->
     <section v-for="c in countCards" :key="c.key" class="kpi__card kpi__card--count">
       <span class="kpi__emblem">
@@ -228,18 +229,29 @@ const rateCards = computed(() => {
 .kpi__card {
   display: flex;
   align-items: center;
-  gap: vw(12);
-  padding: vh(8) vw(10);
+  gap: vw(22);
+  padding: vh(18) vw(18);
   border: 1px solid rgba(0, 152, 230, 0.16);
   border-radius: vw(3);
   background: rgba(0, 44, 94, 0.72);
   min-width: 0;
 }
 
-/* 三张计数卡：等分整行剩余宽度 */
+/* 三张计数卡：等分整行剩余宽度
+   —— flex-basis 必须锁0：写成 auto 时三张卡会按各自文案宽度分配，
+      第一张「今日已核实事件」文案更长 → 变成 249/220/220，不再等分 */
 .kpi__card--count {
   flex: 1 1 0;
-  justify-content: center;
+  /*改 flex-start：文字块自适应后三张卡内容宽度不同，
+  居中会让三个徽标错位（实测 19.2 / 34 / 34），左对齐后齐平（19 / 19 / 19） */
+  justify-content: flex-start;
+}
+
+/* 计数卡的文字列由固定 168 宽改为自适应内容宽度
+   —— 只限定在计数卡下：比率卡共用 .kpi__text，全局改会把比率卡从 484.7 压到 402.6，
+ 破坏设计稿 EL-2d7cdc13 的版式 */
+.kpi__card--count .kpi__text {
+  width: auto;
 }
 
 /* 两张比率卡：内容宽度 */
@@ -370,6 +382,8 @@ const rateCards = computed(() => {
 /* ===== 交接班按钮：设计稿 #140:25661 ===== */
 .kpi__handover {
   flex: 0 0 vw(150);
+   /* 计数卡收缩后中间空出 ~77px，按钮会左飘；auto 把它钉回行右缘 */
+  margin-left: auto;
   height: 100%;
   display: flex;
   align-items: center;
