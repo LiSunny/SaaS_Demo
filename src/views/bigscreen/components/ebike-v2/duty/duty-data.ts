@@ -99,6 +99,8 @@ export interface SceneDevice {
   label: string
   /** 图元符号 */
   symbol: string
+  /** 画面节点 id —— 平台侧该设备实例的身份码 */
+  nodeId: string
   /** 所属画面 id */
   sceneId: string
   /** 所属画面名 */
@@ -128,6 +130,7 @@ export function buildSceneDevices(scenes: SceneConfig[]): SceneDevice[] {
         key,
         label,
         symbol: n.symbol,
+        nodeId: n.id,
         sceneId: scene.id,
         sceneName: scene.name,
         systemKey: scene.systemKey,

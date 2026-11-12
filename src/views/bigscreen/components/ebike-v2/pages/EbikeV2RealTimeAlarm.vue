@@ -13,8 +13,16 @@
         :devices="unitDevices"
         :scope-label="scopeLabel"
         :event-count="scopedEvents.length"
+        @detail="openDetail"
       />
     </div>
+
+    <!-- ===== 设备详情弹窗（设计稿 #165:26122「Dialog - 设备详情」） ===== -->
+    <EbikeV2DeviceDetailDialog
+      v-model="detailOpen"
+      :device="detailDevice"
+      :event="detailEvent"
+    />
 
     <!-- ===== 交接班浮层（页内浮层，不跳路由） ===== -->
     <EbikeV2DutyHandover
@@ -66,6 +74,7 @@ import EbikeV2DutyKpi from '../duty/EbikeV2DutyKpi.vue'
 import EbikeV2DutyTree from '../duty/EbikeV2DutyTree.vue'
 import EbikeV2DutyPlan from '../duty/EbikeV2DutyPlan.vue'
 import EbikeV2DutyHandover from '../duty/EbikeV2DutyHandover.vue'
+import EbikeV2DeviceDetailDialog from '../device-detail/EbikeV2DeviceDetailDialog.vue'
 import {
   applyDeviceSpaces,
   attachDeviceSpaces,
@@ -99,6 +108,13 @@ const selectedUnit = ref('root')
 const selectionReady = ref(false)
 /** 交接班浮层是否打开 */
 const handoverOpen = ref(false)
+
+/** 设备详情弹窗是否打开 */
+const detailOpen = ref(false)
+/** 正在查看的设备 */
+const detailDevice = ref<(SceneDevice & { event?: DutyEvent }) | null>(null)
+/** 正在查看的设备的当前警情 */
+const detailEvent = computed(() => detailDevice.value?.event)
 
 /** 操作反馈 */
 const toast = ref('')
@@ -185,6 +201,19 @@ function confirmOne(id: string) {
   if (!e) return
   confirmed.value = new Set(confirmed.value).add(id)
   flash(`已核实「${e.source}」`)
+}
+
+/**
+ * 打开设备详情弹窗
+ *
+ * 入口有两条，指向同一个弹窗：
+ *   1. 设备列表层点整行 —— 列表是「有哪些设备」，点一行自然是想看这台设备
+ *   2. 平面图上点设备点位 —— 图上那个点就是这台设备
+ * 设备列表的操作列仍是「在平面图上定位」，两个入口互不吞掉。
+ */
+function openDetail(device: SceneDevice & { event?: DutyEvent }) {
+  detailDevice.value = device
+  detailOpen.value = true
 }
 
 /* ============================================================

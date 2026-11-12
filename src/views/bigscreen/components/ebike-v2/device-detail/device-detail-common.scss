@@ -1,0 +1,198 @@
+// 设备详情弹窗 · 共用样式
+//
+// 设计稿：Figma「林业大学」节点 165:26122「Dialog - 设备详情」
+//
+// 色值说明：
+//   弹窗底 #000D34、卡片底 rgba(0,44,94,.72)、表头底 #013E79 —— 设计稿原值；
+//   文字色阶沿用项目既有令牌口径（fire-common.scss）：核心值 #FFFFFF、
+//   标题 #D4E6FF、标签 #D4E3FF、辅助 #A9C9EA / #8FB0D8。
+//   异常仍只有一个红（--fire-anomaly），档位由文案承担。
+@use "@/styles/function.scss" as *;
+
+/* ===== 卡片：设计稿 EL-430ee290 / EL-6d79c636 ===== */
+.dd-card {
+  border: 1px solid rgba(0, 152, 230, 0.16);
+  border-radius: vw(3);
+  background: rgba(0, 44, 94, 0.72);
+}
+
+/* ===== 分区标题行：设计稿 #200:1984 ===== */
+.dd-head {
+  display: flex;
+  align-items: center;
+  gap: vw(8);
+  flex-shrink: 0;
+}
+
+/* 标题前的竖条：设计稿 #200:1986（4×16，圆角 4） */
+.dd-head__bar {
+  width: vw(4);
+  height: vh(16);
+  flex-shrink: 0;
+  border-radius: vw(4);
+  background: rgba(0, 134, 228, 0.9);
+}
+
+.dd-head__title {
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-weight: 500;
+  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
+  line-height: vh(36);
+  letter-spacing: 0.125em;
+  color: #d4e6ff;
+  white-space: nowrap;
+}
+
+/* 标题行右侧的动作位：设计稿 #165:26171（24×36，内含 24×24 图标） */
+.dd-head__action {
+  width: vw(24);
+  height: vh(36);
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dd-head__action-icon {
+  width: vw(24);
+  height: vw(24);
+  display: block;
+  background-color: #a2caff;
+  transition: transform 0.3s ease;
+}
+
+.dd-head__action:hover .dd-head__action-icon {
+  transform: rotate(180deg);
+}
+
+/* ===== 事件角标 =====
+   异常统一一个红，档位由文案承担（设计稿火警 #E5523F / 故障 #FFA600，
+   这里按全页只留一个红的口径收成 --fire-anomaly）。 */
+.dd-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: vh(2) vw(6);
+  border-radius: vw(4);
+  border: 1px solid var(--fire-anomaly);
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 128, 128, 0.13) 0%,
+      rgba(255, 128, 128, 0.16) 68%,
+      rgba(255, 128, 128, 0.13) 100%
+    ),
+    rgba(0, 20, 46, 0.55);
+  color: var(--fire-anomaly);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(10px, calc(10 * var(--min-scale)), 10px);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* 无角标的类别：走中性色，不占语义色 */
+.dd-badge--plain {
+  border-color: transparent;
+  background: transparent;
+  color: #a9c9ea;
+}
+
+/* ===== 分页条：设计稿 #200:2192 ===== */
+.dd-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: vw(12);
+  padding: vh(12) 0;
+  border-top: 1px solid rgba(120, 190, 255, 0.18);
+}
+
+.dd-pager-left {
+  display: flex;
+  align-items: center;
+  gap: vw(12);
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
+  color: #f2fbff;
+}
+
+/* 每页条数下拉：设计稿 #200:2196（82×36，描边 rgba(0,84,201,.67)） */
+.dd-pagesize {
+  width: vw(82);
+  flex-shrink: 0;
+}
+
+.dd-pagesize :deep(.el-select__wrapper) {
+  min-height: vh(36);
+  padding: 0 vw(12);
+  background: transparent;
+  border: 1px solid rgba(0, 84, 201, 0.67);
+  border-radius: vw(8);
+  box-shadow: none;
+}
+
+.dd-pagesize :deep(.el-select__selected-item) {
+  color: #f2fbff;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
+}
+
+.dd-pagesize :deep(.el-select__caret) {
+  color: #f2fbff;
+}
+
+.dd-pager-right {
+  display: flex;
+  align-items: center;
+  gap: vw(8);
+}
+
+.dd-pagebtn {
+  height: vh(32);
+  padding: 0 vw(10);
+  border: none;
+  border-radius: vw(8);
+  background: rgba(0, 68, 130, 0.56);
+  color: #f2fbff;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dd-pagebtn:hover:not(:disabled) {
+  background: rgba(0, 134, 228, 0.6);
+}
+
+.dd-pagebtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 当前页码：设计稿 #200:2206 */
+.dd-pagenum {
+  width: vh(32);
+  height: vh(32);
+  border: none;
+  border-radius: vw(8);
+  background: rgba(0, 68, 130, 0.56);
+  color: #f2fbff;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: clamp(14px, calc(14 * var(--min-scale)), 14px);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dd-pagenum.is-active {
+  background: rgba(0, 68, 130, 0.56);
+}
+
+.dd-pagenum:not(.is-active) {
+  background: transparent;
+  color: #bebebe;
+}

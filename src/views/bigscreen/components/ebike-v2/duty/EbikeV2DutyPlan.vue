@@ -25,6 +25,11 @@
           :class="{ 'is-alarmed': !!d.event, 'is-located': d.key === locateKey }"
           :style="d.style"
           :title="d.tip"
+          role="button"
+          tabindex="0"
+          @click="openDetail(d.device)"
+          @keydown.enter.prevent="openDetail(d.device)"
+          @keydown.space.prevent="openDetail(d.device)"
         >
           <img class="plan__point-img" :src="d.icon" :alt="d.label" />
           <span v-if="d.event" class="plan__point-tag">{{ d.event.category }}</span>
@@ -46,6 +51,7 @@
         :devices="devices"
         :locate-key="locateKey"
         @locate="locateKey = $event"
+        @detail="emit('detail', $event)"
       />
     </div>
   </section>
@@ -108,8 +114,18 @@ const props = defineProps<{
   eventCount: number
 }>()
 
+const emit = defineEmits<{
+  /** 打开某台设备的详情弹窗 */
+  (e: 'detail', device: SceneDevice & { event?: DutyEvent }): void
+}>()
+
 /** 被「定位」的设备 key（设备列表点操作列时高亮平面图上对应的那一点） */
 const locateKey = ref('')
+
+/** 点平面图上的点位 → 打开该设备的详情弹窗 */
+function openDetail(d: SceneDevice & { event?: DutyEvent }) {
+  emit('detail', d)
+}
 
 /* ============================================================
  * 舞台坐标
@@ -254,6 +270,8 @@ const plotted = computed(() => {
       label: d.label,
       icon: iconOf(d.symbol),
       event: d.event,
+      /** 原始设备对象：点点位打开详情时要把完整设备传回去 */
+      device: d,
       style: {
         left: `${((slot.x - slot.size / 2) / STAGE_W) * 100}%`,
         top: `${((slot.y - slot.size / 2) / STAGE_H) * 100}%`,
@@ -375,6 +393,14 @@ const located = computed(() => plotted.value.find((d) => d.key === locateKey.val
   position: absolute;
   aspect-ratio: 1;
   filter: drop-shadow(0 4px 10.5px rgba(0, 0, 0, 0.69));
+  cursor: pointer;
+}
+
+/* 键盘可达：焦点框给在图元上 */
+.plan__point:focus-visible {
+  outline: 2px solid #63a9ff;
+  outline-offset: 2px;
+  border-radius: vw(4);
 }
 
 .plan__point-img {

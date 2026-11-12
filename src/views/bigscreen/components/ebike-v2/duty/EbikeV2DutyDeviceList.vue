@@ -63,14 +63,23 @@
         </div>
 
         <div class="dl__rows">
-          <button
+          <!--
+            行是 div + role=button 而不是 <button>：
+            操作列里要放一枚真正的 <button>（定位），<button> 不能嵌套 <button>。
+            行的点击 = 打开设备详情，操作列的十字准星 = 在平面图上定位，
+            两个入口各司其职，互不吞掉。
+          -->
+          <div
             v-for="row in pageRows"
             :key="row.key"
-            type="button"
             class="dl__row"
             :class="{ 'is-located': row.key === locateKey }"
             :title="row.tip"
-            @click="locate(row)"
+            role="button"
+            tabindex="0"
+            @click="openDetail(row)"
+            @keydown.enter.prevent="openDetail(row)"
+            @keydown.space.prevent="openDetail(row)"
           >
             <!-- 事件角标：异常一律同一个红，档位由文案承担 -->
             <span class="dl__cell dl__cell--event">
@@ -84,9 +93,15 @@
             <span class="dl__cell dl__cell--code">{{ row.code }}</span>
 
             <span class="dl__cell dl__cell--act">
-              <span class="dl__act" title="在平面图上定位" />
+              <button
+                type="button"
+                class="dl__act"
+                title="在平面图上定位"
+                :aria-label="`在平面图上定位 ${row.label}`"
+                @click.stop="locate(row)"
+              />
             </span>
-          </button>
+          </div>
 
           <span v-if="!pageRows.length" class="dl__empty">
             {{ keyword || eventFilter !== 'all' ? '没有符合条件的设备' : '该管理单元下暂无设备' }}
@@ -156,7 +171,7 @@
  *      两层不联动的话点开这一层也只是多一张表）。
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { symbolDef } from '@/symbols'
+import { symbolDef, SYMBOL_REGISTRY_VERSION } from '@/symbols'
 import { deviceCodeOfKey, type DutyEvent, type SceneDevice } from './duty-data'
 
 const props = defineProps<{
@@ -166,7 +181,12 @@ const props = defineProps<{
   locateKey?: string
 }>()
 
-const emit = defineEmits<{ (e: 'locate', deviceKey: string): void }>()
+const emit = defineEmits<{
+  /** 在平面图上定位这台设备 */
+  (e: 'locate', deviceKey: string): void
+  /** 打开这台设备的详情弹窗 */
+  (e: 'detail', device: SceneDevice & { event?: DutyEvent }): void
+}>()
 
 /* ============================================================
  * 设计稿素材
@@ -226,6 +246,8 @@ interface DeviceRow {
   hasEvent: boolean
   eventText: string
   tip: string
+  /** 原始设备对象（打开详情时传回给页面） */
+  device: SceneDevice & { event?: DutyEvent }
 }
 
 /** 事件档位序：火警 > 故障 > 预警 > 其他 */
@@ -233,6 +255,9 @@ const CATEGORY_ORDER: Record<string, number> = { 火警: 0, 故障: 1, 预警: 2
 
 /** 设备类型名（图元库真名，取不到退到符号） */
 function typeOf(symbol: string): string {
+  // 自定义图元是异步注册的，不碰一下注册版本号，
+  // 注册完成后这一列不会重算，会一直显示原始符号 ID。
+  void SYMBOL_REGISTRY_VERSION.value
   return symbolDef(symbol)?.name || symbol
 }
 
@@ -257,6 +282,7 @@ const rows = computed<DeviceRow[]>(() =>
       event,
       hasEvent: !!event,
       eventText: event ? event.category : '正常',
+      device: d,
       tip: event
         ? `${d.label} · ${event.point}（${event.category}）\n${location} · ${event.deviceCode}`
         : `${d.label} · 当前无警情\n${location} · ${code}`,
@@ -340,6 +366,11 @@ function onQuery() {
 /** 在平面图上定位这台设备 */
 function locate(row: DeviceRow) {
   emit('locate', row.key)
+}
+
+/** 打开这台设备的详情弹窗 */
+function openDetail(row: DeviceRow) {
+  emit('detail', row.device)
 }
 
 /** 折叠态标题条上的摘要 */
@@ -650,6 +681,12 @@ onBeforeUnmount(() => {
   background: var(--fire-hover-blue);
 }
 
+/* 行现在是 div + role=button：键盘可达要给出焦点框 */
+.dl__row:focus-visible {
+  outline: 1px solid rgba(96, 200, 255, 0.7);
+  outline-offset: -1px;
+}
+
 .dl__cell {
   min-width: 0;
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
@@ -690,14 +727,24 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
 }
 
+/* 现在是真正的按钮（行里不能再套 <button>），要清掉按钮默认外观 */
 .dl__act {
   display: inline-block;
   width: vw(22);
   height: vh(22);
+  padding: 0;
+  border: none;
+  appearance: none;
   background-color: var(--fire-text-label);
   -webkit-mask: url('@/assets/bigscreen/ebike-v2/duty/device-list-locate.svg') center / contain no-repeat;
   mask: url('@/assets/bigscreen/ebike-v2/duty/device-list-locate.svg') center / contain no-repeat;
+  cursor: pointer;
   transition: background-color 0.15s;
+}
+
+.dl__act:focus-visible {
+  outline: 1px solid rgba(96, 200, 255, 0.7);
+  outline-offset: 2px;
 }
 
 .dl__row:hover .dl__act {
