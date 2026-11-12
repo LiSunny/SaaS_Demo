@@ -378,9 +378,19 @@ async function handleLogin() {
     userStore.setLogin(res.token, res.user)
     ElMessage.success('登录成功')
 
-    // 1. 明确指定跳转目标（体验入口：小安助手/案例详情/大屏预览等）→ 优先
+    // 1. 只执行「显式来源」的 redirect：
+    //    - from=portal：门户案例详情 / 大屏预览的「去体验」入口 → 直达对应大屏（产品设计）
+    //    - from=guard ：路由守卫把未登录用户踢回登录页时带的原目标 → 登录后回跳原页面
+    //    其余情况（地址栏里残留的 redirect、用户手工输入的）一律走兜底进工作台，
+    //    避免「手动输账号密码却落进可视化大屏」。
     const redirect = route.query.redirect as string
-    if (redirect && redirect !== '/login' && redirect !== '/') {
+    const redirectFrom = route.query.from as string | undefined
+    const TRUSTED_REDIRECT_FROM = ['portal', 'guard']
+    if (redirect
+      && redirect !== '/login'
+      && redirect !== '/'
+      && TRUSTED_REDIRECT_FROM.includes(redirectFrom || '')
+    ) {
       router.replace(redirect)
       return
     }

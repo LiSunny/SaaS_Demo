@@ -107,7 +107,9 @@ const router = createRouter({
       path: '/',
       component: () => import('@/layouts/StandaloneLayout.vue'),
       children: [
-        { path: '', redirect: { name: 'BigscreenLanding' } },
+        // 根路径统一进工作台（登录后的默认落点）。
+        // 大屏首页改由 /landing 进入：顶栏大屏按钮（window.open）与导航「监管大屏」都指向该路径。
+        { path: '', redirect: '/workbench' },
         { path: 'landing', name: 'BigscreenLanding', component: () => import('@/views/bigscreen/BigscreenLanding.vue') },
         { path: 'landing/street-detail', name: 'StreetDetail', component: () => import('@/views/bigscreen/StreetDetailPage.vue') },
         { path: 'landing/fire-control', name: 'FireControlDetail', component: () => import('@/views/bigscreen/FireControlPage.vue') },
@@ -471,7 +473,9 @@ router.beforeEach((to) => {
   const isPublicPage = to.path === '/login' || to.path.startsWith('/portal') || to.path.startsWith('/test-data') || to.path === '/agent'
 
   if (!token && !isPublicPage) {
-    return { path: '/login', query: { redirect: to.fullPath } }
+    // from=guard：标记该 redirect 来自路由守卫，登录后回跳用户原本要去的页面。
+    // 无此标记的 redirect（地址栏残留 / 手工输入）登录后统一进工作台，见 Login.vue。
+    return { path: '/login', query: { redirect: to.fullPath, from: 'guard' } }
   }
 
   // 已登录访问登录页 → 跳转工作台

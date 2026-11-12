@@ -275,7 +275,7 @@ const CASES: CaseData[] = [
     nums: ['4 阶段', '11 步骤', '全链追踪'],
     image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg',
     previewType: 'resumption',
-    expLink: '/login?redirect=/resumption-bigscreen&phone=13000000009&password=admin123!@%23',
+    expLink: '/login?redirect=/resumption-bigscreen&phone=13000000009&password=admin123!@%23&from=portal',
     demoPhone: '13000000009',
     demoPassword: 'admin123!@#',
     overview: [
@@ -303,7 +303,7 @@ const CASES: CaseData[] = [
     nums: ['5 个场景', '18 业务域', '全链闭环'],
     image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg',
     previewType: 'gongmao',
-    expLink: '/login?redirect=/gongmao',
+    expLink: '/login?redirect=/gongmao&from=portal',
     demoPhone: '13000000009',
     demoPassword: 'admin123!@#',
     overview: [
@@ -358,7 +358,7 @@ const CASES: CaseData[] = [
     nums: ['14 模块', 'AI 研判', '多端协同'],
     image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
     previewType: 'quanzhou',
-    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23&from=portal',
     overview: [
       '泉州"人工智能+应消联勤"一体化管控平台是面向城市级应急消防治理的数字化中枢。平台以泉州全域为基底，串联监测预警、应消联动、台账管理、大数据研判考核各大模块。',
       '覆盖工贸企业自律驾驶舱、危化企业监控、沿街门店应消预警、消防控制室监管、风险源作业管控等 14 个核心业务场景，构建从企业自查到政府监管的全链条数字化闭环。',
@@ -386,7 +386,7 @@ const CASES: CaseData[] = [
     nums: ['5 项能力', '3 项 AI', '全链闭环'],
     image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg',
     previewType: 'campus',
-    expLink: '/login?redirect=/landing/campus',
+    expLink: '/login?redirect=/landing/campus&from=portal',
     demoPhone: '13100001234',
     demoPassword: 'admin123!@#',
     overview: [
@@ -441,7 +441,7 @@ const CASES: CaseData[] = [
     nums: ['4 大模块', '3 级联动', '全域覆盖'],
     image: '/images/unsplash/photo-1441986300917-64674bd600d8.jpg',
     previewType: 'ebike',
-    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23',
+    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23&from=portal',
     demoPhone: '13200002345',
     demoPassword: 'admin123!@#',
     overview: [
@@ -469,7 +469,7 @@ const CASES: CaseData[] = [
     nums: ['8 大模块', 'GIS 一张图', '履职闭环'],
     image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
     previewType: 'gangnan',
-    expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23',
+    expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23&from=portal',
     demoPhone: '13000000001',
     demoPassword: 'admin123!@#',
     overview: [
@@ -555,7 +555,8 @@ function goExperience() {
   // 从 expLink 提取 redirect 目标
   const redirectMatch = c?.expLink?.match(/redirect=([^&]+)/)
   const redirect = redirectMatch ? decodeURIComponent(redirectMatch[1]) : '/enterprise-cockpit'
-  const params = new URLSearchParams({ redirect })
+  // from=portal：标记这是门户体验入口，登录后直达该大屏（Login.vue 按来源白名单放行）
+  const params = new URLSearchParams({ redirect, from: 'portal' })
   if (c?.demoPhone) params.set('phone', c.demoPhone)
   if (c?.demoPassword) params.set('password', c.demoPassword)
   window.location.href = `/login?${params.toString()}`

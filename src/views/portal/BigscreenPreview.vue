@@ -42,37 +42,37 @@ const PREVIEWS: Record<string, PreviewInfo> = {
     src: '/screenshots/fgfc_cz.png',
     title: '复工复产可视化大屏',
     backLink: '/portal/case/work-resumption',
-    expLink: '/login?redirect=/resumption-bigscreen',
+    expLink: '/login?redirect=/resumption-bigscreen&from=portal',
   },
   gongmao: {
     src: '/screenshots/gongmao.png',
     title: '工贸企业安全监测大屏',
     backLink: '/portal/case/industrial-park',
-    expLink: '/login?redirect=/gongmao',
+    expLink: '/login?redirect=/gongmao&from=portal',
   },
   quanzhou: {
     src: '/screenshots/quanzhou-cockpit.png',
     title: '泉州应消联勤监管大屏',
     backLink: '/portal/case/quanzhou-cockpit',
-    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523',
+    expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%2523&from=portal',
   },
   campus: {
     src: '/screenshots/campus-safety.png',
     title: '校园安全管理大屏',
     backLink: '/portal/case/campus-safety',
-    expLink: '/login?redirect=/landing/campus',
+    expLink: '/login?redirect=/landing/campus&from=portal',
   },
   ebike: {
     src: '/screenshots/ebike-safety.png',
     title: '电动自行车安防监管大屏',
     backLink: '/portal/case/ebike-safety',
-    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23',
+    expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23&from=portal',
   },
   gangnan: {
     src: '/screenshots/gangnan-cockpit.png',
     title: '港南区“人工智能+安全自律”监管平台',
     backLink: '/portal/case/gangnan-cockpit',
-    expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23',
+    expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23&from=portal',
   },
 }
 
