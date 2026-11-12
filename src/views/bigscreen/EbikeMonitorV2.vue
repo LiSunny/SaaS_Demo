@@ -18,13 +18,16 @@
       <div class="ebike-v2__cols">
         <!-- 左列：消防用水监控（上）/ 设备状态监控（下），顺序按设计稿 70:313 -->
         <div class="col col--left">
-          <FireOverviewWaterMonitorPanel class="col__item col__item--top" />
+          <FireOverviewWaterMonitorPanel
+            class="col__item col__item--top"
+            @alarm-click="openAlarm"
+          />
           <FireOverviewIntegrityPanel class="col__item col__item--bottom" />
         </div>
 
         <!-- 右列：实时警情监控（上）/ 隐患排查治理（下） -->
         <div class="col col--right">
-          <FireOverviewAlarmPanel class="col__item col__item--top" />
+          <FireOverviewAlarmPanel class="col__item col__item--top" @alarm-click="openAlarm" />
           <FireOverviewPassivePanel class="col__item col__item--bottom" />
         </div>
 
@@ -47,6 +50,14 @@
 
     <!-- ===== 小安助手：页内浮层（不跳转路由，深色工作台直接嵌在本页） ===== -->
     <EbikeV2AgentPanel v-if="agentOpen" @close="closeAgent" />
+
+    <!-- ===== 警情弹窗：点总览页的警情行弹出（设计稿 200:1296） ===== -->
+    <EbikeV2AlarmDialog v-model="alarmOpen" :detail="alarmDetail" @confirm="onAlarmConfirm" />
+
+    <!-- ===== 核实处置反馈 ===== -->
+    <Transition name="toast">
+      <div v-if="toast" class="ebike-v2__toast">{{ toast }}</div>
+    </Transition>
   </div>
 </template>
 
@@ -63,11 +74,18 @@ import EbikeV2TimeSwitch from './components/ebike-v2/EbikeV2TimeSwitch.vue'
 import EbikeV2PoiToggle from './components/ebike-v2/EbikeV2PoiToggle.vue'
 import EbikeV2CleanToggle from './components/ebike-v2/EbikeV2CleanToggle.vue'
 import EbikeV2AgentPanel from './components/ebike-v2/EbikeV2AgentPanel.vue'
+import EbikeV2AlarmDialog from './components/ebike-v2/EbikeV2AlarmDialog.vue'
 import EbikeV2RealTimeAlarm from './components/ebike-v2/pages/EbikeV2RealTimeAlarm.vue'
 import EbikeV2SystemMonitor from './components/ebike-v2/pages/EbikeV2SystemMonitor.vue'
 import EbikeV2FireArchive from './components/ebike-v2/pages/EbikeV2FireArchive.vue'
 import EbikeV2OperationReport from './components/ebike-v2/pages/EbikeV2OperationReport.vue'
 import { BIGSCREEN_PAGE_BG } from './components/ebike-v2/campusTheme'
+import {
+  detailOf,
+  type AlarmConfirmPayload,
+  type AlarmDetail,
+} from './components/ebike-v2/fire/alarm-dialog-data'
+import type { AlarmRow } from './components/ebike-v2/fire/fire-mock'
 import { provideCampusModel, type CampusModelApi } from './components/ebike-v2/useCampusModel'
 
 /** 模型实例：模型区悬浮控件（建筑导航 / 昼夜切换）通过 provide/inject 取用 */
@@ -119,6 +137,33 @@ function closeAgent() {
   activeNavIndex.value = navIndexBeforeAgent
 }
 
+/**
+ * ===== 警情弹窗（设计稿 200:1296） =====
+ *
+ * 弹窗挂在总览页：两张卡的警情行都点得开（消防用水监控 / 实时警情监控），
+ * 弹窗内容按警情 key 从 alarm-dialog-data.ts 取 —— 跨系统警情与水系统警情
+ * 各走各的详情表，两张卡的内容不会串。
+ */
+const alarmOpen = ref(false)
+const alarmDetail = ref<AlarmDetail | null>(null)
+
+function openAlarm(row: AlarmRow) {
+  alarmDetail.value = detailOf(row)
+  alarmOpen.value = true
+}
+
+/** 核实处置反馈 */
+const toast = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function onAlarmConfirm(payload: AlarmConfirmPayload) {
+  toast.value = `${payload.content}已核实处置：${payload.handle}`
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toast.value = ''
+  }, 2600)
+}
+
 /** ===== 全屏查看（内部 cleanMode）：只留三维模型 ===== */
 
 /** 全屏态：隐藏顶栏、左右模块列与悬浮控件组，只保留三维模型 */
@@ -129,6 +174,7 @@ function toggleClean() {
   if (!cleanMode.value) return
   // 进入全屏：收起助手浮层与建筑导航面板，画面上不留任何浮层
   agentOpen.value = false
+  alarmOpen.value = false
   campusRef.value?.togglePoiPanel(false)
 }
 
@@ -151,6 +197,7 @@ onMounted(() => window.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   document.body.classList.remove('ebike-clean-mode')
+  if (toastTimer) clearTimeout(toastTimer)
 })
 </script>
 
@@ -248,6 +295,35 @@ onBeforeUnmount(() => {
 .col--left .col__item--bottom { flex: 52 1 0; }
 .col--right .col__item--top { flex: 52 1 0; }
 .col--right .col__item--bottom { flex: 48 1 0; }
+
+/* ===== 核实处置反馈（与实时警情页同一套 toast 样式） ===== */
+.ebike-v2__toast {
+  position: fixed;
+  left: 50%;
+  top: vh(84);
+  transform: translateX(-50%);
+  z-index: 10045;
+  padding: vh(9) vw(18);
+  border: 1px solid rgba(96, 200, 255, 0.5);
+  border-radius: vw(3);
+  background: rgba(0, 44, 94, 0.96);
+  color: #cfe4ff;
+  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.24s, transform 0.24s;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -8px);
+}
 </style>
 
 <!-- 清屏态：全局悬浮小安机器人挂在 StandaloneLayout（Teleport 到 body），

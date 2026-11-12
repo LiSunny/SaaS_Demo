@@ -50,13 +50,26 @@
         <span class="wm__more">更多 ›</span>
       </div>
 
-      <!-- ===== 警情列表：2 行式（角标 + 标题 + 时间 / 位置） ===== -->
+      <!-- ===== 警情列表：2 行式（角标 + 标题 + 时间 / 位置） =====
+           整条可点：点开警情弹窗看警情详情（设计稿 200:1296） -->
       <div class="wm__list">
-        <div v-for="r in visibleRows" :key="r.key" class="wm__item">
+        <div
+          v-for="r in visibleRows"
+          :key="r.key"
+          class="wm__item"
+          role="button"
+          tabindex="0"
+          :aria-label="`查看警情详情：${r.badge} ${r.title}`"
+          @click="emit('alarmClick', r)"
+          @keyup.enter="emit('alarmClick', r)"
+          @keyup.space="emit('alarmClick', r)"
+        >
           <div class="wm__item-head">
             <span class="wm__item-lead">
               <span class="wm__badge">{{ r.badge }}</span>
-              <span class="wm__item-title">{{ r.title }}</span>
+              <button type="button" class="wm__item-title" @click.stop="emit('alarmClick', r)">
+                {{ r.title }}
+              </button>
             </span>
             <span class="wm__item-time">{{ r.time }}</span>
           </div>
@@ -108,8 +121,19 @@ import { useSubsystemStore } from '@/stores/subsystem'
 import EbikeV2Card from '../EbikeV2Card.vue'
 import FireTrendSpark from './FireTrendSpark.vue'
 import { WATER_ALARM_ROWS } from './fire-mock'
+import type { AlarmRow } from './fire-mock'
 import { buildWaterMetrics } from './water-metrics'
 import metricGauge from '@/assets/bigscreen/ebike-v2/fire/metric-gauge.png'
+
+/**
+ * 点击警情 → 由总览页弹出警情弹窗（设计稿 200:1296）
+ *
+ * 弹窗本体在总览页（EbikeMonitorV2）持有，内容按警情 key 从
+ * alarm-dialog-data.ts 取（水系统警情走 WATER_ALARM_DETAILS）。
+ */
+const emit = defineEmits<{
+  alarmClick: [row: AlarmRow]
+}>()
 
 const router = useRouter()
 const route = useRoute()
@@ -342,6 +366,18 @@ onBeforeUnmount(() => {
   gap: vh(7);
   padding: vh(6) 0;
   border-bottom: 1px dashed #234972;
+  /* 可点：点开警情弹窗看详情 */
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.wm__item:hover {
+  background: rgba(0, 84, 160, 0.18);
+}
+
+.wm__item:focus-visible {
+  outline: 1px solid rgba(96, 200, 255, 0.6);
+  outline-offset: -1px;
 }
 
 .wm__item-head,
@@ -374,6 +410,13 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* 标题做成按钮（整行可点的键盘入口）：复位浏览器默认按钮外观 */
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .wm__item-time {
