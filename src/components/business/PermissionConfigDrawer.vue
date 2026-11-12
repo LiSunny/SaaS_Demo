@@ -113,7 +113,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import { getPositionDetail } from '@/api/position-admin'
 import { getEnterprisePositionDetail, saveEnterprisePositionPermissions } from '@/api/enterprise-positions'
 import { usePositionStore } from '@/stores/position-admin'

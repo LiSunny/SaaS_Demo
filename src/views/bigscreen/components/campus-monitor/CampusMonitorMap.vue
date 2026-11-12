@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 
 const mapContainer = ref<HTMLDivElement>()
 let mapInstance: any = null
@@ -34,8 +35,9 @@ const SCHOOLS = [
 
 const currentRegion = ref<string>('河北省/秦皇岛市/海港区')
 
-onMounted(() => {
-  // AMap 由 index.html 全局加载（CDN + securityJsCode）
+onMounted(async () => {
+  // 高德 JSAPI 按需加载（原先在 index.html 里同步引入，全站每页都买单）
+  await loadAMap()
   initMap()
 })
 
@@ -78,7 +80,7 @@ function buildSchoolMarker(name: string) {
   `
 }
 
-function initMap() {
+async function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
 
   const AMap = (window as any).AMap

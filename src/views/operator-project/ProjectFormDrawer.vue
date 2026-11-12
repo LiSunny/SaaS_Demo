@@ -268,7 +268,8 @@
  * 区划预览由本文件的纯函数 previewRegionNodes 推导，不依赖 store 私有实现。
  */
 import { computed, reactive, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useProjectOpsStore, REGION_TREE, PROJECT_TYPE_OPTIONS } from '@/stores/project-ops'
 import type { HierarchyInitMode, Project } from '@/types/project-ops'
 

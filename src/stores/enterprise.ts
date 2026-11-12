@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import type {
   EnterpriseItem, EnterpriseQuery, EnterpriseForm,
   SubordinateItem, PartnerItem, OperationLogItem,

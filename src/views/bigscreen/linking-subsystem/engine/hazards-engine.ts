@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { loadAMap } from '@/utils/amapLoader'
 import { cv, disposeCharts, initChart, openOverlay, toolbarHtml, uiToast } from './shared-engine'
 import { icoExportSmall, icoPlusSmall, icoRefreshSmall } from './icon-consts'
 import { showEventDetail } from './cross-module'
@@ -374,9 +375,17 @@ function hzMarkerHtml(s): string {
 function disposeHazardsMap(){
   if(hzMap){ try{ hzMap.destroy(); }catch(_){ /* noop */ } hzMap = null; }
 }
-function renderHazardMap(){
+async function renderHazardMap(){
   const el = document.getElementById('hzMap');
   if(!el) return;
+  // 高德 JSAPI 按需加载（原先在 index.html 里同步引入，全站每页都买单）
+  try {
+    await loadAMap();
+  } catch (e) {
+    const state = document.getElementById('hzMapState');
+    if(state) state.textContent = '高德地图加载失败，请检查网络或 Key 配置';
+    return;
+  }
   const AMap = (window as any).AMap;
   if(typeof AMap === 'undefined'){
     const state = document.getElementById('hzMapState');

@@ -25,7 +25,10 @@
  */
 import { computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import { useSubsystemStore } from '@/stores/subsystem'
 import { useFirewaterAlarmStore } from '@/stores/firewater-alarm'
 import type { PointDef } from '@/types/subsystem'

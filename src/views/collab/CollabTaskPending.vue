@@ -5,7 +5,8 @@
  * Mock 数据：李文学账号下 2 条待办（27 天 18 小时超时）
  */
 import { computed, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 interface TodoItem {

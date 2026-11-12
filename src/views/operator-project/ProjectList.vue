@@ -138,7 +138,10 @@
  */
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import { useProjectOpsStore, PROJECT_STATUS_LABEL } from '@/stores/project-ops'
 import type { Project, ProjectStatus } from '@/types/project-ops'
 import AppIcon from '@/components/base/AppIcon.vue'

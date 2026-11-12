@@ -208,7 +208,8 @@
  */
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import type { FormInstance, FormRules } from 'element-plus'
 import AppIcon from '@/components/base/AppIcon.vue'
 import StatusTag from '@/components/business/StatusTag.vue'

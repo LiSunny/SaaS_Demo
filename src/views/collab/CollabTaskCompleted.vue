@@ -5,7 +5,8 @@
  * Mock 数据：李文学账号下 1 条已办（已取消）
  */
 import { computed, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 interface DoneItem {

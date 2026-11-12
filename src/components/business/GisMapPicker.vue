@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, nextTick, onBeforeUnmount } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 import { Search } from '@element-plus/icons-vue'
 
 /**
@@ -135,7 +136,10 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 // ===== 弹窗事件 =====
 function handleOpened() {
-  nextTick(() => initMap())
+  nextTick(async () => {
+      await loadAMap()
+      initMap()
+    })
 }
 
 function handleClosed() {
@@ -249,7 +253,7 @@ function handleSelectTip(tip: { name: string; location: { lng: number; lat: numb
 }
 
 // ===== 初始化地图 =====
-function initMap() {
+async function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
 
   const AMap = (window as any).AMap

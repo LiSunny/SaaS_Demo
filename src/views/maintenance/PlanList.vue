@@ -197,7 +197,8 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useConfirm } from '@/composables/useConfirm'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useMaintenanceStore } from '@/stores/maintenance'

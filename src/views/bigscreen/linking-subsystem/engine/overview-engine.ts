@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { cv, initChart, openOverlay } from './shared-engine'
+import { loadAMap } from '@/utils/amapLoader'
 import { SHOPS, STREETS } from '../data/shops'
 // 模块1引擎：商铺主体责任系统（原 index.html renderOverview 族函数原样提取，仅改 iframeBody→入参）
 
@@ -86,9 +87,16 @@ function gaodeStreetMarkerHtml(st){
     </div>`;
 }
 
-export function renderGaodeMap(){
+export async function renderGaodeMap(){
   const el = activeContainer.querySelector('#gaodeMap') as HTMLElement;
   if(!el) return;
+  // 高德 JSAPI 按需加载（原先在 index.html 里同步引入，全站每页都买单）
+  try {
+    await loadAMap();
+  } catch (e) {
+    el.innerHTML = '<div class="map-load-state">高德地图加载失败，请检查网络或 Key 配置</div>';
+    return;
+  }
   if(typeof AMap === 'undefined'){
     el.innerHTML = '<div class="map-load-state">高德地图加载失败，请检查网络或 Key 配置</div>';
     return;

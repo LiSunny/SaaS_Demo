@@ -59,7 +59,7 @@
             <div :class="['cd-collab-layer', layer.cls]">
               <div class="cd-collab-header">
                 <div class="cd-collab-role">
-                  <img class="cd-collab-avatar" :src="`/images/avatars/${layer.avatar}.svg`" :alt="layer.name" loading="lazy" />
+                  <img class="cd-collab-avatar" :src="avatarSrc(layer.avatar)" :alt="layer.name" loading="lazy" @error="fallbackAvatar" />
                   <div>
                     <div class="cd-collab-name">{{ layer.name }}</div>
                     <div class="cd-collab-dept">{{ layer.role }}</div>
@@ -232,10 +232,11 @@
 </template>
 
 <script setup lang="ts">
+import '@/styles/webfonts.css' // Noto Sans SC / Outfit 自托管声明（随本页 chunk 异步加载）
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ArrowRight, Phone, Mail } from 'lucide-vue-next'
-import { avatarUrl } from '@/composables/useAvatar'
+import { avatarUrl, avatarSrc, fallbackAvatar } from '@/composables/useAvatar'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
@@ -273,7 +274,7 @@ const CASES: CaseData[] = [
     tag: '垂直业务',
     desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规。',
     nums: ['4 阶段', '11 步骤', '全链追踪'],
-    image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg',
+    image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.webp',
     previewType: 'resumption',
     expLink: '/login?redirect=/resumption-bigscreen&phone=13000000009&password=admin123!@%23&from=portal',
     demoPhone: '13000000009',
@@ -301,7 +302,7 @@ const CASES: CaseData[] = [
     tag: '工业',
     desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。',
     nums: ['5 个场景', '18 业务域', '全链闭环'],
-    image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg',
+    image: '/images/unsplash/photo-1581092160607-ee22621dd758.webp',
     previewType: 'gongmao',
     expLink: '/login?redirect=/gongmao&from=portal',
     demoPhone: '13000000009',
@@ -356,7 +357,7 @@ const CASES: CaseData[] = [
     tag: '城市治理',
     desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，实现一屏观全域、一网管消防。',
     nums: ['14 模块', 'AI 研判', '多端协同'],
-    image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
+    image: '/images/unsplash/photo-1497366216548-37526070297c.webp',
     previewType: 'quanzhou',
     expLink: '/login?redirect=/enterprise-cockpit&phone=13000001111&password=admin123!@%23&from=portal',
     overview: [
@@ -384,7 +385,7 @@ const CASES: CaseData[] = [
     tag: '教育',
     desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动、隐患闭环、安全履职五大核心能力，将学校安全管理每个环节数字化，从"人管人"走向"数据管安全"。',
     nums: ['5 项能力', '3 项 AI', '全链闭环'],
-    image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg',
+    image: '/images/unsplash/photo-1541339907198-e08756dedf3f.webp',
     previewType: 'campus',
     expLink: '/login?redirect=/landing/campus&from=portal',
     demoPhone: '13100001234',
@@ -439,7 +440,7 @@ const CASES: CaseData[] = [
     tag: '城市治理',
     desc: '面向居民小区与企事业单位的电动自行车充电安全监管平台，覆盖充电桩消安台账、火灾预警联动、消控室离岗监控与共享单车投放监管，构建从充电设施到应急响应的全链路安防体系。',
     nums: ['4 大模块', '3 级联动', '全域覆盖'],
-    image: '/images/unsplash/photo-1441986300917-64674bd600d8.jpg',
+    image: '/images/unsplash/photo-1441986300917-64674bd600d8.webp',
     previewType: 'ebike',
     expLink: '/login?redirect=/landing/ebike&phone=13200002345&password=admin123!@%23&from=portal',
     demoPhone: '13200002345',
@@ -467,7 +468,7 @@ const CASES: CaseData[] = [
     tag: '城市治理',
     desc: '以"安全自律"为核心构建区域安全监管平台，覆盖履责概览、每日清单、重点单位风险管控、充电桩应急安全、隐患报备与风险源作业审批等模块，实现一屏观全域、一网管自律。',
     nums: ['8 大模块', 'GIS 一张图', '履职闭环'],
-    image: '/images/unsplash/photo-1497366216548-37526070297c.jpg',
+    image: '/images/unsplash/photo-1497366216548-37526070297c.webp',
     previewType: 'gangnan',
     expLink: '/login?redirect=/landing?bigscreenId=3&phone=13000000001&password=admin123!@%23&from=portal',
     demoPhone: '13000000001',
@@ -518,18 +519,18 @@ const isHighlighted = (i: number) => {
 }
 
 const PREVIEW_SCREENSHOTS: Record<string, string> = {
-  resumption: '/screenshots/fgfc_cz.png',
-  gongmao: '/screenshots/gongmao.png',
-  quanzhou: '/screenshots/quanzhou-cockpit.png',
-  campus: '/screenshots/campus-safety.png',
-  ebike: '/screenshots/ebike-safety.png',
-  gangnan: '/screenshots/gangnan-cockpit.png',
+  resumption: '/screenshots/fgfc_cz.webp',
+  gongmao: '/screenshots/gongmao.webp',
+  quanzhou: '/screenshots/quanzhou-cockpit.webp',
+  campus: '/screenshots/campus-safety.webp',
+  ebike: '/screenshots/ebike-safety.webp',
+  gangnan: '/screenshots/gangnan-cockpit.webp',
 }
 const previewSrc = computed(() => PREVIEW_SCREENSHOTS[current.value?.previewType || ''] || '')
 
 const MOBILE_SCREENSHOTS: Record<string, string> = {
-  gongmao: '/screenshots/gongmao-mobile.png',
-  campus: '/screenshots/campus-safety-mobile.png',
+  gongmao: '/screenshots/gongmao-mobile.webp',
+  campus: '/screenshots/campus-safety-mobile.webp',
 }
 const mobileSrc = computed(() => MOBILE_SCREENSHOTS[current.value?.previewType || ''] || '')
 
@@ -982,15 +983,10 @@ onUnmounted(() => {
 
 <!-- 箭头流动动画：非 scoped，因为 SVG 元素是 JS 动态创建的 -->
 <style>
-/* 优设标题黑 — 章节编号用 */
-@font-face {
-  font-family: 'YouSheBiaoTiHei';
-  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-/* 抖音美好体 — 章节编号用 */
+/* 优设标题黑 — 章节编号用
+   @font-face 已统一收口到 src/styles/local-fonts.css（子集版 132KB + 完整版兜底）。 */
+/* 抖音美好体 — 章节编号用
+   注意：DouyinSansBold.ttf 的 GSUB 表损坏，无法子集化，此处保留原始声明。 */
 @font-face {
   font-family: 'Douyin Sans';
   src: url('/fonts/DouyinSansBold.ttf') format('truetype');

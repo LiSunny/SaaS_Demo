@@ -147,7 +147,10 @@
 <script setup lang="ts">
 import { computed, h, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import ProjectHeader from './components/ProjectHeader.vue'
 import ProjectTree from './components/ProjectTree.vue'

@@ -1,24 +1,17 @@
+/* 罕见字兜底：子集外的字才下载原始大字体（不随主 CSS 常驻，仅大屏页按需加载） */
+@import '@/styles/local-fonts-fallback.css';
+
 /**
  * 校园大屏字体声明
  *
  * 使用 @font-face 加载自定义字体，确保即使电脑本地未安装也能正常显示。
  * 字体文件放在 public/fonts/ 目录下。
+ *
+ * ⚠️ @font-face 已统一收口到 src/styles/local-fonts.css：
+ *    那里提供子集版（woff2，132KB / 213KB）+ 完整字体兜底。
+ *    这里不再重复声明，否则浏览器会优先命中未子集化的原始大文件
+ *    （YouSheBiaoTiHei 1.4MB / DingTalkJinBuTi 2.1MB）。
  */
 
-/* ===== 优设标题黑 — 卡片标题用 ===== */
-@font-face {
-  font-family: 'YouSheBiaoTiHei';
-  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ===== 钉钉进步体 — 大数字用 ===== */
-@font-face {
-  font-family: 'DingTalk JinBuTi';
-  src: url('/fonts/DingTalkJinBuTi.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* 罕见字兜底：子集外的字才下载原始大字体（不随主 CSS 常驻，仅大屏页按需加载） */
+@import '@/styles/local-fonts-fallback.css';

@@ -254,7 +254,8 @@
  * 连接点坐标在 64×64 画布上、吸附到 8 的网格；绑定点点名全局唯一。
  */
 import { computed, reactive, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import OssUpload from '@/components/business/OssUpload.vue'
 import { SYMBOL_CATEGORIES, SYMBOL_SYSTEMS, SYMBOLS } from '@/symbols'

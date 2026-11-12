@@ -33,6 +33,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 
 /* ===== 类型定义 ===== */
 interface EnterprisePoint {
@@ -120,7 +121,7 @@ function buildInfoContent(p: EnterprisePoint, cfg: RiskConfig): string {
 }
 
 /* ===== 地图初始化 ===== */
-function initMap() {
+async function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
 
   const AMap = (window as any).AMap
@@ -217,7 +218,10 @@ function toggleFullscreen() {
   })
 }
 
-onMounted(() => initMap())
+onMounted(async () => {
+    await loadAMap()
+    initMap()
+  })
 
 onBeforeUnmount(() => {
   if (closeTimeout) clearTimeout(closeTimeout)

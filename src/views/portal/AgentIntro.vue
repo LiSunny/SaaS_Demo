@@ -230,6 +230,7 @@
 </template>
 
 <script setup lang="ts">
+import '@/styles/webfonts.css' // Noto Sans SC / Outfit 自托管声明（随本页 chunk 异步加载）
 import { ref, watch, onUnmounted } from 'vue'
 
 // 图片放大弹层
@@ -283,12 +284,9 @@ onUnmounted(() => {
 .agent-intro * { box-sizing: border-box; margin: 0; padding: 0; }
 .agent-intro ::-webkit-scrollbar { display: none; }
 
-/* 品牌名艺术字体（Source-KeynoteartHans 演示斜黑体，用户提供） */
-@font-face {
-  font-family: 'Source-KeynoteartHans';
-  src: url('/fonts/演示斜黑体.otf') format('opentype');
-  font-display: swap;
-}
+/* 品牌名艺术字体（Source-KeynoteartHans 演示斜黑体，用户提供）
+   @font-face 已统一收口到 src/styles/local-fonts.css（子集版 + 完整版兜底）。
+   原来这里指向 /fonts/演示斜黑体.otf，但该文件在 public/fonts/ 下并不存在（404）。 */
 .brand-line { display: inline-flex; align-items: center; justify-content: center; gap: 16px; line-height: 1; }
 .brand-robot { width: 58px; height: 58px; object-fit: contain; display: block; }
 .brand-name-art {

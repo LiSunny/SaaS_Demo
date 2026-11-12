@@ -518,7 +518,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import type { InstanceStatus, Priority, WorkOrderNode } from '@/types/work-order'
 import type { FormField, FieldPermission, NodeAction } from '@/types/workflow'
 import { useWorkOrderStore } from '@/stores/work-order'

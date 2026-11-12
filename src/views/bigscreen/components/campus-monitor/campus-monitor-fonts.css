@@ -1,39 +1,22 @@
+/* 罕见字兜底：子集外的字才下载原始大字体（不随主 CSS 常驻，仅大屏页按需加载） */
+@import '@/styles/local-fonts-fallback.css';
+
 /**
  * 港南校园大屏字体声明（独立，不复用 campus/）
  *
  * Figma 设计稿使用了 Source-KeynoteartHans、YouSheBiaoTiHei、Douyin_Sans
  * 等字体；其中 Source-KeynoteartHans 项目内无文件，用 YouSheBiaoTiHei 替代。
+ *
+ * ⚠️ @font-face 已统一收口到 src/styles/local-fonts.css：
+ *    那里提供子集版（woff2，几十~几百 KB）+ 完整字体兜底。
+ *    这里不再重复声明，否则浏览器会优先命中未子集化的原始大文件。
+ *    例外：DouyinSansBold.ttf 的 GSUB 表损坏、无法子集化，保留原始声明。
  */
-
-@font-face {
-  font-family: 'YouSheBiaoTiHei';
-  src: url('/fonts/YouSheBiaoTiHei-2.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
 @font-face {
   font-family: 'Douyin Sans';
   src: url('/fonts/DouyinSansBold.ttf') format('truetype');
   font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'DingTalk JinBuTi';
-  src: url('/fonts/DingTalkJinBuTi.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Figma 的 Source-KeynoteartHans（用户提供字体文件 2026-09-20） */
-@font-face {
-  font-family: 'Source-KeynoteartHans';
-  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
-  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }

@@ -54,6 +54,7 @@
 </template>
 
 <script setup lang="ts">
+import '@/styles/webfonts.css' // Noto Sans SC / Outfit 自托管声明（随本页 chunk 异步加载）
 import { ChevronLeft, ArrowRight, Zap, Building2 } from 'lucide-vue-next'
 const stages = [
   { name: '发起部署', steps: '作业发起、车间主体部署' },

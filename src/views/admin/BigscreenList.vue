@@ -251,7 +251,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useBigscreenStore } from '@/stores/bigscreen'
 import { BIGSCREEN_TYPE_LABELS, BIGSCREEN_SCENARIO_OPTIONS } from '@/types/bigscreen'

@@ -52,6 +52,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 import iconGongmao from '@/assets/bigscreen/industry/gongmao.svg'
 import iconJiaoyu from '@/assets/bigscreen/industry/jiaoyu.svg'
 import iconShequ from '@/assets/bigscreen/industry/shequ.svg'
@@ -98,7 +99,9 @@ const scatterPoints = [
   { lng: 109.595, lat: 23.080, type: '其他', name: '港南综合市场', person: '马德才', phone: '186-8833-5512' },
 ]
 
-onMounted(() => {
+onMounted(async () => {
+  // 高德 JSAPI 按需加载（原先在 index.html 里同步引入，全站每页都买单）
+  await loadAMap()
   initMap()
 })
 
@@ -142,7 +145,7 @@ function buildInfoWindowContent(point: typeof scatterPoints[number], cfg: { colo
 
 
 
-function initMap() {
+async function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
 
   const AMap = (window as any).AMap

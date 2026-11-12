@@ -137,7 +137,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import { DEVICE_TYPE_OPTIONS, useProjectOpsStore } from '@/stores/project-ops'
 

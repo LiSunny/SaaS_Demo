@@ -19,7 +19,7 @@
     </nav>
 
     <!-- Hero -->
-    <section class="ind-hero" style="background-image:url(/images/unsplash/photo-1524178232363-1fb2b075b655.jpg);">
+    <section class="ind-hero" style="background-image:url(/images/unsplash/photo-1524178232363-1fb2b075b655.webp);">
       <div class="ind-hero-grid"></div>
       <div class="ind-hero-content">
         <h1 class="ind-hero-title">{{ pageTitle }}</h1>
@@ -38,7 +38,7 @@
           <span class="scene-label">涉及角色</span>
           <div class="role-cards">
             <div v-for="r in sc.roles" :key="r.name" class="role-card">
-              <img class="role-avatar" :src="`/images/avatars/${r.person}.svg`" :alt="r.person" loading="lazy" />
+              <img class="role-avatar" :src="avatarSrc(r.person)" :alt="r.person" loading="lazy" @error="fallbackAvatar" />
               <div class="role-info">
                 <div class="role-person">{{ r.person }}</div>
                 <div class="role-title">{{ r.name }}</div>
@@ -95,9 +95,11 @@
 </template>
 
 <script setup lang="ts">
+import '@/styles/webfonts.css' // Noto Sans SC / Outfit 自托管声明（随本页 chunk 异步加载）
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ArrowRight, Utensils, ShieldAlert, Building, Image } from 'lucide-vue-next'
 import { useMobileGuard } from '@/composables/useMobileGuard'
+import { avatarSrc, fallbackAvatar } from '@/composables/useAvatar'
 import MobileTipModal from '@/components/base/MobileTipModal.vue'
 
 const { showMobileTip, copied, goExp } = useMobileGuard('/login')

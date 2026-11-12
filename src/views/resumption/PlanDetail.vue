@@ -193,7 +193,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, markRaw, type Component } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useResumptionStore } from '@/stores/resumption'
 import { updateStep, updateTeamMembers } from '@/api/adapters/resumption-dao'
 import { STEP_META, STAGES } from '@/types/resumption'

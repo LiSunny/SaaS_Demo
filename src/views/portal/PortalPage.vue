@@ -182,11 +182,11 @@
                       <p>加载中…</p>
                     </div>
                     <video
-                      :src="`${page.src}?v=${gifTimestamps[i]}`"
+                      :src="videoVisible[i] ? `${page.src}?v=${gifTimestamps[i]}` : undefined"
                       :alt="page.title"
                       class="ai-player-gif"
                       :class="{ loaded: !page.gifLoading }"
-                      autoplay loop muted playsinline
+                      autoplay loop muted playsinline preload="none"
                       @loadeddata="onPageGifLoad(i)"
                       @error="onPageGifError(i)"
                       @click="openLightbox(i)"
@@ -319,6 +319,7 @@
 </template>
 
 <script setup lang="ts">
+import '@/styles/webfonts.css' // Noto Sans SC / Outfit 自托管声明（随本页 chunk 异步加载）
 import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight, Zap, FileText, Phone, Mail, Store } from 'lucide-vue-next'
@@ -386,25 +387,28 @@ onMounted(() => {
     anchor.addEventListener('click', handler)
     anchorHandlers.push([anchor, handler])
   })
+  setupAiVideoObserver()
 })
 onUnmounted(() => {
   window.removeEventListener('scroll', scrollFn)
   anchorHandlers.forEach(([a, h]) => a.removeEventListener('click', h))
+  aiVideoObserver?.disconnect()
+  aiVideoObserver = null
 })
 
 // ===== Hero =====
 const titleChars = '人工智能 + 智能安全管控平台'.split('')
 
 // ===== Hero stack carousel =====
-import heroCampusImg from '@/assets/portal/hero-campus.png'
-import heroIndustryImg from '@/assets/portal/hero-industry.png'
+import heroCampusImg from '@/assets/portal/hero-campus.webp'
+import heroIndustryImg from '@/assets/portal/hero-industry.webp'
 
 const HERO_IMAGES = [
   { src: heroCampusImg, alt: '校园安全管理大屏' },
   { src: heroIndustryImg, alt: '工贸企业安全管理大屏' },
-  { src: '/screenshots/fgfc_cz.png', alt: '复工复产管理大屏' },
-  { src: '/screenshots/quanzhou-cockpit.png', alt: '泉州应消联勤监管大屏' },
-  { src: '/screenshots/ebike-safety.png', alt: '电动自行车安防监管大屏' },
+  { src: '/screenshots/fgfc_cz.webp', alt: '复工复产管理大屏' },
+  { src: '/screenshots/quanzhou-cockpit.webp', alt: '泉州应消联勤监管大屏' },
+  { src: '/screenshots/ebike-safety.webp', alt: '电动自行车安防监管大屏' },
 ]
 const heroCards = ref(HERO_IMAGES.map((img, i) => ({ ...img, pos: i })))
 const STACK_SIZE = HERO_IMAGES.length
@@ -472,11 +476,11 @@ const TRUST_NUMS = [
 // ===== Positioning =====
 // 五类使用主体 × 各自的使用场景 —— 口径以 docs/使用场景与用户分类.md 为准
 const POSITIONING = [
-  { tag: '区域监管', title: '监管机构', body: '面向应急局等监管单位，区域态势总览、联勤督办、监管检查、监管报告，一屏掌握辖区安全。', image: '/images/portal/regulator.png' },
-  { tag: '安全管理', title: '社会单位', body: '学校、企业、集团、商户的日常安全履职：自查自管、隐患闭环整改、设备保养、培训演练，责任落地留痕。', image: '/images/portal/social-unit.png' },
-  { tag: '技术服务', title: '服务机构', body: '维保、检测机构线上接单、现场处置、服务报告留痕，专业能力数字化，服务过程全程可追溯。', image: '/images/portal/service-tech.png' },
-  { tag: '项目托管', title: '运营商', body: '以项目为单位组织与交付——重点单位联网、九小场所管理、区域安全托管，受托代管一批单位的消防安全。', image: '/images/portal/operator.png' },
-  { tag: '居家安全', title: '家庭用户', body: '自购烟感、燃气报警等居家消防设备，接入平台建档；设备告警即时提醒，短信、电话多通道直达本人与家人。', image: '/images/portal/household.png' },
+  { tag: '区域监管', title: '监管机构', body: '面向应急局等监管单位，区域态势总览、联勤督办、监管检查、监管报告，一屏掌握辖区安全。', image: '/images/portal/regulator.webp' },
+  { tag: '安全管理', title: '社会单位', body: '学校、企业、集团、商户的日常安全履职：自查自管、隐患闭环整改、设备保养、培训演练，责任落地留痕。', image: '/images/portal/social-unit.webp' },
+  { tag: '技术服务', title: '服务机构', body: '维保、检测机构线上接单、现场处置、服务报告留痕，专业能力数字化，服务过程全程可追溯。', image: '/images/portal/service-tech.webp' },
+  { tag: '项目托管', title: '运营商', body: '以项目为单位组织与交付——重点单位联网、九小场所管理、区域安全托管，受托代管一批单位的消防安全。', image: '/images/portal/operator.webp' },
+  { tag: '居家安全', title: '家庭用户', body: '自购烟感、燃气报警等居家消防设备，接入平台建档；设备告警即时提醒，短信、电话多通道直达本人与家人。', image: '/images/portal/household.webp' },
 ]
 
 // ===== Scenarios =====
@@ -542,6 +546,34 @@ const AI_PAGES = reactive([
 const onPageGifError = (i: number) => { AI_PAGES[i].gifError = true; AI_PAGES[i].gifLoading = false }
 const onPageGifLoad  = (i: number) => { AI_PAGES[i].gifLoading = false; gifLoadedOnce[i] = true }
 
+// 视频懒加载：只有滚动进入视口才挂 src。
+// 原本 autoplay video 会立刻整段下载（4 个演示视频合计 5.45MB），
+// 用户没滚到该区域也会付出全部流量。
+const videoVisible = ref<boolean[]>([false, false, false, false])
+let aiVideoObserver: IntersectionObserver | null = null
+
+function setupAiVideoObserver() {
+  if (aiVideoObserver || typeof IntersectionObserver === 'undefined') return
+  const pages = document.querySelectorAll('.ai-player-page')
+  if (!pages.length) return
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        const idx = Number((entry.target as HTMLElement).dataset.aiIndex)
+        if (!Number.isNaN(idx)) videoVisible.value[idx] = true
+        observer.unobserve(entry.target)
+      })
+    },
+    { rootMargin: '200px 0px' },
+  )
+  aiVideoObserver = observer
+  pages.forEach((el, i) => {
+    ;(el as HTMLElement).dataset.aiIndex = String(i)
+    observer.observe(el)
+  })
+}
+
 // 视频放大播放弹层
 const lightboxOpen = ref(false)
 const lightboxSrc = ref('')
@@ -585,15 +617,15 @@ const caseTabs = [
   { key: '垂直业务', label: '垂直业务' },
 ]
 const CASES = [
-  { slug: 'campus-safety', name: '平安校园', tag: '教育', desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动、隐患闭环、安全履职五大核心能力，从"人管人"走向"数据管安全"。', nums: ['5 项能力', '3 项 AI', '全链闭环'], image: '/images/unsplash/photo-1541339907198-e08756dedf3f.jpg' },
-  { slug: 'industrial-park', name: '工贸企业安全管理', tag: '工业', desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。', nums: ['5 个场景', '18 业务域', '全链闭环'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg' },
-  { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.jpg' },
-  { slug: 'quanzhou-cockpit', name: '泉州应消联勤监管平台', tag: '城市治理', desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，覆盖工贸企业自律、消防控制室值守、风险源作业审批等14个核心模块，实现一屏观全域、一网管消防。', nums: ['14 模块', 'AI 研判', '多端协同'], image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
-  { slug: 'ebike-safety', name: '电动自行车安防监管', tag: '城市治理', desc: '面向居民小区与企事业单位的电动自行车充电安全监管，覆盖充电桩消安台账、火灾预警联动、消控室离岗监控与共享单车投放监管，构建从充电设施到应急响应的全链路安防体系。', nums: ['4 大模块', '3 级联动', '全域覆盖'], image: '/images/unsplash/photo-1441986300917-64674bd600d8.jpg' },
-  { slug: 'gangnan-cockpit', name: '港南区“人工智能+安全自律”监管平台', tag: '城市治理', desc: '以“安全自律”为核心构建区域安全监管平台，覆盖履责概览、每日清单、重点单位风险管控、充电桩应急安全、隐患报备与风险源作业审批等模块，实现一屏观全域、一网管自律。', nums: ['8 大模块', 'GIS 一张图', '履职闭环'], image: '/images/unsplash/photo-1497366216548-37526070297c.jpg' },
-  { slug: 'fire-maintenance', name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.jpg', coming: true },
-  { slug: 'hot-work', name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: '/images/unsplash/photo-1534528741775-53994a69daeb.jpg', coming: true },
-  { slug: 'commercial-street', name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: '/images/unsplash/photo-1517457373958-b7bdd4587205.jpg', coming: true },
+  { slug: 'campus-safety', name: '平安校园', tag: '教育', desc: '覆盖食品安全、防欺凌预警、宿舍安全与应急联动、隐患闭环、安全履职五大核心能力，从"人管人"走向"数据管安全"。', nums: ['5 项能力', '3 项 AI', '全链闭环'], image: '/images/unsplash/photo-1541339907198-e08756dedf3f.webp' },
+  { slug: 'industrial-park', name: '工贸企业安全管理', tag: '工业', desc: '覆盖设备台账、巡查检查、隐患闭环、危险作业管控、告警值守五大场景，构建从设备上线到应急响应的全链路安全管理体系。', nums: ['5 个场景', '18 业务域', '全链闭环'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.webp' },
+  { slug: 'work-resumption', name: '复工复产管理', tag: '垂直业务', desc: '面向工贸企业复工全流程数字化管理，覆盖准备、审核、试产到正式复产四阶段，六步标准化流程确保安全合规，实现企业安全返岗。', nums: ['4 阶段', '6 步流程', '全链追踪'], image: '/images/unsplash/photo-1504917595217-d4dc5ebe6122.webp' },
+  { slug: 'quanzhou-cockpit', name: '泉州应消联勤监管平台', tag: '城市治理', desc: '依托AI大模型与物联网技术，构建全市首个"人工智能+应消联勤"一体化管控平台，覆盖工贸企业自律、消防控制室值守、风险源作业审批等14个核心模块，实现一屏观全域、一网管消防。', nums: ['14 模块', 'AI 研判', '多端协同'], image: '/images/unsplash/photo-1497366216548-37526070297c.webp' },
+  { slug: 'ebike-safety', name: '电动自行车安防监管', tag: '城市治理', desc: '面向居民小区与企事业单位的电动自行车充电安全监管，覆盖充电桩消安台账、火灾预警联动、消控室离岗监控与共享单车投放监管，构建从充电设施到应急响应的全链路安防体系。', nums: ['4 大模块', '3 级联动', '全域覆盖'], image: '/images/unsplash/photo-1441986300917-64674bd600d8.webp' },
+  { slug: 'gangnan-cockpit', name: '港南区“人工智能+安全自律”监管平台', tag: '城市治理', desc: '以“安全自律”为核心构建区域安全监管平台，覆盖履责概览、每日清单、重点单位风险管控、充电桩应急安全、隐患报备与风险源作业审批等模块，实现一屏观全域、一网管自律。', nums: ['8 大模块', 'GIS 一张图', '履职闭环'], image: '/images/unsplash/photo-1497366216548-37526070297c.webp' },
+  { slug: 'fire-maintenance', name: '消防维保管理', tag: '垂直业务', desc: '搭建消防设施监测与维保管理平台，实现设备实时感知、全生命周期管理，降低人工巡检成本 60%。', nums: ['500+ 传感器', '30+ 点位', '60% 增效'], image: '/images/unsplash/photo-1581092160607-ee22621dd758.webp', coming: true },
+  { slug: 'hot-work', name: '动火作业管理', tag: '垂直业务', desc: '面向施工现场的动火作业全流程管控，从申请审批、现场监护到完工验收，确保高风险作业合规可控。', nums: ['4 阶段', '15 步流程', '三级审批'], image: '/images/unsplash/photo-1534528741775-53994a69daeb.webp', coming: true },
+  { slug: 'commercial-street', name: '商业街安全管理', tag: '城市治理', desc: '建设商铺消防联控与应急联动平台，打通商户、物业、监管部门三级协同，提升街区整体安全治理水平。', nums: ['100+ 商铺', '3 级联动', '7×24 值守'], image: '/images/unsplash/photo-1517457373958-b7bdd4587205.webp', coming: true },
 ]
 
 const filteredCases = computed(() =>
@@ -655,14 +687,10 @@ html, body { margin: 0; padding: 0; }
 /* ===== Font Tokens ===== */
 .portal { --f-display: 'Outfit', 'Noto Sans SC', sans-serif; --f-body: 'Noto Sans SC', 'Outfit', sans-serif; }
 
-/* 首屏主标题艺术字体（Source-KeynoteartHans，项目字体文件 public/fonts/） */
-@font-face {
-  font-family: 'Source-KeynoteartHans';
-  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* 首屏主标题艺术字体（Source-KeynoteartHans）
+   @font-face 声明已统一收口到 src/styles/local-fonts.css：
+   那里提供子集版（278KB，覆盖常用字）+ 完整字体兜底，
+   避免这里直接声明 9.8MB 的原始 .otf 导致首屏整包下载。 */
 /* ===== Shared ===== */
 .sec-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 @media (min-width: 640px) { .sec-wrap { padding: 0 32px; } }
@@ -720,7 +748,7 @@ html, body { margin: 0; padding: 0; }
 
 .hero-inner { position: relative; z-index: 10; max-width: 1200px; width: 100%; margin: 0 auto; padding: 80px 0; display: flex; align-items: center; gap: 32px; }
 .hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: visible; background: linear-gradient(180deg, #f8faff 0%, #eef3ff 50%, #f4f7ff 100%); padding: 40px 0 80px; }
-.hero::after { content: ''; position: absolute; inset: 0; z-index: 0; background: url('@/assets/portal/hero-bg.png') center/cover no-repeat; opacity: 0.3; pointer-events: none; }
+.hero::after { content: ''; position: absolute; inset: 0; z-index: 0; background: url('@/assets/portal/hero-bg.webp') center/cover no-repeat; opacity: 0.3; pointer-events: none; }
 .hero-left { flex: 1; min-width: 0; text-align: left; margin-left: -40px; }
 .hero-right { flex: 0 0 690px; max-width: 100%; margin-right: -100px; }
 @media (max-width: 900px) {

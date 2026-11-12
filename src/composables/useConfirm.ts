@@ -1,4 +1,5 @@
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus/es/components/message-box/index.mjs'
+import 'element-plus/es/components/message-box/style/css.mjs'
 import type { ElMessageBoxOptions, Action } from 'element-plus'
 
 /**

@@ -61,7 +61,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { OperationLogItem } from '@/types/enterprise'
-import { vLoading } from 'element-plus'
+import { vLoading } from 'element-plus/es/components/loading/index.mjs'
+import 'element-plus/es/components/loading/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import TableSortIcon from '@/components/base/TableSortIcon.vue'
 

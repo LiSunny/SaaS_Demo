@@ -116,7 +116,8 @@
  */
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import SceneCanvas from '@/components/device-facility/SceneCanvas.vue'
 import ScenePropertyPanel from '@/components/device-facility/ScenePropertyPanel.vue'

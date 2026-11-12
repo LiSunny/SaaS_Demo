@@ -143,49 +143,47 @@
 </template>
 
 <script setup lang="ts">
+import '@/styles/webfonts.css' // Noto Sans SC / Outfit 自托管声明（随本页 chunk 异步加载）
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 // ===== mermaid 流程图（独立 ref） =====
 const mermaidSvg = ref('')
 
-onMounted(() => {
-  // 异步渲染 mermaid：CDN script 加载需要时间，等 DOM 挂载后再 retry
-  const tryRenderMermaid = async (retries = 0) => {
-    const mermaid = (window as any).mermaid
-    if (!mermaid) {
-      if (retries < 20) setTimeout(() => tryRenderMermaid(retries + 1), 200)
-      return
-    }
-    try {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'default',
-        securityLevel: 'loose',
-        flowchart: { curve: '1404', htmlLabels: true, nodeSpacing: 60, rankSpacing: 70, padding: 20 },
-        themeVariables: {
-          fontSize: '14px',
-          fontFamily: '"Noto Sans SC","Outfit",sans-serif',
-          primaryColor: '#eef3ff',
-          primaryTextColor: '#101010',
-          primaryBorderColor: '#3678e3',
-          lineColor: '#3678e3',
-          secondaryColor: '#fff',
-          tertiaryColor: '#fff',
-          mainBkg: '#fff',
-          nodeBorder: '#3678e3',
-          clusterBkg: '#fff',
-          clusterBorder: '#e0e7ff',
-          titleColor: '#101010',
-          edgeLabelBackground: '#fff',
-        },
-      })
-      const { svg } = await mermaid.render('hi-flow', flowChart)
-      mermaidSvg.value = svg
-    } catch (e) {
-      console.error('mermaid render error', e)
-    }
+onMounted(async () => {
+  // mermaid 改为按需动态 import：
+  // 原先是在 index.html 里用 CDN <script> 同步引入（739KB），
+  // 全站每个页面都要等它下载完才继续解析 HTML。
+  // 现在只有真正进入隐患介绍页时才加载这个 chunk。
+  try {
+    const mermaidModule = await import('mermaid')
+    const mermaid = mermaidModule.default
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: { curve: '1404', htmlLabels: true, nodeSpacing: 60, rankSpacing: 70, padding: 20 },
+      themeVariables: {
+        fontSize: '14px',
+        fontFamily: '"Noto Sans SC","Outfit",sans-serif',
+        primaryColor: '#eef3ff',
+        primaryTextColor: '#101010',
+        primaryBorderColor: '#3678e3',
+        lineColor: '#3678e3',
+        secondaryColor: '#fff',
+        tertiaryColor: '#fff',
+        mainBkg: '#fff',
+        nodeBorder: '#3678e3',
+        clusterBkg: '#fff',
+        clusterBorder: '#e0e7ff',
+        titleColor: '#101010',
+        edgeLabelBackground: '#fff',
+      },
+    })
+    const { svg } = await mermaid.render('hi-flow', flowChart)
+    mermaidSvg.value = svg
+  } catch (e) {
+    console.error('mermaid render error', e)
   }
-  setTimeout(() => tryRenderMermaid(0), 100)
 })
 
 onBeforeUnmount(() => {

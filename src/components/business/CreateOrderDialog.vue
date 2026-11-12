@@ -110,7 +110,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useWorkOrderStore } from '@/stores/work-order'
 import { useWorkflowStore } from '@/stores/workflow'
 import { getTemplateDetail } from '@/api/workflow'

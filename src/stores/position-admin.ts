@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import type { PositionItem, PositionQuery, PositionForm } from '@/types/position-admin'
 import { getPositionList, createPosition, updatePosition, deletePosition, savePermissions } from '@/api/position-admin'
 import type { PermissionConfig } from '@/types/position-admin'

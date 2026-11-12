@@ -322,8 +322,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useConfirm } from '@/composables/useConfirm'
 import { CopyDocument } from '@element-plus/icons-vue'
 import { useEnterpriseStore } from '@/stores/enterprise'
@@ -370,7 +372,7 @@ const hasGisData = computed(() => {
 })
 
 // 初始化只读地图（标记企业位置）
-function initDetailMap() {
+async function initDetailMap() {
   if (!detailMapContainer.value || !(window as any).AMap) return
   const d = store.detail
   if (!d?.mapLocation) return
@@ -408,7 +410,10 @@ function destroyDetailMap() {
 // 监听详情数据加载完成后初始化地图
 watch(() => store.detail, (d) => {
   if (d?.mapLocation) {
-    nextTick(() => initDetailMap())
+    nextTick(async () => {
+      await loadAMap()
+      initDetailMap()
+    })
   }
 }, { deep: false })
 

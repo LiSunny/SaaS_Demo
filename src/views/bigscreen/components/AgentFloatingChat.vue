@@ -216,7 +216,8 @@
 import { ref, reactive, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import VoiceChatPanel from './VoiceChatPanel.vue'
 
 // 开发环境标识

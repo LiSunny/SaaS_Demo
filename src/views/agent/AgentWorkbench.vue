@@ -344,7 +344,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onUnmounted, toRefs } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { marked } from 'marked'
 import { useAiChatStore, type ChatMessage, type FileUploadResult } from '@/stores/ai-chat'
 import { useUserStore } from '@/stores/user'

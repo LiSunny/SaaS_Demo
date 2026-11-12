@@ -99,7 +99,8 @@
  */
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import { useSubsystemStore } from '@/stores/subsystem'
 import type { PointDef, PointStatus } from '@/types/subsystem'

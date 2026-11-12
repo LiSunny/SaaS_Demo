@@ -1,3 +1,6 @@
+/* 罕见字兜底：子集外的字才下载原始大字体（不随主 CSS 常驻，仅大屏页按需加载） */
+@import '@/styles/local-fonts-fallback.css';
+
 /**
  * 应急局电动车监控大屏 v2 字体声明
  *
@@ -14,66 +17,22 @@
  * 未选中项用 Medium(500) 而非设计稿的 Bold(700)：
  * 选中项是细笔画的斜黑体，未选中用 Bold 时墨量反而更大，
  * 实测两态平均亮度只差 1.11 倍、层级发灰，降字重后才能拉开。
+ *
+ * ⚠️ 除 Douyin Sans 外，@font-face 已统一收口到 src/styles/local-fonts.css：
+ *    那里提供子集版（woff2，几十~几百 KB）+ 完整字体兜底。
+ *    这里不再重复声明，否则浏览器会优先命中未子集化的原始大文件
+ *    （Source-KeynoteartHans 9.8MB / Alibaba PuHuiTi 9.3~9.7MB）。
  */
-
-@font-face {
-  font-family: 'NavKeynote';
-  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'NavPuHuiTiMedium';
-  src: url('/fonts/Alibaba-PuHuiTi-Medium.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* 数字字体：抖音 Sans（Bold）。
    消防总览的指标数值用它，与 `components/campus-monitor/campus-monitor-fonts.css`
    声明的是同一份字体文件 / 同一字重，这里在本页补一份，
-   避免大屏页因为没引 campus-monitor 字体表而回退到系统字体。 */
+   避免大屏页因为没引 campus-monitor 字体表而回退到系统字体。
+   注：DouyinSansBold.ttf 的 GSUB 表损坏、无法子集化，保留原始声明。 */
 @font-face {
   font-family: 'Douyin Sans';
   src: url('/fonts/DouyinSansBold.ttf') format('truetype');
   font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* 卡片标题：设计稿 70:4945 用 Source-KeynoteartHans 900（思源演示斜黑体），
-   字重 900 是该字体自带的（otf 只有这一档），另起族名是为了不和导航的
-   'NavKeynote'（同文件、font-weight: normal）互相覆盖；
-   与导航命中同一个字体文件，浏览器只下载一份。 */
-@font-face {
-  font-family: 'SectionTitleHans';
-  src: url('/fonts/Source-KeynoteartHans.otf') format('opentype');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* 加载遮罩副文案：设计稿 173:26615 的「正在加载模型资源…」用 Alibaba PuHuiTi Regular 400。
-   全站的 'Alibaba PuHuiTi' 只在 font-family 栈里出现，并没有对应的 @font-face
-   （页面实际回退到系统字体），所以这里为 Regular 单独起一个族名，
-   与导航的 'NavPuHuiTiMedium'（Medium 500）互不影响。 */
-@font-face {
-  font-family: 'LoadingPuHuiTi';
-  src: url('/fonts/Alibaba-PuHuiTi-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* 钉钉进步体：故障排名等模块的行内文字（设计稿 7:335 / 7:336）。
-   与其它大屏页（campus / campus-monitor / linking）声明的是同一份字体文件。 */
-@font-face {
-  font-family: 'DingTalk JinBuTi';
-  src: url('/fonts/DingTalkJinBuTi.ttf') format('truetype');
-  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }

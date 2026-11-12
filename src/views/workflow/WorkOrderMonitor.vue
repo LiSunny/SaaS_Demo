@@ -210,7 +210,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useConfirm } from '@/composables/useConfirm'
 import { useWorkOrderStore } from '@/stores/work-order'
 import StatusTag from '@/components/business/StatusTag.vue'

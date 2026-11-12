@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import * as TDesignIconsVue from 'tdesign-icons-vue-next'
+import { TDESIGN_ICON_MAP } from './appIconMap'
 
 const props = defineProps<{
   name: string
@@ -31,7 +31,7 @@ function toPascalCase(name: string): string {
 const tdIcon = computed(() => {
   // Try original capitalization first (backward compat)
   const simpleKey = props.name.charAt(0).toUpperCase() + props.name.slice(1)
-  const lib = TDesignIconsVue as Record<string, any>
+  const lib = TDESIGN_ICON_MAP
   if (lib[simpleKey]) return lib[simpleKey]
   // Try PascalCase + Icon suffix (TDesign convention: ArrowLeftIcon, EditIcon)
   const pascalKey = toPascalCase(props.name) + 'Icon'

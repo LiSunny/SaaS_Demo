@@ -114,6 +114,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 import { useRouter, useRoute } from 'vue-router'
 import { Close } from '@element-plus/icons-vue'
 import BigscreenHeader from './components/BigscreenHeader.vue'
@@ -225,7 +226,10 @@ function onTabChange(key: string | number) {
     destroyMap()
   }
   if (k === 'safety-map') {
-    nextTick(() => initSafetyMap())
+    nextTick(async () => {
+      await loadAMap()
+      initSafetyMap()
+    })
   }
 }
 
@@ -384,7 +388,7 @@ function addMaskLayer(AMap: any) {
   safetyMapInstance.add(safetyMaskPolygon)
 }
 
-function initSafetyMap() {
+async function initSafetyMap() {
   if (!safetyMapContainer.value || !(window as any).AMap) return
   if (safetyMapInstance) {
     safetyMapInstance.resize()
@@ -499,7 +503,10 @@ function destroyMap() {
 onMounted(async () => {
   syncStreetFromQuery()
   if (activeTab.value === 'safety-map') {
-    nextTick(() => initSafetyMap())
+    nextTick(async () => {
+      await loadAMap()
+      initSafetyMap()
+    })
   }
   try {
     const screens = await getUserBigscreens()

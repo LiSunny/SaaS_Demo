@@ -167,7 +167,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import { useResumptionStore } from '@/stores/resumption'
 import type { ResumptionPlanItem } from '@/types/resumption'
 import { createResumptionPlan, getManagementUnits } from '@/api/adapters/resumption-dao'

@@ -5,7 +5,8 @@
  * 右上角"发起事项"按钮 → 选模板快速发起
  */
 import { computed, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 
 interface StartedItem {

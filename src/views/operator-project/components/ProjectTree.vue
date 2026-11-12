@@ -164,7 +164,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus/es/components/message/index.mjs'
+import 'element-plus/es/components/message/style/css.mjs'
 import AppIcon from '@/components/base/AppIcon.vue'
 import { UNASSIGNED_NODE_ID, useProjectOpsStore } from '@/stores/project-ops'
 import type { HierarchyNode, NodeStat } from '@/types/project-ops'

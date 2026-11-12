@@ -20,3 +20,22 @@ export function avatarUrl(name: string) {
   const avatarName = AVATAR_POOL[idx]
   return `/images/avatars/${encodeURIComponent(avatarName)}.svg`
 }
+
+/** 缺文件时的兜底头像 */
+export const DEFAULT_AVATAR_URL = '/images/avatars/default-user.svg'
+
+/** 按人名取精确头像（门户页角色卡 / 案例协作层用） */
+export function avatarSrc(name: string): string {
+  return `/images/avatars/${encodeURIComponent(name)}.svg`
+}
+
+/**
+ * 头像文件缺失时的回退：换成默认头像，避免留下裂图和 404。
+ * 用 dataset 标记只回退一次，防止默认头像自己也 404 时死循环。
+ */
+export function fallbackAvatar(e: Event): void {
+  const el = e.target as HTMLImageElement | null
+  if (!el || el.dataset.avatarFallback === '1') return
+  el.dataset.avatarFallback = '1'
+  el.src = DEFAULT_AVATAR_URL
+}

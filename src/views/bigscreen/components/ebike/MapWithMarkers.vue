@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { loadAMap } from '@/utils/amapLoader'
 import markerYellow from '@/assets/bigscreen/marker-yellow.svg'
 import markerBlue from '@/assets/bigscreen/marker-blue.svg'
 import markerRed from '@/assets/bigscreen/marker-red.svg'
@@ -28,7 +29,9 @@ const markers: MarkerDef[] = [
   { lng: 109.615, lat: 23.078, name: '南湖小区', bg: 'rgba(0,65,171,0.76)', border: '#86d1ff', accent: '#00a5fe', dotSrc: markerBlue },
 ]
 
-onMounted(() => {
+onMounted(async () => {
+  // 高德 JSAPI 按需加载（原先在 index.html 里同步引入，全站每页都买单）
+  await loadAMap()
   initMap()
 })
 
@@ -39,7 +42,7 @@ onBeforeUnmount(() => {
   }
 })
 
-function initMap() {
+async function initMap() {
   if (!mapContainer.value || !(window as any).AMap) return
 
   const AMap = (window as any).AMap
