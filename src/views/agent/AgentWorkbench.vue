@@ -457,12 +457,19 @@ interface Session {
   updatedAt: number
 }
 
-function sessionKey(): string {
-  return `agent_sessions_${userStore.user?.id || 'guest'}`
+function sessionKey(): string | null {
+  // 不能用 'guest' 兜底：id 取不到时所有账号会共用同一份会话记录，
+  // 导致上一个账号的对话（含别的企业数据）被下一个账号读到。
+  // key 带版本号 v2：旧格式会话（guest 兜底 / 旧库数据快照）直接失效，
+  // 避免历史会话里的旧数据造成「AI 返回了不属于本企业的数据」的错觉。
+  const id = userStore.user?.id
+  return id ? `agent_sessions_v2_${id}` : null
 }
 
 function loadSessions(): Session[] {
-  try { return JSON.parse(localStorage.getItem(sessionKey()) || '[]') as Session[] } catch { return [] }
+  const key = sessionKey()
+  if (!key) return []
+  try { return JSON.parse(localStorage.getItem(key) || '[]') as Session[] } catch { return [] }
 }
 const sessions = ref<Session[]>(loadSessions())
 const currentSessionId = ref(sessions.value[0]?.id || '')
@@ -473,10 +480,17 @@ if (restoredSession) {
   store.artifacts = []
   store.debugEvents = []
   store.isLoading = false
+} else {
+  // 本账号没有历史会话：必须清掉内存里可能残留的上一个账号的对话。
+  // ai-chat store 是全局单例，登出/换账号时若不清空，这段残留会显示给新用户，
+  // 且下一次提问会作为 history 发给后端，AI 会继续引用上个账号查到的别家企业数据。
+  store.reset()
 }
 
 function saveSessions() {
-  localStorage.setItem(sessionKey(), JSON.stringify(sessions.value))
+  const key = sessionKey()
+  if (!key) return
+  localStorage.setItem(key, JSON.stringify(sessions.value))
 }
 
 function sessionTitle(s: Session): string {

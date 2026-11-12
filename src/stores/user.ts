@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useAiChatStore } from './ai-chat'
 import {
   ALL_POSITIONS,
   DEFAULT_POSITION,
@@ -76,6 +77,13 @@ function saveSystemRole(role: string | null): void {
 // ===== Store =====
 
 export const useUserStore = defineStore('user', () => {
+  /** 清空 AI 对话（登录/登出时调用；ai-chat store 是全局单例，跨账号必须清） */
+  function resetAiChat() {
+    try {
+      useAiChatStore().reset()
+    } catch { /* pinia 未就绪时忽略 */ }
+  }
+
   // ===== 登录态 =====
   const token = ref<string>(loadToken())
   const user = ref<any>(loadUser())
@@ -94,6 +102,9 @@ export const useUserStore = defineStore('user', () => {
     // 同步系统角色
     systemRole.value = newUser.systemRole || null
     saveSystemRole(newUser.systemRole || null)
+    // 换账号：清掉上一个账号的 AI 对话（ai-chat store 是全局单例，
+    // 残留的对话会显示给新用户，并作为 history 发给后端，导致 AI 引用上个账号的企业数据）
+    resetAiChat()
     // 系统角色用户不需要岗位
     if (!newUser.systemRole && newUser.position && ALL_POSITIONS.some(p => p.key === newUser.position)) {
       currentPositionKey.value = newUser.position as PositionKey
@@ -109,6 +120,8 @@ export const useUserStore = defineStore('user', () => {
     removeToken()
     removeUser()
     localStorage.removeItem(SYSTEM_ROLE_KEY)
+    // 登出同样要清 AI 对话，避免下一个人（或下一个账号）看到上一位用户的会话
+    resetAiChat()
   }
 
   // ===== 岗位 =====

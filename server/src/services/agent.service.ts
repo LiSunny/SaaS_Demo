@@ -238,6 +238,12 @@ async function visibleEnterpriseIds(scope?: AgentScope): Promise<number[] | null
  *
  * 输出 HTML 块（class="scope-note"），前端用 v-html 渲染，配套样式见 src/style.css。
  * 抽出来后所有工具统一调用——避免每个 case 自行拼写导致格式漂移。
+ *
+ * 三种范围：
+ *   - 全量可见（entIds === null，平台管理员/运营）：不加脚注，平台角色本就是全局视角
+ *   - 本企业 + 下级/辖区：标注扩展了几家
+ *   - 仅本企业：也必须标注。否则用户看到「表格企业列全是本单位」时无法判断
+ *     是范围过滤正确、还是库里本来就只有这一家数据，出问题时无从对齐预期。
  * 入参：
  *   - scope：当前用户的 scope（agent.controller.ts:resolveScope 构造）
  *   - entIds：工具实际查询时使用的企业 ID 集合（来自 visibleEnterpriseIds(scope)）
@@ -255,8 +261,14 @@ export function buildScopeText(
   if (entIds === null || !scope?.enterpriseIds?.length) return ''
   const mine = new Set(scope.enterpriseIds)
   const extra = entIds.filter(id => !mine.has(id)).length
-  if (extra <= 0) return ''
-  return `\n\n<div class="scope-note">${SCOPE_ICON_SVG}<span>数据范围：本企业及 ${extra} 家直接下级/辖区企业（未包含下级的下级；如需包含全部层级，请说「全部下级」）</span></div>`
+  // 带上本企业名，用户才能核对「看到的这些数据属于谁」
+  const names = (scope.enterpriseNames || []).filter(Boolean).join('、')
+  const self = names || '本单位'
+  if (extra > 0) {
+    return `\n\n<div class="scope-note">${SCOPE_ICON_SVG}<span>数据范围：${self} 及 ${extra} 家直接下级/辖区企业（未包含下级的下级；如需包含全部层级，请说「全部下级」）</span></div>`
+  }
+  // 仅本企业范围：显式标注，让「看到的都是本单位数据」这件事可被用户核对
+  return `\n\n<div class="scope-note">${SCOPE_ICON_SVG}<span>数据范围：仅${names ? `本单位（${names}）` : '本单位'}</span></div>`
 }
 
 /** 别名（内部 query_* 工具复用） */
