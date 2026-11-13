@@ -430,8 +430,8 @@
   .el-date-picker {
     --el-datepicker-border-color: rgba(71, 132, 232, 0.45);
     --el-datepicker-inner-border-color: rgba(71, 132, 232, 0.3);
-    --el-datepicker-inrange-bg-color: rgba(71, 132, 232, 0.28);
-    --el-datepicker-inrange-hover-bg-color: rgba(71, 132, 232, 0.4);
+    --el-datepicker-inrange-bg-color: transparent;
+    --el-datepicker-inrange-hover-bg-color: transparent;
   }
 
   .el-date-range-picker__header,
@@ -481,9 +481,13 @@
   .el-date-table td.today .el-date-table-cell__text {
     color: #3cd3d7 !important;
   }
-  /* 悬停单元格：EP 默认用浅灰填充，深底上会糊成一片 */
+  /* 悬停单元格：EP 默认用浅灰填充，深底上会糊成一片 ——
+     改成给日期数字加一圈细环，不铺方块底 */
   .el-date-table td .el-date-table-cell:hover {
-    background-color: rgba(71, 132, 232, 0.22) !important;
+    background-color: transparent !important;
+  }
+  .el-date-table td .el-date-table-cell:hover .el-date-table-cell__text {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
   }
   /* 「今天」且落在选中范围内：数字用实心高亮圆 */
   .el-date-table td.current:not(.disabled) .el-date-table-cell__text {
@@ -496,16 +500,62 @@
     color: #ffffff !important;
   }
 
-  /* 区间中间段：EP 把区间底色画在 .el-date-table-cell 上，
-     这里连 td 一起铺平，避免出现半截色块 */
+  /* ===== 选中区间的连接样式 =====
+     不要「每格一个方块」的底色：中间各格的背景全部清掉，
+     改成一条贯穿区间的细带 —— 中间格铺满整格（相邻格无缝相连），
+     起止格各接半格，带子正好连到端点圆心；
+     端点的实心圆（24px）浮在带子上方。 */
   .el-date-table td.in-range {
-    background: rgba(71, 132, 232, 0.28) !important;
+    background: transparent !important;
   }
   .el-date-table td.in-range .el-date-table-cell {
-    background-color: rgba(71, 132, 232, 0.28) !important;
+    background-color: transparent !important;
   }
   .el-date-table td.in-range .el-date-table-cell:hover {
-    background-color: rgba(71, 132, 232, 0.4) !important;
+    background-color: transparent !important;
+  }
+  /* 中间格：整格宽的连接带
+     注意 EP 会把 start-date / end-date 也标上 in-range，
+     所以要用 :not() 把两端排除，否则带子会从圆点外侧多出一截 */
+  .el-date-table td.in-range:not(.start-date):not(.end-date)::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 8px;
+    transform: translateY(-50%);
+    background: rgba(71, 132, 232, 0.45);
+  }
+  /* 起点：右半格接带 */
+  .el-date-table td.start-date::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    right: 0;
+    top: 50%;
+    height: 8px;
+    transform: translateY(-50%);
+    background: rgba(71, 132, 232, 0.45);
+  }
+  /* 终点：左半格接带 */
+  .el-date-table td.end-date::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 50%;
+    top: 50%;
+    height: 8px;
+    transform: translateY(-50%);
+    background: rgba(71, 132, 232, 0.45);
+  }
+  /* 起止同一天时只有一个点，不需要连接带 */
+  .el-date-table td.start-date.end-date::after {
+    display: none;
+  }
+  /* 端点圆要压在这段连接带上面 */
+  .el-date-table td .el-date-table-cell__text {
+    z-index: 1;
   }
 
   /* 区间起止端点：日期数字用实心高亮圆 */
