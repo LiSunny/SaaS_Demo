@@ -63,6 +63,8 @@ export interface DetailHistory {
   xLabels: string[]
   /** 图表左上角的单位（无单位指标为空串） */
   unit: string
+  /** 枚举量的语义文案（联网状态 / 运行状态这类，连续量为空数组） */
+  enumLabels: string[]
   /** y 轴下界 */
   min: number
   /** y 轴上界 */
@@ -91,9 +93,11 @@ export const HISTORY_TABS: Array<{
   unit: string
   min: number
   max: number
+  /** 枚举量的语义文案，下标对应取值（0 → 第一项）；连续量没有这一项 */
+  enumLabels?: string[]
 }> = [
-  { key: 'online', label: '联网状态', unit: '', min: 0, max: 1 },
-  { key: 'run', label: '运行状态', unit: '', min: 0, max: 1 },
+  { key: 'online', label: '联网状态', unit: '', min: 0, max: 1, enumLabels: ['离线', '在线'] },
+  { key: 'run', label: '运行状态', unit: '', min: 0, max: 1, enumLabels: ['故障', '正常'] },
   { key: 'battery', label: '剩余电量', unit: '%', min: 0, max: 100 },
   { key: 'signal', label: '信号功率', unit: 'dBm', min: -120, max: -60 },
   { key: 'rsrq', label: 'RSRQ', unit: 'dB', min: -20, max: 0 },
@@ -321,6 +325,7 @@ export function buildHistory(
   return {
     xLabels,
     unit: meta.unit,
+    enumLabels: meta.enumLabels ?? [],
     min: meta.min,
     max: meta.max,
     series: [{ name: meta.label, color: SERIES_COLOR, data }],

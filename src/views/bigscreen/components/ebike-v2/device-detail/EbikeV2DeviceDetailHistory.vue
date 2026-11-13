@@ -137,7 +137,7 @@ const history = computed(() => {
   const device = props.device
   const [from, to] = appliedRange.value
   if (!device || !from || !to) {
-    return { xLabels: [], unit: '', min: 0, max: 100, series: [] }
+    return { xLabels: [], unit: '', enumLabels: [], min: 0, max: 100, series: [] }
   }
   // 区间按天选：起点当天 00:00:00，终点当天 23:59:59
   return buildHistory(device, tab.value, startOfDay(from), endOfDay(to))
@@ -146,6 +146,13 @@ const history = computed(() => {
 /** 图表配置 */
 const option = computed<EChartsOption>(() => {
   const h = history.value
+  /**
+   * 枚举量（联网状态 / 运行状态）的取值要转成语义：
+   * y 轴刻度不能写 0 / 1，tooltip 也不能只给一个数字。
+   */
+  const semantics = h.enumLabels.length
+    ? (v: number) => h.enumLabels[Math.round(v)] ?? String(v)
+    : (v: number) => String(v)
   return {
     grid: { left: 46, right: 20, top: 34, bottom: 30 },
     tooltip: {
@@ -167,7 +174,7 @@ const option = computed<EChartsOption>(() => {
             (p) =>
               `<div style="display:flex;align-items:center;gap:8px;line-height:18px">
                  <span style="width:10px;height:6px;border-radius:2px;background:${p.marker?.includes('rgb') ? p.marker : '#4f9df0'}"></span>
-                 <span>${p.seriesName}：${p.value}${unit}</span>
+                 <span>${p.seriesName}：${semantics(Number(p.value))}${unit}</span>
                </div>`,
           )
           .join('')
@@ -192,7 +199,13 @@ const option = computed<EChartsOption>(() => {
       splitNumber: h.max - h.min <= 1 ? 1 : 5,
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: '#719ecd', fontSize: 12, fontFamily: 'Alibaba PuHuiTi' },
+      axisLabel: {
+        color: '#719ecd',
+        fontSize: 12,
+        fontFamily: 'Alibaba PuHuiTi',
+        // 枚举量显示语义文案，不显示 0 / 1
+        formatter: semantics,
+      },
       splitLine: { lineStyle: { color: '#0c3464', type: [2, 2], width: 1 } },
     },
     series: h.series.map((s) => ({
