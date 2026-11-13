@@ -27,7 +27,15 @@
                import，loading 期间显示占位（不能用 v-if 包组件做条件渲染 ——
                那样组件永远不挂载，loader 也就永远不会执行）。 -->
           <Suspense>
-            <AgentWorkbench embedded force-light closable @close="store.close()" />
+            <!-- default-right-collapsed：右栏（调用时间线 / 产物）默认折叠，
+                 与顶栏「小尼平安」页内浮层一致 —— 对话区优先，需要时再点开 -->
+            <AgentWorkbench
+              embedded
+              force-light
+              closable
+              default-right-collapsed
+              @close="store.close()"
+            />
             <template #fallback>
               <div class="chat-loading">
                 <span class="chat-loading-spinner" />
