@@ -1,15 +1,27 @@
 <template>
   <Teleport to="body">
-    <div class="agent-floating-chat" :class="{ 'is-open': store.isOpen }">
-      <!-- 2026-11-04：大屏右下角机器人图标已移除，此处不再渲染折叠态入口。
-           悬浮对话面板本体保留，仍可由代码调用 store.open() 唤起。 -->
+    <div class="agent-floating-chat" :class="[{ 'is-open': store.isOpen }, robotPhase]">
+      <!-- ===== 折叠态：机器人入口（点击唤起居中对话浮层） ===== -->
+      <div v-if="!store.isOpen" class="robot-wrapper">
+        <button
+          class="chat-fab"
+          @click="handleRobotClick"
+          title="小尼平安"
+        >
+          <img src="@/assets/agent-robot.svg" alt="小尼平安" class="fab-robot-img" />
+        </button>
+        <!-- 打招呼气泡 -->
+        <div v-if="robotPhase === 'greeting'" class="robot-greeting">
+          <span>嗨，我是小尼平安 👋</span>
+        </div>
+      </div>
 
       <!-- ===== 展开态：遮罩 + 居中面板 ===== -->
       <div v-if="store.isOpen" class="chat-overlay" @click.self="store.close()">
         <div class="chat-panel" :class="{ 'has-debug': store.debugOpen }">
         <!-- 头部 -->
         <div class="chat-header">
-          <span class="chat-header-title">小安助手</span>
+          <span class="chat-header-title">小尼平安</span>
           <div class="chat-header-actions">
             <button
               v-if="isDev"
@@ -31,7 +43,7 @@
             <div class="welcome-icon">
               <img src="@/assets/agent-robot-chat.svg" alt="AI助手" class="welcome-robot-img" />
             </div>
-            <p class="welcome-text">你好！我是小安助手。</p>
+            <p class="welcome-text">你好！我是小尼平安。</p>
             <p class="welcome-hint">可以帮你查询数据、打开页面：</p>
             <div class="welcome-chips">
               <button v-for="chip in quickChips" :key="chip" class="welcome-chip" @click="sendQuick(chip)" :disabled="store.isLoading">{{ chip }}</button>
@@ -235,8 +247,20 @@ import { useAiChatStore, type FileAttachment, type FileUploadResult } from '@/st
 const store = useAiChatStore()
 const router = useRouter()
 
-// 2026-11-04：右下角机器人图标（含飞入 / 打招呼 / 探头动画）已移除，
-// 对应的阶段状态与点击处理一并删除；对话面板本身不变。
+// ===== 机器人入场动画 =====
+// 阶段：hidden → flying-in（飞入）→ greeting（打招呼气泡）→ idle（就位待命）
+// 注：2026-11-04 移除机器人入口时此状态机被一并删除，2026-11-13 恢复。
+// 与原实现的两点差异：
+//   1. 终态由 peeking（探头、只露一半）改为 idle（完整就位）—— 机器人是入口，
+//      藏一半既难点到也不易被发现；飞入 + 打招呼的入场动画保持原样。
+//   2. 点击不再受阶段限制（原来必须等到 peeking 才响应），任何时刻点开都生效。
+type RobotPhase = 'hidden' | 'flying-in' | 'greeting' | 'idle'
+const robotPhase = ref<RobotPhase>('hidden')
+const robotTimers: ReturnType<typeof setTimeout>[] = []
+
+function handleRobotClick() {
+  store.open()
+}
 const inputText = ref('')
 const bodyRef = ref<HTMLElement | null>(null)
 const debugBodyRef = ref<HTMLElement | null>(null)
@@ -522,25 +546,129 @@ function handleNavigate(e: Event) {
 
 onMounted(() => {
   window.addEventListener('agent:navigate', handleNavigate)
+  // 机器人入场动画：页面加载 800ms → 飞入，1500ms → 打招呼，4500ms → 就位
+  robotTimers.push(setTimeout(() => { robotPhase.value = 'flying-in' }, 800))
+  robotTimers.push(setTimeout(() => { robotPhase.value = 'greeting' }, 1500))
+  robotTimers.push(setTimeout(() => { robotPhase.value = 'idle' }, 4500))
 })
 
 onUnmounted(() => {
   window.removeEventListener('agent:navigate', handleNavigate)
   if (previewTimer) clearTimeout(previewTimer)
   if (pendingPreviewUrl.value) URL.revokeObjectURL(pendingPreviewUrl.value)
+  robotTimers.forEach(clearTimeout)
+  robotTimers.length = 0
 })
 </script>
 
 <style lang="scss" scoped>
 /* ===== 悬浮对话容器 =====
-   2026-11-04：右下角机器人图标（含飞入 / 打招呼 / 探头动画）已移除，
-   容器现在只承载展开态的对话面板。 */
+   2026-11-04：右下角机器人图标（含飞入 / 打招呼 / 探头动画）被移除；
+   2026-11-13：按需求恢复机器人入口与入场动画（飞入 → 打招呼 → 就位待命）。
+   终态由「探头露一半」改为「完整就位 + 轻微浮动」，让入口可点、可发现。 */
 .agent-floating-chat {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 9999;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* 入场前完全隐藏 */
+  &.hidden .robot-wrapper { opacity: 0; }
+
+  /* 飞入：从右侧外部飞入，落位时轻微回弹 */
+  &.flying-in .robot-wrapper {
+    animation: robot-fly-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* 打招呼阶段：机器人已就位，轻微浮动 */
+  &.greeting .robot-wrapper {
+    animation: robot-float 2.6s ease-in-out infinite;
+  }
+
+  /* 就位待命：轻微上下浮动，提示可点 */
+  &.idle .robot-wrapper {
+    animation: robot-float 3.2s ease-in-out infinite;
+  }
+}
+
+/* ===== 飞入动画（从右侧外部飞入） ===== */
+@keyframes robot-fly-in {
+  0%   { transform: translateX(160px); opacity: 0; }
+  60%  { transform: translateX(-12px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* ===== 就位后的轻微浮动 ===== */
+@keyframes robot-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* ===== 机器人容器 ===== */
+.robot-wrapper {
+  position: relative;
+  transition: transform 0.5s ease-out, opacity 0.5s;
+}
+
+/* ===== 浮动按钮 ===== */
+.chat-fab {
+  width: 112px;
+  height: 112px;
+  border: none;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+}
+
+.fab-robot-img {
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+}
+
+/* ===== 打招呼气泡 ===== */
+.robot-greeting {
+  position: absolute;
+  bottom: 100%;
+  right: -10px;
+  margin-bottom: 12px;
+  background: #fff;
+  color: #1a1a2e;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 16px 16px 4px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  animation: greeting-bounce 0.4s ease-out;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 24px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #fff;
+  }
+}
+
+@keyframes greeting-bounce {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 @keyframes dot-pulse {
