@@ -68,6 +68,53 @@
   transform: rotate(180deg);
 }
 
+/* ===== 日期区间筛选框 =====
+   照搬消防档案页（EbikeV2ListPanel）的做法：不自己画外框，
+   直接改 Element Plus 自己的 .el-date-editor —— 底透明、描边 #1A4573、
+   圆角 8、高 36，日期文字 #F2FBFF 16px，分隔符「至」#93AFCC 14px，
+   日历图标用 EP 自带的前缀图标（着色 #5077A7），不用单独画素材。
+   档案页那套是嵌在 .list-panel 下压过大屏主题的 .bigscreen .el-input__wrapper；
+   这里挂在 .dd-date 上，特异性 (0,3,0) 已经高于它，不靠加载顺序赌。 */
+.dd-date {
+  width: vw(380);
+  min-width: 320px;
+  flex: 0 0 auto;
+}
+
+.dd-date :deep(.el-date-editor) {
+  width: 100%;
+  flex: none;
+  height: vh(36);
+  padding: 0 vw(12);
+  background: transparent;
+  border: 1px solid var(--fire-input-line);
+  border-radius: vw(8);
+  box-shadow: none;
+}
+
+.dd-date :deep(.el-range-input) {
+  width: auto;
+  flex: 1;
+  font-size: 16px;
+  color: var(--fire-text-bright);
+}
+
+.dd-date :deep(input.el-range-input) {
+  width: 100%;
+}
+
+.dd-date :deep(.el-range-separator) {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 vw(8);
+  color: var(--fire-text-label);
+  font-size: 14px;
+}
+
+.dd-date :deep(.el-range__icon) {
+  color: var(--fire-text-dim);
+}
+
 /* ===== 事件角标 =====
    异常统一一个红，档位由文案承担（设计稿火警 #E5523F / 故障 #FFA600，
    这里按全页只留一个红的口径收成 --fire-anomaly）。 */

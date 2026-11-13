@@ -366,9 +366,41 @@ function onScroll() {
   if (current !== tab.value) tab.value = current
 }
 
-/** Esc 关闭弹窗（模态的常规预期） */
+/**
+ * 关掉还开着的日期面板
+ *
+ * Element Plus 的日期面板**不处理 Esc**（它的 useEscapeKeydown 只用于 focus-trap），
+ * 只认「点外面关闭」—— 内部是 document 上的 mousedown + mouseup 配对判断。
+ * 这里补一对事件把面板关掉，抽屉留着；否则 Esc 在面板开着时什么也不发生。
+ */
+function closeDatePanel() {
+  const t = document.body
+  t.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+  t.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+}
+
+/**
+ * 日期面板是否处于打开状态
+ *
+ * 注意：EP 关闭 popper 后**不会把它从 DOM 摘掉**，只是置为 display:none，
+ * 所以不能拿「元素是否存在」当判据 —— 那样第二次 Esc 永远去关面板，抽屉再也关不掉。
+ * 要看它是不是真的显示着。
+ */
+function isDatePanelOpen() {
+  return [...document.querySelectorAll<HTMLElement>('.bigscreen-el-date-panel')].some((el) => {
+    if (el.offsetParent === null) return false
+    return getComputedStyle(el).visibility !== 'hidden'
+  })
+}
+
+/** Esc 关闭抽屉（模态的常规预期） */
 function onKeydown(e: KeyboardEvent) {
   if (e.key !== 'Escape' || !props.modelValue) return
+  // 面板开着时，Esc 先关面板，别把抽屉一起关了
+  if (isDatePanelOpen()) {
+    closeDatePanel()
+    return
+  }
   close()
 }
 

@@ -9,17 +9,19 @@
     <!-- ===== 工具条（设计稿 #165:26289：日期区间 + 查询 … 批量导出） ===== -->
     <div class="log__toolbar">
       <div class="log__toolbar-left">
-        <div class="log__date">
-          <span class="log__date-icon" />
+        <!-- 日期区间：样式与消防档案页同一套（见 device-detail-common.scss） -->
+        <div class="dd-date">
           <el-date-picker
             v-model="draftRange"
             type="daterange"
+            unlink-panels
+            editable
+            clearable
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            popper-class="bigscreen-el-date-panel"
-            class="log__picker"
+            value-format="YYYY-MM-DD"
+            :popper-class="`bigscreen-el-date-panel ${DD_POPPER_CLASS}`"
           />
         </div>
 
@@ -93,7 +95,11 @@
     <div class="dd-pager">
       <div class="dd-pager-left">
         <span class="dd-pager-label">每页显示</span>
-        <el-select v-model="pageSize" class="dd-pagesize" popper-class="bigscreen-el-select-dropdown">
+        <el-select
+          v-model="pageSize"
+          class="dd-pagesize"
+          :popper-class="`bigscreen-el-select-dropdown ${DD_POPPER_CLASS}`"
+        >
           <el-option v-for="s in PAGE_SIZES" :key="s" :label="`${s} 条`" :value="s" />
         </el-select>
         <span class="dd-pager-label">共 {{ filtered.length }} 条数据</span>
@@ -159,6 +165,7 @@
 import { computed, ref, watch } from 'vue'
 import { buildAlarms } from './device-detail-data'
 import type { DetailAlarmRow } from './device-detail-data'
+import { DD_POPPER_CLASS } from './device-detail-popper'
 import type { DutyEvent, SceneDevice } from '../duty/duty-data'
 
 const props = defineProps<{
@@ -192,14 +199,24 @@ const activeId = ref('')
 const toast = ref('')
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-/** 日期区间 */
+/** 日期区间：默认最近七天 */
 function defaultRange(): [string, string] {
   const now = new Date()
   const p = (n: number) => String(n).padStart(2, '0')
   const y = now.getFullYear()
   const m = p(now.getMonth() + 1)
   const d = p(now.getDate())
-  return [`${y}-${m}-${p(now.getDate() - 6)} 00:00:00`, `${y}-${m}-${d} 23:59:59`]
+  return [`${y}-${m}-${p(now.getDate() - 6)}`, `${y}-${m}-${d}`]
+}
+
+/** 'YYYY-MM-DD' → 当天 00:00:00 的时间戳 */
+function startOfDay(s: string): number {
+  return new Date(s.replace(/-/g, '/')).getTime()
+}
+
+/** 'YYYY-MM-DD' → 当天 23:59:59 的时间戳 */
+function endOfDay(s: string): number {
+  return startOfDay(s) + 86_399_999
 }
 
 const draftRange = ref<[string, string]>(defaultRange())
@@ -217,8 +234,9 @@ const all = computed<DetailAlarmRow[]>(() =>
 /** 按已生效的日期区间过滤 */
 const filtered = computed(() => {
   const [from, to] = appliedRange.value
-  const fromAt = new Date(from.replace(/-/g, '/')).getTime()
-  const toAt = new Date(to.replace(/-/g, '/')).getTime()
+  if (!from || !to) return all.value
+  const fromAt = startOfDay(from)
+  const toAt = endOfDay(to)
   return all.value.filter((r) => {
     const at = new Date(r.time.replace(/-/g, '/')).getTime()
     return at >= fromAt && at <= toAt
@@ -325,69 +343,6 @@ watch([pageSize, filtered], () => {
   display: flex;
   align-items: center;
   gap: vw(12);
-}
-
-/* 日期区间框：设计稿 #200:2075（380×36，描边 #1A4573，圆角 8） */
-.log__date {
-  position: relative;
-  width: vw(380);
-  height: vh(36);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  padding-left: vw(42);
-  border: 1px solid #1a4573;
-  border-radius: vw(8);
-  background: transparent;
-}
-
-.log__date-icon {
-  position: absolute;
-  left: vw(12);
-  top: 50%;
-  transform: translateY(-50%);
-  width: vw(20);
-  height: vw(20);
-  pointer-events: none;
-  background-color: #7ea6d6;
-  -webkit-mask: url('@/assets/bigscreen/ebike-v2/device-detail/dd-icon-calendar-2.svg') center / contain
-    no-repeat;
-  mask: url('@/assets/bigscreen/ebike-v2/device-detail/dd-icon-calendar-2.svg') center / contain
-    no-repeat;
-}
-
-.log__picker {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-}
-
-.log__picker :deep(.el-date-editor.el-input__wrapper) {
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.log__picker :deep(.el-range__icon) {
-  display: none;
-}
-
-.log__picker :deep(.el-range-input) {
-  display: flex;
-  align-items: center;
-  gap: vw(6);
-}
-
-.log__picker :deep(.el-range-input__inner) {
-  color: #a9c9ea;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
-}
-
-.log__picker :deep(.el-range-separator) {
-  color: #7ea6d6;
-  font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(14px, calc(16 * var(--min-scale)), 16px);
 }
 
 /* 查询按钮：设计稿 #200:2091 */
