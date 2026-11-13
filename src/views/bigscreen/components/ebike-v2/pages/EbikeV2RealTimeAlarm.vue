@@ -22,6 +22,7 @@
       v-model="detailOpen"
       :device="detailDevice"
       :event="detailEvent"
+      :initial-tab="detailTab"
     />
 
     <!-- ===== 交接班浮层（页内浮层，不跳路由） ===== -->
@@ -75,6 +76,7 @@ import EbikeV2DutyTree from '../duty/EbikeV2DutyTree.vue'
 import EbikeV2DutyPlan from '../duty/EbikeV2DutyPlan.vue'
 import EbikeV2DutyHandover from '../duty/EbikeV2DutyHandover.vue'
 import EbikeV2DeviceDetailDialog from '../device-detail/EbikeV2DeviceDetailDialog.vue'
+import type { DeviceDetailTab } from '../device-detail/device-detail-data'
 import {
   applyDeviceSpaces,
   attachDeviceSpaces,
@@ -115,6 +117,14 @@ const detailOpen = ref(false)
 const detailDevice = ref<(SceneDevice & { event?: DutyEvent }) | null>(null)
 /** 正在查看的设备的当前警情 */
 const detailEvent = computed(() => detailDevice.value?.event)
+/**
+ * 详情抽屉打开时落在哪个分区
+ *
+ * 'alarm' = 告警日志（事件）：从平面图点位或清单「查看」进来，
+ *   值班员要看的是这台设备出过什么事；
+ * 'basic' = 基础信息：点清单整行进来，先看这台设备是什么。
+ */
+const detailTab = ref<DeviceDetailTab>('basic')
 
 /** 操作反馈 */
 const toast = ref('')
@@ -206,13 +216,14 @@ function confirmOne(id: string) {
 /**
  * 打开设备详情弹窗
  *
- * 入口有两条，指向同一个弹窗：
- *   1. 设备列表层点整行 —— 列表是「有哪些设备」，点一行自然是想看这台设备
- *   2. 平面图上点设备点位 —— 图上那个点就是这台设备
- * 设备列表的操作列仍是「在平面图上定位」，两个入口互不吞掉。
+ * 入口有三条，指向同一个抽屉，但落点不同：
+ *   1. 平面图上点设备点位 —— 图上那个点就是这台设备，详情落在告警日志；
+ *   2. 设备列表操作列点「查看」 —— 同上，先在图上标识再弹详情，落在告警日志；
+ *   3. 设备列表点整行 —— 只是"打开这张设备卡片看看"，落在基础信息。
  */
-function openDetail(device: SceneDevice & { event?: DutyEvent }) {
+function openDetail(device: SceneDevice & { event?: DutyEvent }, tab: DeviceDetailTab = 'basic') {
   detailDevice.value = device
+  detailTab.value = tab
   detailOpen.value = true
 }
 

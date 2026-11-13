@@ -12,46 +12,77 @@
     </header>
 
     <!-- ===== 平面图内容（设计稿 #140:25704） ===== -->
-    <div class="plan__body">
-      <div class="plan__stage">
-        <!-- CAD 底图（设计稿 #140:25702，Figma 原图） -->
-        <img class="plan__base" :src="baseImage" alt="建筑平面图" />
+    <div class="plan__body" :class="{ 'is-collapsed': collapsed }">
+      <!--
+        图区：列表展开后，平面图自适应剩余空间 —— 舞台在图区里按 contain 落位，
+        底图与图元始终严丝合缝，且整幅图完整可见，不被列表盖住下半幅。
+      -->
+      <div class="plan__viewport">
+        <div class="plan__stage">
+          <!-- CAD 底图（设计稿 #140:25702，Figma 原图） -->
+          <img class="plan__base" :src="baseImage" alt="建筑平面图" />
 
-        <!-- 设备点位：一台设备一个图元 -->
-        <div
-          v-for="d in plotted"
-          :key="d.key"
-          class="plan__point"
-          :class="{ 'is-alarmed': !!d.event, 'is-located': d.key === locateKey }"
-          :style="d.style"
-          :title="d.tip"
-          role="button"
-          tabindex="0"
-          @click="openDetail(d.device)"
-          @keydown.enter.prevent="openDetail(d.device)"
-          @keydown.space.prevent="openDetail(d.device)"
-        >
-          <img class="plan__point-img" :src="d.icon" :alt="d.label" />
-          <span v-if="d.event" class="plan__point-tag">{{ d.event.category }}</span>
+          <!-- 设备点位：一台设备一个图元（默认干净，告警只靠颜色标识） -->
+          <div
+            v-for="d in plotted"
+            :key="d.key"
+            class="plan__point"
+            :class="{ 'is-alarmed': !!d.event, 'is-located': d.key === locateKey }"
+            :style="d.style"
+            :aria-label="d.label"
+            role="button"
+            tabindex="0"
+            @mouseenter="hoverKey = d.key"
+            @mouseleave="hoverKey = ''"
+            @focus="hoverKey = d.key"
+            @blur="hoverKey = ''"
+            @click="openDetail(d.device)"
+            @keydown.enter.prevent="openDetail(d.device)"
+            @keydown.space.prevent="openDetail(d.device)"
+          >
+            <img class="plan__point-img" :src="d.icon" :alt="d.label" />
+          </div>
+
+          <!--
+            悬浮概览：设备名 + 告警类别 + 告警点位名 + 安装位置
+            点位默认只留一枚干净的图标，文字信息都收进这个浮层 ——
+            图上贴角标既挤又乱（角标字号相对缩小后的图标反而比图标还大），
+            值班员远看时也更该先看到"哪个点在报警"，而不是先读字。
+            概览只说"是什么、在哪"，不显示处置状态那类信息。
+          -->
+          <span v-if="hovered" class="plan__tip" :style="hovered.tipStyle">
+            <span class="plan__tip-head">
+              <span class="plan__tip-name">{{ hovered.label }}</span>
+              <span v-if="hovered.event" class="plan__tip-cat">{{ hovered.event.category }}</span>
+            </span>
+            <!-- 点位名与类别重复时不再单列一行（"故障 / 故障"这种） -->
+            <span v-if="hovered.summary" class="plan__tip-line">{{ hovered.summary }}</span>
+            <span class="plan__tip-line">{{ hovered.place }}</span>
+          </span>
+
+          <!-- 定位标签：贴在设备点位上方，保证「定位到平面图」这一下始终看得见 -->
+          <span v-if="located" class="plan__locate" :style="located.tagStyle">
+            <span class="plan__locate-name">{{ located.label }}</span>
+            <span v-if="located.event" class="plan__locate-cat">{{ located.event.category }}</span>
+          </span>
+
+          <!-- 当前范围内没有设备 -->
+          <span v-if="!plotted.length" class="plan__empty">该管理单元下暂无设备点位</span>
         </div>
-
-        <!-- 定位标签：浮在设备列表层之上，保证「定位到平面图」这一下始终看得见 -->
-        <span v-if="located" class="plan__locate" :style="located.tagStyle">
-          <span class="plan__locate-name">{{ located.label }}</span>
-          <span v-if="located.event" class="plan__locate-cat">{{ located.event.category }}</span>
-        </span>
-
-        <!-- 当前范围内没有设备 -->
-        <span v-if="!plotted.length" class="plan__empty">该管理单元下暂无设备点位</span>
       </div>
 
-      <!-- 设备列表层：浮在平面图之上（设计稿 #160:25871「设备列表」） -->
+      <!--
+        设备列表（设计稿 #160:25871「设备列表」）
+        与图区上下排布：展开时占内容区 56%，折叠时只留标题条，
+        两种状态下图区都吃掉全部剩余空间。
+      -->
       <EbikeV2DutyDeviceList
+        v-model:collapsed="collapsed"
         class="plan__devices"
         :devices="devices"
         :locate-key="locateKey"
         @locate="locateKey = $event"
-        @detail="emit('detail', $event)"
+        @detail="(d, tab) => emit('detail', d, tab)"
       />
     </div>
   </section>
@@ -65,10 +96,11 @@
  *
  *   标题条  #134:531：高 36、横向渐变 rgba(6,64,110,1)→透明、底边 rgba(128,209,253,.15)、
  *           标题「平面图」Inter Black 900 15px #A2CAFF
- *   内容框  #140:25704：内距 12
- *     底图  #140:25702：CAD 平面图（object-fit: contain）
- *     图元  5 个绝对定位的设备图标（58~64 见方，带 0 4px 10.5px 投影）
- *     设备列表 #160:25871：浮在平面图之上的绝对定位区块（展开时占内容高度 56%，
+ *   内容框  #140:25704：内距 12，上下两段
+ *     图区  #140:25702：CAD 平面图（object-fit: contain）
+ *           + 5 个绝对定位的设备图标（58~64 见方，带 0 4px 10.5px 投影）；
+ *           舞台在图区里按 contain 落位，列表展开时自适应剩余空间，整幅图完整可见
+ *     设备列表 #160:25871：与图区上下排布（展开时占内容高度 56%，
  *             折叠时只剩标题条），见 EbikeV2DutyDeviceList.vue
  *
  * 语义：这是消防 CRT 的「平面图描点」——
@@ -78,8 +110,10 @@
  *
  * 两层的关系：平面图是「在哪」，设备列表是「有哪些」——
  *   列表点「定位」→ 平面图上对应的那一点描一圈选中蓝，并浮出一枚标签
- *   （标签压在设备列表层之上：列表展开时盖住了图的下半部分，
- *     没有这枚标签，用户点了「定位」看不到任何反应）。
+ *   列表点「查看」→ 先在平面图上标识这台设备（与点定位同一套高亮与标签），
+ *             再同步弹出该设备的详情抽屉
+ *   列表点整行 → 直接打开设备详情抽屉
+ *   平面图点点位 → 标识该设备并同步弹详情抽屉，列表里对应那一行同时高亮
  *   列表默认把有事件的设备置顶，值班员扫一眼顶部就知道哪些在报警。
  *
  * 坐标：设计稿的图元位置相对「内容框 1479×820」给出，而底图是 contain 落位
@@ -96,13 +130,16 @@
  * 与设计稿的有意偏离：
  *   1. 告警描边用项目异常红 #ff8080（设计稿 #E74E4E，同属异常红一族），
  *      并加一圈缓慢呼吸的光晕 —— 大屏远看时"哪个点在报警"必须一眼可见。
- *   2. 告警点位带一个类别角标（火警 / 故障 / 预警），设计稿只有描边；
- *      角标文案承担档位区分，颜色不区分（全页只留一个红）。
+ *   2. **点位上不贴任何文字角标**（设计稿给告警图元加了类别角标）：
+ *      平面图缩到剩余空间后图标只有二三十像素，角标字号比图标还大，
+ *      整张图看着又挤又乱。类别（火警 / 故障 / 预警）挪进**悬浮概览**里，
+ *      默认状态只留"图标 + 颜色"这一层，颜色不区分档位（全页只留一个红）。
  *   3. 设计稿只有 5 个机位，这里按设计稿机位 + 规则网格补足到 33 个，
  *      设备多于机位时标题条会提示"显示前 N 台"。
  */
 import { computed, ref } from 'vue'
-import { formatTime, type DutyEvent, type SceneDevice } from './duty-data'
+import { type DutyEvent, type SceneDevice } from './duty-data'
+import type { DeviceDetailTab } from '../device-detail/device-detail-data'
 import EbikeV2DutyDeviceList from './EbikeV2DutyDeviceList.vue'
 
 const props = defineProps<{
@@ -115,16 +152,36 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  /** 打开某台设备的详情弹窗 */
-  (e: 'detail', device: SceneDevice & { event?: DutyEvent }): void
+  /**
+   * 打开某台设备的详情弹窗
+   *
+   * tab：详情默认落在哪个分区 —— 从平面图点位进来的给 'alarm'（告警日志），
+   * 设备列表里点整行进来的给 'basic'（基础信息）。
+   */
+  (e: 'detail', device: SceneDevice & { event?: DutyEvent }, tab?: DeviceDetailTab): void
 }>()
 
 /** 被「定位」的设备 key（设备列表点操作列时高亮平面图上对应的那一点） */
 const locateKey = ref('')
 
-/** 点平面图上的点位 → 打开该设备的详情弹窗 */
+/** 设备列表是否折叠（折叠时只留标题条，平面图吃掉全部剩余空间） */
+const collapsed = ref(false)
+
+/** 正在悬浮的点位（弹出告警概览） */
+const hoverKey = ref('')
+
+/**
+ * 点平面图上的点位 → 标识这台设备 + 打开它的详情弹窗
+ *
+ * 同时把定位态同步给设备列表（列表里对应那一行高亮），
+ * 两层指的是同一批设备，谁点谁都要在另一层有反应。
+ *
+ * 详情默认落在「告警日志」（事件）分区：值班员从图上点进来，
+ * 要看的就是这台设备发生了什么，不是它的静态档案。
+ */
 function openDetail(d: SceneDevice & { event?: DutyEvent }) {
-  emit('detail', d)
+  locateKey.value = d.key
+  emit('detail', d, 'alarm')
 }
 
 /* ============================================================
@@ -265,6 +322,9 @@ const plotted = computed(() => {
 
   return sorted.slice(0, SLOTS.length).map((d, i) => {
     const slot = SLOTS[i]
+    // 点位中心在底图坐标系里的位置（百分比）
+    const cx = slot.x / STAGE_W
+    const cy = slot.y / STAGE_H
     return {
       key: d.key,
       label: d.label,
@@ -272,6 +332,10 @@ const plotted = computed(() => {
       event: d.event,
       /** 原始设备对象：点点位打开详情时要把完整设备传回去 */
       device: d,
+      /** 安装位置：园区空间归属优先，没有就退到事件里的位置 */
+      place: d.space
+        ? `${d.space.buildingName} ${d.space.part}`
+        : (d.event?.location ?? '—'),
       style: {
         left: `${((slot.x - slot.size / 2) / STAGE_W) * 100}%`,
         top: `${((slot.y - slot.size / 2) / STAGE_H) * 100}%`,
@@ -279,12 +343,28 @@ const plotted = computed(() => {
       },
       /** 定位标签的落点（点位中心，百分比坐标） */
       tagStyle: {
-        left: `${(slot.x / STAGE_W) * 100}%`,
-        top: `${(slot.y / STAGE_H) * 100}%`,
+        left: `${cx * 100}%`,
+        top: `${cy * 100}%`,
       },
-      tip: d.event
-        ? `${d.label} · ${d.event.point}（${d.event.category}）\n${d.event.location} · ${formatTime(d.event.latestAt)}`
-        : `${d.label} · 当前无警情`,
+      /**
+       * 悬浮概览的落点
+       *
+       * 三个方向都要避开：
+       *   靠上 → 浮在点位下方（否则超出图区顶部被裁）
+       *   靠左 / 靠右 → 贴边对齐（居中会有一半跑到图区外）
+       */
+      tipStyle: {
+        left: `${cx * 100}%`,
+        top: `${cy * 100}%`,
+        transform:
+          cy < 0.2
+            ? 'translate(-50%, 14px)'
+            : cx < 0.14
+              ? 'translate(10px, calc(-100% - 10px))'
+              : cx > 0.86
+                ? 'translate(calc(-100% - 10px), calc(-100% - 10px))'
+                : 'translate(-50%, calc(-100% - 10px))',
+      },
     }
   })
 })
@@ -294,6 +374,30 @@ const overflow = computed(() => props.devices.length > plotted.value.length)
 
 /** 被定位的那台设备（不在当前机位里就没有标签） */
 const located = computed(() => plotted.value.find((d) => d.key === locateKey.value))
+
+/**
+ * 正在悬浮的那台设备 → 告警概览浮层
+ *
+ * 点位默认只有一枚干净的图标，文字全在这里：
+ * 设备名 + 类别角标 + 告警点位名 + 安装位置。
+ *
+ * 两处去重：
+ *   - 点位名与类别一样时（"故障"既是点位名也是类别）不单列一行；
+ *   - 不显示处置状态（已持续时长这类），概览只说"发生了什么、在哪"。
+ */
+const hovered = computed(() => {
+  const d = plotted.value.find((p) => p.key === hoverKey.value)
+  if (!d) return null
+  const ev = d.event
+  return {
+    label: d.label,
+    event: ev,
+    /** 告警点位名（与类别重复则不显示；无警情时说人话） */
+    summary: ev ? (ev.point === ev.category ? '' : ev.point) : '当前无警情',
+    place: d.place,
+    tipStyle: d.tipStyle,
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -344,31 +448,46 @@ const located = computed(() => plotted.value.find((d) => d.key === locateKey.val
 }
 
 /* ===== 内容区：设计稿 #140:25704 ===== */
+/* 上下两段：图区（自适应剩余空间）| 设备列表（定高）
+   设计稿里设备列表是浮在平面图内容框内的绝对定位区块（盖住下半幅），
+   这里改成上下排布：值班员展开列表时，平面图整幅缩进剩余空间里完整可见，
+   不用再靠"标签浮在列表之上"才能看见定位结果。 */
 .plan__body {
-  position: relative;
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: vw(12);
+  padding: vw(12);
+}
+
+/* ===== 图区：容器查询算舞台宽高 ===== */
+/* 舞台要用容器查询算宽高：底图 contain 后的那块必须严格保持 1014:820，
+   否则底图和按底图坐标摆的图元就对不上（max-height 收高度时宽不变，
+   比例被拉扁，contain 会在盒子里再留边，图元全部错位）。
+   容器是「图区」而不是整个内容框 —— 列表展开时图区变小，舞台跟着变小，
+   底图与图元始终在同一个坐标系里。 */
+.plan__viewport {
+  position: relative;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: vw(12);
-  /* 舞台要用容器查询算宽高：底图 contain 后的那块必须严格保持 1014:820，
-     否则底图和按底图坐标摆的图元就对不上（max-height 收高度时宽不变，
-     比例被拉扁，contain 会在盒子里再留边，图元全部错位）。 */
   container-type: size;
 }
 
-/* ===== 设备列表层：浮在平面图之上（设计稿 #160:25871） ===== */
-/* 设计稿里它是平面图内容框内的绝对定位区块（x 12 / y 376 / 1477×450），
-   盖住平面图下半部分 —— 平面图留上半部分当上下文，设备清单当下半部分的正文。
-   展开高度由列表组件自己定（56% = 设计稿 450 / 796），折叠时只留 40 高的标题条，
-   平面图整块露出来。 */
+/* ===== 设备列表：与图区上下排布 ===== */
+/* 高度由 CSS 变量单一控制（父级 .plan__devices 上定义）：
+   展开时占内容区 56%（设计稿 450 / 796），折叠时只剩 40 高的标题条。 */
 .plan__devices {
-  position: absolute;
-  left: vw(12);
-  right: vw(12);
-  bottom: vw(12);
-  z-index: 10;
+  flex: 0 0 auto;
+  --dl-height: 56%;
+}
+
+/* 折叠态：列表只留标题条，图区吃掉全部剩余空间 */
+.plan__body.is-collapsed .plan__devices {
+  --dl-height: 40px;
 }
 
 /* 舞台：底图实际落位的那块（1014×820），图元与底图共用同一坐标系 */
@@ -396,6 +515,20 @@ const located = computed(() => plotted.value.find((d) => d.key === locateKey.val
   cursor: pointer;
 }
 
+/* 悬浮热区：平面图缩到剩余空间后图标只有二三十像素，
+   光靠图标本身不好指 —— 热区向外扩一圈，指哪都不会滑 */
+.plan__point::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+/* 悬浮的点位要压在其余点位之上，否则概览浮层会被后画的点挡住 */
+.plan__point:hover,
+.plan__point:focus-visible {
+  z-index: 20;
+}
+
 /* 键盘可达：焦点框给在图元上 */
 .plan__point:focus-visible {
   outline: 2px solid #63a9ff;
@@ -421,20 +554,55 @@ const located = computed(() => plotted.value.find((d) => d.key === locateKey.val
   border-radius: vw(4);
 }
 
-/* 告警类别角标：档位由文案承担，颜色全页只留一个红 */
-.plan__point-tag {
+/* ===== 悬浮概览：告警类别 / 点位 / 位置 / 时间 ===== */
+/* 点位上不贴文字角标（角标字号比缩小后的图标还大，整张图又挤又乱），
+   文字都收进这个浮层。 */
+.plan__tip {
   position: absolute;
-  top: -18%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0 vw(4);
-  border-radius: vw(2);
-  background: var(--fire-anomaly);
-  color: #06203f;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: vh(3);
+  min-width: vw(180);
+  /* 图区被列表挤窄时（列表展开），浮层不能比整张图还宽 —— 70cqw 以图区宽为上限 */
+  max-width: min(vw(280), 70cqw);
+  padding: vh(8) vw(12);
+  border: 1px solid rgba(99, 169, 255, 0.85);
+  border-radius: vw(4);
+  background: rgba(0, 32, 71, 0.96);
+  box-shadow: 0 vh(6) vh(18) rgba(0, 10, 30, 0.55);
+  color: var(--fire-text-hero);
   font-family: 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
-  font-size: clamp(12px, calc(13px * var(--min-scale)), 13px);
-  line-height: 1.5;
+  font-size: clamp(14px, calc(14px * var(--min-scale)), 14px);
+  line-height: 1.4;
   white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 头部：设备名 + 类别角标 */
+.plan__tip-head {
+  display: flex;
+  align-items: center;
+  gap: vw(6);
+}
+
+.plan__tip-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 类别角标：直接复用全大屏统一的 fire-badge（径向渐变 + 深蓝底 + 细描边），
+   字号也随之落到 mixin 的 10px —— 手写的 14px 在这个小片上又大又压过设备名 */
+.plan__tip-cat {
+  @include fire-badge(255, 128, 128);
+}
+
+/* 正文行 */
+.plan__tip-line {
+  color: var(--fire-text-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 定位态：设备列表点「定位」后，平面图上那一点的描边
@@ -446,8 +614,8 @@ const located = computed(() => plotted.value.find((d) => d.key === locateKey.val
   animation: plan-locate 1.2s ease-in-out infinite;
 }
 
-/* 定位标签：浮在设备列表层之上（列表盖住了图下半部分，
-   没有这枚标签，「定位」这一下在图上就看不见了） */
+/* 定位标签：贴在设备点位上方（transform 往上偏一个自身高度），
+   保证「定位到平面图」这一下始终看得见 */
 .plan__locate {
   position: absolute;
   z-index: 30;
@@ -473,13 +641,9 @@ const located = computed(() => plotted.value.find((d) => d.key === locateKey.val
   text-overflow: ellipsis;
 }
 
+/* 类别角标：与悬浮概览同款（fire-badge），全大屏角标一套样式 */
 .plan__locate-cat {
-  flex-shrink: 0;
-  padding: 0 vw(6);
-  border-radius: vw(2);
-  background: var(--fire-anomaly);
-  color: #06203f;
-  font-size: clamp(12px, calc(13px * var(--min-scale)), 13px);
+  @include fire-badge(255, 128, 128);
 }
 
 /* 空态 */

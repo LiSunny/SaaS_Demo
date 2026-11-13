@@ -181,7 +181,7 @@
  *
  * 数据口径见 device-detail-data.ts 顶部说明。
  */
-import { computed, onBeforeUnmount, ref, watch, type Ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch, type Ref } from 'vue'
 import EbikeV2DeviceDetailHistory from './EbikeV2DeviceDetailHistory.vue'
 import EbikeV2DeviceDetailAlarms from './EbikeV2DeviceDetailAlarms.vue'
 import {
@@ -200,8 +200,16 @@ const props = withDefaults(
     device?: SceneDevice | null
     /** 该设备当前的警情（没有则为空） */
     event?: DutyEvent | null
+    /**
+     * 打开时落在哪个分区
+     *
+     * 从平面图点位或清单「查看」进来给 'alarm'（告警日志 = 事件）——
+     * 值班员点这台设备就是冲着一堆告警记录来的；
+     * 点整行进来给 'basic'（基础信息）。
+     */
+    initialTab?: DeviceDetailTab
   }>(),
-  { device: null, event: null },
+  { device: null, event: null, initialTab: 'basic' },
 )
 
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
@@ -336,13 +344,33 @@ function close() {
 }
 
 /** 左栏点击：滚到对应分区 */
-function scrollToSection(key: DeviceDetailTab) {
+function scrollToSection(key: DeviceDetailTab, behavior: ScrollBehavior = 'smooth') {
   const el = sectionRefs[key].value
   const box = contentRef.value
   if (!el || !box) return
   // 手动算 scrollTop，不用 scrollIntoView —— 后者会连带滚动祖先容器
-  box.scrollTo({ top: el.offsetTop, behavior: 'smooth' })
+  box.scrollTo({ top: el.offsetTop, behavior })
   tab.value = key
+}
+
+/**
+ * 打开 / 换设备时落到指定分区
+ *
+ * 抽屉内容是 v-if 渲染的，刚打开时右栏还停在顶部 —— 光把左栏高亮改掉
+ * 会造成"左栏说在告警日志、右栏还显示基础信息"的对不上，
+ * 所以这里连内容区一起滚过去（打开时用 instant，不要一段动画）。
+ *
+ * 定位要做两遍：右栏里的图表 / 表格是异步渲染的，nextTick 时分区高度
+ * 还没稳定，量到的 offsetTop 偏小，滚过去差一点 —— 等一帧再校正一次。
+ */
+function gotoInitialTab() {
+  const key = props.initialTab
+  tab.value = key
+  if (key === 'basic') return
+  nextTick(() => {
+    scrollToSection(key, 'auto')
+    setTimeout(() => scrollToSection(key, 'auto'), 220)
+  })
 }
 
 /** 滚动时同步左栏高亮 */
@@ -409,6 +437,8 @@ watch(
   (v) => {
     if (v) {
       document.addEventListener('keydown', onKeydown)
+      // 打开即落到指定分区（告警日志 / 基础信息）
+      gotoInitialTab()
     } else {
       document.removeEventListener('keydown', onKeydown)
     }
@@ -416,13 +446,14 @@ watch(
   { immediate: true },
 )
 
-/** 换设备：回到基础信息、清掉消音态与刷新计数 */
+/** 换设备：回到指定分区、清掉消音态与刷新计数 */
 watch(
   () => props.device?.key,
   () => {
-    tab.value = 'basic'
+    tab.value = props.initialTab
     muted.value = false
     refreshTick.value = 0
+    gotoInitialTab()
   },
 )
 

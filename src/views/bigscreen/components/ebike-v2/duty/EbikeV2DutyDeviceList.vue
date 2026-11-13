@@ -93,13 +93,21 @@
             <span class="dl__cell dl__cell--code">{{ row.code }}</span>
 
             <span class="dl__cell dl__cell--act">
+              <!--
+                操作列只留一枚「查看」：
+                在平面图上标识这台设备 + 同步弹出它的详情抽屉（落在告警日志分区）。
+                原先另有的一枚十字准星（纯定位）撤掉 —— 它的作用已被这枚按钮覆盖，
+                两枚并排既占宽又长得像（值班员分不清哪个是"看位置"哪个是"看详情"）。
+              -->
               <button
                 type="button"
-                class="dl__act"
-                title="在平面图上定位"
-                :aria-label="`在平面图上定位 ${row.label}`"
-                @click.stop="locate(row)"
-              />
+                class="dl__act dl__act--view"
+                title="查看设备详情"
+                :aria-label="`查看 ${row.label} 的详情`"
+                @click.stop="view(row)"
+              >
+                <Eye :size="16" :stroke-width="1.8" />
+              </button>
             </span>
           </div>
 
@@ -148,8 +156,9 @@
  *           数据行 1px #0C3464 分隔线；列：事件 / 设备类型 / 安装位置 / 设备编码 / 操作
  *   分页条  #160:26017：左侧「每页显示 + 共 N 条数据」，右侧上一页 / 页码 / 下一页
  *
- * 这层是**浮在平面图之上**的一层（设计稿里它是平面图内容框内的绝对定位区块）：
- * 平面图留在上半部分当上下文，设备清单在下半部分当正文。
+ * 这层与平面图**上下排布**（设计稿里它是平面图内容框内的绝对定位区块，
+ * 盖住图的下半幅）：列表展开时平面图自适应剩余空间、整幅完整可见，
+ * 列表高度与折叠状态由父级通过 --dl-height / v-model:collapsed 控制。
  *
  * 三条与「平板看图」不同的产品口径：
  *   1. 列表内容是**平面图上的全部设备**（含未报警的），不是只有报警的那几台 ——
@@ -166,13 +175,17 @@
  *      这一条与本页平面图上的告警角标、与大屏其它列表页都保持一致。
  *   2. 角标字号取 14px（设计稿 10px）：大屏正文有 14px 字号下限，
  *      10px 的角标在 1920×1080 下远看不清。
- *   3. 设计稿的「操作」列图标是十字准星，本层做成**在平面图上定位**：
- *      点一下，平面图上对应的点高亮出来（列表与图上的点位是同一批设备，
- *      两层不联动的话点开这一层也只是多一张表）。
+ *   3. 操作列只留一枚「查看」图标：
+ *      在平面图上标识这台设备（描一圈选中蓝 + 浮出标签），并同步弹出它的详情抽屉，
+ *      抽屉落在告警日志（事件）分区 —— 值班员拿到一条警情后最常见的一步就是
+ *      "这台设备出了什么事"，得有个直达的入口。
+ *      （曾另有一枚十字准星做"纯定位"，与这枚功能重叠、并排又长得像，已撤掉。）
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { Eye } from 'lucide-vue-next'
 import { symbolDef, SYMBOL_REGISTRY_VERSION } from '@/symbols'
 import { deviceCodeOfKey, type DutyEvent, type SceneDevice } from './duty-data'
+import type { DeviceDetailTab } from '../device-detail/device-detail-data'
 
 const props = defineProps<{
   /** 当前管理单元内的全部设备（含未报警的），带警情 */
@@ -184,8 +197,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   /** 在平面图上定位这台设备 */
   (e: 'locate', deviceKey: string): void
-  /** 打开这台设备的详情弹窗 */
-  (e: 'detail', device: SceneDevice & { event?: DutyEvent }): void
+  /**
+   * 打开这台设备的详情弹窗
+   *
+   * tab：详情默认落在哪个分区 —— 操作列「查看」给 'alarm'（告警日志），
+   * 点整行给 'basic'（基础信息）。
+   */
+  (e: 'detail', device: SceneDevice & { event?: DutyEvent }, tab?: DeviceDetailTab): void
 }>()
 
 /* ============================================================
@@ -206,8 +224,13 @@ const emit = defineEmits<{
  * 状态
  * ============================================================ */
 
-/** 折叠态：只留标题条，平面图整块露出来 */
-const collapsed = ref(false)
+/**
+ * 折叠态：只留标题条，平面图整块露出来
+ *
+ * 折叠状态由父级（平面图组件）持有：列表高度一变，图区的剩余空间就跟着变，
+ * 两边必须是同一个状态，所以走 v-model:collapsed。
+ */
+const collapsed = defineModel<boolean>('collapsed', { default: false })
 
 /** 搜索词（输入即过滤） */
 const keyword = ref('')
@@ -363,14 +386,22 @@ function onQuery() {
   }, 2600)
 }
 
-/** 在平面图上定位这台设备 */
-function locate(row: DeviceRow) {
+/**
+ * 查看这台设备：在平面图上标识它 + 同步弹出详情抽屉
+ *
+ * 这一下等价于"在平面图上点这台设备"，所以两步一起做：
+ *   1. 标识：平面图上对应的那一点描一圈选中蓝并浮出标签；
+ *   2. 详情：同步弹出该设备的详情抽屉，落在告警日志（事件）分区 ——
+ *      值班员从清单里点进来，要看的是这台设备出过什么事。
+ */
+function view(row: DeviceRow) {
   emit('locate', row.key)
+  emit('detail', row.device, 'alarm')
 }
 
-/** 打开这台设备的详情弹窗 */
+/** 点整行：打开这台设备的详情（落在基础信息分区） */
 function openDetail(row: DeviceRow) {
-  emit('detail', row.device)
+  emit('detail', row.device, 'basic')
 }
 
 /** 折叠态标题条上的摘要 */
@@ -396,9 +427,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   /* 展开时占平面图内容框高度的 56%（设计稿 450 / 796），
-     折叠时只剩 40 高的标题条 —— 由组件自己控高度，
-     父层只负责把它浮在平面图之上。 */
-  height: 56%;
+     折叠时只剩 40 高的标题条 —— 高度由父级的 --dl-height 单一控制
+     （父级要知道这个高度，才能把图区的剩余空间算对）。 */
+  height: var(--dl-height, 56%);
   min-height: 0;
   border: 1px solid rgba(0, 152, 230, 0.16);
   border-radius: vw(3);
@@ -407,11 +438,6 @@ onBeforeUnmount(() => {
   -webkit-backdrop-filter: blur(9px);
   overflow: hidden;
   transition: height 0.24s ease;
-}
-
-/* 折叠态：只留标题条，平面图整块露出来 */
-.dl.is-collapsed {
-  height: vh(40);
 }
 
 /* ===== 标题条：设计稿 #160:25872 ===== */
@@ -721,25 +747,27 @@ onBeforeUnmount(() => {
   color: var(--fire-text-label);
 }
 
-/* 操作列：设计稿是一枚 22 见方的十字准星（= 在平面图上定位） */
+/* 操作列：一枚「查看」图标 */
 .dl__cell--act {
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
 }
 
 /* 现在是真正的按钮（行里不能再套 <button>），要清掉按钮默认外观 */
 .dl__act {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: vw(22);
   height: vh(22);
   padding: 0;
   border: none;
+  border-radius: vw(2);
   appearance: none;
-  background-color: var(--fire-text-label);
-  -webkit-mask: url('@/assets/bigscreen/ebike-v2/duty/device-list-locate.svg') center / contain no-repeat;
-  mask: url('@/assets/bigscreen/ebike-v2/duty/device-list-locate.svg') center / contain no-repeat;
+  background: transparent;
+  color: var(--fire-text-dim);
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .dl__act:focus-visible {
@@ -747,8 +775,10 @@ onBeforeUnmount(() => {
   outline-offset: 2px;
 }
 
-.dl__row:hover .dl__act {
-  background-color: var(--fire-text-hero);
+/* 查看：lucide 眼睛，与项目其它列表页的「查看」按钮同款 */
+.dl__act--view:hover {
+  background: var(--fire-hover-blue);
+  color: var(--fire-text-hero);
 }
 
 /* 空态 */
