@@ -16,7 +16,7 @@
  * 用户 2026-11-03 定：#000D34。
  *
  * 总览页（三维模型）、实时警情 / 系统监测 / 消防档案 / 运行报告四个导航页、
- * 泵房场景页、小安助手浮层全部取这一个值 —— 切 tab 时背景不跳变。
+ * 泵房场景页、小尼平安浮层全部取这一个值 —— 切 tab 时背景不跳变。
  *
  * 它同时是模型天穹的底色与雾色：雾色与天穹底部同色，远端地块才会融进
  * 大屏底色而不是留一道硬边（见下方 DAY_THEME / DUSK_THEME 注释）。
@@ -138,7 +138,7 @@ export const BIGSCREEN_CAMPUS_THEMES: Record<CampusTimePreset, CampusTheme> = {
 /**
  * 大屏各导航页面的统一底色 = 大屏整体底色（#000D34）。
  *
- * 导航页（当前：小安助手）把本值注入 --embed-page-bg，保证与总览页同色。
+ * 导航页（当前：小尼平安）把本值注入 --embed-page-bg，保证与总览页同色。
  */
 export const BIGSCREEN_CAMPUS_BG = BIGSCREEN_PAGE_BG
 

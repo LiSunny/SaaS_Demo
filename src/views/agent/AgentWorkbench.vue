@@ -4,7 +4,7 @@
     <aside class="col col-left" :class="{ collapsed: leftCollapsed }" :style="{ width: leftCollapsed ? 0 : leftWidth + 'px' }">
       <div class="brand">
         <img class="brand-logo" src="@/assets/agent-robot-chat.svg" alt="logo" />
-        <span class="brand-name">小安助手</span>
+        <span class="brand-name">小尼平安</span>
       </div>
 
       <button class="new-chat-btn" @click="newSession">
@@ -85,7 +85,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="14" x="4" y="5" rx="2" /><path d="M14.5 5v14" /></svg>
         </button>
         <!-- 关闭按钮：仅嵌入大屏浮层时出现（独立工作台由浏览器标签页关闭） -->
-        <button v-if="closable" class="col-expand-btn close-btn" title="关闭小安助手" @click="emit('close')">
+        <button v-if="closable" class="col-expand-btn close-btn" title="关闭小尼平安" @click="emit('close')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -308,7 +308,7 @@
       <div class="role-dialog">
         <div class="role-dialog-header">
           <div class="role-dialog-logo">
-            <img src="@/assets/agent-robot-chat.svg" alt="小安助手" />
+            <img src="@/assets/agent-robot-chat.svg" alt="小尼平安" />
           </div>
           <h3 class="role-dialog-title">选择体验身份</h3>
           <p class="role-dialog-sub">不同身份看到的告警、隐患、设备数据范围不同，选择后即可开始对话</p>

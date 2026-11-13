@@ -13,11 +13,11 @@
     <header class="hero">
       <h1>
         <span class="brand-line">
-          <img class="brand-robot" src="@/assets/agent-robot-chat.svg" alt="小安助手" />
-          <span class="brand-name-art">小安助手</span>
+          <img class="brand-robot" src="@/assets/agent-robot-chat.svg" alt="小尼平安" />
+          <span class="brand-name-art">小尼平安</span>
         </span>
         <br />
-        <em>有事问小安，安全不犯难</em>
+        <em>有事问小尼，疑问随时有回应</em>
       </h1>
       <p class="sub">一句话，把安全数据问出来：告警、隐患、设备、日报，不用学菜单，开口就能查。每个角色只看自己该看的，问完直接拿结果。</p>
       <div class="pills">
@@ -31,8 +31,8 @@
           <span class="vt">完整演示 · 1 分 27 秒</span>
         </div>
         <video controls autoplay muted loop playsinline preload="metadata" poster="/agent-intro/demo-shots/幕1-监管问告警.png">
-          <source src="/agent-intro/demo-video/小安助手演示录屏.mp4" type="video/mp4" />
-          <source src="/agent-intro/demo-video/小安助手演示录屏.webm" type="video/webm" />
+          <source src="/agent-intro/demo-video/小尼平安演示录屏.mp4" type="video/mp4" />
+          <source src="/agent-intro/demo-video/小尼平安演示录屏.webm" type="video/webm" />
           您的浏览器不支持视频播放，请下载视频文件观看。
         </video>
       </div>
@@ -179,28 +179,28 @@
     <section class="sec roles-sec">
       <div class="wrap">
         <div class="roles-head">
-          <div class="roles-slogan">有事问小安，安全不犯难</div>
+          <div class="roles-slogan">有事问小尼，疑问随时有回应</div>
         </div>
         <div class="roles4">
           <div class="role-card4">
             <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></svg></div>
             <div class="rc4-role">监管机构</div>
-            <div class="rc4-line">辖区态势问小安<br />数据说话心里安</div>
+            <div class="rc4-line">辖区态势问小尼<br />数据说话心里明</div>
           </div>
           <div class="role-card4">
             <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></div>
             <div class="rc4-role">社会单位</div>
-            <div class="rc4-line">隐患整改问小安<br />闭环管理不犯难</div>
+            <div class="rc4-line">隐患整改问小尼<br />闭环管理记得清</div>
           </div>
           <div class="role-card4">
             <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div>
             <div class="rc4-role">值班员</div>
-            <div class="rc4-line">深夜值守问小安<br />告警日报一遍办</div>
+            <div class="rc4-line">深夜值守问小尼<br />告警日报不迟疑</div>
           </div>
           <div class="role-card4">
             <div class="rc4-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></div>
             <div class="rc4-role">服务机构</div>
-            <div class="rc4-line">维保记录问小安<br />报告生成一眨眼</div>
+            <div class="rc4-line">维保记录问小尼<br />报告生成不费力</div>
           </div>
         </div>
       </div>
@@ -214,7 +214,7 @@
       <a class="cta-btn-ghost" href="/portal">← 返回平台门户</a>
     </div>
 
-    <footer class="foot">商业街安全管理平台 · 小安助手介绍资料 · 录屏与截图均为真实系统运行画面</footer>
+    <footer class="foot">商业街安全管理平台 · 小尼平安介绍资料 · 录屏与截图均为真实系统运行画面</footer>
 
     <!-- 图片放大弹层（常驻 DOM，opacity 显隐，与静态介绍页同机制） -->
     <div class="img-lightbox" :class="{ open: lbOpen }" @click.self="closeLb">

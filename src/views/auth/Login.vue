@@ -292,7 +292,7 @@ const featureCards = [
   },
 ]
 
-// 体验账号 — 唯一数据源 src/config/demo-accounts.ts（登录页体验卡 与 小安助手工作台身份弹窗共用，文案必须一致）
+// 体验账号 — 唯一数据源 src/config/demo-accounts.ts（登录页体验卡 与 小尼平安工作台身份弹窗共用，文案必须一致）
 // 运营管理 / 服务机构 暂被屏蔽（S4/S5 授权扩展实现前，登录后无数据可查）
 const demoAccounts = ACTIVE_DEMO_ACCOUNTS
 

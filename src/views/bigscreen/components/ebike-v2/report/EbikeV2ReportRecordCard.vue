@@ -2,11 +2,11 @@
   <article class="rrc">
     <!-- 左侧内容列：设计稿 117:21299（x=14 y=14 w=172，组间距 18） -->
     <div class="rrc__body">
-      <!-- 标题组：小安助手角标 + 报告名 + 周期（组内不设间距，
+      <!-- 标题组：小尼平安角标 + 报告名 + 周期（组内不设间距，
            间距由各文本框自身的高度给出，与设计稿一致） -->
       <div class="rrc__head">
-        <!-- 「小安助手」角标：Figma 117:21301 整体导出（102×31） -->
-        <img v-if="record.agentBadge" class="rrc__badge" :src="badgeSrc" alt="小安助手" />
+        <!-- 「小尼平安」角标：Figma 117:21301 整体导出（102×31） -->
+        <img v-if="record.agentBadge" class="rrc__badge" :src="badgeSrc" alt="小尼平安" />
 
         <!-- 报告名：YouSheBiaoTiHei 22px（艺术字只有 normal 档，font-weight 写 400） -->
         <h3 class="rrc__title">{{ record.title }}</h3>
@@ -31,7 +31,7 @@
 /**
  * 运行报告 · 列表卡片（设计稿 117:21297 Article）
  *
- * 1:1 还原设计稿的卡片：深蓝卡面 + 「小安助手」角标 + 报告名 + 周期 +
+ * 1:1 还原设计稿的卡片：深蓝卡面 + 「小尼平安」角标 + 报告名 + 周期 +
  * 「点击查看」胶囊 + 右侧插画。
  *
  * 尺寸：卡 302×172（设计稿 1588 宽的内容区里放 5 张：5×302 + 4×12 = 1558），
@@ -94,7 +94,7 @@ const artSrc = computed(() => (props.record.art === 'analysis' ? artAnalysis : a
   min-width: 0;
 }
 
-/* 「小安助手」角标：Figma 102×31 */
+/* 「小尼平安」角标：Figma 102×31 */
 .rrc__badge {
   width: calc(102 * var(--min-scale));
   height: calc(31 * var(--min-scale));

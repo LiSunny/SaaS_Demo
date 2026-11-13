@@ -48,7 +48,7 @@
     <!-- ===== 全屏查看：右下角退出入口（Esc 同效） ===== -->
     <EbikeV2CleanToggle v-if="cleanMode" floating active @toggle="toggleClean" />
 
-    <!-- ===== 小安助手：页内浮层（不跳转路由，深色工作台直接嵌在本页） ===== -->
+    <!-- ===== 小尼平安：页内浮层（不跳转路由，深色工作台直接嵌在本页） ===== -->
     <EbikeV2AgentPanel v-if="agentOpen" @close="closeAgent" />
 
     <!-- ===== 警情弹窗：点总览页的警情行弹出（设计稿 200:1296） ===== -->
@@ -99,7 +99,7 @@ const agentOpen = ref(false)
 /**
  * 导航下标 → 页面组件
  *
- * 下标 0（校园总览）与 5（小安助手）不在此表：总览是本页默认内容，
+ * 下标 0（校园总览）与 5（小尼平安）不在此表：总览是本页默认内容，
  * 助手是页内浮层，都不占独立页面。
  */
 const NAV_PAGES: Record<number, Component> = {
@@ -185,7 +185,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 /**
- * 全局悬浮小安机器人挂在 StandaloneLayout 里（Teleport 到 body），
+ * 全局悬浮小尼机器人挂在 StandaloneLayout 里（Teleport 到 body），
  * 组件样式够不到它；用 body 类跨层隐藏。
  */
 watch(cleanMode, (v) => {
@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
 }
 </style>
 
-<!-- 清屏态：全局悬浮小安机器人挂在 StandaloneLayout（Teleport 到 body），
+<!-- 清屏态：全局悬浮小尼机器人挂在 StandaloneLayout（Teleport 到 body），
      scoped 样式够不到，改由 body 类跨层隐藏。 -->
 <style lang="scss">
 body.ebike-clean-mode .agent-floating-chat {

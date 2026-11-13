@@ -107,7 +107,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 10002; /* 高于悬浮小安机器人（9999）与浮动聊天层（9998） */
+  z-index: 10002; /* 高于悬浮小尼机器人（9999）与浮动聊天层（9998） */
   display: flex;
   align-items: center;
   justify-content: center;

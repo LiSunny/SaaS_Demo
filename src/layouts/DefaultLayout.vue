@@ -5,19 +5,19 @@
       <div class="logo-area">
         <img class="logo-icon" src="/favicon.svg" alt="平台logo" />
         <span class="company-name">智能安全管控平台</span>
-        <!-- 小安助手入口：独立工作台（standalone 路由），新标签页打开，保留后台当前页面 -->
+        <!-- 小尼平安入口：独立工作台（standalone 路由），新标签页打开，保留后台当前页面 -->
         <a
           v-if="userStore.isLoggedIn"
           class="agent-badge"
           href="/agent"
           target="_blank"
           rel="noopener noreferrer"
-          title="打开小安助手（新标签页）"
+          title="打开小尼平安（新标签页）"
         >
           <span class="agent-badge-icon">
             <img class="agent-badge-robot" src="@/assets/agent-robot-chat.svg" alt="" aria-hidden="true" />
           </span>
-          <span class="agent-badge-text">小安助手</span>
+          <span class="agent-badge-text">小尼平安</span>
         </a>
       </div>
 
@@ -784,7 +784,7 @@ if (typeof window !== 'undefined') {
 }
 .logo-area {
   display: flex; align-items: center; gap: 14px;
-  /* 宽度自适应：小安助手徽章是平台名称右侧的胶囊，宽屏下需能容纳；
+  /* 宽度自适应：小尼平安徽章是平台名称右侧的胶囊，宽屏下需能容纳；
      min-width 保持与左侧栏 272px 对齐（未登录时不显示徽章） */
   padding: 8px 12px; width: auto; min-width: 272px; flex-shrink: 0;
 }
@@ -795,7 +795,7 @@ if (typeof window !== 'undefined') {
 }
 .company-name { font-size: var(--font-h4, 16px); font-weight: 500; color: var(--text-primary); white-space: nowrap; }
 
-/* ===== 小安助手入口徽章（平台名称右侧） ===== */
+/* ===== 小尼平安入口徽章（平台名称右侧） ===== */
 /* 视觉与门户页 /portal/agent-intro 入口一致：品牌蓝渐变胶囊 */
 .agent-badge {
   position: relative;

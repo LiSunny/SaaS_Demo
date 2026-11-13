@@ -1,8 +1,8 @@
 /**
- * P1: 小安助手入口徽章（后台顶栏 · 平台名称右侧）
+ * P1: 小尼平安入口徽章（后台顶栏 · 平台名称右侧）
  *
  * 锁住的行为：
- * - 已登录时后台顶栏出现「小安助手」胶囊徽章，且紧邻平台名称
+ * - 已登录时后台顶栏出现「小尼平安」胶囊徽章，且紧邻平台名称
  * - 徽章是 target=_blank 链接到 /agent（新标签打开，不替换后台当前页）
  * - 未登录时（登录页）不渲染徽章
  */
@@ -44,15 +44,15 @@ async function clearAuth(page: Page) {
   })
 }
 
-test.describe('小安助手入口徽章（P1）', () => {
+test.describe('小尼平安入口徽章（P1）', () => {
 
-  test('已登录时平台名称右侧显示小安助手徽章', async ({ page }) => {
+  test('已登录时平台名称右侧显示小尼平安徽章', async ({ page }) => {
     await setupAuth(page)
     await page.goto('/workbench')
 
     const badge = page.locator('.agent-badge')
     await expect(badge).toBeVisible()
-    await expect(badge).toHaveText(/小安助手/)
+    await expect(badge).toHaveText(/小尼平安/)
 
     // 徽章紧邻平台名称右侧（x 方向起点在名称之后，纵向同一行）
     const nameBox = await page.locator('.company-name').boundingBox()
@@ -74,7 +74,7 @@ test.describe('小安助手入口徽章（P1）', () => {
     ])
     await popup.waitForLoadState('domcontentloaded')
     expect(popup.url()).toContain('/agent')
-    await expect(popup.locator('.brand-name')).toHaveText(/小安助手/)
+    await expect(popup.locator('.brand-name')).toHaveText(/小尼平安/)
 
     // 原页面未被替换
     expect(page.url()).toBe(before)

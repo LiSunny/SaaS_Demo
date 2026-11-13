@@ -1,5 +1,5 @@
 <template>
-  <!-- 页内浮层：覆盖顶栏以下的大屏区域，嵌入深色小安工作台（不跳转路由） -->
+  <!-- 页内浮层：覆盖顶栏以下的大屏区域，嵌入深色小尼工作台（不跳转路由） -->
   <Teleport to="body">
     <div class="agent-panel" :style="{ background: pageBg }">
       <!-- 工作台本体：嵌入模式铺满浮层，强制深色；底色 = 三维模型背景色；
@@ -45,6 +45,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 10002;              /* 高于悬浮小安机器人（9999）与浮动聊天层（9998） */
+  z-index: 10002;              /* 高于悬浮小尼机器人（9999）与浮动聊天层（9998） */
 }
 </style>

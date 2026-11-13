@@ -33,7 +33,7 @@ const navItems = ref([
   { label: '系统监测', key: 'nav-2' },
   { label: '消防档案', key: 'nav-3' },
   { label: '运行报告', key: 'nav-4' },
-  { label: '小安助手', key: 'agent' },
+  { label: '小尼平安', key: 'agent' },
 ])
 
 /** 当前选中项下标：由大屏页统一控制（助手浮层打开时该项保持选中） */

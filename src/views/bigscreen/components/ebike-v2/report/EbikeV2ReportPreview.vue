@@ -47,7 +47,7 @@
         <span>生成时间 {{ report.generatedAt }}</span>
         <span v-if="report.agentBadge" class="rpv__foot-agent">
           <img class="rpv__foot-agent-icon" :src="badgeSrc" alt="" aria-hidden="true" />
-          小安助手生成
+          小尼平安生成
         </span>
         <span v-else class="rpv__foot-system">设备侧统计报表</span>
       </footer>
@@ -319,7 +319,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   color: var(--fire-text-sub);
 }
 
-/* 角标素材是 Figma 徽标的整体导出（306×93），缩到 104 宽时「小安助手」
+/* 角标素材是 Figma 徽标的整体导出（306×93），缩到 104 宽时「小尼平安」
    四个字仍可读；这里给 104×32，比例与素材一致。 */
 .rpv__foot-agent-icon {
   width: calc(104 * var(--min-scale));

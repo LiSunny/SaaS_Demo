@@ -89,7 +89,7 @@ const probe = () =>
     }
   })
 
-const TABS = ['校园总览', '实时警情', '系统监测', '消防档案', '运行报告', '小安助手']
+const TABS = ['校园总览', '实时警情', '系统监测', '消防档案', '运行报告', '小尼平安']
 const results = []
 
 for (const label of TABS) {
