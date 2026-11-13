@@ -58,6 +58,46 @@ export interface Artifact {
 let msgIdCounter = 0
 function nextId(): string { return `msg-${Date.now()}-${++msgIdCounter}` }
 
+/**
+ * 清除失效登录态并广播事件。
+ *
+ * 后端 /api/agent/chat 走 authRequired：token 过期 / JWT_SECRET 变更后返回 401。
+ * 此时前端如果只显示「请求失败」，用户完全看不出是登录过期了（现场排查时最费时间的就是这一种）。
+ * 这里统一清掉本地登录态并广播事件，由 user store 同步内存态、页面据此引导重新登录。
+ *
+ * 注意：键名与 stores/user.ts 保持一致（auth_token / auth_user / system-role）。
+ */
+function invalidateAuth(): void {
+  try {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    localStorage.removeItem('system-role')
+  } catch { /* 隐私模式等场景可能不可写，忽略 */ }
+  window.dispatchEvent(new CustomEvent('agent:auth-expired'))
+}
+
+/** 读取后端错误响应里的 message（后端统一 { code, message, data }） */
+async function readErrorMessage(res: Response): Promise<string> {
+  try {
+    const j = await res.json()
+    return typeof j?.message === 'string' ? j.message : ''
+  } catch {
+    return ''
+  }
+}
+
+/** HTTP 状态码 → 用户能看懂的话（不再一律显示「请求失败」） */
+function describeHttpError(status: number, serverMsg: string): string {
+  if (status === 401) {
+    invalidateAuth()
+    return '登录已过期，请重新登录后继续提问。'
+  }
+  if (status === 403) return serverMsg || '当前账号没有查看该数据的权限，请切换体验身份后重试。'
+  if (status === 429) return '请求过于频繁，请稍后再试。'
+  if (status >= 500) return `服务暂时不可用（HTTP ${status}），请稍后重试。`
+  return serverMsg || `请求失败了（HTTP ${status}）。`
+}
+
 /** 尝试从文本中提取导航 JSON 的 reply 字段，有则只显示 reply，无则返回原文 */
 function cleanNavJson(text: string): string {
   try {
@@ -176,7 +216,9 @@ export const useAiChatStore = defineStore('aiChat', () => {
       })
 
       if (!response.ok) {
-        aiMsg.content = '抱歉，请求失败了，请稍后重试。'
+        // 区分状态码：401 = 登录过期（要引导重新登录），403 = 无权限，5xx = 服务异常。
+        // 原来一律显示「请求失败了」，用户看不出是登录失效，排查成本极高。
+        aiMsg.content = describeHttpError(response.status, await readErrorMessage(response))
         aiMsg.isStreaming = false
         isLoading.value = false
         return

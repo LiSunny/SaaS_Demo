@@ -124,6 +124,27 @@ export const useUserStore = defineStore('user', () => {
     resetAiChat()
   }
 
+  /**
+   * 登录态失效（Agent 接口返回 401：token 过期 / JWT_SECRET 变更）。
+   * 与 logout 的区别：**不清 AI 对话** —— 保留用户已经看到的上下文，
+   * 重新登录后可以继续追问，不必从头再来。
+   */
+  function invalidateAuth(): void {
+    token.value = ''
+    user.value = null
+    systemRole.value = null
+    removeToken()
+    removeUser()
+    localStorage.removeItem(SYSTEM_ROLE_KEY)
+  }
+
+  // ai-chat store 在接口返回 401 时广播该事件。
+  // 依赖方向只能是 ai-chat → user（user store 已经 import 了 ai-chat），
+  // 所以这里用事件而不是反向 import，避免循环依赖。
+  if (typeof window !== 'undefined') {
+    window.addEventListener('agent:auth-expired', invalidateAuth)
+  }
+
   // ===== 岗位 =====
   const currentPositionKey = ref<PositionKey>(loadPosition())
 
@@ -178,6 +199,7 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     setLogin,
     logout,
+    invalidateAuth,
     // 系统角色
     systemRole,
     // 岗位

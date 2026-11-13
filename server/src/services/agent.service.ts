@@ -334,7 +334,11 @@ function getClient(): OpenAI {
 }
 
 // 模型与默认请求参数集中管理（model 可在 .env 的 DEEPSEEK_MODEL 中覆盖）
-const LLM_DEFAULTS = { model: env.DEEPSEEK_MODEL, temperature: 0.7, max_tokens: 1024 }
+//
+// max_tokens 不能再用 1024：DeepSeek V4 系列默认开启「思考模式」，
+// reasoning_tokens 与正文共用 max_tokens 预算。预算偏小时会出现
+// finish_reason=length 且正文为空 —— 用户看到的就是一个空气泡（等于「没有返回答案」）。
+const LLM_DEFAULTS = { model: env.DEEPSEEK_MODEL, temperature: 0.7, max_tokens: 2048 }
 
 // ===== 类型 =====
 export interface AgentMessage { role: 'user' | 'assistant'; content: string }
@@ -979,7 +983,7 @@ export async function* streamChat(
     {
       const t1 = Date.now()
       // 先尝试工具调用（数据查询）
-      const resp1 = await getClient().chat.completions.create({
+      let resp1 = await getClient().chat.completions.create({
         ...LLM_DEFAULTS,
         messages,
         tools: TOOLS,
@@ -987,8 +991,8 @@ export async function* streamChat(
       })
 
       // ===== 节点 4：LLM 响应 #1 =====
-      const finishReason1 = resp1.choices[0]?.finish_reason
-      const usage1 = (resp1 as any).usage
+      let finishReason1 = resp1.choices[0]?.finish_reason
+      let usage1 = (resp1 as any).usage
       let toolCalls = resp1.choices[0]?.message?.tool_calls
 
       // 兜底：DeepSeek 等模型可能不返回结构化 tool_calls，而是把工具调用用 DSML 文本
@@ -1006,6 +1010,36 @@ export async function* streamChat(
           yield debugEvent('dsml_fallback', 'DSML 工具调用兜底解析', 'info',
             `从 content 解析出 ${dsmlCalls.length} 个工具调用（模型未返回标准 tool_calls）`,
             { 解析结果: dsmlCalls, 原始content长度: content1.length }, t0)
+        }
+      }
+
+      // ===== 空回复重试 =====
+      // 思考模式下 reasoning_tokens 与正文共用 max_tokens 预算：预算不够时会出现
+      // finish_reason=length 且正文为空。这种情况继续往下走会给用户一个空气泡
+      // （表现为「AI 没有返回答案」），所以放宽上限重试一次。
+      if (!toolCalls?.length && !(resp1.choices[0]?.message?.content || '').trim() && finishReason1 === 'length') {
+        yield debugEvent('llm_retry', '空回复重试', 'info',
+          `首次调用正文为空且 token 用尽（finish_reason=length），放宽 max_tokens 到 4096 重试`,
+          { 原finish_reason: finishReason1, 原max_tokens: LLM_DEFAULTS.max_tokens }, t0)
+        resp1 = await getClient().chat.completions.create({
+          ...LLM_DEFAULTS,
+          messages,
+          tools: TOOLS,
+          tool_choice: 'auto',
+          max_tokens: 4096,
+        })
+        finishReason1 = resp1.choices[0]?.finish_reason
+        usage1 = (resp1 as any).usage
+        toolCalls = resp1.choices[0]?.message?.tool_calls
+        if (!toolCalls?.length) {
+          const dsmlCalls2 = parseDSMLToolCalls(resp1.choices[0]?.message?.content || '')
+          if (dsmlCalls2.length > 0) {
+            toolCalls = dsmlCalls2.map((tc, i) => ({
+              id: `dsml-${Date.now()}-${i}`,
+              type: 'function' as const,
+              function: { name: tc.name, arguments: JSON.stringify(tc.args) },
+            }))
+          }
         }
       }
 
@@ -1179,6 +1213,16 @@ export async function* streamChat(
     }
 
     // ===== 节点 9：流式完成 + 导航解析 =====
+    // 整段流一个字都没吐出来（思考模式吃光预算等极端情况）→ 走本地兜底，
+    // 而不是给用户一个空气泡（表现为「AI 没有返回答案」）。
+    if (!fullText.trim()) {
+      yield debugEvent('empty_reply', '空回复兜底', 'info',
+        'LLM 直接回复流式产出为空，降级到本地规则',
+        { 回复长度: fullText.length }, t0)
+      yield* localFallbackStream(message, t0)
+      return
+    }
+
     const navAction = parseAction(fullText)
     yield debugEvent('llm_direct_response', '直接回复完成', 'output',
       navAction
