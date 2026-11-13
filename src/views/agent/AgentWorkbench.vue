@@ -69,8 +69,8 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="14" x="4" y="5" rx="2" /><path d="M9.5 5v14" /></svg>
         </button>
         <span class="main-title">{{ currentTitle }}</span>
-        <!-- 深色 / 浅色切换（强制深色时隐藏：嵌入大屏浮层不允许切浅色） -->
-        <button v-if="!forceDark" class="theme-toggle" :class="{ light: !isDark }" :title="isDark ? '切换到浅色模式' : '切换到深色模式'" @click="toggleTheme">
+        <!-- 深色 / 浅色切换（强制深色或强制浅色时隐藏：嵌在固定主题里不允许再切） -->
+        <button v-if="!forceDark && !forceLight" class="theme-toggle" :class="{ light: !isDark }" :title="isDark ? '切换到浅色模式' : '切换到深色模式'" @click="toggleTheme">
           <span class="tt-thumb">
             <svg v-if="isDark" class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
             <svg v-else class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
@@ -357,18 +357,21 @@ marked.setOptions({ breaks: true, gfm: true })
 /** 组件属性
  *  - embedded：嵌入模式，铺满父容器（大屏浮层），而不是 100vw/100vh 独立整屏
  *  - forceDark：强制深色主题，并隐藏主题切换按钮（嵌入大屏时只保留深色）
+ *  - forceLight：强制浅色主题，并隐藏主题切换按钮（大屏右下角机器人浮层用：
+ *    与独立工作台同一套界面，但恒为浅色，不受 localStorage 的 agent_theme 影响）
  *  - closable：显示关闭按钮并抛出 close 事件（嵌入大屏浮层时用）
  *  - defaultRightCollapsed：右栏（调用时间线 / 产物）默认折叠 */
 const props = withDefaults(
   defineProps<{
     embedded?: boolean
     forceDark?: boolean
+    forceLight?: boolean
     closable?: boolean
     defaultRightCollapsed?: boolean
   }>(),
-  { embedded: false, forceDark: false, closable: false, defaultRightCollapsed: false },
+  { embedded: false, forceDark: false, forceLight: false, closable: false, defaultRightCollapsed: false },
 )
-const { embedded, forceDark, closable, defaultRightCollapsed } = toRefs(props)
+const { embedded, forceDark, forceLight, closable, defaultRightCollapsed } = toRefs(props)
 
 const emit = defineEmits<{ (e: 'close'): void }>()
 
@@ -442,11 +445,21 @@ if (!userStore.isLoggedIn) {
   roleDialogVisible.value = true
 }
 
+// 登录态失效（Agent 接口 401：token 过期 / JWT_SECRET 变更）→ 自动弹出体验身份选择。
+// 之前这里只在 setup 时判断一次，残留的失效 token 会让页面一直停留在「已登录」外观，
+// 用户每问一句都只看到「请求失败」，完全不知道要重新登录。
+watch(() => userStore.isLoggedIn, (loggedIn) => {
+  if (!loggedIn) roleDialogVisible.value = true
+})
+
 // ===== 深色 / 浅色主题（localStorage 持久化，默认深色） =====
 // forceDark：嵌入大屏浮层时锁定深色，不读也不写 localStorage，避免改动独立工作台的主题偏好
-const isDark = ref(forceDark.value ? true : localStorage.getItem('agent_theme') !== 'light')
+// forceLight：大屏右下角机器人浮层用 —— 恒为浅色，同样不读写 localStorage
+const isDark = ref(
+  forceLight.value ? false : forceDark.value ? true : localStorage.getItem('agent_theme') !== 'light',
+)
 function toggleTheme() {
-  if (forceDark.value) return
+  if (forceDark.value || forceLight.value) return
   isDark.value = !isDark.value
   localStorage.setItem('agent_theme', isDark.value ? 'dark' : 'light')
 }
