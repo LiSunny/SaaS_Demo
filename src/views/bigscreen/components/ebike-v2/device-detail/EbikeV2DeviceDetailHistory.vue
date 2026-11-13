@@ -45,8 +45,8 @@
 
     <!-- ===== 折线图（设计稿 #200:2239） ===== -->
     <div class="hist__chart">
-      <!-- y 轴单位：设计稿 #200:2243 -->
-      <span class="hist__unit">单位</span>
+      <!-- y 轴单位：设计稿 #200:2243（内容随当前指标变：% / dBm / dB / 级） -->
+      <span v-if="history.unit" class="hist__unit">{{ history.unit }}</span>
 
       <VChart class="hist__echarts" :option="option" autoresize />
     </div>
@@ -161,12 +161,13 @@ const option = computed<EChartsOption>(() => {
       formatter: (params: unknown) => {
         const list = params as Array<{ axisValue: string; marker: string; seriesName: string; value: number }>
         if (!list?.length) return ''
+        const unit = h.unit ? ` ${h.unit}` : ''
         const rows = list
           .map(
             (p) =>
               `<div style="display:flex;align-items:center;gap:8px;line-height:18px">
                  <span style="width:10px;height:6px;border-radius:2px;background:${p.marker?.includes('rgb') ? p.marker : '#4f9df0'}"></span>
-                 <span>${p.seriesName}：${p.value}</span>
+                 <span>${p.seriesName}：${p.value}${unit}</span>
                </div>`,
           )
           .join('')

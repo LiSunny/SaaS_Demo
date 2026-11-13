@@ -61,13 +61,13 @@ export interface DetailAlarmRow {
 export interface DetailHistory {
   /** x 轴标签 */
   xLabels: string[]
-  /** 右上角「单位」 */
+  /** 图表左上角的单位（无单位指标为空串） */
   unit: string
   /** y 轴下界 */
   min: number
   /** y 轴上界 */
   max: number
-  /** 两条曲线（设计稿的「系列一 / 系列二」） */
+  /** 曲线：设备详情是单设备视角，一个指标一条时间序列 */
   series: Array<{ name: string; color: string; data: number[] }>
 }
 
@@ -96,13 +96,13 @@ export const HISTORY_TABS: Array<{
   { key: 'run', label: '运行状态', unit: '', min: 0, max: 1 },
   { key: 'battery', label: '剩余电量', unit: '%', min: 0, max: 100 },
   { key: 'signal', label: '信号功率', unit: 'dBm', min: -120, max: -60 },
-  { key: 'rsrq', label: 'RSRQ', unit: '', min: -20, max: 0 },
-  { key: 'snr', label: '信噪比', unit: '', min: -10, max: 20 },
-  { key: 'sensitivity', label: '烟雾灵敏度', unit: '', min: 0, max: 5 },
+  { key: 'rsrq', label: 'RSRQ', unit: 'dB', min: -20, max: 0 },
+  { key: 'snr', label: '信噪比', unit: 'dB', min: -10, max: 20 },
+  { key: 'sensitivity', label: '烟雾灵敏度', unit: '级', min: 0, max: 5 },
 ]
 
-/** 两条曲线的配色（设计稿提示窗里的两个色点） */
-const SERIES_COLORS = ['#4f9df0', '#00af95']
+/** 曲线配色（与设计稿提示窗里的色点一致） */
+const SERIES_COLOR = '#4f9df0'
 
 /* ============================================================
  * 基础信息
@@ -297,22 +297,25 @@ export function buildHistory(
   const span = Math.max(1, to - from)
   // 区间长度决定采样粒度：3 天内每 12 小时，之后每天
   const step = span <= 3 * 86_400_000 ? 12 * 3_600_000 : 86_400_000
-  const count = Math.max(2, Math.min(12, Math.floor(span / step)))
+  // 采样点最多 12 个。
+  // 未超上限时按规整的 step 采样（x 轴时刻才对得齐：00:00 / 12:00）；
+  // 超上限才在区间内**均匀分布**，否则长区间只画得上前 12 天、后半段空白
+  const raw = Math.floor(span / step) + 1
+  const capped = raw > 12
+  const count = capped ? 12 : Math.max(2, raw)
+  const gap = capped ? span / (count - 1) : step
 
   const rnd = rngOf(seedOf(`dd-hist-${device.key}-${tab}`))
   const xLabels: string[] = []
-  const s1: number[] = []
-  const s2: number[] = []
+  const data: number[] = []
 
   for (let i = 0; i < count; i++) {
-    const at = from + i * step
+    const at = from + i * gap
     const d = new Date(at)
-    xLabels.push(
-      `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:00`,
-    )
-    const [a, b] = historyPair(tab, rnd)
-    s1.push(a)
-    s2.push(b)
+    const md = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    // 按天采样时只显示日期，带上小时是冗余
+    xLabels.push(step <= 12 * 3_600_000 ? `${md} ${String(d.getHours()).padStart(2, '0')}:00` : md)
+    data.push(historyValue(tab, i, count, rnd))
   }
 
   return {
@@ -320,35 +323,58 @@ export function buildHistory(
     unit: meta.unit,
     min: meta.min,
     max: meta.max,
-    series: [
-      { name: '系列一', color: SERIES_COLORS[0], data: s1 },
-      { name: '系列二', color: SERIES_COLORS[1], data: s2 },
-    ],
+    series: [{ name: meta.label, color: SERIES_COLOR, data }],
   }
 }
 
-/** 某页签下的两个采样值 */
-function historyPair(tab: string, rnd: () => number): [number, number] {
+/**
+ * 单个采样点的取值
+ *
+ * 形态按各指标的真实特征给，不是纯随机 ——
+ * 纯随机画出来是锯齿噪声，看不出任何趋势：
+ *   电量    缓慢下降，中途一次充电回升
+ *   信号类  围绕基线小幅起伏
+ *   状态类  0 / 1 跳变
+ */
+function historyValue(tab: string, i: number, count: number, rnd: () => number): number {
+  const t = count > 1 ? i / (count - 1) : 0
+  const jitter = (span: number) => (rnd() - 0.5) * span
   switch (tab) {
-    case 'online':
-      // 在线 / 离线：大多数时间在线
-      return [rnd() > 0.15 ? 1 : 0, rnd() > 0.2 ? 1 : 0]
-    case 'run':
-      // 正常 / 故障
-      return [rnd() > 0.18 ? 1 : 0, rnd() > 0.25 ? 1 : 0]
-    case 'battery':
-      // 电量单调下降
-      return [Math.round(60 + rnd() * 40), Math.round(55 + rnd() * 45)]
+    case 'online': {
+      // 在线 / 离线：每隔 3~4 个采样点掉线一次（起点随机，看起来不规律）
+      // 纯随机会经常连成一条直线，看不出是阶梯状态
+      const phase = Math.floor(rnd() * 3)
+      return (i - phase) % 4 === 0 ? 0 : 1
+    }
+    case 'run': {
+      // 正常 / 故障：每隔 4~5 个采样点故障一次
+      const phase = Math.floor(rnd() * 4)
+      return (i - phase) % 5 === 0 ? 0 : 1
+    }
+    case 'battery': {
+      // 电量：缓慢下降，中途一次充电回升
+      const down = 94 - 78 * t
+      const charge = t > 0.5 && t < 0.78 ? (t - 0.5) * 190 : 0
+      return clampInt(Math.round(down + charge + jitter(5)), 6, 100)
+    }
     case 'signal':
-      // 信号功率 -120 ~ -60 dBm
-      return [-(60 + Math.floor(rnd() * 61)), -(60 + Math.floor(rnd() * 61))]
+      // 信号功率：围绕 -86dBm 起伏
+      return Math.round(-86 + 9 * Math.sin(t * Math.PI * 2.1) + jitter(9))
     case 'rsrq':
-      return [-(3 + Math.floor(rnd() * 18)), -(3 + Math.floor(rnd() * 18))]
+      // RSRQ：围绕 -11dB 起伏
+      return Math.round(-11 + 4.5 * Math.sin(t * Math.PI * 2.4) + jitter(3.5))
     case 'snr':
-      return [-5 + Math.floor(rnd() * 26), -5 + Math.floor(rnd() * 26)]
+      // 信噪比：围绕 +8dB 起伏
+      return Math.round(8 + 7 * Math.sin(t * Math.PI * 1.8 + 1) + jitter(4))
     case 'sensitivity':
-      return [1 + Math.floor(rnd() * 5), 1 + Math.floor(rnd() * 5)]
+      // 烟雾灵敏度：1~5 级，整级变化
+      return clampInt(Math.round(3 + 1.6 * Math.sin(t * Math.PI * 1.4) + jitter(1.2)), 1, 5)
     default:
-      return [0, 0]
+      return 0
   }
+}
+
+/** 取整并夹在 [min, max] */
+function clampInt(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, Math.round(v)))
 }
