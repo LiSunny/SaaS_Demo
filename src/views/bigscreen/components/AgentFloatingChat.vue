@@ -8,7 +8,16 @@
           @click="handleRobotClick"
           title="小尼平安"
         >
-          <img src="@/assets/agent-robot.svg" alt="小尼平安" class="fab-robot-img" />
+          <!-- 2026-11-16：机器人形象由静态 SVG 换成透明动态素材（离线抠像的动画 WebP，
+               生成脚本 scripts/make-agent-robot-video.py）。
+               ⚠️ 用 <img> 而非 <video>：浏览器 video 元素只认 MP4 / WebM 容器，
+               喂 WebP 会直接 DEMUXER_ERROR 播不出来；动画 WebP 作为图片则完全正常。
+               点击弹窗逻辑完全不变 —— 仍走 handleRobotClick → store.open()。 -->
+          <img
+            class="fab-robot-img"
+            :src="prefersReducedMotion ? robotPoster : robotAnim"
+            alt="小尼平安"
+          />
         </button>
         <!-- 打招呼气泡 -->
         <div v-if="robotPhase === 'greeting'" class="robot-greeting">
@@ -55,6 +64,11 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus/es/components/message/index.mjs'
 import 'element-plus/es/components/message/style/css.mjs'
 import { useAiChatStore } from '@/stores/ai-chat'
+// 机器人形象素材（离线抠像产出，scripts/make-agent-robot-video.py）：
+// robotAnim = 透明底动画 WebP（浏览器作为图片渲染，自动循环）；
+// robotPoster = 静态首帧 PNG，供「减少动态效果」偏好时兜底。
+import robotAnim from '@/assets/agent-robot.webp'
+import robotPoster from '@/assets/agent-robot-poster.png'
 
 const store = useAiChatStore()
 const router = useRouter()
@@ -77,6 +91,13 @@ const robotTimers: ReturnType<typeof setTimeout>[] = []
 function handleRobotClick() {
   store.open()
 }
+
+/**
+ * 尊重系统的「减少动态效果」偏好：
+ * 命中时改用静态首帧 PNG，不播动画（入口依然可见可点，弹窗逻辑不受影响）。
+ */
+const prefersReducedMotion = typeof window !== 'undefined'
+  && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
 /**
  * 登录态失效（后端 /api/agent/chat 返回 401）。
@@ -219,7 +240,13 @@ onUnmounted(() => {
   }
 }
 
+/* 机器人形象（2026-11-16：由静态 SVG 换成透明动态素材）
+   素材是 300×400 竖屏（3:4），object-fit: contain 后在 150px 方盒里
+   渲染为 112×150 —— 与原 199:277 全身 SVG 的占位比例一致，视觉不跳变。
+   display:block 是为了杜绝 img 作为 inline 元素时可能出现的基线留白
+   （导致机器人整体上浮几像素）。 */
 .fab-robot-img {
+  display: block;
   width: 150px;
   height: 150px;
   object-fit: contain;
