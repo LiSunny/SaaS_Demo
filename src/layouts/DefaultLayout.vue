@@ -54,15 +54,15 @@
           <AppIcon name="help-circle" class="icon-btn-svg" />
         </a>
 
-        <!-- 消息入口（占位） -->
-        <button
-          v-if="userStore.isLoggedIn"
-          class="icon-btn"
-          type="button"
-          title="消息"
-        >
-          <AppIcon name="message" class="icon-btn-svg" />
-        </button>
+        <!-- 消息入口：点击右侧滑出消息通知抽屉，按钮右上角挂未读角标 -->
+        <span v-if="userStore.isLoggedIn" class="msg-entry">
+          <button class="icon-btn" type="button" title="消息" @click="messageOpen = true">
+            <AppIcon name="notify" class="icon-btn-svg" />
+          </button>
+          <span v-if="notificationStore.unreadCount > 0" class="msg-badge">
+            {{ notificationStore.badgeText }}
+          </span>
+        </span>
 
         <ThemeToggle />
 
@@ -79,6 +79,13 @@
         </button>
       </div>
     </header>
+
+    <!-- 消息通知抽屉（teleport 到 body，挂在 header 外避免影响顶栏布局）
+         抽屉内含三个视图：最近列表 → 全部列表 → 详情，「全部」不再跳独立路由 -->
+    <MessageNotificationDrawer
+      v-if="userStore.isLoggedIn"
+      v-model="messageOpen"
+    />
 
     <!-- ===== 主体 ===== -->
     <div class="main-body">
@@ -288,8 +295,10 @@ import { getUserBigscreens } from '@/api/bigscreen'
 import { getBigscreenRoute } from '@/config/bigscreen-templates'
 import { APP_VERSION_LABEL } from '@/config/version'
 import BigscreenPickerPopover from '@/components/base/BigscreenPickerPopover.vue'
+import MessageNotificationDrawer from '@/components/base/MessageNotificationDrawer.vue'
 import type { UserBigscreenItem } from '@/types/bigscreen'
 import { useUserStore } from '@/stores/user'
+import { useNotificationStore } from '@/stores/notification'
 import { useConfirm } from '@/composables/useConfirm'
 import {
   WORKBENCH_ITEM,
@@ -305,6 +314,7 @@ import {
 
 const router = useRouter()
 const userStore = useUserStore()
+const notificationStore = useNotificationStore()
 const { confirmLogout } = useConfirm()
 
 const adminAvatarUrl = computed(() => {
@@ -319,6 +329,18 @@ async function handleLogout() {
   userStore.logout()
   router.replace('/login')
 }
+
+// ===== 消息通知入口 =====
+const messageOpen = ref(false)
+
+// 登录后拉一次消息，初始化顶栏角标
+watch(
+  () => userStore.isLoggedIn,
+  (loggedIn) => {
+    if (loggedIn) notificationStore.syncAll()
+  },
+  { immediate: true },
+)
 
 // ===== 大屏入口（popover show 时触发，0/1/≥2 三态分流） =====
 const bigscreenLoading = ref(false)
@@ -883,6 +905,32 @@ if (typeof window !== 'undefined') {
 }
 .icon-btn:disabled { opacity: .5; cursor: wait; }
 .icon-btn-svg { width: 20px; height: 20px; }
+
+/* ===== 消息入口（按钮 + 未读角标） ===== */
+.msg-entry {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+/* 角标：跟随项目危险红令牌（浅色 #DC2626 / 暗色 #F44336），10px 白字，圆角胶囊 */
+.msg-badge {
+  position: absolute;
+  top: -3px;
+  right: -6px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 16px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
 .avatar {
   width: 38px; height: 38px; border-radius: 50%;
   background: var(--border-high); flex-shrink: 0;

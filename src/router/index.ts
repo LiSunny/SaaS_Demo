@@ -140,6 +140,17 @@ const router = createRouter({
       ],
     },
 
+    // ===== 消息通知（顶栏消息入口的唯一落点，不进侧栏菜单） =====
+    // 与「值守与应急›通知」（/unit/notifications 占位页）是两套功能，此处是全局消息中心
+    // 消息详情不占独立路由：顶栏点击 → 抽屉内切详情态；列表页点行 → 抽屉展示详情
+    {
+      path: '/notifications',
+      component: DefaultLayout,
+      children: [
+        { path: '', name: 'NotificationCenter', component: () => import('@/views/notification/NotificationList.vue') },
+      ],
+    },
+
     // ===== 流程管理/工单管理（原系统管理路由，路径不变） =====
     {
       path: '/system',

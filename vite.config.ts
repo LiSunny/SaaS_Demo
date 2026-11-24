@@ -71,6 +71,9 @@ export default defineConfig({
     // 在启动时一次性预构建，运行时不再触发。
     include: [
       'element-plus/es',
+      // 消息通知抽屉用到的 el-drawer：其 index.mjs 也需显式预构建，
+      // 否则首次打开抽屉会触发依赖重优化 + 全页 reload
+      'element-plus/es/components/drawer/index.mjs',
       ...['base', 'breadcrumb', 'button', 'card', 'cascader', 'checkbox', 'checkbox-group', 'col', 'collapse', 'collapse-item', 'date-picker', 'dialog', 'divider', 'drawer', 'dropdown', 'dropdown-item', 'dropdown-menu', 'form', 'form-item', 'icon', 'input', 'input-number', 'link', 'message', 'message-box', 'option', 'pagination', 'popover', 'radio', 'radio-group', 'row', 'select', 'skeleton', 'slider', 'step', 'steps', 'switch', 'tab-pane', 'table', 'table-column', 'tabs', 'tag', 'tooltip', 'tree', 'upload'].map(
         (name) => `element-plus/es/components/${name}/style/css`,
       ),
